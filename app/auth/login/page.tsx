@@ -8,7 +8,7 @@ import Link from 'next/link'
 import { LoginButtons } from '@/components/auth/LoginButtons'
 
 export const metadata: Metadata = {
-  title: 'เข้าสู่ระบบ — คูปองคุ้ม',
+  title: 'เข้าสู่ระบบ — แพลนพร้อม',
   description: 'เข้าสู่ระบบเพื่อบันทึกคูปองและตั้งการแจ้งเตือนราคา',
 }
 
@@ -29,17 +29,17 @@ export default async function LoginPage({ searchParams }: Props) {
           <Link href="/" className="inline-flex items-center gap-2 mb-2">
             <Image
               src="/logo.png"
-              alt="คูปองคุ้ม"
+              alt="แพลนพร้อม"
               width={40}
               height={40}
               className="h-10 w-10 rounded-xl object-contain"
               priority
             />
             <span className="text-2xl font-black tracking-tight text-black">
-              คูปองคุ้ม
+              แพลนพร้อม
             </span>
           </Link>
-          <p className="text-sm font-bold text-orange-600">คุ้มทุกการใช้จ่าย · ง่ายทุกการวางแผน</p>
+          <p className="text-sm font-bold text-orange-600">เช็คทุกขั้น แพลนทุกวัน ง่ายทุกงานวางแผน</p>
         </div>
 
         <div className="text-center mb-8">

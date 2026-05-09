@@ -18,18 +18,18 @@ const geistMono = Geist_Mono({
 const facebookAppId = process.env.NEXT_PUBLIC_FACEBOOK_APP_ID?.trim();
 
 export const metadata: Metadata = {
-  title: "คูปองคุ้ม — คูปองและเปรียบราคาสินค้า",
+  title: "แพลนพร้อม — เช็คลิสต์และแพลนเนอร์ PDF",
   description:
-    "ค้นหาคูปองและเปรียบราคาสินค้าออนไลน์จาก Shopee, Lazada และอื่น ๆ ได้ที่คูปองคุ้ม",
+    "เช็คลิสต์และแพลนเนอร์ PDF · ดาวน์โหลดทันที · ใช้ซ้ำตลอดกาล · เช็คทุกขั้น แพลนทุกวัน",
   icons: {
     icon: "/favicon.ico",
   },
   manifest: "/manifest.json",
   openGraph: {
-    title: "คูปองคุ้ม",
-    description: "ค้นหาคูปองและเปรียบราคาสินค้าออนไลน์",
-    url: "https://couponkum.com",
-    siteName: "คูปองคุ้ม",
+    title: "แพลนพร้อม",
+    description: "เช็คลิสต์และแพลนเนอร์ PDF พร้อมใช้ · ดาวน์โหลดทันที",
+    url: "https://planprom.com",
+    siteName: "แพลนพร้อม",
     locale: "th_TH",
     type: "website",
   },

@@ -43,7 +43,7 @@ export function AdminLoginForm() {
     <main className="flex min-h-screen items-center justify-center bg-neutral-50">
       <div className="w-full max-w-sm rounded-2xl border border-neutral-200 bg-white p-8">
         <h1 className="text-xl font-black text-black">Admin Login</h1>
-        <p className="mt-1 text-xs text-neutral-500">คูปองคุ้ม Admin Area</p>
+        <p className="mt-1 text-xs text-neutral-500">แพลนพร้อม Admin Area</p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           {resetSuccess && (

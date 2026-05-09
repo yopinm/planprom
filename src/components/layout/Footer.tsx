@@ -10,7 +10,7 @@ export function Footer(): ReactElement {
     <footer className="mt-auto border-t border-orange-100 bg-white py-8 text-center text-[11px] leading-6 text-neutral-400">
       <div className="mx-auto max-w-2xl px-4 sm:px-6">
         <p className="font-semibold text-neutral-500">
-          คูปองคุ้ม — คุ้มทุกการใช้จ่าย · ง่ายทุกการวางแผน
+          แพลนพร้อม — เช็คทุกขั้น แพลนทุกวัน ง่ายทุกงานวางแผน
         </p>
 
         {/* Social contact links */}
@@ -63,7 +63,7 @@ export function Footer(): ReactElement {
           <Link href="/terms" className="underline underline-offset-2 hover:text-orange-600">Terms</Link>
         </p>
         <p className="mt-4">
-          © {new Date().getFullYear()} คูปองคุ้ม. All rights reserved.
+          © {new Date().getFullYear()} แพลนพร้อม. All rights reserved.
         </p>
       </div>
     </footer>

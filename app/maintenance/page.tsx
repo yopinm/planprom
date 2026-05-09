@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import type { ReactElement } from 'react'
 
 export const metadata: Metadata = {
-  title: 'ระบบกำลังปรับปรุง — คูปองคุ้ม',
+  title: 'ระบบกำลังปรับปรุง — แพลนพร้อม',
   robots: { index: false, follow: false },
 }
 
@@ -31,7 +31,7 @@ export default async function MaintenancePage({ searchParams }: PageProps): Prom
           href="/"
           className="inline-flex w-fit rounded-full bg-orange-600 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white"
         >
-          คูปองคุ้ม
+          แพลนพร้อม
         </Link>
 
         <div className="mt-6 rounded-4xl border border-orange-200 bg-white p-7 shadow-sm sm:p-10">

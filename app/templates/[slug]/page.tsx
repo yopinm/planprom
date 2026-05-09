@@ -15,9 +15,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const [tmpl] = await db<{ title: string; description: string }[]>`
     SELECT title, description FROM templates WHERE slug = ${slug} AND status = 'published' LIMIT 1
   `.catch(() => [])
-  if (!tmpl) return { title: 'Template — คูปองคุ้ม' }
+  if (!tmpl) return { title: 'Template — แพลนพร้อม' }
   return {
-    title: `${tmpl.title} — คูปองคุ้ม`,
+    title: `${tmpl.title} — แพลนพร้อม`,
     description: tmpl.description,
   }
 }

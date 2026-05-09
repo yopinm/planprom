@@ -18,7 +18,7 @@ import {
 import { fetchPostbackFailRate } from "@/lib/postback-fail-rate";
 
 export const metadata: Metadata = {
-  title: "Admin — คูปองคุ้ม",
+  title: "Admin — แพลนพร้อม",
   robots: { index: false, follow: false },
 };
 
@@ -235,7 +235,7 @@ export default async function AdminPage() {
           <div>
             <h1 className="text-3xl font-black text-black tracking-tight">Admin Dashboard</h1>
             <p className="mt-1 text-sm font-bold text-neutral-400 uppercase tracking-widest">
-              คูปองคุ้ม · V15
+              แพลนพร้อม · V15
             </p>
           </div>
           <Link

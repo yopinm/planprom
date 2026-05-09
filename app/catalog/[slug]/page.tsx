@@ -34,9 +34,9 @@ async function fetchTemplates(categoryId: string): Promise<Template[]> {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const cat = await fetchCategory(slug)
-  if (!cat) return { title: 'หมวดหมู่ — คูปองคุ้ม' }
+  if (!cat) return { title: 'หมวดหมู่ — แพลนพร้อม' }
   return {
-    title: `${cat.emoji ?? ''} ${cat.name} — เทมเพลต PDF | คูปองคุ้ม`,
+    title: `${cat.emoji ?? ''} ${cat.name} — เทมเพลต PDF | แพลนพร้อม`,
     description: `เทมเพลต PDF หมวด${cat.name} พร้อมใช้ · ดาวน์โหลดทันที · ใช้ซ้ำตลอดกาล`,
   }
 }

@@ -184,9 +184,9 @@ export function buildWebSiteJsonLd(): object {
   return {
     '@context': 'https://schema.org',
     '@type':    'WebSite',
-    name:       'คูปองคุ้ม',
+    name:       'แพลนพร้อม',
     url:        BASE_URL,
-    description: 'ค้นหาคูปองส่วนลดและเปรียบราคาสินค้าจาก Shopee, Lazada',
+    description: 'เช็คลิสต์และแพลนเนอร์ PDF · ดาวน์โหลดทันที · ใช้ซ้ำตลอดกาล',
     inLanguage: 'th',
     potentialAction: {
       '@type':       'SearchAction',

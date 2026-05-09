@@ -9,7 +9,7 @@ import type { TocItem } from '@/components/templates/TocPreview'
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'เทมเพลต PDF ทั้งหมด — คูปองคุ้ม',
+  title: 'เทมเพลต PDF ทั้งหมด — แพลนพร้อม',
   description: 'เทมเพลต PDF พร้อมใช้ · วางแผนการเงิน ธุรกิจ ครอบครัว อาชีพ · ฿20–100 ดาวน์โหลดทันที',
 }
 

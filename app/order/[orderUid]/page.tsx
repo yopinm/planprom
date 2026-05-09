@@ -13,7 +13,7 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { orderUid } = await params
   return {
-    title:  `Order ${orderUid} — คูปองคุ้ม`,
+    title:  `Order ${orderUid} — แพลนพร้อม`,
     robots: 'noindex',
   }
 }

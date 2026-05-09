@@ -16,15 +16,15 @@ import { RecoveryHashRedirect } from '@/components/auth/RecoveryHashRedirect'
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'คูปองคุ้ม — Template PDF เช็คลิสต์ · แพลนเนอร์',
+  title: 'แพลนพร้อม — Template PDF เช็คลิสต์ · แพลนเนอร์',
   description:
     'ชีวิตง่ายขึ้นด้วยเช็คลิสต์และแพลนเนอร์ · ชิ้นแรก ฿20 · ชิ้นถัดไป ฿8 · ตั้งแต่ชิ้นที่ 6 ฿7/ชิ้น · ดาวน์โหลดทันที · ใช้ซ้ำตลอดกาล',
   keywords: ['template pdf', 'planner', 'checklist', 'เช็คลิสต์', 'แพลนเนอร์', 'คูปอง'],
   openGraph: {
-    title: 'คูปองคุ้ม — เช็คลิสต์ + แพลนเนอร์ PDF พร้อมใช้',
+    title: 'แพลนพร้อม — เช็คลิสต์ + แพลนเนอร์ PDF พร้อมใช้',
     description: 'ชีวิตง่ายขึ้นด้วยเช็คลิสต์และแพลนเนอร์ · ชิ้นแรก ฿20 · ยิ่งซื้อยิ่งคุ้ม',
-    url: 'https://couponkum.com',
-    siteName: 'คูปองคุ้ม',
+    url: 'https://planprom.com',
+    siteName: 'แพลนพร้อม',
     locale: 'th_TH',
     type: 'website',
   },

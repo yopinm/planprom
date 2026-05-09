@@ -56,8 +56,8 @@ export default function DownloadClient({ token, orderNumber, title, templateSlug
     }
   }
 
-  const shareText = encodeURIComponent(`ซื้อ ${title} จาก คูปองคุ้ม — คุ้มทุกการใช้จ่าย · ง่ายทุกการวางแผน`)
-  const shareUrl  = encodeURIComponent(`https://couponkum.com/templates/${templateSlug}`)
+  const shareText = encodeURIComponent(`ซื้อ ${title} จาก แพลนพร้อม — เช็คทุกขั้น แพลนทุกวัน ง่ายทุกงานวางแผน`)
+  const shareUrl  = encodeURIComponent(`https://planprom.com/templates/${templateSlug}`)
   const lineShareUrl = `https://social-plugins.line.me/lineit/share?url=${shareUrl}&text=${shareText}`
 
   return (
