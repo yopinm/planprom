@@ -22,7 +22,9 @@ export const metadata: Metadata = {
   description:
     "เช็คลิสต์และแพลนเนอร์ PDF · ดาวน์โหลดทันที · ใช้ซ้ำตลอดกาล · เช็คทุกขั้น แพลนทุกวัน",
   icons: {
-    icon: "/favicon.ico",
+    icon: [{ url: "/favicon.png", type: "image/png" }],
+    shortcut: "/favicon.png",
+    apple: "/favicon.png",
   },
   manifest: "/manifest.json",
   openGraph: {
