@@ -84,17 +84,17 @@ npx tsc --noEmit && npm run lint && npm run test
 
 git add -A
 git commit -m "type(task-id): short summary"
-git push origin develop
+git push origin main
 ```
 
 ## Deploy (VPS — ทำทุกครั้งหลัง push)
 
 ```bash
-ssh root@103.52.109.85 "cd /var/www/couponkum && git pull origin develop"
-ssh root@103.52.109.85 "cd /var/www/couponkum && source .env.local && npm run build"
-ssh root@103.52.109.85 "cd /var/www/couponkum && cp -r .next/static .next/standalone/.next/static && cp -r public .next/standalone/public"
+ssh root@103.52.109.85 "cd /var/www/planprom && git pull origin main"
+ssh root@103.52.109.85 "cd /var/www/planprom && npm run build"
+ssh root@103.52.109.85 "cd /var/www/planprom && cp -r .next/static .next/standalone/.next/static && cp -r public .next/standalone/public && cp .env.local .next/standalone/.env.local"
 ssh root@103.52.109.85 "pm2 reload ecosystem.config.js --update-env"
-curl -s -o /dev/null -w '%{http_code}' https://couponkum.com/api/health
+curl -s -o /dev/null -w '%{http_code}' https://planprom.com/
 # ต้องได้ 200
 ```
 
