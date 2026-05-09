@@ -29,6 +29,7 @@
 | **Doc Sync** | task เสร็จ → อัพเดต PRD.md + `core/planprom.md` เสมอ |
 | **Blockers** | IA approved ✅ (Affiliate ID 1082367) · AT Datafeed ⏳ · Shopee API ⏳ · Lazada pool=49 fixed |
 | **Next task** | **DC-8** Engine Content Edit + Revision History (table `template_revisions` · /revise · /revisions pages) |
+| **Last session** | **Session 33 (2026-05-09)** — Payment UAT fix: download URL domain, Omise webhook, LINE brand text, cart clear bug |
 | **ห้าม** | ไม่แตะ Later task ขณะที่ Now ยังค้างอยู่ · ไม่แตะ secrets โดยตรง · ไม่ทำให้ revenue channel หายไประหว่าง pivot |
 
 ---
@@ -176,6 +177,7 @@
 | **Session 30. DC-ENGINE Series** | DC-4/5/6/7 ✅ Live · Checklist Engine (5 sections) + Planner Engine (4 pillars) · auto-generate docCode CK/TP-YYYYMMDD-XXXX · หมวดหมู่ auto-fill · ผู้จัดทำ blank · footer ไม่แสดง docCode · Step 3 engine mode ซ่อน desc/pages/docType | ✅ **Live 2026-05-09** |
 | **Session 30. Pricing Callout** | /templates section ล่าง เปลี่ยนจาก pack buttons (฿20/50/100) → marginal pricing callout (฿20→฿8→฿7) พร้อม benefit line | ✅ **Live 2026-05-09** |
 | **Session 32. Blog + Rebrand + Deploy (2026-05-09)** | Blog slug 404 fix (force-dynamic + resolvePost + decodeURIComponent) · Blog Admin CRUD (/admin/seo: upload .docx, pin, publish, delete) · Header rebrand แพลนโปร→แพลนพร้อม + slogan ใหม่ · ลบ กระเป๋าของฉัน ออกจาก nav · ลบ LINE OA card + affiliate CTA จาก homepage · Replace "คูปองคุ้ม"→"แพลนพร้อม" ทุก page (13 files) · Deploy fixes: PM2 fork mode, PORT=3001, cp .env.local to standalone | ✅ **Live 2026-05-09** |
+| **Session 33. Payment UAT Fixes (2026-05-09)** | Download URL → planprom.com · Omise webhook route สร้างใหม่ · LINE brand text ทั้ง 4 ไฟล์ · Cart clear bug (webhook-first path) · VPS env NEXT_PUBLIC_SITE_URL=planprom.com | ✅ **Live · UAT ผ่าน** |
 | **DC-8. Engine Revision System** | `template_revisions` table · /revise page (edit+re-generate) · /revisions history page · 1 file policy · docCode preserved | 🔵 **Next** |
 
 **✅ J18 UAT ผ่านครบ (2026-05-08 Session 28)** — payment flow ถูก lock ห้ามแก้ไขจนกว่าแอดมินจะสั่ง

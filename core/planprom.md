@@ -254,6 +254,25 @@
 
 ---
 
+## Session 33 Changes (2026-05-09) — Payment UAT Fixes
+
+| # | Change | Status |
+|---|---|---|
+| 1 | `app/order/[orderUid]/page.tsx` — SITE_URL fallback `couponkum.com` → `planprom.com` · VPS `.env.local` `NEXT_PUBLIC_SITE_URL=https://planprom.com` (เดิมตั้งผิด) | ✅ Live |
+| 2 | สร้าง `app/api/webhooks/omise/route.ts` — GET ping 200 · POST handler: `type=cart` (issue tokens + notify owner) · `type=template` (single order) · `type=pack` (pack credits) · brand text แพลนพร้อม | ✅ Live |
+| 3 | LINE notifications 4 ไฟล์ — "คูปองคุ้ม" → "แพลนพร้อม" (`orders/claim-paid` · `checkout/claim-paid` · `checkout/status`) | ✅ Live |
+| 4 | `checkout/[orderUid]/status/route.ts` — เพิ่ม cart clear ใน `order.status === 'paid'` short-circuit path (bug: webhook fire ก่อน → status poll เจอ paid แล้ว skip clear cart) | ✅ Live |
+| 5 | Omise webhook URL → `https://planprom.com/api/webhooks/omise` (owner แก้ใน Omise dashboard) | ✅ Done |
+| 6 | LINE OA ชื่อ + รูปโปรไฟล์ + LINE Developer Provider ชื่อ → แพลนพร้อม (owner แก้ใน LINE console) | ✅ Done |
+
+**UAT ผ่านครบ (owner confirm 2026-05-09):**
+- Download URL → `planprom.com/api/download/[token]` ✅
+- Omise webhook → `planprom.com/api/webhooks/omise` 200 ✅
+- LINE notification ข้อความ "แพลนพร้อม" ✅
+- Cart ถูกเคลียร์หลังจ่ายเงิน ✅
+
+---
+
 ## Session 32 Changes (2026-05-09) — Blog Fix + Rebrand + Blog Admin + Deploy
 
 | # | Change | Status |
@@ -1349,5 +1368,5 @@ Next priorities:
 
 ---
 
-_Last updated: 2026-05-09 (Session 32) · Domain: planprom.com live · SSL + Email routing ✅ · App: same VPS port 3000 · Next: middleware / archive branch / coupon separation_
+_Last updated: 2026-05-09 (Session 33) · Domain: planprom.com live · SSL + Email routing ✅ · App: VPS port 3001 fork mode · Next: DC-8 Engine Revision System_
 _Owner: yopinm@gmail.com · LINE: yopinm · PromptPay: 0948859962_
