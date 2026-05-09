@@ -138,12 +138,7 @@ export default async function HomePage(): Promise<ReactElement> {
               >
                 เริ่มเลือกเทมเพลต →
               </a>
-              <Link
-                href="/affiliate"
-                className="flex h-10 w-full items-center justify-center rounded-2xl border border-neutral-200 bg-white text-sm font-semibold text-neutral-500 hover:bg-neutral-50"
-              >
-                หรือดูคูปองที่ใช้ได้วันนี้ →
-              </Link>
+
             </div>
 
             <p className="mt-4 text-xs text-neutral-400">
