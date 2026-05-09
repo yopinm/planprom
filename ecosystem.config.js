@@ -11,8 +11,8 @@ module.exports = {
       script: ".next/standalone/server.js",
       cwd: "/var/www/planprom",
 
-      instances: 2,
-      exec_mode: "cluster",
+      instances: 1,
+      exec_mode: "fork",
 
       node_args: "--max-old-space-size=600",
 
