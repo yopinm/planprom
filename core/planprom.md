@@ -18,7 +18,7 @@
 
 | # | Test Case | Expected | Status |
 |---|---|---|---|
-| A1 | เปิด couponkum.com | Badge "คุ้มทุกการใช้จ่าย · ง่ายทุกการวางแผน" แสดง | ⏳ |
+| A1 | เปิด planprom.com | Badge "ยิ่งซื้อมาก ยิ่งคุ้ม" · 4-step flow · Tier pricing card แสดง | ⏳ |
 | A2 | Hero H1 | "4 ขั้นตอน กดเดียวจ่ายจบ" แสดงถูกต้อง | ⏳ |
 | A3 | Stepper 4 ขั้นตอน | เลือกแพ็ก → เลือก Template → เพิ่มเพื่อน LINE → จ่าย PromptPay | ⏳ |
 | A4 | Pack cards แนวนอน | 3 card (฿20/฿50/฿100) อยู่บนแถวเดียว · ฿50 มี badge "ยอดนิยม" + scaled | ⏳ |
@@ -254,6 +254,22 @@
 
 ---
 
+## Session 32 Changes (2026-05-09) — Blog Fix + Rebrand + Blog Admin + Deploy
+
+| # | Change | Status |
+|---|---|---|
+| 1 | Blog slug 404 fix — `force-dynamic` + `resolvePost()` + `decodeURIComponent()` fallback (Next.js 16 Turbopack encodes Thai slugs during SSG) | ✅ Live |
+| 2 | Blog Admin CRUD — `/admin/seo` rewritten: upload .docx (mammoth parse → INSERT blog_posts), pin toggle, publish toggle, delete (with confirm) | ✅ Live |
+| 3 | Header rebrand — "แพลนโปร" → "แพลนพร้อม" · slogan "เช็คทุกขั้น แพลนทุกวัน ง่ายทุกงานวางแผน" | ✅ Live |
+| 4 | Nav cleanup — ลบ "กระเป๋าของฉัน" nav item ออก (wallet → redirect /orders ผ่าน next.config.ts) | ✅ Live |
+| 5 | Homepage — ลบ LINE OA add-friend card + ลบ "หรือดูคูปองที่ใช้ได้วันนี้ →" CTA | ✅ Live |
+| 6 | Full rebrand "คูปองคุ้ม" → "แพลนพร้อม" — 13 files: layout.tsx, page.tsx, templates pages, catalog pages, order pages, Footer, login pages, admin pages, download share text, json-ld | ✅ Live |
+| 7 | Deploy fix — PM2 cluster → fork mode (standalone server.js ไม่รองรับ cluster) · PORT=3001 (match Nginx proxy) · `cp .env.local .next/standalone/.env.local` (standalone อ่าน env จาก dir ตัวเอง) | ✅ Live |
+
+**สถานะ site:** planprom.com ✅ · homepage 200 · templates 200 · blog 200
+
+---
+
 ## 🔬 J12 Troubleshooting Log — LINE OAuth "Error getting user profile from external provider"
 
 > **⚠️ อ่านก่อนแก้ทุกครั้ง** — บันทึกนี้เก็บทุก fix ที่ลองแล้ว เพื่อไม่ให้ทำซ้ำ
@@ -269,7 +285,7 @@ error_description=Error getting user profile from external provider
 
 URL สุดท้ายในเบราว์เซอร์:
 ```
-https://couponkum.com/auth/login?error=auth_failed
+https://planprom.com/auth/login?error=auth_failed
   #error=server_error&error_code=unexpected_failure
   &error_description=Error+getting+user+profile+from+external+provider&sb=
 ```
