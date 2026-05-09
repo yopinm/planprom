@@ -4,7 +4,7 @@ import type { Metadata } from 'next'
 import { db } from '@/lib/db'
 import OrderDownloads from './OrderDownloads'
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://couponkum.com'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://planprom.com'
 
 interface Props {
   params: Promise<{ orderUid: string }>
