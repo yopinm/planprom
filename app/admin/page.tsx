@@ -8,11 +8,8 @@ import { requireAdminSession } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
 import { getLatestTrends } from "@/lib/tiktok-trend-discovery";
 import { getPendingTipsCount } from "@/lib/ugc";
-import type { Coupon, TikTokTrend } from "@/types";
+import type { TikTokTrend } from "@/types";
 import {
-  addCoupon,
-  toggleCouponActiveAction,
-  deleteCouponAction,
   syncTikTokTrendsAction,
 } from "./actions";
 import { fetchPostbackFailRate } from "@/lib/postback-fail-rate";
@@ -56,13 +53,6 @@ async function fetchTemplateStats(): Promise<{
   } catch {
     return { published: 0, draft: 0, ordersToday: 0, revenueToday: 0, pendingDownloads: 0 }
   }
-}
-
-// ── V14 Coupon + site fetchers ────────────────────────────────────────────────
-async function fetchCoupons(): Promise<Coupon[]> {
-  try {
-    return await db<Coupon[]>`SELECT * FROM coupons ORDER BY created_at DESC`
-  } catch { return [] }
 }
 
 async function fetchPendingPostsCount(): Promise<number> {
@@ -176,24 +166,12 @@ async function fetchTikTokTrends(): Promise<TikTokTrend[]> {
   return getLatestTrends(5)
 }
 
-// ── Label maps ────────────────────────────────────────────────────────────────
-const TIER_LABEL: Record<number, string> = {
-  1: "T1 Platform", 2: "T2 Shop", 3: "T3 Shipping", 4: "T4 Cashback",
-}
-const TYPE_COLOR: Record<string, string> = {
-  fixed: "bg-blue-100 text-blue-700",
-  percent: "bg-green-100 text-green-700",
-  shipping: "bg-sky-100 text-sky-700",
-  cashback: "bg-purple-100 text-purple-700",
-}
-
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default async function AdminPage() {
   await requireAdminSession("/admin");
 
   const [
     templateStats,
-    coupons,
     pendingPosts,
     brokenLinks,
     flaggedBots,
@@ -208,7 +186,6 @@ export default async function AdminPage() {
     topDeal,
   ] = await Promise.all([
     fetchTemplateStats(),
-    fetchCoupons(),
     fetchPendingPostsCount(),
     fetchBrokenLinksCount(),
     fetchFlaggedBotCount(),
@@ -224,7 +201,6 @@ export default async function AdminPage() {
   ]);
 
   const conversionRate = clicksToday > 0 ? (conversionsToday / clicksToday) * 100 : 0;
-  const activeCoupons = coupons.filter((c) => c.is_active).length;
 
   return (
     <main className="min-h-screen bg-neutral-50 pb-20">
@@ -485,7 +461,7 @@ export default async function AdminPage() {
                 { href: "/admin/shopee-import", icon: "📥", title: "Shopee Import", desc: "นำเข้าสินค้า manual form หรือ CSV" },
                 { href: "/admin/deal-queue", icon: "📋", title: "Deal Queue", desc: "เปิด/ปิดใช้งานสินค้า · platform/source/age" },
                 { href: "/admin/bookmarklet", icon: "BM", title: "Shopee Bookmarklet", desc: "นำเข้าสินค้า Shopee ผ่าน browser" },
-                { href: "/admin#coupons", icon: "🏷️", title: "จัดการคูปอง", desc: `เพิ่ม / แก้ไข / ปิดใช้งาน · ${coupons.length} รายการ` },
+                { href: "/admin#coupons", icon: "🏷️", title: "จัดการคูปอง", desc: "เพิ่ม / แก้ไข / ปิดใช้งาน" },
               ].map((item) => (
                 <Link key={item.href} href={item.href} className="flex items-start gap-4 rounded-3xl border border-neutral-200 bg-white px-6 py-5 transition hover:border-black hover:shadow-md">
                   <span className="text-2xl font-black">{item.icon}</span>
@@ -567,25 +543,6 @@ export default async function AdminPage() {
           </section>
           </>}
 
-          <section>
-            <p className="mb-3 text-[11px] font-black uppercase tracking-wider text-neutral-400">System</p>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {[
-                { href: "/admin/control", icon: "CTRL", title: "Control Center", desc: "Feature flags · เปิด-ปิดระบบ · audit log" },
-                { href: "/admin/security", icon: "SEC", iconColor: "text-red-500", title: "Security Insights", desc: "สัญญาณ Bot และการโจมตี" },
-                { href: "/admin/db-monitor", icon: "DB", iconColor: "text-indigo-600", title: "DB Growth Monitor", desc: "ขนาด table · retention risk · thresholds" },
-                { href: "/admin/preflight", icon: "🔍", title: "DB Preflight", desc: "ตรวจสอบ schema ก่อน migrate DB" },
-              ].map((item) => (
-                <Link key={item.href} href={item.href} className="flex items-start gap-4 rounded-3xl border border-neutral-200 bg-white px-6 py-5 transition hover:border-black hover:shadow-md">
-                  <span className={`text-2xl font-black ${'iconColor' in item ? item.iconColor : ''}`}>{item.icon}</span>
-                  <div>
-                    <p className="font-black text-black">{item.title}</p>
-                    <p className="mt-1 text-xs text-neutral-500">{item.desc}</p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </section>
         </div>
 
         {/* TikTok Trends — HIDDEN ADMIN-CLEAN-2 ลบ 2026-05-17 */}
@@ -624,133 +581,6 @@ export default async function AdminPage() {
             )}
           </div>
         </section>}
-
-        {/* Coupon Management */}
-        <section id="coupons" className="mt-10 rounded-4xl border border-neutral-200 bg-white p-8 shadow-sm">
-          <h2 className="text-xl font-black text-black">จัดการคูปอง</h2>
-          <p className="mt-1 text-sm text-neutral-500">เพิ่มคูปองใหม่เข้าสู่ระบบ เพื่อให้คำนวณโค้ดซ้อนได้</p>
-
-          <form action={addCoupon} className="mt-8 grid grid-cols-2 gap-5">
-            <div className="col-span-2">
-              <label className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-neutral-400">ชื่อคูปอง *</label>
-              <input name="title" required placeholder="เช่น Shopee ลด 10% ขั้นต่ำ 500"
-                className="w-full rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3.5 text-sm outline-none transition focus:border-orange-500 focus:bg-white" />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-neutral-400">โค้ดส่วนลด</label>
-              <input name="code" placeholder="เช่น SHOPEE10"
-                className="w-full rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3.5 font-mono text-sm outline-none transition focus:border-orange-500 focus:bg-white" />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-neutral-400">Platform *</label>
-              <select name="platform" required className="w-full rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3.5 text-sm outline-none transition focus:border-orange-500 focus:bg-white">
-                <option value="all">ทุก Platform</option>
-                <option value="shopee">Shopee</option>
-                <option value="lazada">Lazada</option>
-              </select>
-            </div>
-            <div>
-              <label className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-neutral-400">Discount Tier *</label>
-              <select name="tier" required className="w-full rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3.5 text-sm outline-none transition focus:border-orange-500 focus:bg-white">
-                <option value="1">Tier 1 — Platform (คูปองแอป)</option>
-                <option value="2">Tier 2 — Shop (คูปองร้าน)</option>
-                <option value="3">Tier 3 — Shipping (ส่งฟรี)</option>
-                <option value="4">Tier 4 — Cashback (รับเงินคืน)</option>
-              </select>
-            </div>
-            <div>
-              <label className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-neutral-400">ประเภทส่วนลด *</label>
-              <select name="type" required className="w-full rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3.5 text-sm outline-none transition focus:border-orange-500 focus:bg-white">
-                <option value="percent">Percent (%)</option>
-                <option value="fixed">Fixed Amount (฿)</option>
-                <option value="shipping">Shipping (ส่งฟรี)</option>
-                <option value="cashback">Cashback (Coin)</option>
-              </select>
-            </div>
-            <div>
-              <label className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-neutral-400">มูลค่าส่วนลด *</label>
-              <input name="discount_value" type="number" required min="0" step="0.01" placeholder="10"
-                className="w-full rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3.5 text-sm font-bold text-orange-600 outline-none transition focus:border-orange-500 focus:bg-white" />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-neutral-400">ลดสูงสุด (฿)</label>
-              <input name="max_discount" type="number" min="0" placeholder="เช่น 200"
-                className="w-full rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3.5 text-sm font-bold outline-none transition focus:border-orange-500 focus:bg-white" />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-neutral-400">Min spend</label>
-              <input name="min_spend" type="number" min="0" defaultValue="0" placeholder="500"
-                className="w-full rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3.5 text-sm font-bold outline-none transition focus:border-orange-500 focus:bg-white" />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-neutral-400">Expire at</label>
-              <input name="expire_at" type="datetime-local"
-                className="w-full rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3.5 text-sm outline-none transition focus:border-orange-500 focus:bg-white" />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-neutral-400">User Segment</label>
-              <select name="user_segment" defaultValue="all" className="w-full rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3.5 text-sm outline-none transition focus:border-orange-500 focus:bg-white">
-                <option value="all">All users</option>
-                <option value="new_user">New users</option>
-                <option value="member">Members</option>
-                <option value="premium">Premium</option>
-              </select>
-            </div>
-            <div className="flex items-end">
-              <label className="flex min-h-12.5 w-full items-center gap-3 rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm font-bold text-neutral-700">
-                <input name="can_stack" type="checkbox" value="true" defaultChecked />
-                <span>Can stack with other coupons</span>
-              </label>
-            </div>
-            <div className="col-span-2 pt-4">
-              <button type="submit" className="w-full rounded-2xl bg-black px-8 py-4 text-base font-black text-white shadow-lg transition hover:bg-orange-600 active:scale-95">
-                บันทึกคูปองใหม่
-              </button>
-            </div>
-          </form>
-        </section>
-
-        {/* Coupon List */}
-        <section className="mt-10">
-          <h2 className="px-2 text-xl font-black text-black">คูปองในระบบ ({coupons.length})</h2>
-          <div className="mt-6 space-y-3">
-            {coupons.map((coupon) => (
-              <div key={coupon.id} className={`flex items-center justify-between gap-4 rounded-3xl border bg-white px-6 py-5 shadow-sm transition hover:shadow-md ${coupon.is_active ? "border-neutral-100" : "border-neutral-50 bg-neutral-50 opacity-60"}`}>
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-base font-black text-black">{coupon.title}</span>
-                    {coupon.code && (
-                      <span className="rounded-lg border border-dashed border-orange-400 bg-orange-50 px-2.5 py-1 text-xs font-black uppercase tracking-tighter text-orange-600">
-                        {coupon.code}
-                      </span>
-                    )}
-                  </div>
-                  <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-bold uppercase tracking-wider">
-                    <span className={`rounded-full px-2 py-0.5 ${TYPE_COLOR[coupon.type] ?? "bg-neutral-100 text-neutral-600"}`}>{coupon.type}</span>
-                    <span className="text-neutral-400">{TIER_LABEL[coupon.tier] ?? `Tier ${coupon.tier}`}</span>
-                    <span className="text-neutral-400">{coupon.platform}</span>
-                    {coupon.expire_at && (
-                      <span className="text-red-400">EXP: {new Date(coupon.expire_at).toLocaleDateString("th-TH")}</span>
-                    )}
-                  </div>
-                </div>
-                <div className="flex shrink-0 items-center gap-2">
-                  <form action={toggleCouponActiveAction}>
-                    <input type="hidden" name="coupon_id" value={coupon.id} />
-                    <input type="hidden" name="is_active" value={String(!coupon.is_active)} />
-                    <button type="submit" className={`rounded-xl px-4 py-2 text-xs font-black transition ${coupon.is_active ? "bg-green-50 text-green-700 hover:bg-orange-50 hover:text-orange-600" : "bg-neutral-100 text-neutral-400 hover:bg-green-50 hover:text-green-700"}`}>
-                      {coupon.is_active ? "Active" : "Offline"}
-                    </button>
-                  </form>
-                  <form action={deleteCouponAction}>
-                    <input type="hidden" name="coupon_id" value={coupon.id} />
-                    <button type="submit" className="rounded-xl px-3 py-2 text-xs font-black text-neutral-300 transition hover:bg-red-50 hover:text-red-600">ลบ</button>
-                  </form>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
 
       </div>
     </main>

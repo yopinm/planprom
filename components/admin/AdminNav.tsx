@@ -4,10 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
 
-// ADMIN-CLEAN-2: ลบ core/fb_manual/fb_page groups ออกถาวร 2026-05-17
-// เหลือเฉพาะ template + system
-
-type GroupKey = 'template' | 'system'
+type GroupKey = 'template' | 'report'
 
 interface NavLink {
   label: string
@@ -36,16 +33,11 @@ const GROUPS: Record<GroupKey, NavGroup> = {
       { label: '📝 Blog SEO',    path: '/admin/seo',                pattern: /^\/admin\/seo/ },
     ],
   },
-  system: {
-    label: 'System',
-    sublabel: 'Infra · DB',
-    color: 'bg-neutral-800',
-    links: [
-      { label: 'Control',   path: '/admin/control',   pattern: /^\/admin\/control/ },
-      { label: 'Security',  path: '/admin/security',  pattern: /^\/admin\/security/ },
-      { label: 'DB Monitor',path: '/admin/db-monitor',pattern: /^\/admin\/db-monitor/ },
-      { label: 'Preflight', path: '/admin/preflight', pattern: /^\/admin\/preflight/ },
-    ],
+  report: {
+    label: 'Report',
+    sublabel: 'Analytics · Logs',
+    color: 'bg-indigo-600',
+    links: [],
   },
 }
 
