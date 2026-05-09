@@ -9,7 +9,7 @@ import { usePathname, useRouter } from 'next/navigation'
 const NAV_ITEMS = [
   { label: 'หน้าแรก', href: '/' },
   { label: 'เทมเพลตทั้งหมด', href: '/templates' },
-  { label: 'กระเป๋าของฉัน', href: '/wallet' },
+  { label: 'กระเป๋าของฉัน', href: '/orders' },
   { label: 'บทความเกี่ยวกับเทมเพลต', href: '/blog' },
   { label: 'Planner vs Checklist ต่างกันอย่างไร?', href: '/blog/planner-กับ-checklist-ต่างกันยังไง' },
   { label: 'คำถามที่พบบ่อย', href: '/blog/คำถามที่พบบ่อย-faq' },
@@ -82,7 +82,7 @@ export function Header(): ReactElement {
           <nav className="flex items-center gap-4 sm:gap-[18px]">
             {NAV_ITEMS.map(({ label, href }) => {
               const isActive = pathname === href
-              const isWallet = href === '/wallet'
+              const isWallet = href === '/orders'
               return (
                 <Link
                   key={href}

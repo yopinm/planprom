@@ -5,7 +5,7 @@ import type { Metadata } from 'next'
 import { createServerClient } from '@/lib/supabase/server'
 import { db } from '@/lib/db'
 
-export const metadata: Metadata = { title: 'คำสั่งซื้อของฉัน — คูปองคุ้ม' }
+export const metadata: Metadata = { title: 'คำสั่งซื้อของฉัน — Planprom' }
 export const dynamic = 'force-dynamic'
 
 type MyOrder = {

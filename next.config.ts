@@ -62,8 +62,8 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      { source: '/wallet', destination: '/templates', permanent: false },
-      { source: '/wallet/:path*', destination: '/templates', permanent: false },
+      { source: '/wallet', destination: '/orders', permanent: false },
+      { source: '/wallet/:path*', destination: '/orders', permanent: false },
     ]
   },
   async headers() {
