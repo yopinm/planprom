@@ -1,21 +1,25 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { getAllSlugs, getPostBySlug } from '@/lib/blog'
+import { getPostBySlug } from '@/lib/blog'
+import type { BlogPost } from '@/lib/blog'
 import { getDbPostBySlug } from '@/lib/blog-db'
 import { renderMarkdown } from '@/lib/markdown'
 
-export const revalidate = 3600
+export const dynamic = 'force-dynamic'
 
-export async function generateStaticParams() {
-  return getAllSlugs().map(slug => ({ slug }))
+async function resolvePost(slug: string): Promise<BlogPost | null> {
+  const decoded = (() => { try { return decodeURIComponent(slug) } catch { return slug } })()
+  const dbPost = await getDbPostBySlug(decoded) ?? await getDbPostBySlug(slug)
+  if (dbPost) return dbPost
+  return getPostBySlug(decoded) ?? getPostBySlug(slug) ?? null
 }
 
 export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> },
 ): Promise<Metadata> {
   const { slug } = await params
-  const post = (await getDbPostBySlug(slug)) ?? getPostBySlug(slug)
+  const post = await resolvePost(slug)
   if (!post) return {}
   return {
     title: `${post.title} · Planprom`,
@@ -35,7 +39,7 @@ export default async function BlogPostPage(
   { params }: { params: Promise<{ slug: string }> },
 ) {
   const { slug } = await params
-  const post = (await getDbPostBySlug(slug)) ?? getPostBySlug(slug)
+  const post = await resolvePost(slug)
   if (!post) notFound()
 
   const html = renderMarkdown(post.content)
