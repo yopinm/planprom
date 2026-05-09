@@ -1,0 +1,72 @@
+name: Deploy to Production
+
+# Triggers on push to main — requires all secrets below to be configured in
+# GitHub → Settings → Secrets and variables → Actions before this will run.
+#
+# Required secrets:
+#   SSH_HOST          — Ruk-Com server IP or hostname
+#   SSH_USER          — SSH username (e.g. ubuntu)
+#   SSH_PRIVATE_KEY   — private key for SSH auth (add public key to server)
+#   DEPLOY_PATH       — absolute path on server (e.g. /var/www/couponkum)
+#
+# Environment variables injected at build time are set in the "env" block below.
+# Secret env vars (Supabase keys, webhook secrets) are passed as GitHub Secrets.
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    name: Build + Deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    # Only run when all required secrets are present (prevents accidental partial deploys)
+    if: |
+      vars.DEPLOY_ENABLED == 'true'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_BASE_URL:           ${{ secrets.NEXT_PUBLIC_BASE_URL }}
+          NEXT_PUBLIC_SUPABASE_URL:       ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY:  ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY:      ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SHOPEE_APP_ID:                  ${{ secrets.SHOPEE_APP_ID }}
+          SHOPEE_APP_SECRET:              ${{ secrets.SHOPEE_APP_SECRET }}
+          LAZADA_APP_KEY:                 ${{ secrets.LAZADA_APP_KEY }}
+          LAZADA_APP_SECRET:              ${{ secrets.LAZADA_APP_SECRET }}
+          LAZADA_USER_TOKEN:              ${{ secrets.LAZADA_USER_TOKEN }}
+          REVENUE_WEBHOOK_SECRET:         ${{ secrets.REVENUE_WEBHOOK_SECRET }}
+
+      - name: Package standalone build
+        run: |
+          cp -r public .next/standalone/public
+          cp -r .next/static .next/standalone/.next/static
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host:     ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key:      ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            cd ${{ secrets.DEPLOY_PATH }}
+            git pull origin main
+            npm ci --omit=dev
+            pm2 reload couponkum --update-env || pm2 start .next/standalone/server.js --name couponkum
+            pm2 save

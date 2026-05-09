@@ -1,0 +1,27 @@
+// Service Worker stub — POSTLIVE-16
+// Activates immediately; caching strategy added in POSTLIVE-17 (push notifications).
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
+
+self.addEventListener('push', event => {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch {
+    data = {};
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(data.title ?? 'คูปองคุ้ม', {
+      body: data.body ?? '',
+      icon: '/logo.png',
+      data: { url: data.url ?? '/' },
+    }),
+  );
+});
+
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  const url = event.notification.data?.url ?? '/';
+  event.waitUntil(self.clients.openWindow(url));
+});

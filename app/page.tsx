@@ -1,0 +1,290 @@
+// app/page.tsx — V15 Homepage (Section 1: Template Store only)
+// Section 2 Coupon Affiliate → /affiliate
+
+import Link from 'next/link'
+import type { Metadata } from 'next'
+import type { ReactElement } from 'react'
+import {
+  Wallet, ListChecks, HeartHandshake, FileText,
+  Coffee, BookOpen, Calendar, Lightbulb,
+} from 'lucide-react'
+import { buildWebSiteJsonLd, toJsonLdString } from '@/lib/json-ld'
+import { PRICE_TIERS } from '@/lib/pricing'
+import { db } from '@/lib/db'
+import { RecoveryHashRedirect } from '@/components/auth/RecoveryHashRedirect'
+
+export const dynamic = 'force-dynamic'
+
+export const metadata: Metadata = {
+  title: 'คูปองคุ้ม — Template PDF เช็คลิสต์ · แพลนเนอร์',
+  description:
+    'ชีวิตง่ายขึ้นด้วยเช็คลิสต์และแพลนเนอร์ · ชิ้นแรก ฿20 · ชิ้นถัดไป ฿8 · ตั้งแต่ชิ้นที่ 6 ฿7/ชิ้น · ดาวน์โหลดทันที · ใช้ซ้ำตลอดกาล',
+  keywords: ['template pdf', 'planner', 'checklist', 'เช็คลิสต์', 'แพลนเนอร์', 'คูปอง'],
+  openGraph: {
+    title: 'คูปองคุ้ม — เช็คลิสต์ + แพลนเนอร์ PDF พร้อมใช้',
+    description: 'ชีวิตง่ายขึ้นด้วยเช็คลิสต์และแพลนเนอร์ · ชิ้นแรก ฿20 · ยิ่งซื้อยิ่งคุ้ม',
+    url: 'https://couponkum.com',
+    siteName: 'คูปองคุ้ม',
+    locale: 'th_TH',
+    type: 'website',
+  },
+}
+
+// ── Data fetchers ─────────────────────────────────────────────────────────────
+
+type CatalogGroup = {
+  key: string; emoji: string; label: string; totalCount: number
+}
+
+async function fetchCatalogGroups(): Promise<CatalogGroup[]> {
+  try {
+    return await db<CatalogGroup[]>`
+      SELECT c.slug AS key, c.emoji, c.name AS label, COUNT(t.id)::int AS "totalCount"
+      FROM template_categories c
+      JOIN template_category_links l ON l.category_id = c.id
+      JOIN templates t ON t.id = l.template_id AND t.status = 'published'
+      GROUP BY c.id, c.slug, c.emoji, c.name
+      ORDER BY COUNT(t.id) DESC, c.name
+    `
+  } catch {
+    return []
+  }
+}
+
+// ── Static data ───────────────────────────────────────────────────────────────
+
+const MOCK_TEMPLATE_CARDS = [
+  { Icon: Wallet,         bg: 'from-amber-50 to-orange-100',  iconCls: 'text-amber-600',   title: 'แพลนเนอร์งบประมาณ',    price: '฿20', badge: '#1',      badgeCls: 'bg-red-600' },
+  { Icon: ListChecks,     bg: 'from-blue-50 to-indigo-100',   iconCls: 'text-blue-600',    title: 'ติดตามนิสัย',           price: '฿20', badge: '#2',      badgeCls: 'bg-red-600' },
+  { Icon: HeartHandshake, bg: 'from-pink-50 to-rose-100',     iconCls: 'text-pink-600',    title: 'แพลนเนอร์งานแต่ง',     price: '฿20', badge: 'ใหม่',    badgeCls: 'bg-cyan-600' },
+  { Icon: FileText,       bg: 'from-emerald-50 to-teal-100',  iconCls: 'text-emerald-600', title: 'เรซูเม่ภาษาไทย',       price: '฿20', badge: 'ใหม่',    badgeCls: 'bg-cyan-600' },
+  { Icon: Coffee,         bg: 'from-orange-50 to-amber-100',  iconCls: 'text-orange-600',  title: 'เปิดร้านกาแฟ',         price: '฿20', badge: 'ขายดี',   badgeCls: 'bg-red-600' },
+  { Icon: BookOpen,       bg: 'from-indigo-50 to-violet-100', iconCls: 'text-indigo-600',  title: 'บันทึกการอ่าน',        price: '฿20', badge: 'ร้อนแรง', badgeCls: 'bg-red-600' },
+  { Icon: Calendar,       bg: 'from-teal-50 to-cyan-100',     iconCls: 'text-teal-600',    title: 'แพลนเนอร์รายสัปดาห์', price: '฿20', badge: 'ใหม่',    badgeCls: 'bg-cyan-600' },
+  { Icon: Lightbulb,      bg: 'from-yellow-50 to-amber-100',  iconCls: 'text-yellow-600',  title: 'บอร์ดไอเดีย',         price: '฿20', badge: 'ร้อนแรง', badgeCls: 'bg-red-600' },
+]
+
+// ── Page ──────────────────────────────────────────────────────────────────────
+
+export default async function HomePage(): Promise<ReactElement> {
+  const [catalogGroups] = await Promise.all([
+    fetchCatalogGroups(),
+  ])
+
+  const websiteSchema = buildWebSiteJsonLd()
+  const showMock = catalogGroups.length === 0
+
+  return (
+    <>
+      <RecoveryHashRedirect />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: toJsonLdString(websiteSchema) }}
+      />
+      <main className="min-h-screen bg-white text-neutral-900">
+
+        {/* ── Hero ─────────────────────────────────────────────────────── */}
+        <div className="bg-gradient-to-br from-emerald-50 via-white to-orange-50 px-4 py-10 text-center">
+          <div className="mx-auto max-w-md">
+
+            {/* Headline */}
+            <h1 className="text-3xl font-black leading-tight text-neutral-900 sm:text-4xl">
+              ยิ่งซื้อมาก ยิ่งคุ้ม
+            </h1>
+            <p className="mt-2 text-sm leading-relaxed text-neutral-500">
+              เทมเพลต PDF · ดาวน์โหลดทันที · ชีวิตง่ายขึ้นด้วยเช็คลิสต์และแพลนเนอร์
+            </p>
+
+            {/* 4-step flow */}
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm font-semibold text-neutral-700">
+              <span>🛒 เลือก</span>
+              <span className="text-neutral-300">→</span>
+              <span>🧺 ตะกร้า</span>
+              <span className="text-neutral-300">→</span>
+              <span>💳 จ่าย</span>
+              <span className="text-neutral-300">→</span>
+              <span>⬇️ โหลดได้เลย</span>
+            </div>
+
+            {/* Tier pricing card */}
+            <div className="mt-6 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
+              <div className="grid grid-cols-3 divide-x divide-neutral-100">
+                <div className="flex flex-col items-center px-3 py-4">
+                  <p className="text-[10px] font-black uppercase tracking-wider text-neutral-400">ชิ้นแรก</p>
+                  <p className="mt-1 text-2xl font-black text-neutral-900">฿{PRICE_TIERS.TIER_1}</p>
+                  <p className="text-[11px] text-neutral-400">/ชิ้น</p>
+                </div>
+                <div className="flex flex-col items-center bg-emerald-50 px-3 py-4">
+                  <p className="text-[10px] font-black uppercase tracking-wider text-emerald-600">ชิ้น 2–5</p>
+                  <p className="mt-1 text-2xl font-black text-emerald-700">฿{PRICE_TIERS.TIER_2}</p>
+                  <p className="text-[11px] text-emerald-500">/ชิ้น</p>
+                </div>
+                <div className="flex flex-col items-center px-3 py-4">
+                  <p className="text-[10px] font-black uppercase tracking-wider text-neutral-400">6 ชิ้น+</p>
+                  <p className="mt-1 text-2xl font-black text-neutral-900">฿{PRICE_TIERS.TIER_3}</p>
+                  <p className="text-[11px] text-neutral-400">/ชิ้น</p>
+                </div>
+              </div>
+              <div className="border-t border-neutral-100 py-2 text-center text-xs text-neutral-400">
+                ยิ่งเพิ่มในตะกร้า ยิ่งถูกลงอัตโนมัติ
+              </div>
+            </div>
+
+            {/* CTAs */}
+            <div className="mt-5 flex flex-col gap-2">
+              <a
+                href="#template-store"
+                className="flex h-12 w-full items-center justify-center rounded-2xl bg-amber-500 text-base font-black text-white shadow-md transition hover:bg-amber-600"
+              >
+                เริ่มเลือกเทมเพลต →
+              </a>
+              <Link
+                href="/affiliate"
+                className="flex h-10 w-full items-center justify-center rounded-2xl border border-neutral-200 bg-white text-sm font-semibold text-neutral-500 hover:bg-neutral-50"
+              >
+                หรือดูคูปองที่ใช้ได้วันนี้ →
+              </Link>
+            </div>
+
+            <p className="mt-4 text-xs text-neutral-400">
+              ✓ จ่ายเดียว ดาวน์โหลดทันที &nbsp;·&nbsp; ✓ ไม่ต้องสมัครสมาชิก
+            </p>
+          </div>
+        </div>
+
+        {/* ══════════════════════════════════════════════════════════════
+            SECTION 1 — Template Store (green)
+        ══════════════════════════════════════════════════════════════ */}
+        <div id="template-store" className="border-b-4 border-emerald-300 bg-gradient-to-b from-emerald-100 via-white to-emerald-50 px-6 py-10 sm:px-8 lg:px-12 lg:py-14">
+          <div className="mx-auto max-w-7xl">
+
+            {/* Section header */}
+            <div className="mb-5">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-700 px-4 py-1.5 text-lg font-semibold tracking-wide text-white">
+                📋 ร้านเช็คลิสต์และแพลนเนอร์เทมเพลต
+              </div>
+              <h2 className="mt-2 text-4xl font-semibold leading-snug text-neutral-900">
+                เช็คลิสต์ - ใช้แล้วไม่พลาดทุกขั้นตอน · แพลนเนอร์ · ใช้แล้วบรรลุเป้าหมาย
+              </h2>
+              <p className="mt-1 text-base leading-[1.7] text-neutral-700">PDF กรอกข้อมูลได้ · ดาวน์โหลดทันที · ใช้ซ้ำตลอดกาล</p>
+            </div>
+
+            {/* LINE free template CTA */}
+            <a
+              id="line-cta"
+              href="https://line.me/R/ti/p/%40216xobzv?gid=7820ade2-85c7-430f-b000-3b74292fe6f1"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mb-5 flex items-center gap-3 rounded-2xl border-2 border-dashed border-emerald-300 bg-white p-4 transition hover:bg-emerald-50 sm:gap-4 sm:p-5"
+            >
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#06C755] text-2xl font-medium text-white shadow-sm">
+                L
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium tracking-widest text-emerald-700">🎁 จำกัด · ฟรี 1 ชิ้นต่อคน</p>
+                <p className="mt-0.5 text-base font-semibold text-neutral-900">เพิ่มเพื่อน LINE OA → รับแพลนเนอร์ประจำวัน ฟรี</p>
+                <p className="text-sm text-neutral-700">+ คูปองส่วนลดส่งทุกวัน 9:00 น.</p>
+              </div>
+              <span className="shrink-0 rounded-xl bg-[#06C755] px-4 py-2 text-sm font-medium text-white">
+                เพิ่มเพื่อน
+              </span>
+            </a>
+
+            {/* Planner vs Checklist chips */}
+            <div className="mb-5 flex gap-2">
+              <Link
+                href="/templates?type=planner"
+                className="inline-flex items-center gap-2 rounded-full border-2 border-purple-300 bg-purple-50 px-4 py-2 text-sm font-black text-purple-800 transition hover:border-purple-500 hover:bg-purple-100"
+              >
+                📅 แพลนเนอร์ (วางแผน) →
+              </Link>
+              <Link
+                href="/templates?type=checklist"
+                className="inline-flex items-center gap-2 rounded-full border-2 border-blue-300 bg-blue-50 px-4 py-2 text-sm font-black text-blue-800 transition hover:border-blue-500 hover:bg-blue-100"
+              >
+                ✅ เช็คลิสต์ (ตรวจสอบ) →
+              </Link>
+            </div>
+
+            {/* Category chips */}
+            <div className="mb-5 flex gap-2 overflow-x-auto pb-1">
+              {catalogGroups.map(cat => (
+                <Link
+                  key={cat.key}
+                  href={`/templates?category=${cat.key}`}
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-300 bg-white px-4 py-2 text-sm font-medium text-emerald-800 transition hover:bg-emerald-50"
+                >
+                  {cat.emoji} {cat.label}
+                </Link>
+              ))}
+            </div>
+
+            {/* Templates grid */}
+            {showMock ? (
+              <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 lg:gap-4">
+                {MOCK_TEMPLATE_CARDS.map(t => (
+                  <div
+                    key={t.title}
+                    className="flex flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm"
+                  >
+                    <div className={`relative flex h-28 items-center justify-center bg-gradient-to-br lg:h-32 ${t.bg}`}>
+                      <t.Icon size={36} strokeWidth={1.5} className={t.iconCls} />
+                      <span className={`absolute right-1.5 top-1.5 rounded px-1.5 py-0.5 text-[9px] font-medium text-white ${t.badgeCls}`}>
+                        {t.badge}
+                      </span>
+                    </div>
+                    <div className="p-3">
+                      <p className="text-sm font-medium leading-snug text-neutral-800">{t.title}</p>
+                      <div className="mt-1.5">
+                        <span className="inline-block rounded-md bg-emerald-100 px-2.5 py-0.5 text-base font-semibold text-emerald-800">{t.price}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                {catalogGroups.map(cat => (
+                  <Link
+                    key={cat.key}
+                    href={`/catalog/${cat.key}`}
+                    className="group flex items-center gap-3 rounded-xl border-2 border-emerald-200 bg-[#ECFDF5] px-4 py-3 transition-all hover:scale-[1.01] hover:border-emerald-400 hover:shadow-md"
+                  >
+                    <span className="text-2xl leading-none">{cat.emoji}</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-bold text-emerald-900 group-hover:text-emerald-700">
+                        {cat.label}
+                      </p>
+                      <p className="text-xs text-emerald-600">{cat.totalCount} เทมเพลต →</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+
+            {/* Trust strip */}
+            <div className="grid grid-cols-3 gap-3 rounded-xl border border-emerald-300 bg-white p-4 text-center">
+              <div>
+                <div className="text-xl">⚡</div>
+                <div className="mt-1 text-sm font-semibold">จ่ายเดียว</div>
+                <div className="text-xs text-neutral-500">ดาวน์โหลดทันที</div>
+              </div>
+              <div>
+                <div className="text-xl">📝</div>
+                <div className="mt-1 text-sm font-semibold">PDF กรอกได้</div>
+                <div className="text-xs text-neutral-500">เติมชื่อ/วันที่</div>
+              </div>
+              <div>
+                <div className="text-xl">♾️</div>
+                <div className="mt-1 text-sm font-semibold">ใช้ซ้ำตลอด</div>
+                <div className="text-xs text-neutral-500">ไม่หมดอายุ</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </main>
+    </>
+  )
+}
