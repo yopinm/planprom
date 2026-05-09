@@ -46,13 +46,13 @@ export function Header(): ReactElement {
       <div className="border-b border-amber-200 bg-gradient-to-r from-orange-50 via-white to-emerald-50 px-6 py-3 sm:px-8 lg:px-12">
         <div className="mx-auto flex max-w-7xl items-center gap-3.5">
           <Link href="/" className="flex shrink-0 items-center gap-3">
-            <Image
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src="/logo.jpg"
               alt="แพลนพร้อม"
               width={40}
               height={40}
               className="h-10 w-10 rounded-full object-contain"
-              priority
             />
             <span className="text-3xl font-semibold leading-none text-neutral-900">
               แพลนพร้อม

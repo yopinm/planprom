@@ -18,11 +18,12 @@ const geistMono = Geist_Mono({
 const facebookAppId = process.env.NEXT_PUBLIC_FACEBOOK_APP_ID?.trim();
 
 export const metadata: Metadata = {
-  title: "แพลนพร้อม — เช็คลิสต์และแพลนเนอร์ PDF",
+  title: "แพลนพร้อม",
   description:
     "เช็คลิสต์และแพลนเนอร์ PDF · ดาวน์โหลดทันที · ใช้ซ้ำตลอดกาล · เช็คทุกขั้น แพลนทุกวัน",
   icons: {
-    icon: "/favicon.ico",
+    icon: [{ url: "/icon.png", type: "image/png" }],
+    apple: "/icon.png",
   },
   manifest: "/manifest.json",
   openGraph: {
