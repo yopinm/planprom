@@ -48,18 +48,18 @@ export function Header(): ReactElement {
           <Link href="/" className="flex shrink-0 items-center gap-3">
             <Image
               src="/logo.png"
-              alt="แพลนโปร"
+              alt="แพลนพร้อม"
               width={36}
               height={36}
               className="h-9 w-9 rounded-xl object-contain"
               priority
             />
             <span className="text-3xl font-semibold leading-none text-neutral-900">
-              แพลนโปร
+              แพลนพร้อม
             </span>
           </Link>
           <span className="hidden flex-1 text-3xl font-semibold leading-none text-neutral-600 sm:block">
-            คุ้มทุกการใช้จ่าย · ง่ายทุกการวางแผน
+            เช็คทุกขั้น แพลนทุกวัน ง่ายทุกงานวางแผน
           </span>
         </div>
       </div>
