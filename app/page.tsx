@@ -164,26 +164,6 @@ export default async function HomePage(): Promise<ReactElement> {
               <p className="mt-1 text-base leading-[1.7] text-neutral-700">PDF กรอกข้อมูลได้ · ดาวน์โหลดทันที · ใช้ซ้ำตลอดกาล</p>
             </div>
 
-            {/* LINE free template CTA */}
-            <a
-              id="line-cta"
-              href="https://line.me/R/ti/p/%40216xobzv?gid=7820ade2-85c7-430f-b000-3b74292fe6f1"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mb-5 flex items-center gap-3 rounded-2xl border-2 border-dashed border-emerald-300 bg-white p-4 transition hover:bg-emerald-50 sm:gap-4 sm:p-5"
-            >
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#06C755] text-2xl font-medium text-white shadow-sm">
-                L
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium tracking-widest text-emerald-700">🎁 จำกัด · ฟรี 1 ชิ้นต่อคน</p>
-                <p className="mt-0.5 text-base font-semibold text-neutral-900">เพิ่มเพื่อน LINE OA → รับแพลนเนอร์ประจำวัน ฟรี</p>
-                <p className="text-sm text-neutral-700">+ คูปองส่วนลดส่งทุกวัน 9:00 น.</p>
-              </div>
-              <span className="shrink-0 rounded-xl bg-[#06C755] px-4 py-2 text-sm font-medium text-white">
-                เพิ่มเพื่อน
-              </span>
-            </a>
 
             {/* Planner vs Checklist chips */}
             <div className="mb-5 flex gap-2">
