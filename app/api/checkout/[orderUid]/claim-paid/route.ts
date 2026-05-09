@@ -81,7 +81,7 @@ export async function POST(
     await pushLine(ownerLineId, [{
       type: 'text',
       text: [
-        `🛒 Cart Order ใหม่ — คูปองคุ้ม`,
+        `🛒 Cart Order ใหม่ — แพลนพร้อม`,
         ``,
         `💰 ฿${order.total_baht} (${items.length} ชิ้น)`,
         `📌 ${orderUid}`,

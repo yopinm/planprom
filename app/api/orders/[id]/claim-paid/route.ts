@@ -73,7 +73,7 @@ export async function POST(
   await pushLine(lineId, [{
     type: 'text',
     text: [
-      `✅ ขอบคุณที่ซื้อ คูปองคุ้ม!`,
+      `✅ ขอบคุณที่ซื้อ แพลนพร้อม!`,
       ``,
       `📄 ${tmpl?.title ?? 'Template'}`,
       `🔗 ดาวน์โหลดได้ที่:`,
@@ -90,7 +90,7 @@ export async function POST(
     await pushLine(ownerLineId, [{
       type: 'text',
       text: [
-        `🛒 Order ใหม่ — คูปองคุ้ม`,
+        `🛒 Order ใหม่ — แพลนพร้อม`,
         ``,
         `📄 ${tmpl?.title ?? 'Template'}`,
         `💰 ฿${order.amount_baht}`,

@@ -75,7 +75,7 @@ async function notifyOwner(orderId: string, orderUid: string, totalBaht: number)
   await pushLine(ownerLineId, [{
     type: 'text',
     text: [
-      `🛒 Cart Order ใหม่ — คูปองคุ้ม`,
+      `🛒 Cart Order ใหม่ — แพลนพร้อม`,
       ``,
       `💰 ฿${totalBaht} (${titles.length} ชิ้น)`,
       `📌 ${orderUid}`,
