@@ -20,7 +20,12 @@ export async function GET(
   `
   if (!order) return NextResponse.json({ error: 'not found' }, { status: 404 })
 
-  if (order.status === 'paid') return respondPaid(order.id)
+  if (order.status === 'paid') {
+    const cookieStore = await cookies()
+    const sessionId = cookieStore.get(CART_COOKIE)?.value
+    if (sessionId) await db`DELETE FROM carts WHERE session_id = ${sessionId}`
+    return respondPaid(order.id)
+  }
 
   // DB still pending — query Omise directly; self-healing without webhook
   if (order.omise_charge_id) {
