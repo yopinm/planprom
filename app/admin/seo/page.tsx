@@ -3,133 +3,169 @@ import type { Metadata } from 'next'
 import { requireAdminSession } from '@/lib/admin-auth'
 import { getAllPosts } from '@/lib/blog'
 import { getAllDbPosts } from '@/lib/blog-db'
+import { UploadDocx } from './UploadDocx'
+import { togglePinAction, togglePostPublishAction } from './actions'
+import { DeletePostButton } from './DeletePostButton'
 
 export const metadata: Metadata = {
-  title: 'Blog SEO · Admin',
+  title: 'Blog Manager · Admin — Planprom',
   robots: { index: false, follow: false },
 }
 
-const CATEGORY_LABEL: Record<string, string> = {
-  guide: 'คู่มือ',
-  review: 'รีวิว',
-  news: 'ข่าวสาร',
-  tips: 'เทคนิค',
-}
+export const dynamic = 'force-dynamic'
 
 export default async function AdminSeoPage() {
   await requireAdminSession('/admin/seo')
 
-  const [staticPosts, dbPosts] = await Promise.all([
-    Promise.resolve(getAllPosts()),
+  const [dbPosts, staticPosts] = await Promise.all([
     getAllDbPosts(),
+    Promise.resolve(getAllPosts()),
   ])
 
-  const dbSlugs = new Set(dbPosts.map(p => p.slug))
-  const allPosts = [
-    ...dbPosts.map(p => ({ ...p, source: 'db' as const })),
-    ...staticPosts
-      .filter(p => !dbSlugs.has(p.slug))
-      .map(p => ({ ...p, source: 'static' as const, status: 'published' as const })),
-  ]
-
-  const published = allPosts.filter(p => p.status === 'published').length
-  const draft = allPosts.filter(p => p.status === 'draft').length
+  const pinnedCount = dbPosts.filter(p => p.pinned).length
 
   return (
     <main className="min-h-screen bg-neutral-50 pb-20">
       <div className="mx-auto max-w-4xl px-4 py-8">
 
-        <div className="flex items-center justify-between">
+        {/* Header */}
+        <div className="mb-8 flex items-start justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-600 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white">
-              📝 Blog SEO
+              📝 Blog Manager
             </div>
             <h1 className="mt-2 text-2xl font-black text-black">Blog &amp; Content Management</h1>
-            <p className="mt-1 text-sm text-neutral-500">บทความ SEO สำหรับ planprom.com</p>
+            <p className="mt-0.5 text-sm text-neutral-500">
+              {dbPosts.length} บทความใน DB · {pinnedCount} ปักหมุด · {staticPosts.length} บทความ built-in
+            </p>
           </div>
-          <Link href="/blog" target="_blank"
-            className="rounded-2xl border border-neutral-200 bg-white px-4 py-2 text-xs font-black text-neutral-600 shadow-sm hover:border-black transition">
-            ดู Blog →
+          <Link
+            href="/blog"
+            target="_blank"
+            className="rounded-xl border border-neutral-200 bg-white px-4 py-2 text-xs font-black text-neutral-600 shadow-sm hover:border-black transition"
+          >
+            ดูหน้า Blog →
           </Link>
         </div>
 
-        {/* Stats */}
-        <div className="mt-6 grid grid-cols-3 gap-3">
-          <div className="rounded-2xl border border-neutral-200 bg-white px-4 py-4 text-center shadow-sm">
-            <p className="text-2xl font-black text-black">{allPosts.length}</p>
-            <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">บทความทั้งหมด</p>
-          </div>
-          <div className="rounded-2xl border border-green-200 bg-white px-4 py-4 text-center shadow-sm">
-            <p className="text-2xl font-black text-green-600">{published}</p>
-            <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">Published</p>
-          </div>
-          <div className="rounded-2xl border border-neutral-200 bg-white px-4 py-4 text-center shadow-sm">
-            <p className="text-2xl font-black text-neutral-400">{draft}</p>
-            <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">Draft</p>
-          </div>
+        {/* Upload */}
+        <div className="mb-8">
+          <UploadDocx />
         </div>
 
-        {/* Post List */}
-        <div className="mt-8 space-y-3">
-          <p className="text-[11px] font-black uppercase tracking-wider text-neutral-400">บทความทั้งหมด</p>
-          {allPosts.map(post => (
-            <div key={post.slug}
-              className="flex items-start gap-4 rounded-3xl border border-neutral-200 bg-white px-5 py-4 shadow-sm">
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
+        {/* DB Posts */}
+        <div className="mb-10">
+          <h2 className="mb-3 text-sm font-black uppercase tracking-widest text-neutral-500">
+            บทความใน DB ({dbPosts.length})
+          </h2>
+
+          {dbPosts.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-neutral-300 py-12 text-center text-sm text-neutral-400">
+              ยังไม่มีบทความ — อัพโหลด .docx เพื่อเริ่มต้น
+            </div>
+          ) : (
+            <div className="divide-y divide-neutral-100 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
+              {dbPosts.map(post => (
+                <div key={post.id} className="flex items-center gap-3 px-5 py-4">
+
+                  <span className={`shrink-0 text-lg ${post.pinned ? 'text-amber-500' : 'text-neutral-200'}`}>
+                    📌
+                  </span>
+
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-bold text-neutral-900">{post.title}</p>
+                    <p className="mt-0.5 font-mono text-xs text-neutral-400">/blog/{post.slug}</p>
+                  </div>
+
+                  <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-black ${
                     post.status === 'published'
                       ? 'bg-green-100 text-green-700'
                       : 'bg-neutral-100 text-neutral-500'
                   }`}>
-                    {post.status === 'published' ? 'Live' : 'Draft'}
+                    {post.status === 'published' ? 'Published' : 'Draft'}
                   </span>
-                  <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">
-                    {CATEGORY_LABEL[post.category] ?? post.category}
-                  </span>
-                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                    post.source === 'db'
-                      ? 'bg-blue-50 text-blue-600'
-                      : 'bg-neutral-50 text-neutral-400'
-                  }`}>
-                    {post.source === 'db' ? 'DB' : 'Static'}
-                  </span>
+
+                  <span className="shrink-0 text-xs text-neutral-400">{post.readingTimeMin} นาที</span>
+
+                  <div className="flex shrink-0 gap-1">
+                    {/* Pin toggle */}
+                    <form action={togglePinAction}>
+                      <input type="hidden" name="id" value={post.id} />
+                      <input type="hidden" name="pinned" value={String(post.pinned)} />
+                      <button
+                        type="submit"
+                        className={`rounded-lg px-2.5 py-1.5 text-xs font-bold transition ${
+                          post.pinned
+                            ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                            : 'bg-neutral-100 text-neutral-500 hover:bg-amber-100 hover:text-amber-700'
+                        }`}
+                      >
+                        {post.pinned ? 'เอาออก' : 'ปักหมุด'}
+                      </button>
+                    </form>
+
+                    {/* Publish toggle */}
+                    <form action={togglePostPublishAction}>
+                      <input type="hidden" name="id" value={post.id} />
+                      <input type="hidden" name="status" value={post.status} />
+                      <button
+                        type="submit"
+                        className={`rounded-lg px-2.5 py-1.5 text-xs font-bold transition ${
+                          post.status === 'published'
+                            ? 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
+                            : 'bg-green-100 text-green-700 hover:bg-green-200'
+                        }`}
+                      >
+                        {post.status === 'published' ? 'Unpublish' : 'Publish'}
+                      </button>
+                    </form>
+
+                    {/* View */}
+                    <Link
+                      href={`/blog/${post.slug}`}
+                      target="_blank"
+                      className="rounded-lg bg-neutral-100 px-2.5 py-1.5 text-xs font-bold text-neutral-500 hover:bg-neutral-200 transition"
+                    >
+                      ดู
+                    </Link>
+
+                    {/* Delete */}
+                    <DeletePostButton id={post.id} title={post.title} />
+                  </div>
                 </div>
-                <p className="mt-1.5 font-black text-black text-sm leading-snug">{post.title}</p>
-                <p className="mt-0.5 text-xs text-neutral-400 font-mono">/blog/{post.slug}</p>
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <Link href={`/blog/${post.slug}`} target="_blank"
-                  className="rounded-xl border border-neutral-200 px-3 py-1.5 text-[11px] font-black text-neutral-500 hover:border-black hover:text-black transition">
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Static built-in posts — read-only */}
+        <div>
+          <h2 className="mb-3 text-sm font-black uppercase tracking-widest text-neutral-500">
+            บทความ Built-in (Static · {staticPosts.length})
+          </h2>
+          <div className="divide-y divide-neutral-100 overflow-hidden rounded-2xl border border-neutral-200 bg-white opacity-70">
+            {staticPosts.map(post => (
+              <div key={post.slug} className="flex items-center gap-3 px-5 py-3.5">
+                <span className="shrink-0 text-base text-neutral-300">📄</span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-neutral-700">{post.title}</p>
+                  <p className="font-mono text-xs text-neutral-400">/blog/{post.slug}</p>
+                </div>
+                <span className="shrink-0 rounded-full bg-neutral-100 px-2.5 py-0.5 text-[10px] font-bold text-neutral-500">
+                  Built-in
+                </span>
+                <span className="shrink-0 text-xs text-neutral-400">{post.readingTimeMin} นาที</span>
+                <Link
+                  href={`/blog/${post.slug}`}
+                  target="_blank"
+                  className="shrink-0 rounded-lg bg-neutral-100 px-2.5 py-1.5 text-xs font-bold text-neutral-500 hover:bg-neutral-200"
+                >
                   ดู
                 </Link>
               </div>
-            </div>
-          ))}
-        </div>
-
-        {/* SEO Checklist */}
-        <div className="mt-10 rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
-          <h2 className="text-base font-black text-black">SEO Checklist</h2>
-          <div className="mt-4 space-y-2.5 text-sm">
-            {[
-              { done: true,  text: '/blog index page — live' },
-              { done: true,  text: '/blog/[slug] pages — live' },
-              { done: true,  text: 'Metadata title + description ทุกบทความ' },
-              { done: true,  text: 'Canonical URL ทุกหน้า' },
-              { done: true,  text: 'OpenGraph tags (title, description, publishedTime)' },
-              { done: false, text: 'Sitemap รวม /blog/* — ตรวจสอบ /sitemap.xml' },
-              { done: false, text: 'Internal links จาก /templates → /blog' },
-              { done: false, text: 'Schema Article markup (JSON-LD)' },
-            ].map(item => (
-              <div key={item.text} className="flex items-start gap-2.5">
-                <span className={`mt-0.5 text-base ${item.done ? 'text-green-500' : 'text-neutral-300'}`}>
-                  {item.done ? '✅' : '⬜'}
-                </span>
-                <span className={item.done ? 'text-neutral-700' : 'text-neutral-400'}>{item.text}</span>
-              </div>
             ))}
           </div>
+          <p className="mt-2 text-xs text-neutral-400">บทความ Built-in แก้ไขได้ใน src/lib/blog.ts</p>
         </div>
 
       </div>
