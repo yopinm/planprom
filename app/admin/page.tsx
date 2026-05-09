@@ -337,21 +337,10 @@ export default async function AdminPage() {
           </div>
         </section>
 
-        {/* ── Section Divider ── */}
-        <div className="my-8 flex items-center gap-4">
-          <div className="flex-1 border-t border-neutral-200" />
-          <span className="text-[11px] font-black uppercase tracking-widest text-neutral-400">
-            🎟️ Section 2 — Coupon Affiliate
-          </span>
-          <div className="flex-1 border-t border-neutral-200" />
-        </div>
-
-        {/* ═══════════════════════════════════════════════════════════════
-            SECTION 2 — Coupon / Site Ops (existing)
-        ═══════════════════════════════════════════════════════════════ */}
+        {/* ADMIN-CLEAN-2: ลบออกถาวร 2026-05-17 — Section 2 Affiliate hidden 2026-05-10 */}
 
         {/* Critical Alert Banner */}
-        {(brokenLinks > 10 || postbackFailRate > 5) && (
+        {false && (brokenLinks > 10 || postbackFailRate > 5) && (
           <div className="rounded-2xl border border-red-300 bg-red-50 px-5 py-4">
             <div className="flex items-start gap-3">
               <span className="mt-0.5 text-xl">🚨</span>
@@ -376,8 +365,8 @@ export default async function AdminPage() {
           </div>
         )}
 
-        {/* KPI Cards */}
-        <section className="mt-6">
+        {/* KPI Cards — HIDDEN ADMIN-CLEAN-2 */}
+        {false && <section className="mt-6">
           <p className="mb-3 text-[11px] font-black uppercase tracking-wider text-neutral-400">KPI ประจำวัน — Affiliate</p>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <div className="rounded-2xl border bg-white px-4 py-5 text-center shadow-sm border-neutral-200">
@@ -413,37 +402,25 @@ export default async function AdminPage() {
               <p className="mt-1 text-[11px] font-bold text-neutral-400">24ชม. {pageViews.rolling24h.toLocaleString('th-TH')}</p>
             </div>
             <div className="rounded-2xl border border-neutral-200 bg-white px-4 py-5 text-center shadow-sm">
-              <p className="truncate text-base font-black text-purple-600">{topSubId ? topSubId.sub_id : '—'}</p>
+              <p className="truncate text-base font-black text-purple-600">{topSubId?.sub_id ?? '—'}</p>
               <p className="mt-1 text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Top Sub-ID</p>
-              {topSubId && <p className="mt-1 text-[11px] font-bold text-neutral-400">{topSubId.count} คลิก</p>}
+              {topSubId && <p className="mt-1 text-[11px] font-bold text-neutral-400">{topSubId?.count} คลิก</p>}
             </div>
             <div className="rounded-2xl border border-neutral-200 bg-white px-4 py-5 text-center shadow-sm">
-              <p className="line-clamp-2 text-xs font-black text-orange-600 leading-snug">{topDeal ? topDeal.name : '—'}</p>
+              <p className="line-clamp-2 text-xs font-black text-orange-600 leading-snug">{topDeal?.name ?? '—'}</p>
               <p className="mt-1.5 text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Top Deal</p>
-              {topDeal && <p className="mt-1 text-[11px] font-bold text-neutral-400">{topDeal.count} คลิก</p>}
+              {topDeal && <p className="mt-1 text-[11px] font-bold text-neutral-400">{topDeal?.count} คลิก</p>}
             </div>
           </div>
-        </section>
+        </section>}
 
-        {/* Stats strip */}
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {[
-            { label: "คูปองทั้งหมด", value: coupons.length, color: "text-black" },
-            { label: "ใช้งานอยู่", value: activeCoupons, color: "text-green-600" },
-            { label: "รอ Approve FB", value: pendingPosts, color: pendingPosts > 0 ? "text-orange-600" : "text-neutral-400" },
-            { label: "UGC รอตรวจ", value: pendingTips, color: pendingTips > 0 ? "text-orange-600" : "text-neutral-400" },
-            { label: "Bot 24ชม.", value: flaggedBots, color: flaggedBots > 0 ? "text-red-600" : "text-green-600" },
-          ].map((stat) => (
-            <div key={stat.label} className="rounded-2xl border border-neutral-200 bg-white px-4 py-5 text-center shadow-sm">
-              <p className={`text-2xl font-black ${stat.color}`}>{stat.value}</p>
-              <p className="mt-1 text-[10px] font-bold text-neutral-400 uppercase tracking-wider">{stat.label}</p>
-            </div>
-          ))}
-        </div>
+        {/* Stats strip — HIDDEN ADMIN-CLEAN-2 */}
 
         {/* Quick nav groups */}
         <div className="mt-8 space-y-6">
 
+          {/* Ops/Revenue/Products/Social/Content — HIDDEN ADMIN-CLEAN-2 ลบ 2026-05-17 */}
+          {false && <>
           <section>
             <p className="mb-3 text-[11px] font-black uppercase tracking-wider text-neutral-400">Ops</p>
             <div className="grid gap-3 sm:grid-cols-2">
@@ -588,6 +565,7 @@ export default async function AdminPage() {
               </Link>
             </div>
           </section>
+          </>}
 
           <section>
             <p className="mb-3 text-[11px] font-black uppercase tracking-wider text-neutral-400">System</p>
@@ -610,8 +588,8 @@ export default async function AdminPage() {
           </section>
         </div>
 
-        {/* TikTok Trends */}
-        <section className="mt-10 rounded-4xl border border-neutral-200 bg-white p-6 shadow-sm">
+        {/* TikTok Trends — HIDDEN ADMIN-CLEAN-2 ลบ 2026-05-17 */}
+        {false && <section className="mt-10 rounded-4xl border border-neutral-200 bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-lg font-black text-black">
               <span className="text-xl">🎬</span> TikTok Trending
@@ -645,7 +623,7 @@ export default async function AdminPage() {
               <p className="py-8 text-center text-sm text-neutral-400 italic">ยังไม่มีข้อมูลเทรนด์วันนี้</p>
             )}
           </div>
-        </section>
+        </section>}
 
         {/* Coupon Management */}
         <section id="coupons" className="mt-10 rounded-4xl border border-neutral-200 bg-white p-8 shadow-sm">

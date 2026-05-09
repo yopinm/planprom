@@ -29,6 +29,8 @@
 | **Doc Sync** | task เสร็จ → อัพเดต PRD.md + `core/planprom.md` เสมอ |
 | **Blockers** | IA approved ✅ (Affiliate ID 1082367) · AT Datafeed ⏳ · Shopee API ⏳ · Lazada pool=49 fixed |
 | **Next task** | **DC-8** Engine Content Edit + Revision History (table `template_revisions` · /revise · /revisions pages) |
+| **Pending (code)** | **13 tasks** — ADMIN-CLEAN-1🔵TODAY · DC-8 · DC-12 · J10🔴 · J12🔴 · J7 · J11 · J13 · J14 · J17 · J19 · J20 · ADMIN-CLEAN-2(2026-05-17) |
+| **Pending (UAT)** | **6 กลุ่ม** — DC-1 · DC-2 · DC-14 · E9/E10 · J9(รอ live keys) · A–H(รอ owner test) |
 | **Last session** | **Session 33 (2026-05-09)** — Payment UAT fix: download URL domain, Omise webhook, LINE brand text, cart clear bug |
 | **ห้าม** | ไม่แตะ Later task ขณะที่ Now ยังค้างอยู่ · ไม่แตะ secrets โดยตรง · ไม่ทำให้ revenue channel หายไประหว่าง pivot |
 
@@ -149,36 +151,51 @@
 
 ---
 
-## UAT Status Summary (อัพเดต 2026-05-08 · Session 26)
+## UAT Status Summary (อัพเดต 2026-05-10 · Session 33)
 
-> รายละเอียดเต็ม → `core/Coupon_TP.MD` Section "UAT Master Checklist"
+> รายละเอียดเต็ม → `core/planprom.md` Section "UAT Master Checklist"
+> **สรุป:** Code pending 11 tasks · UAT pending 6 กลุ่ม · รวม 17 รายการยังค้าง
+
+### Pending Code Tasks (11 tasks — เรียงตามลำดับ)
+
+| # | Task | Priority | สถานะ |
+|---|---|---|---|
+| 1 | **DC-8** Engine Content Edit + Revision History | 🔵 NEXT | 🔲 Planned |
+| 2 | **DC-12** Publish Button ไม่ revalidate หลัง click | 🟡 Medium | 🔲 Planned |
+| 3 | **J10** Wallet login prompt หลัง download ใน tab เดิม | 🔴 High | 🔲 Planned |
+| 4 | **J12** LINE OAuth "Error getting user profile" | 🔴 Critical | 🔲 Deferred |
+| 5 | **J19** Template Log Export `/admin/templates/log-export` | 🟡 Medium | 🔲 Next Session |
+| 6 | **J20** Catalog Edit Name+Emoji inline | 🟡 Medium | 🔲 Next Session |
+| 7 | **J11** Free tier download flow (ข้าม payment) | 🟡 Medium | 🔲 Planned |
+| 8 | **J13** Customer Request Form `/templates/request` | 🟡 Medium | 🔲 Planned |
+| 9 | **J14** ระบบสมาชิก + Auto Push LINE | 🟡 Medium | 🔲 Planned |
+| 10 | **J17** Subscription รายเดือน (Standard/Pro) | 🟡 Planned | 🔲 Planned |
+| 11 | **J7** Breadcrumb category → 404 | 🟡 Low | 🔲 Planned |
+
+### Pending UAT (6 กลุ่ม — code พร้อม รอ owner test)
 
 | กลุ่ม | รายการ | สถานะ |
 |---|---|---|
-| **A. Hero** | Pack cards · stepper · CTAs · mobile | ⏳ รอ owner test |
-| **B. Catalog section** | Badge frame · list top-5 · dotted leader · "ดูทั้งหมด" | ⏳ รอ owner test |
-| **C. Admin/templates** | CRUD wizard · publish · category badge | ⏳ รอ owner test |
-| **D. Admin/catalogs** | Add/delete category | ⏳ รอ owner test |
-| **E. Admin/orders** | Filter tabs · verify · revoke | ⏳ รอ owner test |
-| **F. Admin/analytics** | KPI · 14d chart · per-template | ⏳ รอ owner test |
-| **G. Payment flow E2E** | LINE gate → QR → webhook → pack credits → redeem → /d/[token] | ⏳ รอ live Omise keys (J9) |
-| **H. Customer pages** | /templates/[slug] · /orders · /analysis | ⏳ รอ owner test |
-| **I. Checkout errors** | pending-limit ✅ · revoked · suspicious | ✅ pending-limit done |
-| **J. Known pending** | J9: live Omise keys · J10: session after download · J12: LINE OAuth (deferred) | task backlog |
-| **J18. Cart + Volume Pricing** | /templates AddToCartButton · /cart · /checkout QR auto-redirect · /order/[uid] · admin cart orders · audit | ✅ UAT ผ่าน 2026-05-08 (Session 28) |
-| **J19. Template Log Export** | `/admin/templates/log-export` — JSON snapshot (templates, categories, orders, cart stats) + copy button | 🟡 Next Session |
-| **J20. Catalog Edit Name** | `/admin/catalogs` เพิ่ม inline edit name+emoji (ตอนนี้มีแค่ลบ) | 🟡 Next Session |
-| **DC-1. Standard PDF Generator** | upload .docx → mammoth→HTML → CSS A4 template (checklist/planner) + watermark optional → puppeteer PDF → draft_preview → Approve → published · Sarabun font · puppeteer margin ทุกหน้า · footer z-index | 🟡 **Code Done · UAT Pending** (table/checklist/planner) |
-| **DC-2. TOC Preview** | mammoth extract headings → `toc_sections JSONB` → toggle ใน /templates list · always-expanded บน /templates/[slug] | 🟡 **Code Done · UAT Pending** |
-| **DC-3. DB Sequence Order ID** | `order_seq` PostgreSQL sequence แทน Math.random() · เพิ่ม `order_type` column | ✅ **Done · Live** (Session 29) |
-| **Session 27. /affiliate page** | Section 2 coupon content แยกออกจาก homepage → `/affiliate` · proxy.ts wired เป็น middleware จริงแล้ว | ✅ Live |
-| **Session 28. Homepage Hero** | hero redesign Option C — "ยิ่งซื้อมาก ยิ่งคุ้ม" + 4-step flow + 3-col tier pricing card + stacked CTAs · MOCK_TEMPLATE_CARDS ฿20 ทั้งหมด | ✅ Live 2026-05-08 |
-| **Session 29. DC Series** | DC-1/DC-2/DC-3 code complete · PDF: Sarabun font + puppeteer margins + page-break CSS + footer fix | 🟡 UAT Pending (2026-05-08) |
-| **Session 30. DC-ENGINE Series** | DC-4/5/6/7 ✅ Live · Checklist Engine (5 sections) + Planner Engine (4 pillars) · auto-generate docCode CK/TP-YYYYMMDD-XXXX · หมวดหมู่ auto-fill · ผู้จัดทำ blank · footer ไม่แสดง docCode · Step 3 engine mode ซ่อน desc/pages/docType | ✅ **Live 2026-05-09** |
-| **Session 30. Pricing Callout** | /templates section ล่าง เปลี่ยนจาก pack buttons (฿20/50/100) → marginal pricing callout (฿20→฿8→฿7) พร้อม benefit line | ✅ **Live 2026-05-09** |
-| **Session 32. Blog + Rebrand + Deploy (2026-05-09)** | Blog slug 404 fix (force-dynamic + resolvePost + decodeURIComponent) · Blog Admin CRUD (/admin/seo: upload .docx, pin, publish, delete) · Header rebrand แพลนโปร→แพลนพร้อม + slogan ใหม่ · ลบ กระเป๋าของฉัน ออกจาก nav · ลบ LINE OA card + affiliate CTA จาก homepage · Replace "คูปองคุ้ม"→"แพลนพร้อม" ทุก page (13 files) · Deploy fixes: PM2 fork mode, PORT=3001, cp .env.local to standalone | ✅ **Live 2026-05-09** |
-| **Session 33. Payment UAT Fixes (2026-05-09)** | Download URL → planprom.com · Omise webhook route สร้างใหม่ · LINE brand text ทั้ง 4 ไฟล์ · Cart clear bug (webhook-first path) · VPS env NEXT_PUBLIC_SITE_URL=planprom.com | ✅ **Live · UAT ผ่าน** |
-| **DC-8. Engine Revision System** | `template_revisions` table · /revise page (edit+re-generate) · /revisions history page · 1 file policy · docCode preserved | 🔵 **Next** |
+| **DC-1** | Standard PDF Generator (.docx → A4) — checklist/planner UAT | 🟡 **Code Done · UAT Pending** |
+| **DC-2** | TOC Preview สารบัญ — toggle /templates · always-expanded /templates/[slug] | 🟡 **Code Done · UAT Pending** |
+| **DC-14** | Planner Engine end-to-end (4 Pillar → Generate → Approve → Download) | 🟡 **UAT Pending** |
+| **E9/E10** | Engine preview card บน /templates/[slug] (checklist/planner green/violet) | 🟡 **UAT Pending** |
+| **J9** | Live Omise keys → real QR scan test (G4 pending) | 🟡 **รอ owner ตั้ง live keys** |
+| **A–H** | Homepage Hero · Catalog · Admin CRUD · Orders · Analytics · Payment E2E · Customer pages | ⏳ **รอ owner test ใน browser** |
+
+### Session Log
+
+| Session | สถานะ |
+|---|---|
+| **J18. Cart + Volume Pricing** | ✅ UAT ผ่าน 2026-05-08 (Session 28) |
+| **DC-3. DB Sequence Order ID** | ✅ Done · Live (Session 29) |
+| **Session 27. /affiliate page** | ✅ Live |
+| **Session 28. Homepage Hero** | ✅ Live 2026-05-08 |
+| **Session 30. DC-ENGINE Series** | ✅ Live 2026-05-09 (DC-4/5/6/7) |
+| **Session 30. Pricing Callout** | ✅ Live 2026-05-09 |
+| **Session 32. Blog + Rebrand + Deploy** | ✅ Live 2026-05-09 |
+| **Session 33. Payment UAT Fixes** | ✅ Live · UAT ผ่าน 2026-05-09 |
+| **DC-8. Engine Revision System** | 🔵 **Next** |
 
 **✅ J18 UAT ผ่านครบ (2026-05-08 Session 28)** — payment flow ถูก lock ห้ามแก้ไขจนกว่าแอดมินจะสั่ง
 **🟡 Medium (J9):** ต้องสลับเป็น live Omise keys — test mode QR อ่านไม่ได้ด้วยแอปธนาคาร
