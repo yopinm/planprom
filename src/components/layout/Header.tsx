@@ -47,11 +47,11 @@ export function Header(): ReactElement {
         <div className="mx-auto flex max-w-7xl items-center gap-3.5">
           <Link href="/" className="flex shrink-0 items-center gap-3">
             <Image
-              src="/logo.png"
+              src="/logo.jpg"
               alt="แพลนพร้อม"
-              width={36}
-              height={36}
-              className="h-9 w-9 rounded-xl object-contain"
+              width={40}
+              height={40}
+              className="h-10 w-10 rounded-full object-contain"
               priority
             />
             <span className="text-3xl font-semibold leading-none text-neutral-900">
