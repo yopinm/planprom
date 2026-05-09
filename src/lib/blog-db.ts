@@ -37,7 +37,7 @@ function rowToPost(r: DbRow): DbBlogPost {
     description: r.description,
     content: r.content,
     author: {
-      ...AUTHORS.couponkum_team,
+      ...AUTHORS.planprom_team,
       name: r.author_name,
     },
     publishedAt: r.published_at ?? r.created_at,

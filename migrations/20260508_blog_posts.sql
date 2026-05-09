@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS blog_posts (
   title           TEXT        NOT NULL,
   description     TEXT        NOT NULL DEFAULT '',
   content         TEXT        NOT NULL DEFAULT '',
-  author_name     TEXT        NOT NULL DEFAULT 'ทีมคูปองคุ้ม',
+  author_name     TEXT        NOT NULL DEFAULT 'ทีม Planprom',
   tags            TEXT[]      NOT NULL DEFAULT '{}',
   category        TEXT        NOT NULL DEFAULT 'guide'
                               CHECK (category IN ('guide','review','news','tips')),

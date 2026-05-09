@@ -60,6 +60,12 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
     ],
   },
+  async redirects() {
+    return [
+      { source: '/wallet', destination: '/templates', permanent: false },
+      { source: '/wallet/:path*', destination: '/templates', permanent: false },
+    ]
+  },
   async headers() {
     return [
       {
