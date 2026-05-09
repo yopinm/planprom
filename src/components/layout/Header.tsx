@@ -9,7 +9,7 @@ import { usePathname, useRouter } from 'next/navigation'
 const NAV_ITEMS = [
   { label: 'หน้าแรก', href: '/' },
   { label: 'เทมเพลตทั้งหมด', href: '/templates' },
-  { label: 'กระเป๋าของฉัน', href: '/orders' },
+
   { label: 'บทความเกี่ยวกับเทมเพลต', href: '/blog' },
   { label: 'Planner vs Checklist ต่างกันอย่างไร?', href: '/blog/planner-กับ-checklist-ต่างกันยังไง' },
   { label: 'คำถามที่พบบ่อย', href: '/blog/คำถามที่พบบ่อย-faq' },
@@ -18,20 +18,8 @@ const NAV_ITEMS = [
 export function Header(): ReactElement {
   const pathname = usePathname()
   const router = useRouter()
-  const [walletCount, setWalletCount] = useState(0)
   const [cartCount, setCartCount] = useState(0)
   const [query, setQuery] = useState('')
-
-  // Wallet count — once on mount (requires Supabase session, avoid excess requests)
-  useEffect(() => {
-    fetch('/api/wallet/count')
-      .then(r => r.ok ? (r.json() as Promise<{ public: number; personal: number; credits: number }>) : null)
-      .then(data => {
-        if (!data) return
-        setWalletCount(data.credits > 0 ? data.credits : data.personal > 0 ? data.personal : data.public)
-      })
-      .catch(() => {})
-  }, [])
 
   // Cart count — re-fetch on navigation (badge clears after checkout) + cart-updated event
   useEffect(() => {
@@ -82,24 +70,17 @@ export function Header(): ReactElement {
           <nav className="flex items-center gap-4 sm:gap-[18px]">
             {NAV_ITEMS.map(({ label, href }) => {
               const isActive = pathname === href
-              const isWallet = href === '/orders'
               return (
                 <Link
                   key={href}
                   href={href}
-                  prefetch={isWallet ? false : undefined}
-                  className={`relative py-1 text-sm font-medium transition-colors hover:text-neutral-900 ${
+                  className={`py-1 text-sm font-medium transition-colors hover:text-neutral-900 ${
                     isActive
                       ? 'border-b-2 border-orange-600 text-neutral-900'
                       : 'text-neutral-500'
                   }`}
                 >
                   {label}
-                  {isWallet && walletCount > 0 && (
-                    <span className="absolute -right-3 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-0.5 text-[9px] font-black leading-none text-white">
-                      {walletCount > 99 ? '99+' : walletCount}
-                    </span>
-                  )}
                 </Link>
               )
             })}
