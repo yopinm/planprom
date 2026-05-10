@@ -254,7 +254,9 @@
 | ADMIN-TMPL-DEL-1 | **Template Archive + Hard Delete** | แยกปุ่ม "ซ่อน" (archived) / "ลบถาวร" (block ถ้ามี order) · `archiveTemplateAction` / `unarchiveTemplateAction` / `deleteTemplateAction` fix · `ArchiveTemplateButton` (NEW) · `DeleteTemplateButton` label → "ลบถาวร" · fix `router.refresh()` ทุก button | ✅ **Done · Live** (Session 40) |
 | ADMIN-TMPL-FORCE-1 | **Force Delete (pre-launch)** | ปุ่ม "Force ลบ" — cascade ลบทุก FK รวม order_items · confirm 2 ครั้ง · `forceDeleteTemplateAction` · `ForceDeleteTemplateButton` (NEW) | ✅ **Done · Live** (Session 40) |
 
-**ลำดับแนะนำ:** DC-3 ✅ → DC-4 ✅ → DC-5 ✅ → DC-6 ✅ → DC-7 ✅ → DC-9 ✅ → DC-10 ✅ → DC-11 ✅ → DC-13 ✅ → DC-14 ✅ · ADMIN-TMPL-DEL-1 ✅ · ADMIN-TMPL-FORCE-1 ✅ · DC-1/DC-2 🟡 UAT pending · DC-8/DC-12 planned · 2 engines more (TBD)
+| DC-15 | **Planner Form UX — Label Redesign** | ปรับ label/placeholder ของ `ReviseClient.tsx` (PlannerReviseForm) + PDF section headers ให้เข้าใจง่ายสำหรับทุกระดับ · ไม่เปลี่ยน engine logic / DB / PDF structure · **เปลี่ยน ~20 field labels** ดังนี้: Section แกนที่1→"ภาพรวมและเป้าหมาย" / แกนที่2→"โครงสร้างหน้า" / แกนที่3→"สิ่งที่อยากติดตาม" / แกนที่4→"หน้าพิเศษเพิ่มเติม" · Fields: `framework` OKR→"รูปแบบการตั้งเป้าหมาย" (option: "วัดผลด้วยตัวเลขชัดเจน") · `bigRocks`→"เรื่องสำคัญที่ต้องทำให้สำเร็จก่อน" · `quarterlyThemes.keyActions`→"สิ่งที่จะทำเพื่อให้บรรลุธีมนี้" · `focusAreas`→"ด้านชีวิตที่อยากโฟกัส (เช่น สุขภาพ งาน ครอบครัว)" · `includeEisenhower`→"ตารางจัดลำดับงาน (เร่งด่วน vs สำคัญ)" · `habitNames`→"Habit ที่อยากทำทุกวัน (เช่น ออกกำลังกาย อ่านหนังสือ)" · `includeMoodTracker`→"บันทึกอารมณ์ประจำวัน" · `reviewCycle`→"ทบทวนตัวเองทุก..." · `reviewQuestions`→"คำถามสำหรับทบทวนตัวเอง" · `projectAreas`→"โปรเจกต์หรืองานที่กำลังดูแลอยู่" · `includeGratitudeJournal`→"หน้าจดสิ่งดีๆ ที่เกิดขึ้นในชีวิต" · `gratitudePrompts`→"คำถามชวนคิดสิ่งดีๆ" · `notesStyle` lined→"เส้นบรรทัด" dotgrid→"ตารางจุด" blank→"หน้าเปล่า" · `brainDumpPages`→"หน้าเทความคิดออกมา" · **Files:** `app/admin/templates/[id]/revise/ReviseClient.tsx` | 🔲 **Planned** — prerequisite ก่อน DC-8 UAT pass |
+
+**ลำดับแนะนำ:** DC-3 ✅ → DC-4 ✅ → DC-5 ✅ → DC-6 ✅ → DC-7 ✅ → DC-9 ✅ → DC-10 ✅ → DC-11 ✅ → DC-13 ✅ → DC-14 ✅ · ADMIN-TMPL-DEL-1 ✅ · ADMIN-TMPL-FORCE-1 ✅ · DC-1/DC-2 🟡 UAT pending · DC-8/DC-12 🔲 planned (DC-15 prerequisite) · DC-15 🔲 planned · 2 engines more (TBD)
 
 ---
 
@@ -278,6 +280,20 @@
 
 **Pending ideas (ยังไม่ทำ):**
 - **Smart Gap Finder** — expand Google Suggest 50–100 terms → filter เชิงพาณิชย์ → match กับ DB (มี/ไม่มี/มีแต่ 0 ยอด) → ranked opportunity table
+
+---
+
+## Session 41 Changes (2026-05-10) — Legal Pages + Report Fixes + Habit Tracker + UX Analysis
+
+| # | Change | Status |
+|---|---|---|
+| 1 | **Legal pages rewrite:** `app/legal/page.tsx` + `app/privacy/page.tsx` + `app/terms/page.tsx` — เปลี่ยนเป็น planprom branding · ลบเนื้อหา affiliate ออกทั้งหมด · orange→neutral/indigo colors | ✅ Live |
+| 2 | **ลบ /disclosure page** — `app/disclosure/page.tsx` deleted · Footer ไม่ link ไปแล้ว | ✅ Live |
+| 3 | **ลบ 28 test orders** จาก DB ผ่าน admin — เหลือเฉพาะ 1 real order (฿28) | ✅ Done |
+| 4 | **fix(R-1) /admin/report/sales crash** — `SUM(oi.price_baht)` → `SUM(t.price_baht)` ใน byTemplate query (order_items ไม่มี price_baht column) | ✅ Live |
+| 5 | **fix(R-4) /admin/report/export ข้อมูลว่าง** — replaced 175-line page (query deprecated `template_orders`) ด้วย 15-line redirect → `/admin/report/payments` preserving query params (range/from/to/status) | ✅ Live |
+| 6 | **fix(engine-planner) Habit Tracker แกนที่ 3 overflow** — redesign จาก flexbox → `<table table-layout:fixed>` ด้วย `<colgroup>` · header row แสดงเลขวัน 1-31 (purple) · empty cells ต่อ habit row — เทียบแนวทางจาก `engine-checklist.ts` · **Files:** `lib/engine-planner.ts` | ✅ Live |
+| 7 | **DC-15 UX Analysis** — วิเคราะห์ PlannerReviseForm 20+ fields · เปรียบเทียบ "สิ่งที่ admin เห็น" vs "สิ่งที่ผู้ใช้ planner จริงๆ คิด" · วางแผน label redesign ~20 fields เป็นภาษาไทยธรรมดา (ดูรายละเอียดใน DC-15) | 📝 Documented |
 
 ---
 
@@ -1463,5 +1479,5 @@ Next priorities:
 
 ---
 
-_Last updated: 2026-05-09 (Session 33) · Domain: planprom.com live · SSL + Email routing ✅ · App: VPS port 3001 fork mode · Next: DC-8 Engine Revision System_
+_Last updated: 2026-05-10 (Session 41) · Domain: planprom.com live · SSL + Email routing ✅ · App: VPS port 3001 fork mode · Next: DC-15 Planner Form Label Redesign → DC-8 UAT_
 _Owner: yopinm@gmail.com · LINE: yopinm · PromptPay: 0948859962_
