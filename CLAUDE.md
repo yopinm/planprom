@@ -68,13 +68,17 @@
 2. Read core/planprom.md (Active Snapshot + Coupon-First Pillars + Task Backlog)
 3. Read core/Couponkum_Blueprint.md เฉพาะส่วนที่จำเป็น (Part E for Break-Even ROI; A9 for Coupon Engine; A2 for DB)
 4. Pick one task from planprom.md Section 7 (Day 1 → Day 28)
-5. Make smallest complete patch — preserve revenue channels
-6. Run CI checks — must all pass before commit:
+5. **SCOPE GATE (บังคับก่อน implement):**
+      - เขียน scope + flow + frozen files ลงใน core/planprom.md ให้ครบ
+      - commit docs เท่านั้น (ยังไม่มี code)
+      - รอ owner confirm ก่อนเริ่ม implement
+6. Make smallest complete patch — preserve revenue channels
+7. Run CI checks — must all pass before commit:
       npx tsc --noEmit && npm run lint && npm run test
-7. Update PRD.md + planprom.md if needed
-8. Commit
-9. Push → Deploy VPS → Smoke test
-10. Report done + next task
+8. Update PRD.md + planprom.md if needed
+9. Commit
+10. Push → Deploy VPS → Smoke test
+11. Report done + next task
 ```
 
 ## Git

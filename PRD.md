@@ -27,6 +27,7 @@
 | **UAT Rule** | deploy → smoke test → checklist → รอ owner confirm → ถึงจะปิด task |
 | **One Task** | ทำทีละ 1 task · 1 commit · ห้ามรวม task หรือ refactor โดยไม่ได้รับ confirm |
 | **Doc Sync** | task เสร็จ → อัพเดต PRD.md + `core/planprom.md` เสมอ |
+| **Scope Gate** | ก่อนเริ่ม implement ทุก task → ต้องมี scope + flow ใน `core/planprom.md` ก่อน → commit docs → รอ owner confirm → ค่อย implement |
 | **Blockers** | IA approved ✅ (Affiliate ID 1082367) · AT Datafeed ⏳ · Shopee API ⏳ · Lazada pool=49 fixed |
 | **Next task** | **DC-8** Engine Content Edit + Revision History — scope confirmed · ❌ ห้ามแตะ engine-checklist · engine-planner · ChecklistEngineForm · PlannerEngineForm · generate-engine/planner routes · Cart/Payment/Download flow |
 | **Pending (code)** | **13 tasks** — ADMIN-CLEAN-1🔵TODAY · DC-8 · DC-12 · J10🔴 · J12🔴 · J7 · J11 · J13 · J14 · J17 · J19 · J20 · ADMIN-CLEAN-2(2026-05-17) |
