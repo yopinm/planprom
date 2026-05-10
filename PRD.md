@@ -28,7 +28,7 @@
 | **One Task** | ทำทีละ 1 task · 1 commit · ห้ามรวม task หรือ refactor โดยไม่ได้รับ confirm |
 | **Doc Sync** | task เสร็จ → อัพเดต PRD.md + `core/planprom.md` เสมอ |
 | **Blockers** | IA approved ✅ (Affiliate ID 1082367) · AT Datafeed ⏳ · Shopee API ⏳ · Lazada pool=49 fixed |
-| **Next task** | **DC-8** Engine Content Edit + Revision History (table `template_revisions` · /revise · /revisions pages) |
+| **Next task** | **DC-8** Engine Content Edit + Revision History — scope confirmed · ❌ ห้ามแตะ engine-checklist · engine-planner · ChecklistEngineForm · PlannerEngineForm · generate-engine/planner routes · Cart/Payment/Download flow |
 | **Pending (code)** | **13 tasks** — ADMIN-CLEAN-1🔵TODAY · DC-8 · DC-12 · J10🔴 · J12🔴 · J7 · J11 · J13 · J14 · J17 · J19 · J20 · ADMIN-CLEAN-2(2026-05-17) |
 | **Pending (UAT)** | **5 กลุ่ม** — DC-1 · DC-2 · E9/E10 · J9(รอ live keys) · A–H(รอ owner test) |
 | **Last session** | **Session 37 (2026-05-10)** — LINE notify buyer · /checkout/[slug] → cart redirect · admin/orders ลบ Template tab + KPI fee/net · orders.customer_line_id migration · PDF header/footer rebrand couponkum → planprom (www.planprom.com) |
