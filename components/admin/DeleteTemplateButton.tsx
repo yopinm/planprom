@@ -1,8 +1,10 @@
 'use client'
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { deleteTemplateAction } from '@/app/admin/templates/actions'
 
 export function DeleteTemplateButton({ id }: { id: string; title?: string }) {
+  const router = useRouter()
   const [pending, startTransition] = useTransition()
   const [confirmed, setConfirmed] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -19,6 +21,8 @@ export function DeleteTemplateButton({ id }: { id: string; title?: string }) {
       if (result?.error) {
         setError(result.error)
         setConfirmed(false)
+      } else {
+        router.refresh()
       }
     })
   }

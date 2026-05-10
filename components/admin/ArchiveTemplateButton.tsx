@@ -1,8 +1,10 @@
 'use client'
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { archiveTemplateAction, unarchiveTemplateAction } from '@/app/admin/templates/actions'
 
 export function ArchiveTemplateButton({ id, status }: { id: string; status: string }) {
+  const router = useRouter()
   const [pending, startTransition] = useTransition()
   const [confirmed, setConfirmed] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -23,6 +25,8 @@ export function ArchiveTemplateButton({ id, status }: { id: string; status: stri
       if (result?.error) {
         setError(result.error)
         setConfirmed(false)
+      } else {
+        router.refresh()
       }
     })
   }
