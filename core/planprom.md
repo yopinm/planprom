@@ -250,7 +250,10 @@
 | DC-13 | **/templates/[slug] Server Component Crash** | กด "ดูรายละเอียด / ซื้อ →" ใน catalog preview modal → `/templates/[slug]` render error · **Root cause:** `d.s1.docCode` / `d.s3.items` null-access เมื่อ `engine_data` ไม่มี field ครบ · **Fix:** `if (!d.s1) return null` / `if (!d.p1) return null` early-return guards + optional chaining `d.s3?.items?.filter(...)` + `d.s2?.purpose` · **Files:** `app/templates/[slug]/page.tsx` | ✅ **Done · Live** (Session 31) |
 | DC-14 | **Planner Engine — UAT ผ่าน** | UI + generate flow พร้อมแล้ว (Session 30-31) · UAT ผ่านครบ (Session 36): กรอก 4 Pillar → Generate PDF Preview → บันทึก Draft → Download · **Files:** `app/admin/templates/new/PlannerEngineForm.tsx` · `lib/engine-planner.ts` · `app/api/admin/templates/generate-planner/route.ts` | ✅ **UAT ผ่าน (Session 36)** |
 
-**ลำดับแนะนำ:** DC-3 ✅ → DC-4 ✅ → DC-5 ✅ → DC-6 ✅ → DC-7 ✅ → DC-9 ✅ → DC-10 ✅ → DC-11 ✅ → DC-13 ✅ → DC-14 ✅ · DC-1/DC-2 🟡 UAT pending · DC-8/DC-12 planned · 2 engines more (TBD)
+| ADMIN-TMPL-DEL-1 | **Template Archive + Hard Delete** | แยกปุ่ม "ซ่อน" (archived) / "ลบถาวร" (block ถ้ามี order) · `archiveTemplateAction` / `unarchiveTemplateAction` / `deleteTemplateAction` fix · `ArchiveTemplateButton` (NEW) · `DeleteTemplateButton` label → "ลบถาวร" · fix `router.refresh()` ทุก button | ✅ **Done · Live** (Session 40) |
+| ADMIN-TMPL-FORCE-1 | **Force Delete (pre-launch)** | ปุ่ม "Force ลบ" — cascade ลบทุก FK รวม order_items · confirm 2 ครั้ง · `forceDeleteTemplateAction` · `ForceDeleteTemplateButton` (NEW) | ✅ **Done · Live** (Session 40) |
+
+**ลำดับแนะนำ:** DC-3 ✅ → DC-4 ✅ → DC-5 ✅ → DC-6 ✅ → DC-7 ✅ → DC-9 ✅ → DC-10 ✅ → DC-11 ✅ → DC-13 ✅ → DC-14 ✅ · ADMIN-TMPL-DEL-1 ✅ · ADMIN-TMPL-FORCE-1 ✅ · DC-1/DC-2 🟡 UAT pending · DC-8/DC-12 planned · 2 engines more (TBD)
 
 ---
 
@@ -274,6 +277,18 @@
 
 **Pending ideas (ยังไม่ทำ):**
 - **Smart Gap Finder** — expand Google Suggest 50–100 terms → filter เชิงพาณิชย์ → match กับ DB (มี/ไม่มี/มีแต่ 0 ยอด) → ranked opportunity table
+
+---
+
+## Session 40 Changes (2026-05-10) — Template Delete/Archive System
+
+| # | Change | Status |
+|---|---|---|
+| 1 | **ADMIN-TMPL-DEL-1:** fix `deleteTemplateAction` — ลบ `free_template_grants` (ไม่มีใน DB) · เช็ค order count ก่อนลบ · เพิ่ม `template_revisions` cascade | ✅ Live |
+| 2 | **ADMIN-TMPL-DEL-1:** เพิ่ม `archiveTemplateAction` / `unarchiveTemplateAction` · `ArchiveTemplateButton` (NEW) — ซ่อน/เลิกซ่อน พร้อม confirm | ✅ Live |
+| 3 | **ADMIN-TMPL-DEL-1:** `DeleteTemplateButton` label → "ลบถาวร" · error message ระบุ order count + แนะนำใช้ซ่อน | ✅ Live |
+| 4 | **ADMIN-TMPL-FORCE-1:** `forceDeleteTemplateAction` — cascade ลบทุก FK รวม order_items · `ForceDeleteTemplateButton` (NEW) — confirm 2 ครั้ง สีแดงเข้ม | ✅ Live |
+| 5 | **fix router.refresh():** Delete / Archive / ForceDelete button ทุกตัว — เพิ่ม `router.refresh()` หลัง action สำเร็จ (revalidatePath ฝั่ง server ไม่ trigger client refresh เมื่อ call โดยตรง) | ✅ Live |
 
 ---
 

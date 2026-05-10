@@ -32,7 +32,7 @@
 | **Next task** | **DC-12** Publish Button ไม่ revalidate หลัง click |
 | **Pending (code)** | **12 tasks** — DC-12 · J10🔴 · J12🔴 · J7 · J11 · J13 · J14 · J17 · J19 · J20 · ADMIN-CLEAN-1 · ADMIN-CLEAN-2(2026-05-17) |
 | **Pending (UAT)** | **6 กลุ่ม** — DC-1 · DC-2 · DC-8(Planner⏳) · E9/E10 · J9(รอ live keys) · A–H(รอ owner test) |
-| **Last session** | **Session 39 (2026-05-10)** — fix แกนที่3 habit tracker overflow (14px/gap:2px/nowrap) + stale closure (useEffect) · Planner UAT ⏳ pending screenshot ใหม่ |
+| **Last session** | **Session 40 (2026-05-10)** — ADMIN-TMPL-DEL-1: Archive + Hard Delete · ADMIN-TMPL-FORCE-1: Force Delete (pre-launch) · fix router.refresh() ทุก action button |
 | **ห้าม** | ไม่แตะ Later task ขณะที่ Now ยังค้างอยู่ · ไม่แตะ secrets โดยตรง · ไม่ทำให้ revenue channel หายไประหว่าง pivot |
 
 ---
@@ -201,6 +201,7 @@
 | **Session 36. Engine Checklist + Planner UAT ผ่านครบ** | ✅ Live 2026-05-10 — Nginx proxy_buffer 128k · generate-planner แยก route · slug check step 3 · 2 more engines planned |
 | **Session 37. Orders + Checkout refactor** | ✅ Live 2026-05-10 — LINE notify buyer · /checkout/[slug] redirect cart · admin/orders KPI fee/net · ลบ Template Orders tab |
 | **DC-8. Engine Revision System** | ✅ Live 2026-05-10 — Checklist UAT ✅ครบลูป · Planner UAT ⏳ pending |
+| **Session 40. Template Delete/Archive** | ✅ Live 2026-05-10 — ADMIN-TMPL-DEL-1: ซ่อน/ลบถาวร · ADMIN-TMPL-FORCE-1: Force Delete (pre-launch) · fix router.refresh() |
 
 **✅ J18 UAT ผ่านครบ (2026-05-08 Session 28)** — payment flow ถูก lock ห้ามแก้ไขจนกว่าแอดมินจะสั่ง
 **🟡 Medium (J9):** ต้องสลับเป็น live Omise keys — test mode QR อ่านไม่ได้ด้วยแอปธนาคาร
