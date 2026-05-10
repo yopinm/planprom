@@ -120,9 +120,9 @@ export function generatePlannerHtml(data: PlannerEngineData, watermarkText?: str
   const habitGrid = validHabits.map(h => `
     <div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid #f3f4f6">
       <span style="min-width:130px;font-size:9pt;font-weight:700;color:#374151">${esc(h)}</span>
-      <div style="display:flex;gap:3px;flex:1;flex-wrap:wrap">
+      <div style="display:flex;gap:2px;flex:1;flex-wrap:nowrap">
         ${Array.from({length:31}).map((_,i)=>
-          `<span style="width:15px;height:15px;border:1px solid #d1d5db;border-radius:2px;display:inline-flex;align-items:center;justify-content:center;font-size:7pt;color:#d1d5db">${i+1}</span>`
+          `<span style="width:14px;height:14px;border:1px solid #d1d5db;border-radius:2px;display:inline-flex;align-items:center;justify-content:center;font-size:6pt;color:#d1d5db">${i+1}</span>`
         ).join('')}
       </div>
     </div>`).join('')

@@ -1,7 +1,8 @@
 'use client'
 // DC-8: ReviseClient — pre-filled engine form for revision flow
 // Does NOT import ChecklistEngineForm/PlannerEngineForm (frozen) — owns its own state + UI
-import { useState, useCallback } from 'react'
+// Fix: uses useEffect (same pattern as frozen forms) to avoid stale closure on DynList onChange
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import type { ChecklistEngineData, PlannerEngineData, QuarterlyTheme } from '@/lib/engine-types'
 
@@ -54,31 +55,29 @@ function ChecklistReviseForm({ initial, onChange }: {
   initial: ChecklistEngineData
   onChange: (d: ChecklistEngineData) => void
 }) {
-  const [s1title, setS1title]   = useState(initial.s1.title)
-  const [s1date,  setS1date]    = useState(initial.s1.createdDate)
-  const [s1author, setS1author] = useState(initial.s1.author)
+  const [s1title,   setS1title]   = useState(initial.s1.title)
+  const [s1date,    setS1date]    = useState(initial.s1.createdDate)
+  const [s1author,  setS1author]  = useState(initial.s1.author)
   const [s2purpose, setS2purpose] = useState(initial.s2.purpose)
-  const [s2ctx,   setS2ctx]     = useState(initial.s2.context)
-  const [s2pre,   setS2pre]     = useState(initial.s2.prerequisites)
-  const [items,   setItems]     = useState(initial.s3.items.length ? initial.s3.items : [''])
-  const [exec,    setExec]      = useState(initial.s5.executorRole)
-  const [review,  setReview]    = useState(initial.s5.reviewerRole)
+  const [s2ctx,     setS2ctx]     = useState(initial.s2.context)
+  const [s2pre,     setS2pre]     = useState(initial.s2.prerequisites)
+  const [items,     setItems]     = useState(initial.s3.items.length ? initial.s3.items : [''])
+  const [exec,      setExec]      = useState(initial.s5.executorRole)
+  const [review,    setReview]    = useState(initial.s5.reviewerRole)
 
-  const emit = useCallback(() => {
+  // useEffect — same pattern as frozen ChecklistEngineForm, no stale closure
+  useEffect(() => {
     onChange({
       s1: { title: s1title, docCode: initial.s1.docCode, version: initial.s1.version, createdDate: s1date, author: s1author },
       s2: { purpose: s2purpose, context: s2ctx, prerequisites: s2pre },
       s3: { items: items.filter(i => i.trim()) },
       s5: { executorRole: exec, reviewerRole: review },
     })
-  }, [s1title, s1date, s1author, s2purpose, s2ctx, s2pre, items, exec, review, onChange, initial])
-
-  function up<T>(setter: (v: T) => void) {
-    return (v: T) => { setter(v); setTimeout(emit, 0) }
-  }
+  }, [s1title, s1date, s1author, s2purpose, s2ctx, s2pre, items, exec, review,
+      onChange, initial.s1.docCode, initial.s1.version])
 
   return (
-    <div className="space-y-3" onBlur={emit} onChange={emit}>
+    <div className="space-y-3">
       <Card title="ส่วนที่ 1 — ส่วนหัวและข้อมูลพื้นฐาน" color="bg-emerald-50 text-emerald-800">
         <div className="grid grid-cols-2 gap-4">
           <div className="col-span-2">
@@ -119,7 +118,7 @@ function ChecklistReviseForm({ initial, onChange }: {
       </Card>
 
       <Card title="ส่วนที่ 3 — รายการตรวจสอบ" color="bg-amber-50 text-amber-800">
-        <DynList items={items} onChange={up(setItems)}
+        <DynList items={items} onChange={setItems}
           placeholder="เช่น ตรวจสอบสายดิน" addLabel="เพิ่มรายการตรวจสอบ" />
       </Card>
 
@@ -170,7 +169,8 @@ function PlannerReviseForm({ initial, onChange }: {
   const [notesStyle, setNotesStyle] = useState(initial.p4.notesStyle)
   const [brainPages, setBrainPages] = useState(initial.p4.brainDumpPages)
 
-  function emit() {
+  // useEffect — same pattern as frozen PlannerEngineForm, no stale closure
+  useEffect(() => {
     onChange({
       p1: { plannerTitle: title, description: desc, period, framework: fw,
             yearlyGoals: goals.filter(g => g.trim()),
@@ -184,16 +184,16 @@ function PlannerReviseForm({ initial, onChange }: {
             gratitudePrompts: gratitudePs.filter(p => p.trim()),
             notesStyle, brainDumpPages: brainPages },
     })
-  }
+  }, [title, desc, period, fw, goals, themes, rocks, views, dpp, focusAreas, eisenhower,
+      habits, mood, finance, reviewCycle, reviewQs, projects, gratitude, gratitudePs,
+      notesStyle, brainPages, onChange])
 
   function toggleView(v: 'monthly' | 'weekly' | 'daily') {
-    const next = views.includes(v) ? views.filter(x => x !== v) : [...views, v]
-    setViews(next)
-    setTimeout(emit, 0)
+    setViews(prev => prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v])
   }
 
   return (
-    <div className="space-y-3" onBlur={emit} onChange={emit}>
+    <div className="space-y-3">
       <Card title="แกนที่ 1 — เป้าหมายและวิสัยทัศน์" color="bg-violet-50 text-violet-800">
         <div>
           <label className={LABEL}>ชื่อ Planner *</label>
@@ -225,7 +225,7 @@ function PlannerReviseForm({ initial, onChange }: {
         </div>
         <div>
           <label className={LABEL}>เป้าหมายประจำปี</label>
-          <DynList items={goals} onChange={v => { setGoals(v); setTimeout(emit, 0) }}
+          <DynList items={goals} onChange={setGoals}
             placeholder="เช่น เพิ่มยอดขาย 30%" addLabel="เพิ่มเป้าหมาย" color="violet" />
         </div>
         <div>
@@ -234,26 +234,29 @@ function PlannerReviseForm({ initial, onChange }: {
             {themes.map((t, i) => (
               <div key={i} className="rounded-lg border border-violet-100 p-3 space-y-2">
                 <div className="flex gap-2 items-center">
-                  <input value={t.quarter} onChange={e => { const n = [...themes]; n[i] = { ...n[i], quarter: e.target.value }; setThemes(n) }}
+                  <input value={t.quarter}
+                    onChange={e => setThemes(prev => prev.map((x, j) => j === i ? { ...x, quarter: e.target.value } : x))}
                     placeholder="Q1" className={`${INPUT} w-20`} />
-                  <input value={t.theme} onChange={e => { const n = [...themes]; n[i] = { ...n[i], theme: e.target.value }; setThemes(n) }}
+                  <input value={t.theme}
+                    onChange={e => setThemes(prev => prev.map((x, j) => j === i ? { ...x, theme: e.target.value } : x))}
                     placeholder="Theme หลัก..." className={INPUT} />
                   {themes.length > 1 && (
-                    <button type="button" onClick={() => { setThemes(themes.filter((_, j) => j !== i)); setTimeout(emit, 0) }}
+                    <button type="button" onClick={() => setThemes(prev => prev.filter((_, j) => j !== i))}
                       className="text-red-400 text-sm px-1">✕</button>
                   )}
                 </div>
-                <textarea value={t.keyActions} onChange={e => { const n = [...themes]; n[i] = { ...n[i], keyActions: e.target.value }; setThemes(n) }}
+                <textarea value={t.keyActions}
+                  onChange={e => setThemes(prev => prev.map((x, j) => j === i ? { ...x, keyActions: e.target.value } : x))}
                   rows={2} placeholder="Key actions..." className={`${INPUT} text-xs`} />
               </div>
             ))}
-            <button type="button" onClick={() => { setThemes([...themes, { quarter: '', theme: '', keyActions: '' }]); setTimeout(emit, 0) }}
+            <button type="button" onClick={() => setThemes(prev => [...prev, { quarter: '', theme: '', keyActions: '' }])}
               className="text-xs font-black text-violet-600">+ เพิ่มไตรมาส</button>
           </div>
         </div>
         <div>
           <label className={LABEL}>Big Rocks</label>
-          <DynList items={rocks} onChange={v => { setRocks(v); setTimeout(emit, 0) }}
+          <DynList items={rocks} onChange={setRocks}
             placeholder="เช่น เปิดตัวสินค้าใหม่" addLabel="เพิ่ม Big Rock" color="violet" />
         </div>
       </Card>
@@ -279,11 +282,11 @@ function PlannerReviseForm({ initial, onChange }: {
         </div>
         <div>
           <label className={LABEL}>Focus Areas</label>
-          <DynList items={focusAreas} onChange={v => { setFocusAreas(v); setTimeout(emit, 0) }}
+          <DynList items={focusAreas} onChange={setFocusAreas}
             placeholder="เช่น งาน · สุขภาพ" addLabel="เพิ่ม Focus Area" />
         </div>
-        <label className="flex items-center gap-2 text-sm font-bold text-neutral-700">
-          <input type="checkbox" checked={eisenhower} onChange={e => { setEisenhower(e.target.checked); setTimeout(emit, 0) }} />
+        <label className="flex items-center gap-2 text-sm font-bold text-neutral-700 cursor-pointer">
+          <input type="checkbox" checked={eisenhower} onChange={e => setEisenhower(e.target.checked)} />
           รวม Eisenhower Matrix
         </label>
       </Card>
@@ -291,16 +294,16 @@ function PlannerReviseForm({ initial, onChange }: {
       <Card title="แกนที่ 3 — ติดตามพฤติกรรมและดูแลตัวเอง" color="bg-emerald-50 text-emerald-800">
         <div>
           <label className={LABEL}>Habit Tracker</label>
-          <DynList items={habits} onChange={v => { setHabits(v); setTimeout(emit, 0) }}
+          <DynList items={habits} onChange={setHabits}
             placeholder="เช่น ออกกำลังกาย" addLabel="เพิ่ม Habit" />
         </div>
-        <label className="flex items-center gap-2 text-sm font-bold text-neutral-700">
-          <input type="checkbox" checked={mood} onChange={e => { setMood(e.target.checked); setTimeout(emit, 0) }} />
+        <label className="flex items-center gap-2 text-sm font-bold text-neutral-700 cursor-pointer">
+          <input type="checkbox" checked={mood} onChange={e => setMood(e.target.checked)} />
           Mood Tracker
         </label>
         <div>
           <label className={LABEL}>หมวดหมู่การเงิน</label>
-          <DynList items={finance} onChange={v => { setFinance(v); setTimeout(emit, 0) }}
+          <DynList items={finance} onChange={setFinance}
             placeholder="เช่น รายรับ" addLabel="เพิ่มหมวด" />
         </div>
         <div>
@@ -313,7 +316,7 @@ function PlannerReviseForm({ initial, onChange }: {
         </div>
         <div>
           <label className={LABEL}>คำถามรีวิว</label>
-          <DynList items={reviewQs} onChange={v => { setReviewQs(v); setTimeout(emit, 0) }}
+          <DynList items={reviewQs} onChange={setReviewQs}
             placeholder="เช่น สิ่งที่ทำได้ดีคืออะไร?" addLabel="เพิ่มคำถาม" />
         </div>
       </Card>
@@ -321,17 +324,17 @@ function PlannerReviseForm({ initial, onChange }: {
       <Card title="แกนที่ 4 — บันทึกความคิดและทรัพยากร" color="bg-rose-50 text-rose-800">
         <div>
           <label className={LABEL}>Project Areas</label>
-          <DynList items={projects} onChange={v => { setProjects(v); setTimeout(emit, 0) }}
+          <DynList items={projects} onChange={setProjects}
             placeholder="เช่น โปรเจกต์ A" addLabel="เพิ่ม Project" />
         </div>
-        <label className="flex items-center gap-2 text-sm font-bold text-neutral-700">
-          <input type="checkbox" checked={gratitude} onChange={e => { setGratitude(e.target.checked); setTimeout(emit, 0) }} />
+        <label className="flex items-center gap-2 text-sm font-bold text-neutral-700 cursor-pointer">
+          <input type="checkbox" checked={gratitude} onChange={e => setGratitude(e.target.checked)} />
           Gratitude Journal
         </label>
         {gratitude && (
           <div>
             <label className={LABEL}>Prompts ความกตัญญู</label>
-            <DynList items={gratitudePs} onChange={v => { setGratitudePs(v); setTimeout(emit, 0) }}
+            <DynList items={gratitudePs} onChange={setGratitudePs}
               placeholder="เช่น วันนี้ขอบคุณสำหรับ..." addLabel="เพิ่ม Prompt" />
           </div>
         )}
@@ -481,7 +484,6 @@ export function ReviseClient({ templateId, slug, engineType, initialData, nextRe
               )}
             </div>
 
-            {/* change_note + approve */}
             <div>
               <label className={LABEL}>หมายเหตุการแก้ไข (ไม่บังคับ)</label>
               <input
