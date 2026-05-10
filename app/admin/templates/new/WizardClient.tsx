@@ -296,9 +296,7 @@ export function WizardClient({ categories, cloneSources }: Props) {
         engineData: isEngine && engineData
           ? (engineDocCode && (engineData as Record<string, Record<string,unknown>>).s1
               ? { ...engineData, s1: { ...(engineData as Record<string, Record<string,unknown>>).s1, docCode: engineDocCode } }
-              : engineDocCode && (engineData as Record<string, Record<string,unknown>>).p1
-                ? { ...engineData, p1: { ...(engineData as Record<string, Record<string,unknown>>).p1, planCode: engineDocCode } }
-                : engineData)
+              : engineData)
           : undefined,
       })
       if (result.error) {

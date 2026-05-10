@@ -221,7 +221,6 @@ ${wm ? `body::before{content:"${wm}";position:fixed;top:50%;left:50%;transform:t
   <div class="hdr-meta">
     <span>📅 ${PERIOD[p1.period] ?? p1.period}</span>
     ${fw ? `<span>🎯 ${fw}</span>` : ''}
-    ${p1.planCode ? `<span style="font-family:monospace;font-size:8pt;color:#9ca3af">${esc(p1.planCode)}</span>` : ''}
     <span style="margin-left:auto">couponkum.com</span>
   </div>
   ${p1.description.trim() ? `<p style="font-size:10pt;color:#6b7280;margin-top:5px">${esc(p1.description)}</p>` : ''}
