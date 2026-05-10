@@ -94,13 +94,15 @@ export default async function AdminOrdersPage({
     FROM template_orders
   `.catch(() => [{ total: '0', revenue: '0', pending: '0', suspicious: '0' }])
 
-  const [cartStats] = await db<{ total: string; revenue: string; pending: string }[]>`
+  const [cartStats] = await db<{ total: string; revenue: string; fee: string; pending: string }[]>`
     SELECT
-      COUNT(*)::text                                                        AS total,
-      COALESCE(SUM(CASE WHEN status = 'paid' THEN total_baht ELSE 0 END), 0)::text AS revenue,
-      COUNT(*) FILTER (WHERE status = 'pending_payment')::text             AS pending
+      COUNT(*)::text                                                                          AS total,
+      COALESCE(SUM(CASE WHEN status = 'paid' THEN total_baht ELSE 0 END), 0)::text           AS revenue,
+      COALESCE(ROUND(SUM(CASE WHEN status = 'paid'
+        THEN GREATEST(total_baht * 0.015, 5) ELSE 0 END)), 0)::text                          AS fee,
+      COUNT(*) FILTER (WHERE status = 'pending_payment')::text                               AS pending
     FROM orders
-  `.catch(() => [{ total: '0', revenue: '0', pending: '0' }])
+  `.catch(() => [{ total: '0', revenue: '0', fee: '0', pending: '0' }])
 
   const STATUS_TABS = [
     { label: 'ทั้งหมด',   key: '' },
@@ -162,15 +164,17 @@ export default async function AdminOrdersPage({
             ))}
           </div>
         ) : (
-          <div className="mb-6 grid grid-cols-3 gap-3">
+          <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-5">
             {[
-              { label: 'ทั้งหมด',  value: cartStats.total,                                         color: 'text-neutral-900' },
-              { label: 'รายได้',   value: `฿${Number(cartStats.revenue).toLocaleString('th-TH')}`,  color: 'text-emerald-700' },
-              { label: 'รอชำระ',  value: cartStats.pending,                                         color: 'text-yellow-700' },
+              { label: 'ทั้งหมด',        value: cartStats.total,                                                                           color: 'text-neutral-900' },
+              { label: 'รายได้รวม',      value: `฿${Number(cartStats.revenue).toLocaleString('th-TH')}`,                                   color: 'text-emerald-700' },
+              { label: 'ยอดรับจริง',     value: `฿${(Number(cartStats.revenue) - Number(cartStats.fee)).toLocaleString('th-TH')}`,         color: 'text-indigo-700' },
+              { label: 'ค่าธรรมเนียม',  value: `฿${Number(cartStats.fee).toLocaleString('th-TH')}`,                                       color: 'text-rose-600' },
+              { label: 'รอชำระ',         value: cartStats.pending,                                                                          color: 'text-yellow-700' },
             ].map(s => (
-              <div key={s.label} className="rounded-2xl border border-neutral-200 bg-white px-5 py-4 shadow-sm">
-                <p className="text-xs font-bold uppercase tracking-wider text-neutral-400">{s.label}</p>
-                <p className={`mt-1 text-2xl font-black ${s.color}`}>{s.value}</p>
+              <div key={s.label} className="rounded-2xl border border-neutral-200 bg-white px-4 py-4 shadow-sm">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">{s.label}</p>
+                <p className={`mt-1 text-xl font-black ${s.color}`}>{s.value}</p>
               </div>
             ))}
           </div>
