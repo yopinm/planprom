@@ -254,6 +254,26 @@
 
 ---
 
+### Admin Report Pages — R Series (2026-05-10)
+
+> **Global requirement:** ทุกหน้ามี **date range filter** (Today / 7d / 30d / custom) ที่ query ได้จริง
+> VPS Log pages ดึงไฟล์โดยตรงจาก server — ต้องรันผ่าน `exec` บน Node.js (ไม่ใช่ SSH)
+
+| Task | Route | ข้อมูลหลัก | สถานะ |
+|---|---|---|---|
+| R-1 | `/admin/report/sales` | revenue + order count รายวัน · trend · avg order value · date filter | 🔲 Planned |
+| R-2 | `/admin/report/payments` | PromptPay verify log · Omise webhook log · status per order · date filter | 🔲 Planned |
+| R-3 | `/admin/report/downloads` | download events per template · unique/repeat · date filter | 🔲 Planned |
+| R-4 | `/admin/report/export` | export orders CSV · filter by date + status · download button | 🔲 Planned |
+| R-5 | `/admin/report/log/pm2` | PM2 stdout+stderr tail · filter 1h/6h/24h · copy to clipboard | 🔲 Planned |
+| R-6 | `/admin/report/log/nginx-access` | Nginx access log · top paths · 4xx/5xx count · date filter | 🔲 Planned |
+| R-7 | `/admin/report/log/nginx-error` | Nginx error log · 502/504 · upstream fail · date filter | 🔲 Planned |
+| R-8 | `/admin/report/log/errors` | Error Digest รวมทุก source → markdown block · copy-paste ให้ Claude ได้เลย | 🔲 Planned |
+
+**ลำดับแนะนำ:** R-1 → R-2 → R-4 → R-3 → R-5 → R-6 → R-7 → R-8
+
+---
+
 ## Session 33 Changes (2026-05-09) — Payment UAT Fixes
 
 | # | Change | Status |
