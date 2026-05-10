@@ -226,6 +226,87 @@
 
 ---
 
+### Promo Code System — PROMO Series (2026-05-10)
+
+> **เป้าหมาย:** ระบบ discount code สำหรับ double-day campaign (5.5 / 11.11 / 12.12 ฯลฯ) · admin สร้างโค้ด → โผล่ banner หน้าโฮม → ลูกค้า copy → apply ที่ checkout → หักยอด
+
+#### Flow หลัก
+
+```
+Admin สร้างโค้ด (PROMO-3)
+  → is_active = true + ยังไม่หมดอายุ
+  → PromoCodeBanner โผล่หน้าโฮม (PROMO-2) — copy button + countdown timer
+  → ลูกค้าเลือก template → เพิ่มตะกร้า
+  → Checkout: กรอก/วางโค้ด → POST /api/promo/validate (PROMO-1)
+  → validate: active? expired? quota? min_cart_value?
+  → แสดง discount ทันที → สร้าง order พร้อม discount_baht
+  → log ใน promo_code_uses (idempotent — 1 order = 1 use)
+```
+
+#### DB Schema
+
+**`promo_codes`**
+```sql
+CREATE TABLE promo_codes (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  code          TEXT UNIQUE NOT NULL,                  -- "55PLAN", "1111SAVE"
+  label         TEXT NOT NULL,                         -- "5.5 Sale 2026"
+  discount_type TEXT NOT NULL CHECK (discount_type IN ('percent', 'fixed')),
+  discount_value NUMERIC(10,2) NOT NULL,               -- 20 = 20% หรือ ฿20
+  min_cart_value NUMERIC(10,2) NOT NULL DEFAULT 0,     -- ขั้นต่ำ ฿0
+  max_uses      INT,                                   -- NULL = ไม่จำกัด
+  used_count    INT NOT NULL DEFAULT 0,
+  starts_at     TIMESTAMPTZ NOT NULL,
+  expires_at    TIMESTAMPTZ NOT NULL,
+  is_active     BOOLEAN NOT NULL DEFAULT true,
+  created_at    TIMESTAMPTZ DEFAULT now()
+);
+```
+
+**`promo_code_uses`**
+```sql
+CREATE TABLE promo_code_uses (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  promo_code_id   UUID NOT NULL REFERENCES promo_codes(id) ON DELETE CASCADE,
+  order_id        UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  session_id      TEXT,
+  discount_applied NUMERIC(10,2) NOT NULL,
+  used_at         TIMESTAMPTZ DEFAULT now(),
+  UNIQUE (promo_code_id, order_id)                    -- idempotent
+);
+```
+
+**`orders` — columns เพิ่ม**
+```sql
+ALTER TABLE orders ADD COLUMN promo_code_id UUID REFERENCES promo_codes(id);
+ALTER TABLE orders ADD COLUMN discount_baht NUMERIC(10,2) NOT NULL DEFAULT 0;
+```
+
+#### Validation Rules (`/api/promo/validate`)
+
+| เงื่อนไข | Error message |
+|---|---|
+| code ไม่พบ / is_active = false | "ไม่พบโค้ดส่วนลดนี้" |
+| NOW() < starts_at | "โค้ดยังไม่เริ่มใช้งาน" |
+| NOW() > expires_at | "โค้ดหมดอายุแล้ว" |
+| used_count >= max_uses | "โค้ดถูกใช้ครบแล้ว" |
+| cart_total < min_cart_value | "ยอดขั้นต่ำ ฿{min_cart_value}" |
+| discount > cart_total | cap discount ที่ cart_total (ไม่ติดลบ) |
+
+#### Tasks
+
+| Task | ชื่อ | Spec | สถานะ |
+|---|---|---|---|
+| PROMO-1 | **Promo Code Validate API + Checkout Integration** | **Scope (2026-05-10):** · **Migration:** `migrations/20260510_promo_codes.sql` — สร้าง `promo_codes` + `promo_code_uses` + ALTER `orders` เพิ่ม `promo_code_id` + `discount_baht` · **API:** `POST /api/promo/validate` — body: `{ code, cart_total }` → response: `{ valid, discount_type, discount_value, discount_applied, label }` หรือ `{ error }` · **Checkout integration:** `app/checkout/page.tsx` — เพิ่ม `PromoCodeInput` component (กรอกโค้ด → call validate API → แสดงผล discount ทันที · ปุ่ม Remove) · แสดง line item "ส่วนลด (โค้ด xxx): -฿YY" ใน order summary · เมื่อสร้าง order ผ่าน `/api/checkout` → ส่ง `promo_code` ไปด้วย → INSERT promo_code_uses + UPDATE promo_codes.used_count + INSERT orders พร้อม discount_baht · **Files:** `migrations/20260510_promo_codes.sql` · `app/api/promo/validate/route.ts` (NEW) · `components/checkout/PromoCodeInput.tsx` (NEW) · `app/checkout/page.tsx` · `app/api/checkout/route.ts` | 🔲 Planned |
+| PROMO-2 | **PromoCodeBanner — Homepage + Countdown** | **Scope (2026-05-10):** · query `promo_codes` WHERE `is_active = true AND NOW() BETWEEN starts_at AND expires_at` → เรียง expires_at ASC → ใช้ record แรก · **Component:** `components/promo/PromoCodeBanner.tsx` (server component fetch + client countdown) · **UI:** Banner สีทอง/แดง บนสุดหน้าโฮม (ใต้ Header) · แสดง label + code (copy button) + countdown "หมดใน HH:MM:SS" · ถ้าไม่มีโค้ด active → ไม่แสดง Banner · **Copy:** navigator.clipboard.writeText + toast "คัดลอกแล้ว!" · **Files:** `components/promo/PromoCodeBanner.tsx` (NEW) · `app/page.tsx` (inject Banner) | 🔲 Planned |
+| PROMO-3 | **Admin Promo Code CRUD** | **Scope (2026-05-10):** · **Page:** `/admin/promo-codes` — list ทุกโค้ด (code / label / discount / valid dates / used_count/max_uses / is_active toggle) · สร้างโค้ดใหม่ · **Form fields:** code (auto-gen หรือกรอกเอง) · label · discount_type (percent/fixed) · discount_value · min_cart_value · max_uses (blank=ไม่จำกัด) · starts_at / expires_at · **Actions:** `createPromoCodeAction` · `togglePromoCodeAction` (active on/off) · `deletePromoCodeAction` (ลบได้เฉพาะที่ used_count = 0) · **Files:** `app/admin/promo-codes/page.tsx` (NEW) · `app/admin/promo-codes/actions.ts` (NEW) | 🔲 Planned |
+
+**ลำดับแนะนำ:** PROMO-1 (DB + API + Checkout) → PROMO-2 (Banner หน้าโฮม) → PROMO-3 (Admin CRUD)
+
+**Frozen during PROMO work:** payment flow · cart/checkout core logic · Omise integration · download flow
+
+---
+
 ### Document Control System — DC Series (2026-05-08)
 
 > **เป้าหมาย:** ทุกไฟล์ในระบบมีมาตรฐานเดียวกัน · ลูกค้าตัดสินใจซื้อได้จากสารบัญ · order ID สืบค้นได้และไม่ชน
