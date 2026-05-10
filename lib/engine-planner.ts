@@ -124,7 +124,7 @@ export function generatePlannerHtml(data: PlannerEngineData, watermarkText?: str
           <td style="padding:4px 0;border-bottom:1px solid #f3f4f6;font-size:9pt;font-weight:700;color:#374151;vertical-align:middle;white-space:nowrap;overflow:hidden">${esc(h)}</td>
           <td style="padding:4px 0 4px 6px;border-bottom:1px solid #f3f4f6;vertical-align:middle">
             <div style="display:flex;gap:2px">
-              ${Array.from({length:31}).map((_,i)=>`<span style="width:14px;height:14px;border:1px solid #d1d5db;border-radius:2px;display:inline-flex;align-items:center;justify-content:center;font-size:6pt;color:#d1d5db">${i+1}</span>`).join('')}
+              ${Array.from({length:31}).map(()=>`<span style="width:14px;height:14px;border:1px solid #d1d5db;border-radius:2px;display:inline-block"></span>`).join('')}
             </div>
           </td>
         </tr>`).join('')}
