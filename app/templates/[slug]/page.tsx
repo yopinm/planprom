@@ -148,8 +148,8 @@ export default async function TemplateDetailPage({ params }: Props) {
               </ul>
             </div>
 
-            {/* Preview image — S1+S2 screenshot (planner engine only) */}
-            {tmpl.engine_type === 'planner' && tmpl.preview_path && (
+            {/* Preview image — S1+S2 screenshot (engine templates) */}
+            {tmpl.engine_type && tmpl.preview_path && (
               <div className="mt-5">
                 <p className="text-xs font-bold uppercase tracking-widest text-neutral-400 mb-2">ตัวอย่างหน้าแรกของเอกสาร</p>
                 <div className="overflow-hidden rounded-2xl border border-neutral-200 shadow-sm bg-neutral-50">
