@@ -117,15 +117,19 @@ export function generatePlannerHtml(data: PlannerEngineData, watermarkText?: str
     </div>` : ''
 
   // ── Pillar 3 HTML ──────────────────────────────────────────────────────────
-  const habitGrid = validHabits.map(h => `
-    <div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid #f3f4f6">
-      <span style="min-width:130px;font-size:9pt;font-weight:700;color:#374151">${esc(h)}</span>
-      <div style="display:flex;gap:2px;flex:1;flex-wrap:nowrap">
-        ${Array.from({length:31}).map((_,i)=>
-          `<span style="width:14px;height:14px;border:1px solid #d1d5db;border-radius:2px;display:inline-flex;align-items:center;justify-content:center;font-size:6pt;color:#d1d5db">${i+1}</span>`
-        ).join('')}
-      </div>
-    </div>`).join('')
+  const habitGrid = validHabits.length > 0
+    ? `<table style="width:100%;border-collapse:collapse;table-layout:fixed">
+        <colgroup><col style="width:130px"><col></colgroup>
+        ${validHabits.map(h => `<tr>
+          <td style="padding:4px 0;border-bottom:1px solid #f3f4f6;font-size:9pt;font-weight:700;color:#374151;vertical-align:middle;white-space:nowrap;overflow:hidden">${esc(h)}</td>
+          <td style="padding:4px 0 4px 6px;border-bottom:1px solid #f3f4f6;vertical-align:middle">
+            <div style="display:flex;gap:2px">
+              ${Array.from({length:31}).map((_,i)=>`<span style="width:14px;height:14px;border:1px solid #d1d5db;border-radius:2px;display:inline-flex;align-items:center;justify-content:center;font-size:6pt;color:#d1d5db">${i+1}</span>`).join('')}
+            </div>
+          </td>
+        </tr>`).join('')}
+      </table>`
+    : ''
 
   const moodHtml = p3.includeMoodTracker ? `
     <div style="margin-bottom:12px">
