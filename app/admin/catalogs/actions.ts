@@ -31,6 +31,18 @@ export async function createCategoryAction(formData: FormData) {
   redirect('/admin/catalogs')
 }
 
+export async function updateCategoryAction(formData: FormData) {
+  await requireAdminSession('/admin/login')
+  const id    = (formData.get('id')    as string ?? '').trim()
+  const name  = (formData.get('name')  as string ?? '').trim()
+  const emoji = (formData.get('emoji') as string ?? '').trim()
+  if (!id || !name) return
+  await db`UPDATE template_categories SET name = ${name}, emoji = ${emoji} WHERE id = ${id}`
+  revalidatePath('/admin/catalogs')
+  revalidatePath('/')
+  redirect('/admin/catalogs')
+}
+
 export async function deleteCategoryAction(formData: FormData) {
   await requireAdminSession('/admin/login')
   const id = formData.get('id') as string

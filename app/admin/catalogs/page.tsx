@@ -5,6 +5,7 @@ import { requireAdminSession } from '@/lib/admin-auth'
 import { db } from '@/lib/db'
 import { createCategoryAction } from './actions'
 import { DeleteCategoryButton } from './DeleteCategoryButton'
+import { EditCategoryButton } from './EditCategoryButton'
 
 export const metadata: Metadata = {
   title: 'Catalog Manager — Admin',
@@ -90,7 +91,10 @@ export default async function AdminCatalogsPage() {
                       <p className="text-xs text-neutral-400 font-mono">{cat.slug} · {cat.template_count} templates</p>
                     </div>
                   </div>
-                  <DeleteCategoryButton id={cat.id} name={cat.name} />
+                  <div className="flex items-center gap-1">
+                    <EditCategoryButton id={cat.id} name={cat.name} emoji={cat.emoji} />
+                    <DeleteCategoryButton id={cat.id} name={cat.name} />
+                  </div>
                 </div>
 
                 {/* Templates in this category */}
