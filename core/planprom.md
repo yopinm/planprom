@@ -236,7 +236,7 @@
 | DC-3 | **DB Sequence สำหรับ Order ID** | **ปัญหาเดิม:** `Math.random()` อาจชนได้ (1:9000) · **แก้:** PostgreSQL sequence `order_seq` → `nextval` แทน random · **Format คงเดิม:** `CK-YYYYMMDD-NNNN` แต่ NNNN = sequential จาก DB (เริ่ม 1000) · **เพิ่ม:** `order_type TEXT NOT NULL DEFAULT 'cart'` (`cart` / `single` / `pack`) ใน orders table · **DB:** `CREATE SEQUENCE IF NOT EXISTS order_seq START 1000 INCREMENT 1` + `ALTER TABLE orders ADD COLUMN order_type TEXT NOT NULL DEFAULT 'cart'` · **Files:** `migrations/20260508_order_seq.sql` · `app/api/checkout/route.ts` | ✅ **Done · Live** (Session 29) |
 
 | DC-4 | **DB Migration — Engine Columns** | `ALTER TABLE templates ADD COLUMN engine_type TEXT` · `ADD COLUMN engine_data JSONB` · **Files:** `migrations/20260509_engine_columns.sql` | ✅ **Done · Live** (Session 30) |
-| DC-5 | **Checklist Engine — Text-to-PDF** | 5 section form → `generateChecklistHtml()` → puppeteer PDF · auto-generate docCode `CK-YYYYMMDD-XXXX` จาก DB count · หมวดหมู่ auto-fill จาก catalog · ผู้จัดทำ blank (ลูกค้ากรอกเอง) · footer แสดงเฉพาะ title + catalog (ไม่มี docCode) · Step 3 engine mode ซ่อน desc/pages/docType (auto-populate) · **Files:** `lib/engine-checklist.ts` · `lib/engine-types.ts` · `app/api/admin/templates/generate-engine/route.ts` · `app/admin/templates/new/ChecklistEngineForm.tsx` | ✅ **Done · Live** (Session 30) |
+| DC-5 | **Checklist Engine — Text-to-PDF** | 5 section form → `generateChecklistHtml()` → puppeteer PDF · auto-generate docCode `CK-YYYYMMDD-XXXX` จาก DB count · หมวดหมู่ auto-fill จาก catalog · ผู้จัดทำ blank (ลูกค้ากรอกเอง) · footer แสดงเฉพาะ title + catalog (ไม่มี docCode) · Step 3 engine mode ซ่อน desc/pages/docType (auto-populate) · **Files:** `lib/engine-checklist.ts` · `lib/engine-types.ts` · `app/api/admin/templates/generate-engine/route.ts` · `app/admin/templates/new/ChecklistEngineForm.tsx` | ✅ **Done · UAT ผ่าน** (Session 35) |
 | DC-6 | **Planner Engine — Text-to-PDF** | 4 Pillar form → `generatePlannerHtml()` → puppeteer PDF · P1 Goal & Vision / P2 Execution / P3 Tracking / P4 Idea & Resource · **Files:** `lib/engine-planner.ts` · `app/admin/templates/new/PlannerEngineForm.tsx` | ✅ **Done · Live** (Session 30) |
 | DC-7 | **Customer Preview — Engine Data Display** | /templates/[slug] แสดง engine_data preview · Checklist: S1+S2 card (header + purpose) · Planner: P1 card (goals/framework) · Condition: engine_type IS NOT NULL → engine preview · IS NULL → toc_sections เดิม | ✅ **Done · Live** (Session 30) |
 
@@ -274,6 +274,16 @@
 
 **Pending ideas (ยังไม่ทำ):**
 - **Smart Gap Finder** — expand Google Suggest 50–100 terms → filter เชิงพาณิชย์ → match กับ DB (มี/ไม่มี/มีแต่ 0 ยอด) → ranked opportunity table
+
+---
+
+## Session 35 Changes (2026-05-10) — Engine Checklist Fix
+
+| # | Change | Status |
+|---|---|---|
+| 1 | **fix(engine):** wrap DB query + puppeteer import + executablePath + mkdir ใน try/catch — ป้องกัน HTML response เมื่อ crash · ฟีเจอร์ครบ: docCode + PDF + snapshot | ✅ Live |
+| 2 | **DC-5 Engine Checklist** — UAT ผ่านครบ loop: สร้าง → publish → preview → ซื้อ → โหลด | ✅ UAT ผ่าน |
+| 3 | **DC-14 Planner Engine** — ยัง pending UAT | 🟡 Pending |
 
 ---
 
