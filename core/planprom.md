@@ -277,6 +277,18 @@
 
 ---
 
+## Session 37 Changes (2026-05-10) — Orders + Checkout Refactor
+
+| # | Change | Status |
+|---|---|---|
+| 1 | **LINE notify buyer:** `orders.customer_line_id` column migration · checkout route capture LINE ID จาก Supabase session · claim-paid + Omise webhook push LINE download links ให้ buyer ถ้า login | ✅ Live |
+| 2 | **Deprecate direct checkout:** `/checkout/[slug]` → redirect ผ่าน `/api/cart/quick-add?slug=xxx` → add to cart → `/checkout` · ทุก purchase ใช้ cart เท่านั้น | ✅ Live |
+| 3 | **admin/orders KPI:** เพิ่ม ยอดรับจริง + ค่าธรรมเนียม Omise — `GREATEST(total_baht * 0.015, 5)` ต่อ order | ✅ Live |
+| 4 | **admin/orders ลบ Template Orders tab:** เหลือแค่ Cart Orders · KPI 5 card: ทั้งหมด · รายได้รวม · ยอดรับจริง · ค่าธรรมเนียม · รอชำระ | ✅ Live |
+| 5 | **Cancel stale order:** CK-20260508-9577 pending 2 วัน → revoked ผ่าน DB | ✅ Done |
+
+---
+
 ## Session 36 Changes (2026-05-10) — Engine Checklist + Planner UAT ผ่านครบ
 
 | # | Change | Status |

@@ -31,7 +31,7 @@
 | **Next task** | **DC-8** Engine Content Edit + Revision History (table `template_revisions` · /revise · /revisions pages) |
 | **Pending (code)** | **13 tasks** — ADMIN-CLEAN-1🔵TODAY · DC-8 · DC-12 · J10🔴 · J12🔴 · J7 · J11 · J13 · J14 · J17 · J19 · J20 · ADMIN-CLEAN-2(2026-05-17) |
 | **Pending (UAT)** | **5 กลุ่ม** — DC-1 · DC-2 · E9/E10 · J9(รอ live keys) · A–H(รอ owner test) |
-| **Last session** | **Session 36 (2026-05-10)** — Engine Checklist + Planner UAT ผ่านครบ — root cause: Nginx proxy_buffer_size 4KB ใหญ่ไม่พอ → fix 128k · แยก route generate-planner · slug check ที่ step 3 · 2 more engines planned |
+| **Last session** | **Session 37 (2026-05-10)** — LINE notify buyer · /checkout/[slug] → cart redirect · admin/orders ลบ Template tab + KPI fee/net · orders.customer_line_id migration |
 | **ห้าม** | ไม่แตะ Later task ขณะที่ Now ยังค้างอยู่ · ไม่แตะ secrets โดยตรง · ไม่ทำให้ revenue channel หายไประหว่าง pivot |
 
 ---
@@ -198,6 +198,7 @@
 | **Session 34. Admin Report Suite** | ✅ Live 2026-05-10 · R-1..R-10 · Wallet cleanup marked |
 | **Session 35. Engine Checklist fix** | ✅ Live 2026-05-10 — wrap all async try/catch — Engine Checklist กลับมาทำงานครบ loop |
 | **Session 36. Engine Checklist + Planner UAT ผ่านครบ** | ✅ Live 2026-05-10 — Nginx proxy_buffer 128k · generate-planner แยก route · slug check step 3 · 2 more engines planned |
+| **Session 37. Orders + Checkout refactor** | ✅ Live 2026-05-10 — LINE notify buyer · /checkout/[slug] redirect cart · admin/orders KPI fee/net · ลบ Template Orders tab |
 | **DC-8. Engine Revision System** | 🔵 **Next** |
 
 **✅ J18 UAT ผ่านครบ (2026-05-08 Session 28)** — payment flow ถูก lock ห้ามแก้ไขจนกว่าแอดมินจะสั่ง
