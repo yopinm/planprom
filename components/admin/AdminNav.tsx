@@ -38,10 +38,14 @@ const GROUPS: Record<GroupKey, NavGroup> = {
     sublabel: 'Analytics · Logs',
     color: 'bg-indigo-600',
     links: [
-      { label: '📈 ยอดขาย',      path: '/admin/report/sales',     pattern: /^\/admin\/report\/sales/ },
-      { label: '💳 Payment Log', path: '/admin/report/payments',  pattern: /^\/admin\/report\/payments/ },
-      { label: '📥 Download Log',path: '/admin/report/downloads', pattern: /^\/admin\/report\/downloads/ },
-      { label: '📤 Order Export', path: '/admin/report/export',    pattern: /^\/admin\/report\/export/ },
+      { label: '📈 ยอดขาย',        path: '/admin/report/sales',         pattern: /^\/admin\/report\/sales/ },
+      { label: '💳 Payment Log',   path: '/admin/report/payments',      pattern: /^\/admin\/report\/payments/ },
+      { label: '📥 Download Log',  path: '/admin/report/downloads',     pattern: /^\/admin\/report\/downloads/ },
+      { label: '📤 Order Export',  path: '/admin/report/export',        pattern: /^\/admin\/report\/export/ },
+      { label: '🖥 PM2 Log',       path: '/admin/report/log/pm2',       pattern: /^\/admin\/report\/log\/pm2/ },
+      { label: '🌐 Nginx Access',  path: '/admin/report/log/nginx-access', pattern: /^\/admin\/report\/log\/nginx-access/ },
+      { label: '⚠️ Nginx Error',   path: '/admin/report/log/nginx-error',  pattern: /^\/admin\/report\/log\/nginx-error/ },
+      { label: '📋 Error Digest',  path: '/admin/report/log/errors',    pattern: /^\/admin\/report\/log\/errors/ },
     ],
   },
 }
