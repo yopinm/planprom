@@ -25,19 +25,14 @@ function getDateRange(range: RangeKey, from?: string, to?: string): { start: Dat
   endOfDay.setHours(23, 59, 59, 999)
 
   if (range === 'custom' && from && to) {
-    const start = new Date(from + 'T00:00:00+07:00')
-    const end   = new Date(to   + 'T23:59:59+07:00')
-    return { start, end, label: `${from} – ${to}` }
+    return { start: new Date(from + 'T00:00:00+07:00'), end: new Date(to + 'T23:59:59+07:00'), label: `${from} – ${to}` }
   }
   if (range === 'today') {
-    const start = new Date(now)
-    start.setHours(0, 0, 0, 0)
+    const start = new Date(now); start.setHours(0, 0, 0, 0)
     return { start, end: endOfDay, label: 'วันนี้' }
   }
   const days = range === '30d' ? 30 : 7
-  const start = new Date(now)
-  start.setDate(start.getDate() - days + 1)
-  start.setHours(0, 0, 0, 0)
+  const start = new Date(now); start.setDate(start.getDate() - days + 1); start.setHours(0, 0, 0, 0)
   return { start, end: endOfDay, label: `${days} วันล่าสุด` }
 }
 
@@ -51,72 +46,59 @@ export default async function SalesReportPage({
   const range = (['today', '7d', '30d', 'custom'].includes(sp.range ?? '') ? sp.range : '7d') as RangeKey
   const { start, end, label } = getDateRange(range, sp.from, sp.to)
 
-  // ── KPI ──────────────────────────────────────────────────────────────────────
   const [kpi] = await db<{
-    total_orders:  string
-    paid_orders:   string
-    revenue:       string
-    avg_order:     string
+    total_orders:   string
+    paid_orders:    string
+    revenue:        string
+    avg_order:      string
     pending_orders: string
   }[]>`
     SELECT
-      COUNT(*)                                                     AS total_orders,
-      COUNT(*) FILTER (WHERE status = 'paid')                     AS paid_orders,
-      COALESCE(SUM(amount_baht) FILTER (WHERE status = 'paid'), 0) AS revenue,
-      COALESCE(AVG(amount_baht) FILTER (WHERE status = 'paid'), 0) AS avg_order,
-      COUNT(*) FILTER (WHERE status IN ('pending_payment','pending_verify')) AS pending_orders
-    FROM template_orders
+      COUNT(*)                                                        AS total_orders,
+      COUNT(*) FILTER (WHERE status = 'paid')                        AS paid_orders,
+      COALESCE(SUM(total_baht) FILTER (WHERE status = 'paid'), 0)   AS revenue,
+      COALESCE(AVG(total_baht) FILTER (WHERE status = 'paid'), 0)   AS avg_order,
+      COUNT(*) FILTER (WHERE status = 'pending_payment')             AS pending_orders
+    FROM orders
     WHERE created_at >= ${start} AND created_at <= ${end}
   `
 
-  // ── Daily breakdown ───────────────────────────────────────────────────────────
-  const daily = await db<{
-    day:      string
-    orders:   string
-    paid:     string
-    revenue:  string
-  }[]>`
+  const daily = await db<{ day: string; orders: string; paid: string; revenue: string }[]>`
     SELECT
-      DATE(created_at AT TIME ZONE 'Asia/Bangkok') AS day,
-      COUNT(*)                                      AS orders,
-      COUNT(*) FILTER (WHERE status = 'paid')      AS paid,
-      COALESCE(SUM(amount_baht) FILTER (WHERE status = 'paid'), 0) AS revenue
-    FROM template_orders
+      DATE(created_at AT TIME ZONE 'Asia/Bangkok')                   AS day,
+      COUNT(*)                                                        AS orders,
+      COUNT(*) FILTER (WHERE status = 'paid')                        AS paid,
+      COALESCE(SUM(total_baht) FILTER (WHERE status = 'paid'), 0)   AS revenue
+    FROM orders
     WHERE created_at >= ${start} AND created_at <= ${end}
     GROUP BY day
     ORDER BY day DESC
   `
 
-  // ── Per-template breakdown ────────────────────────────────────────────────────
-  const byTemplate = await db<{
-    title:    string
-    orders:   string
-    paid:     string
-    revenue:  string
-  }[]>`
+  const byTemplate = await db<{ title: string; orders: string; paid: string; revenue: string }[]>`
     SELECT
       t.title,
-      COUNT(o.id)                                                  AS orders,
-      COUNT(o.id) FILTER (WHERE o.status = 'paid')                AS paid,
-      COALESCE(SUM(o.amount_baht) FILTER (WHERE o.status = 'paid'), 0) AS revenue
-    FROM template_orders o
-    JOIN templates t ON t.id = o.template_id
+      COUNT(DISTINCT oi.order_id)                                                    AS orders,
+      COUNT(DISTINCT oi.order_id) FILTER (WHERE o.status = 'paid')                  AS paid,
+      COALESCE(SUM(oi.price_baht) FILTER (WHERE o.status = 'paid'), 0)             AS revenue
+    FROM order_items oi
+    JOIN orders    o ON o.id  = oi.order_id
+    JOIN templates t ON t.id  = oi.template_id
     WHERE o.created_at >= ${start} AND o.created_at <= ${end}
     GROUP BY t.title
     ORDER BY revenue DESC
   `
 
-  const totalRevenue  = Number(kpi?.revenue    ?? 0)
-  const totalOrders   = Number(kpi?.total_orders ?? 0)
-  const paidOrders    = Number(kpi?.paid_orders  ?? 0)
-  const avgOrder      = Number(kpi?.avg_order    ?? 0)
+  const totalRevenue  = Number(kpi?.revenue      ?? 0)
+  const totalOrders   = Number(kpi?.total_orders  ?? 0)
+  const paidOrders    = Number(kpi?.paid_orders   ?? 0)
+  const avgOrder      = Number(kpi?.avg_order     ?? 0)
   const pendingOrders = Number(kpi?.pending_orders ?? 0)
 
   return (
     <main className="min-h-screen bg-neutral-50 pb-20">
       <div className="mx-auto max-w-4xl px-4 py-8">
 
-        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[11px] font-black uppercase tracking-widest text-neutral-400">Report</p>
@@ -131,75 +113,44 @@ export default async function SalesReportPage({
         {/* Date range filter */}
         <div className="mt-6 flex flex-wrap items-end gap-3">
           {(['today', '7d', '30d'] as RangeKey[]).map(r => (
-            <Link
-              key={r}
-              href={`/admin/report/sales?range=${r}`}
+            <Link key={r} href={`/admin/report/sales?range=${r}`}
               className={`rounded-full px-4 py-1.5 text-xs font-black transition ${
                 range === r && range !== 'custom'
                   ? 'bg-indigo-600 text-white'
                   : 'bg-white border border-neutral-200 text-neutral-600 hover:border-indigo-400'
-              }`}
-            >
+              }`}>
               {RANGE_LABELS[r]}
             </Link>
           ))}
-
           <form method="GET" action="/admin/report/sales" className="flex items-center gap-2">
             <input type="hidden" name="range" value="custom" />
-            <input
-              type="date"
-              name="from"
-              defaultValue={sp.from ?? ''}
-              required
-              className="rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-xs font-bold text-neutral-700 outline-none focus:border-indigo-400"
-            />
+            <input type="date" name="from" defaultValue={sp.from ?? ''} required
+              className="rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-xs font-bold outline-none focus:border-indigo-400" />
             <span className="text-xs text-neutral-400">–</span>
-            <input
-              type="date"
-              name="to"
-              defaultValue={sp.to ?? ''}
-              required
-              className="rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-xs font-bold text-neutral-700 outline-none focus:border-indigo-400"
-            />
-            <button
-              type="submit"
+            <input type="date" name="to" defaultValue={sp.to ?? ''} required
+              className="rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-xs font-bold outline-none focus:border-indigo-400" />
+            <button type="submit"
               className={`rounded-full px-4 py-1.5 text-xs font-black transition ${
-                range === 'custom'
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-white border border-neutral-200 text-neutral-600 hover:border-indigo-400'
-              }`}
-            >
+                range === 'custom' ? 'bg-indigo-600 text-white' : 'bg-white border border-neutral-200 text-neutral-600 hover:border-indigo-400'
+              }`}>
               ดู
             </button>
           </form>
         </div>
 
-        {/* KPI Cards */}
+        {/* KPI */}
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <div className="rounded-2xl border border-indigo-100 bg-white px-4 py-5 text-center shadow-sm">
-            <p className={`text-2xl font-black ${totalRevenue > 0 ? 'text-indigo-600' : 'text-neutral-300'}`}>
-              ฿{totalRevenue.toLocaleString('th-TH')}
-            </p>
-            <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">Revenue</p>
-          </div>
-          <div className="rounded-2xl border border-neutral-200 bg-white px-4 py-5 text-center shadow-sm">
-            <p className={`text-2xl font-black ${paidOrders > 0 ? 'text-green-600' : 'text-neutral-300'}`}>
-              {paidOrders}
-            </p>
-            <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">Orders จ่ายแล้ว</p>
-          </div>
-          <div className="rounded-2xl border border-neutral-200 bg-white px-4 py-5 text-center shadow-sm">
-            <p className={`text-2xl font-black ${avgOrder > 0 ? 'text-amber-600' : 'text-neutral-300'}`}>
-              ฿{avgOrder.toFixed(0)}
-            </p>
-            <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">Avg / Order</p>
-          </div>
-          <div className={`rounded-2xl border bg-white px-4 py-5 text-center shadow-sm ${pendingOrders > 0 ? 'border-orange-200' : 'border-neutral-200'}`}>
-            <p className={`text-2xl font-black ${pendingOrders > 0 ? 'text-orange-500' : 'text-neutral-300'}`}>
-              {pendingOrders}
-            </p>
-            <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">Pending</p>
-          </div>
+          {[
+            { label: 'Revenue',        value: `฿${totalRevenue.toLocaleString('th-TH')}`, color: totalRevenue > 0 ? 'text-indigo-600' : 'text-neutral-300' },
+            { label: 'Orders จ่ายแล้ว', value: String(paidOrders),                        color: paidOrders > 0  ? 'text-green-600'  : 'text-neutral-300' },
+            { label: 'Avg / Order',    value: `฿${avgOrder.toFixed(0)}`,                  color: avgOrder > 0    ? 'text-amber-600'  : 'text-neutral-300' },
+            { label: 'Pending',        value: String(pendingOrders),                       color: pendingOrders > 0 ? 'text-orange-500' : 'text-neutral-300' },
+          ].map(k => (
+            <div key={k.label} className="rounded-2xl border border-neutral-200 bg-white px-4 py-5 text-center shadow-sm">
+              <p className={`text-2xl font-black ${k.color}`}>{k.value}</p>
+              <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">{k.label}</p>
+            </div>
+          ))}
         </div>
 
         {/* Daily breakdown */}
@@ -226,9 +177,7 @@ export default async function SalesReportPage({
                       </td>
                       <td className="px-5 py-3 text-right text-neutral-500">{row.orders}</td>
                       <td className="px-5 py-3 text-right font-bold text-green-600">{row.paid}</td>
-                      <td className="px-5 py-3 text-right font-black text-indigo-600">
-                        ฿{Number(row.revenue).toLocaleString('th-TH')}
-                      </td>
+                      <td className="px-5 py-3 text-right font-black text-indigo-600">฿{Number(row.revenue).toLocaleString('th-TH')}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -265,9 +214,7 @@ export default async function SalesReportPage({
                       <td className="px-5 py-3 font-bold text-neutral-800 max-w-xs truncate">{row.title}</td>
                       <td className="px-5 py-3 text-right text-neutral-500">{row.orders}</td>
                       <td className="px-5 py-3 text-right font-bold text-green-600">{row.paid}</td>
-                      <td className="px-5 py-3 text-right font-black text-indigo-600">
-                        ฿{Number(row.revenue).toLocaleString('th-TH')}
-                      </td>
+                      <td className="px-5 py-3 text-right font-black text-indigo-600">฿{Number(row.revenue).toLocaleString('th-TH')}</td>
                     </tr>
                   ))}
                 </tbody>

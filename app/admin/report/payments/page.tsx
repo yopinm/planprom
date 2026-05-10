@@ -2,9 +2,10 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { requireAdminSession } from '@/lib/admin-auth'
 import { db } from '@/lib/db'
+import { ExportClient } from '../export/ExportClient'
 
 export const metadata: Metadata = {
-  title: 'Payment Log — Admin Report',
+  title: 'Orders & Payment Log — Admin Report',
   robots: { index: false, follow: false },
 }
 
@@ -15,9 +16,8 @@ type RangeKey = 'today' | '7d' | '30d' | 'custom'
 function getDateRange(range: RangeKey, from?: string, to?: string) {
   const now = new Date()
   const end = new Date(now); end.setHours(23, 59, 59, 999)
-  if (range === 'custom' && from && to) {
+  if (range === 'custom' && from && to)
     return { start: new Date(from + 'T00:00:00+07:00'), end: new Date(to + 'T23:59:59+07:00'), label: `${from} – ${to}` }
-  }
   if (range === 'today') {
     const start = new Date(now); start.setHours(0, 0, 0, 0)
     return { start, end, label: 'วันนี้' }
@@ -28,11 +28,17 @@ function getDateRange(range: RangeKey, from?: string, to?: string) {
 }
 
 const STATUS_COLOR: Record<string, string> = {
-  paid:             'bg-green-100 text-green-700',
-  pending_payment:  'bg-yellow-100 text-yellow-700',
-  pending_verify:   'bg-blue-100 text-blue-700',
-  refunded:         'bg-neutral-100 text-neutral-500',
+  paid:            'bg-green-100 text-green-700',
+  pending_payment: 'bg-yellow-100 text-yellow-700',
+  revoked:         'bg-neutral-100 text-neutral-500',
 }
+
+const STATUSES = [
+  { key: '', label: 'ทั้งหมด' },
+  { key: 'paid', label: 'จ่ายแล้ว' },
+  { key: 'pending_payment', label: 'รอชำระ' },
+  { key: 'revoked', label: 'ยกเลิก' },
+]
 
 export default async function PaymentLogPage({
   searchParams,
@@ -45,54 +51,62 @@ export default async function PaymentLogPage({
   const { start, end, label } = getDateRange(range, sp.from, sp.to)
   const filterStatus = sp.status ?? ''
 
+  const [summary] = await db<{ total: string; paid: string; pending: string; revenue: string; fee: string }[]>`
+    SELECT
+      COUNT(*)::text                                                                   AS total,
+      COUNT(*) FILTER (WHERE status = 'paid')::text                                   AS paid,
+      COUNT(*) FILTER (WHERE status = 'pending_payment')::text                        AS pending,
+      COALESCE(SUM(total_baht) FILTER (WHERE status = 'paid'), 0)::text              AS revenue,
+      COALESCE(ROUND(SUM(GREATEST(total_baht * 0.015, 5)) FILTER (WHERE status = 'paid')), 0)::text AS fee
+    FROM orders
+    WHERE created_at >= ${start} AND created_at <= ${end}
+  `
+
   const orders = await db<{
-    order_number: string
-    template_title: string
-    customer_line_id: string
-    amount_baht: number
-    status: string
-    omise_charge_id: string | null
-    promptpay_ref: string | null
-    created_at: string
-    paid_at: string | null
+    order_uid:   string
+    item_titles: string
+    item_count:  string
+    total_baht:  number
+    status:      string
+    fraud_flag:  string
+    created_at:  string
+    paid_at:     string | null
   }[]>`
     SELECT
-      o.order_number,
-      t.title AS template_title,
-      o.customer_line_id,
-      o.amount_baht,
+      o.order_uid,
+      STRING_AGG(t.title, ' · ' ORDER BY oi.id) AS item_titles,
+      COUNT(oi.id)::text                          AS item_count,
+      o.total_baht,
       o.status,
-      o.omise_charge_id,
-      o.promptpay_ref,
+      o.fraud_flag,
       o.created_at,
       o.paid_at
-    FROM template_orders o
-    JOIN templates t ON t.id = o.template_id
+    FROM orders o
+    LEFT JOIN order_items oi ON oi.order_id = o.id
+    LEFT JOIN templates   t  ON t.id = oi.template_id
     WHERE o.created_at >= ${start} AND o.created_at <= ${end}
       ${filterStatus ? db`AND o.status = ${filterStatus}` : db``}
+    GROUP BY o.id
     ORDER BY o.created_at DESC
     LIMIT 500
   `
 
-  const [summary] = await db<{
-    total: string; paid: string; pending: string; revenue: string
-  }[]>`
-    SELECT
-      COUNT(*)                                                      AS total,
-      COUNT(*) FILTER (WHERE status = 'paid')                      AS paid,
-      COUNT(*) FILTER (WHERE status IN ('pending_payment','pending_verify')) AS pending,
-      COALESCE(SUM(amount_baht) FILTER (WHERE status = 'paid'), 0) AS revenue
-    FROM template_orders
-    WHERE created_at >= ${start} AND created_at <= ${end}
-  `
+  const revenue = Number(summary?.revenue ?? 0)
+  const fee     = Number(summary?.fee     ?? 0)
 
-  const STATUSES = [
-    { key: '', label: 'ทั้งหมด' },
-    { key: 'paid', label: 'จ่ายแล้ว' },
-    { key: 'pending_payment', label: 'รอชำระ' },
-    { key: 'pending_verify', label: 'รอตรวจสอบ' },
-    { key: 'refunded', label: 'คืนเงิน' },
-  ]
+  const csvRows = [
+    ['order_uid', 'templates', 'total_baht', 'net_baht', 'status', 'fraud_flag', 'paid_at', 'created_at'],
+    ...orders.map(o => [
+      o.order_uid,
+      `"${(o.item_titles ?? '').replace(/"/g, '""')}"`,
+      String(o.total_baht),
+      o.status === 'paid' ? String(Math.round(o.total_baht - Math.max(o.total_baht * 0.015, 5))) : '',
+      o.status,
+      o.fraud_flag,
+      o.paid_at ?? '',
+      o.created_at,
+    ]),
+  ].map(r => r.join(',')).join('\n')
 
   return (
     <main className="min-h-screen bg-neutral-50 pb-20">
@@ -101,8 +115,8 @@ export default async function PaymentLogPage({
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[11px] font-black uppercase tracking-widest text-neutral-400">Report</p>
-            <h1 className="text-2xl font-black text-black">💳 Payment Log</h1>
-            <p className="mt-0.5 text-sm text-neutral-500">{label}</p>
+            <h1 className="text-2xl font-black text-black">💳 Orders &amp; Payment Log</h1>
+            <p className="mt-0.5 text-sm text-neutral-500">{label} · {orders.length} รายการ</p>
           </div>
           <Link href="/admin" className="rounded-2xl border border-neutral-200 bg-white px-4 py-2 text-xs font-black text-neutral-600 shadow-sm hover:border-black">
             ← Admin
@@ -110,15 +124,16 @@ export default async function PaymentLogPage({
         </div>
 
         {/* KPI */}
-        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-5">
           {[
-            { label: 'Revenue', value: `฿${Number(summary?.revenue ?? 0).toLocaleString('th-TH')}`, color: 'text-indigo-600' },
-            { label: 'จ่ายแล้ว', value: summary?.paid ?? '0', color: 'text-green-600' },
-            { label: 'Pending', value: summary?.pending ?? '0', color: 'text-orange-500' },
-            { label: 'ทั้งหมด', value: summary?.total ?? '0', color: 'text-neutral-600' },
+            { label: 'Revenue',       value: `฿${revenue.toLocaleString('th-TH')}`,                   color: 'text-indigo-600' },
+            { label: 'ยอดรับจริง',    value: `฿${(revenue - fee).toLocaleString('th-TH')}`,            color: 'text-emerald-600' },
+            { label: 'ค่าธรรมเนียม', value: `฿${fee.toLocaleString('th-TH')}`,                        color: 'text-rose-500' },
+            { label: 'จ่ายแล้ว',     value: summary?.paid ?? '0',                                      color: 'text-green-600' },
+            { label: 'Pending',       value: summary?.pending ?? '0',                                   color: 'text-orange-500' },
           ].map(k => (
             <div key={k.label} className="rounded-2xl border border-neutral-200 bg-white px-4 py-4 text-center shadow-sm">
-              <p className={`text-2xl font-black ${k.color}`}>{k.value}</p>
+              <p className={`text-xl font-black ${k.color}`}>{k.value}</p>
               <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">{k.label}</p>
             </div>
           ))}
@@ -142,7 +157,8 @@ export default async function PaymentLogPage({
           </form>
           <div className="flex gap-1.5 ml-2">
             {STATUSES.map(s => (
-              <Link key={s.key} href={`/admin/report/payments?range=${range}${s.key ? `&status=${s.key}` : ''}${sp.from ? `&from=${sp.from}` : ''}${sp.to ? `&to=${sp.to}` : ''}`}
+              <Link key={s.key}
+                href={`/admin/report/payments?range=${range}${s.key ? `&status=${s.key}` : ''}${sp.from ? `&from=${sp.from}` : ''}${sp.to ? `&to=${sp.to}` : ''}`}
                 className={`rounded-full px-3 py-1 text-[10px] font-black transition ${filterStatus === s.key ? 'bg-black text-white' : 'bg-white border border-neutral-200 text-neutral-500 hover:border-black'}`}>
                 {s.label}
               </Link>
@@ -150,8 +166,11 @@ export default async function PaymentLogPage({
           </div>
         </div>
 
+        {/* Export CSV */}
+        <ExportClient csv={csvRows} filename={`orders-${label.replace(/\s–\s/g, '_')}.csv`} count={orders.length} />
+
         {/* Table */}
-        <div className="mt-5 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
+        <div className="mt-4 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
           {orders.length === 0 ? (
             <p className="py-12 text-center text-sm text-neutral-400 italic">ไม่มีข้อมูลในช่วงนี้</p>
           ) : (
@@ -160,26 +179,27 @@ export default async function PaymentLogPage({
                 <thead>
                   <tr className="border-b border-neutral-100 bg-neutral-50 text-[10px] font-black uppercase tracking-wider text-neutral-400">
                     <th className="px-4 py-3 text-left">Order</th>
-                    <th className="px-4 py-3 text-left">Template</th>
+                    <th className="px-4 py-3 text-left">Templates</th>
                     <th className="px-4 py-3 text-right">฿</th>
                     <th className="px-4 py-3 text-center">Status</th>
-                    <th className="px-4 py-3 text-left">Charge ID</th>
                     <th className="px-4 py-3 text-left">เวลา</th>
                   </tr>
                 </thead>
                 <tbody>
                   {orders.map((o, i) => (
-                    <tr key={o.order_number} className={`border-b border-neutral-50 ${i % 2 === 1 ? 'bg-neutral-50/50' : ''}`}>
-                      <td className="px-4 py-2.5 font-mono font-bold text-neutral-700">{o.order_number}</td>
-                      <td className="px-4 py-2.5 max-w-[160px] truncate text-neutral-600">{o.template_title}</td>
-                      <td className="px-4 py-2.5 text-right font-black text-indigo-600">฿{o.amount_baht}</td>
+                    <tr key={o.order_uid} className={`border-b border-neutral-50 ${i % 2 === 1 ? 'bg-neutral-50/50' : ''}`}>
+                      <td className="px-4 py-2.5 font-mono font-bold text-neutral-700">{o.order_uid}</td>
+                      <td className="px-4 py-2.5 max-w-[200px] truncate text-neutral-600">
+                        <span className="text-neutral-400 mr-1">{o.item_count}×</span>{o.item_titles ?? '—'}
+                      </td>
+                      <td className="px-4 py-2.5 text-right font-black text-indigo-600">฿{o.total_baht}</td>
                       <td className="px-4 py-2.5 text-center">
                         <span className={`rounded-full px-2 py-0.5 text-[9px] font-black ${STATUS_COLOR[o.status] ?? 'bg-neutral-100 text-neutral-500'}`}>
-                          {o.status}
+                          {o.status === 'pending_payment' ? 'รอชำระ' : o.status === 'paid' ? 'PAID' : o.status}
                         </span>
-                      </td>
-                      <td className="px-4 py-2.5 font-mono text-[10px] text-neutral-400 max-w-[120px] truncate">
-                        {o.omise_charge_id ?? o.promptpay_ref ?? '—'}
+                        {o.fraud_flag !== 'clean' && (
+                          <span className="ml-1 rounded-full bg-orange-100 px-1.5 py-0.5 text-[9px] font-black text-orange-600">{o.fraud_flag}</span>
+                        )}
                       </td>
                       <td className="px-4 py-2.5 text-neutral-500 whitespace-nowrap">
                         {new Date(o.created_at).toLocaleString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
@@ -189,7 +209,7 @@ export default async function PaymentLogPage({
                 </tbody>
               </table>
               {orders.length === 500 && (
-                <p className="border-t border-neutral-100 px-5 py-2 text-center text-[10px] text-neutral-400">แสดง 500 รายการล่าสุด — ใช้ Order Export เพื่อดูทั้งหมด</p>
+                <p className="border-t border-neutral-100 px-5 py-2 text-center text-[10px] text-neutral-400">แสดง 500 รายการล่าสุด — Export CSV เพื่อดูทั้งหมด</p>
               )}
             </div>
           )}
