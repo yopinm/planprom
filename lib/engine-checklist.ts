@@ -63,7 +63,7 @@ tr:nth-child(even) td{background:#f9fafb}
   <div class="hdr-meta">
     ${categoryName ? `<span><strong>หมวดหมู่:</strong> ${esc(categoryName)}</span>` : ''}
     <span><strong>วันที่:</strong> ${esc(s1.createdDate)}</span>
-    <span style="margin-left:auto">couponkum.com</span>
+    <span style="margin-left:auto">www.planprom.com</span>
   </div>
 </div>
 
@@ -123,7 +123,7 @@ tr:nth-child(even) td{background:#f9fafb}
 </div>
 
 <div class="footer">
-  <span>คูปองคุ้ม · couponkum.com</span>
+  <span>แพลนพร้อม · www.planprom.com</span>
   <span>${esc(s1.title)}${categoryName ? ` · ${esc(categoryName)}` : ''}</span>
 </div>
 </body></html>`

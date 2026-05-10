@@ -154,11 +154,11 @@ p {
 <body>
 <div class="doc-header">
   <span class="doc-header-title">${title.replace(/</g, '&lt;')}</span>
-  <span class="doc-header-brand">couponkum.com</span>
+  <span class="doc-header-brand">www.planprom.com</span>
 </div>
 ${body}
 <div class="doc-footer">
-  <span>คูปองคุ้ม · couponkum.com</span>
+  <span>แพลนพร้อม · www.planprom.com</span>
   <span></span>
 </div>
 </body>
