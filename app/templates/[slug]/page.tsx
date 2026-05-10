@@ -43,14 +43,14 @@ export default async function TemplateDetailPage({ params }: Props) {
 
   const [tmpl] = await db<{
     id: string; title: string; description: string; tier: string
-    price_baht: number; thumbnail_path: string | null; page_count: number | null
+    price_baht: number; thumbnail_path: string | null; preview_path: string | null; page_count: number | null
     has_form_fields: boolean; sale_count: number; published_at: string
     category_name: string | null; category_emoji: string | null; category_slug: string | null
     toc_sections: TocItem[] | null
     engine_type: string | null; engine_data: ChecklistEngineData | PlannerEngineData | null
   }[]>`
     SELECT t.id, t.title, t.description, t.tier, t.price_baht,
-           t.thumbnail_path, t.page_count, t.has_form_fields, t.sale_count, t.published_at,
+           t.thumbnail_path, t.preview_path, t.page_count, t.has_form_fields, t.sale_count, t.published_at,
            t.toc_sections, t.engine_type, t.engine_data,
            c.name AS category_name, c.emoji AS category_emoji, c.slug AS category_slug
     FROM templates t
@@ -147,6 +147,24 @@ export default async function TemplateDetailPage({ params }: Props) {
                 ))}
               </ul>
             </div>
+
+            {/* Preview image — S1+S2 screenshot (engine templates) */}
+            {tmpl.engine_type && tmpl.preview_path && (
+              <div className="mt-5">
+                <p className="text-xs font-bold uppercase tracking-widest text-neutral-400 mb-2">ตัวอย่างหน้าแรกของเอกสาร</p>
+                <div className="overflow-hidden rounded-2xl border border-neutral-200 shadow-sm bg-neutral-50">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={tmpl.preview_path}
+                    alt={`ตัวอย่าง ${tmpl.title}`}
+                    className="w-full h-auto"
+                  />
+                </div>
+                <p className="mt-2 text-[11px] text-neutral-400 text-center">
+                  แสดงเฉพาะหน้าที่ 1–2 · ซื้อเพื่อดูเอกสารเต็ม
+                </p>
+              </div>
+            )}
 
             {/* Engine Preview — DC-7: structured info from engine_data */}
             {tmpl.engine_type === 'checklist' && tmpl.engine_data && (() => {
