@@ -30,8 +30,8 @@
 | **Blockers** | IA approved ✅ (Affiliate ID 1082367) · AT Datafeed ⏳ · Shopee API ⏳ · Lazada pool=49 fixed |
 | **Next task** | **DC-8** Engine Content Edit + Revision History (table `template_revisions` · /revise · /revisions pages) |
 | **Pending (code)** | **13 tasks** — ADMIN-CLEAN-1🔵TODAY · DC-8 · DC-12 · J10🔴 · J12🔴 · J7 · J11 · J13 · J14 · J17 · J19 · J20 · ADMIN-CLEAN-2(2026-05-17) |
-| **Pending (UAT)** | **6 กลุ่ม** — DC-1 · DC-2 · DC-14 · E9/E10 · J9(รอ live keys) · A–H(รอ owner test) |
-| **Last session** | **Session 35 (2026-05-10)** — fix(engine): wrap all uncovered async lines in try/catch — Engine Checklist กลับมาทำงานครบ loop · Planner Engine UAT pending |
+| **Pending (UAT)** | **5 กลุ่ม** — DC-1 · DC-2 · E9/E10 · J9(รอ live keys) · A–H(รอ owner test) |
+| **Last session** | **Session 36 (2026-05-10)** — Engine Checklist + Planner UAT ผ่านครบ — root cause: Nginx proxy_buffer_size 4KB ใหญ่ไม่พอ → fix 128k · แยก route generate-planner · slug check ที่ step 3 · 2 more engines planned |
 | **ห้าม** | ไม่แตะ Later task ขณะที่ Now ยังค้างอยู่ · ไม่แตะ secrets โดยตรง · ไม่ทำให้ revenue channel หายไประหว่าง pivot |
 
 ---
@@ -178,7 +178,7 @@
 |---|---|---|
 | **DC-1** | Standard PDF Generator (.docx → A4) — checklist/planner UAT | 🟡 **Code Done · UAT Pending** |
 | **DC-2** | TOC Preview สารบัญ — toggle /templates · always-expanded /templates/[slug] | 🟡 **Code Done · UAT Pending** |
-| **DC-14** | Planner Engine end-to-end (4 Pillar → Generate → Approve → Download) | 🟡 **UAT Pending** |
+| **DC-14** | Planner Engine end-to-end (4 Pillar → Generate → Approve → Download) | ✅ **UAT ผ่าน (Session 36)** |
 | **E9/E10** | Engine preview card บน /templates/[slug] (checklist/planner green/violet) | 🟡 **UAT Pending** |
 | **J9** | Live Omise keys → real QR scan test (G4 pending) | 🟡 **รอ owner ตั้ง live keys** |
 | **A–H** | Homepage Hero · Catalog · Admin CRUD · Orders · Analytics · Payment E2E · Customer pages | ⏳ **รอ owner test ใน browser** |
@@ -196,6 +196,8 @@
 | **Session 32. Blog + Rebrand + Deploy** | ✅ Live 2026-05-09 |
 | **Session 33. Payment UAT Fixes** | ✅ Live · UAT ผ่าน 2026-05-09 |
 | **Session 34. Admin Report Suite** | ✅ Live 2026-05-10 · R-1..R-10 · Wallet cleanup marked |
+| **Session 35. Engine Checklist fix** | ✅ Live 2026-05-10 — wrap all async try/catch — Engine Checklist กลับมาทำงานครบ loop |
+| **Session 36. Engine Checklist + Planner UAT ผ่านครบ** | ✅ Live 2026-05-10 — Nginx proxy_buffer 128k · generate-planner แยก route · slug check step 3 · 2 more engines planned |
 | **DC-8. Engine Revision System** | 🔵 **Next** |
 
 **✅ J18 UAT ผ่านครบ (2026-05-08 Session 28)** — payment flow ถูก lock ห้ามแก้ไขจนกว่าแอดมินจะสั่ง

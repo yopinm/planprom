@@ -1,7 +1,7 @@
 # planprom.md — Template Store (planprom.com)
 
 > **Requirements Document สำหรับ Claude Code**
-> Created: 2026-05-07 · Updated: 2026-05-09 · Project: planprom.com (V15 — renamed from couponkum)
+> Created: 2026-05-07 · Updated: 2026-05-10 · Project: planprom.com (V15 — renamed from couponkum)
 > Predecessor: V14 Coupon-First (frozen — V15 ขยาย scope, ไม่ยกเลิกของเดิม)
 > **เริ่มที่นี่:** อ่านไฟล์นี้ทั้งหมดก่อน → ถามถ้าไม่ชัด → ค่อย scaffold
 
@@ -248,9 +248,9 @@
 | DC-11 | **Draft Save UX — ปุ่มค้างนานระหว่าง PDF Generate** | puppeteer launch + PDF + screenshot ใช้เวลา 15-30 วิ · **Fix:** 4-step progress indicator (HTML → PDF ~15วิ → preview image → DB) ที่ advance ตาม timing จริง (1s/15s/24s) · `engineProgress` state + `useEffect` + setTimeout chain · **Files:** `app/admin/templates/new/WizardClient.tsx` | ✅ **Done · Live** (Session 31) |
 | DC-12 | **Publish Button ไม่ update ทันทีหลัง Click** | กด Publish แล้วปุ่มไม่เปลี่ยนเป็น Unpublish จนกว่าจะ refresh · server action ทำงานแล้วแต่ client state ไม่ revalidate · **Fix:** เพิ่ม `router.refresh()` หรือ `revalidatePath` ที่ถูก scope หลัง server action สำเร็จ · **Files:** `app/admin/templates/[id]/edit/page.tsx` หรือ publish action | 🔲 Planned |
 | DC-13 | **/templates/[slug] Server Component Crash** | กด "ดูรายละเอียด / ซื้อ →" ใน catalog preview modal → `/templates/[slug]` render error · **Root cause:** `d.s1.docCode` / `d.s3.items` null-access เมื่อ `engine_data` ไม่มี field ครบ · **Fix:** `if (!d.s1) return null` / `if (!d.p1) return null` early-return guards + optional chaining `d.s3?.items?.filter(...)` + `d.s2?.purpose` · **Files:** `app/templates/[slug]/page.tsx` | ✅ **Done · Live** (Session 31) |
-| DC-14 | **Planner Engine — Full UAT Pending** | UI + generate flow พร้อมแล้ว (Session 30-31) · ยังไม่ผ่าน UAT end-to-end: กรอก 4 Pillar → Generate PDF Preview → บันทึก Draft → Approve → Publish → ลูกค้าซื้อ → Download · **Files:** `app/admin/templates/new/PlannerEngineForm.tsx` · `lib/engine-planner.ts` · `app/api/admin/templates/generate-engine/route.ts` | 🟡 **UAT Pending** |
+| DC-14 | **Planner Engine — UAT ผ่าน** | UI + generate flow พร้อมแล้ว (Session 30-31) · UAT ผ่านครบ (Session 36): กรอก 4 Pillar → Generate PDF Preview → บันทึก Draft → Download · **Files:** `app/admin/templates/new/PlannerEngineForm.tsx` · `lib/engine-planner.ts` · `app/api/admin/templates/generate-planner/route.ts` | ✅ **UAT ผ่าน (Session 36)** |
 
-**ลำดับแนะนำ:** DC-3 ✅ → DC-4 ✅ → DC-5 ✅ → DC-6 ✅ → DC-7 ✅ → DC-9 ✅ → DC-10 ✅ → DC-11 ✅ → DC-13 ✅ · DC-1/DC-2/DC-14 🟡 UAT pending · DC-8/DC-12 planned
+**ลำดับแนะนำ:** DC-3 ✅ → DC-4 ✅ → DC-5 ✅ → DC-6 ✅ → DC-7 ✅ → DC-9 ✅ → DC-10 ✅ → DC-11 ✅ → DC-13 ✅ → DC-14 ✅ · DC-1/DC-2 🟡 UAT pending · DC-8/DC-12 planned · 2 engines more (TBD)
 
 ---
 
@@ -277,13 +277,26 @@
 
 ---
 
+## Session 36 Changes (2026-05-10) — Engine Checklist + Planner UAT ผ่านครบ
+
+| # | Change | Status |
+|---|---|---|
+| 1 | **Root cause fix:** Nginx `proxy_buffer_size` 4KB ใหญ่ไม่พอสำหรับ Supabase JWT cookies → HTML 502 → `res.json()` throw SyntaxError → Fix: `proxy_buffer_size 128k; proxy_buffers 4 256k; proxy_busy_buffers_size 256k;` ใน `/etc/nginx/conf.d/planprom.conf` | ✅ Live |
+| 2 | **Engine separation:** แยก `generate-planner` route ออกจาก `generate-engine` (checklist FROZEN) — `app/api/admin/templates/generate-planner/route.ts` | ✅ Live |
+| 3 | **Slug check at step 3:** `checkSlugExists()` server action + ดัก slug ซ้ำ ก่อนเริ่ม generate PDF — ป้องกันเสียเวลา | ✅ Live |
+| 4 | **DC-5 Engine Checklist** — UAT ผ่านครบรอบที่ 2 (หลัง Nginx fix) | ✅ UAT ผ่าน |
+| 5 | **DC-14 Planner Engine** — UAT ผ่านครบ loop: กรอก 4 Pillar → Generate → บันทึก Draft → Download | ✅ UAT ผ่าน |
+| 6 | **หมายเหตุ:** 2 more engines planned (ชื่อ/spec ยังไม่กำหนด) | 🔵 Future |
+
+---
+
 ## Session 35 Changes (2026-05-10) — Engine Checklist Fix
 
 | # | Change | Status |
 |---|---|---|
 | 1 | **fix(engine):** wrap DB query + puppeteer import + executablePath + mkdir ใน try/catch — ป้องกัน HTML response เมื่อ crash · ฟีเจอร์ครบ: docCode + PDF + snapshot | ✅ Live |
 | 2 | **DC-5 Engine Checklist** — UAT ผ่านครบ loop: สร้าง → publish → preview → ซื้อ → โหลด | ✅ UAT ผ่าน |
-| 3 | **DC-14 Planner Engine** — ยัง pending UAT | 🟡 Pending |
+| 3 | **DC-14 Planner Engine** — ยัง pending UAT | ✅ UAT ผ่าน (Session 36) |
 
 ---
 
