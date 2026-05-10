@@ -118,15 +118,15 @@ export function generatePlannerHtml(data: PlannerEngineData, watermarkText?: str
 
   // ── Pillar 3 HTML ──────────────────────────────────────────────────────────
   const habitGrid = validHabits.length > 0
-    ? `<table style="width:100%;border-collapse:collapse;table-layout:fixed">
-        <colgroup><col style="width:130px"><col></colgroup>
-        ${validHabits.map(h => `<tr>
-          <td style="padding:4px 0;border-bottom:1px solid #f3f4f6;font-size:9pt;font-weight:700;color:#374151;vertical-align:middle;white-space:nowrap;overflow:hidden">${esc(h)}</td>
-          <td style="padding:4px 0 4px 6px;border-bottom:1px solid #f3f4f6;vertical-align:middle">
-            <div style="display:flex;gap:2px">
-              ${Array.from({length:31}).map(()=>`<span style="width:14px;height:14px;border:1px solid #d1d5db;border-radius:2px;display:inline-block"></span>`).join('')}
-            </div>
-          </td>
+    ? `<table style="width:100%;border-collapse:collapse;table-layout:fixed;font-size:7pt">
+        <colgroup><col style="width:120px">${Array.from({length:31}).map(()=>'<col>').join('')}</colgroup>
+        <tr style="background:#f5f3ff">
+          <td style="padding:2px 4px;border:1px solid #e5e7eb"></td>
+          ${Array.from({length:31}).map((_,i)=>`<td style="padding:2px 1px;border:1px solid #e5e7eb;text-align:center;font-size:6pt;font-weight:700;color:#7c3aed">${i+1}</td>`).join('')}
+        </tr>
+        ${validHabits.map(h=>`<tr>
+          <td style="padding:3px 4px;border:1px solid #e5e7eb;font-size:8.5pt;font-weight:700;color:#374151;white-space:nowrap;overflow:hidden">${esc(h)}</td>
+          ${Array.from({length:31}).map(()=>`<td style="border:1px solid #e5e7eb;height:18px"></td>`).join('')}
         </tr>`).join('')}
       </table>`
     : ''
