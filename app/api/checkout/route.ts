@@ -5,6 +5,7 @@ import { randomBytes } from 'crypto'
 import { db } from '@/lib/db'
 import { getCartBySession, CART_COOKIE } from '@/lib/cart'
 import { createPromptPayCharge } from '@/lib/omise'
+import { createServerClient } from '@/lib/supabase/server'
 
 async function newOrderUid(): Promise<string> {
   const d = new Date().toISOString().slice(0, 10).replace(/-/g, '')
@@ -22,6 +23,18 @@ export async function POST() {
   const cookieStore = await cookies()
   const sessionId   = cookieStore.get(CART_COOKIE)?.value
   if (!sessionId) return NextResponse.json({ error: 'cart empty' }, { status: 400 })
+
+  // Capture buyer LINE ID if logged in via LINE — optional, guest checkout still works
+  let customerLineId: string | null = null
+  try {
+    const supabase = await createServerClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      customerLineId =
+        (user.user_metadata?.provider_id as string | undefined) ??
+        (user.identities?.find(i => i.provider.includes('line'))?.id ?? null)
+    }
+  } catch { /* guest checkout — no LINE ID */ }
 
   const cart = await getCartBySession(sessionId)
   if (cart.items.length === 0) return NextResponse.json({ error: 'cart empty' }, { status: 400 })
@@ -53,13 +66,14 @@ export async function POST() {
   }
 
   const [order] = await db<{ id: string }[]>`
-    INSERT INTO orders (order_uid, total_baht, omise_charge_id, status, order_type)
+    INSERT INTO orders (order_uid, total_baht, omise_charge_id, status, order_type, customer_line_id)
     VALUES (
       ${uid},
       ${total},
       ${omiseChargeId},
       ${total === 0 ? 'paid' : 'pending_payment'},
-      'cart'
+      'cart',
+      ${customerLineId}
     )
     RETURNING id
   `

@@ -48,8 +48,8 @@ export async function POST(req: NextRequest) {
     const orderUid = metadata?.order_uid
     if (!orderUid) return NextResponse.json({ ok: true })
 
-    const [order] = await db<{ id: string; status: string; total_baht: number }[]>`
-      SELECT id, status, total_baht FROM orders WHERE order_uid = ${orderUid} LIMIT 1
+    const [order] = await db<{ id: string; status: string; total_baht: number; customer_line_id: string | null }[]>`
+      SELECT id, status, total_baht, customer_line_id FROM orders WHERE order_uid = ${orderUid} LIMIT 1
     `
     if (!order || order.status !== 'pending_payment') return NextResponse.json({ ok: true })
 
@@ -64,14 +64,41 @@ export async function POST(req: NextRequest) {
     }
     await db`UPDATE orders SET status = 'paid', paid_at = NOW() WHERE id = ${order.id}`
 
+    const titles = await db<{ title: string }[]>`
+      SELECT t.title FROM order_items oi
+      JOIN templates t ON t.id = oi.template_id
+      WHERE oi.order_id = ${order.id}
+    `
+    const titleList = titles.map((t, i) => `  ${i + 1}. ${t.title}`).join('\n')
+
+    // Notify buyer via LINE if captured at checkout
+    if (order.customer_line_id) {
+      const dlRows = await db<{ download_token: string | null }[]>`
+        SELECT download_token FROM order_items WHERE order_id = ${order.id} ORDER BY id
+      `
+      const dlLinks = dlRows
+        .filter(r => r.download_token)
+        .map((r, i) => `  ${i + 1}. ${SITE_URL}/api/download/${r.download_token}`)
+        .join('\n')
+      await pushLine(order.customer_line_id, [{
+        type: 'text',
+        text: [
+          `✅ ขอบคุณที่ซื้อ — แพลนพร้อม!`,
+          ``,
+          `💰 ฿${order.total_baht} (${items.length} ชิ้น)`,
+          `📌 เลข order: ${orderUid}`,
+          titleList,
+          ``,
+          `🔗 ดาวน์โหลดได้ที่:`,
+          dlLinks || `${SITE_URL}/order/${orderUid}`,
+          ``,
+          `⏰ ลิงก์ใช้ได้ 24 ชม. · สูงสุด 3 ครั้งต่อไฟล์`,
+        ].join('\n'),
+      }]).catch(() => null)
+    }
+
     const ownerLineId = process.env.OWNER_LINE_USER_ID
     if (ownerLineId) {
-      const titles = await db<{ title: string }[]>`
-        SELECT t.title FROM order_items oi
-        JOIN templates t ON t.id = oi.template_id
-        WHERE oi.order_id = ${order.id}
-      `
-      const titleList = titles.map((t, i) => `  ${i + 1}. ${t.title}`).join('\n')
       await pushLine(ownerLineId, [{
         type: 'text',
         text: [
