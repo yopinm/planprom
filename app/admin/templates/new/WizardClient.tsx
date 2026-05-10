@@ -216,24 +216,25 @@ export function WizardClient({ categories, cloneSources }: Props) {
     setEngineError('')
     setError('')
     try {
-      const res = await fetch('/api/admin/templates/generate-engine', {
+      const isPlanner = mode === 'engine-planner'
+      const apiUrl = isPlanner
+        ? '/api/admin/templates/generate-planner'
+        : '/api/admin/templates/generate-engine'
+      const bodyPayload = isPlanner
+        ? { engine_data: engineData, slug: slug.trim(), watermark_text: watermarkOn ? watermarkText : undefined }
+        : { engine_type: 'checklist', engine_data: engineData, slug: slug.trim(), watermark_text: watermarkOn ? watermarkText : undefined, category_name: catName || undefined }
+      const res = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          engine_type: mode === 'engine-checklist' ? 'checklist' : 'planner',
-          engine_data: engineData,
-          slug: slug.trim(),
-          watermark_text: watermarkOn ? watermarkText : undefined,
-          category_name: catName || undefined,
-        }),
+        body: JSON.stringify(bodyPayload),
       })
-      const json = await res.json() as { path?: string; preview_path?: string; doc_code?: string; error?: string }
+      const json = await res.json() as { path?: string; preview_path?: string; doc_code?: string; plan_code?: string; error?: string }
       if (!res.ok || json.error) {
         setEngineError(json.error ?? 'Generate failed')
         setEngineState('error')
       } else {
         setPdfPath(json.path ?? '')
-        setEngineDocCode(json.doc_code ?? '')
+        setEngineDocCode(json.doc_code ?? json.plan_code ?? '')
         setEnginePreviewPath(json.preview_path ?? '')
         setEngineState('done')
       }
