@@ -29,10 +29,10 @@
 | **Doc Sync** | task เสร็จ → อัพเดต PRD.md + `core/planprom.md` เสมอ |
 | **Scope Gate** | ก่อนเริ่ม implement ทุก task → ต้องมี scope + flow ใน `core/planprom.md` ก่อน → commit docs → รอ owner confirm → ค่อย implement |
 | **Blockers** | IA approved ✅ (Affiliate ID 1082367) · AT Datafeed ⏳ · Shopee API ⏳ · Lazada pool=49 fixed |
-| **Next task** | **DC-8** Engine Content Edit + Revision History — scope confirmed · ❌ ห้ามแตะ engine-checklist · engine-planner · ChecklistEngineForm · PlannerEngineForm · generate-engine/planner routes · Cart/Payment/Download flow |
-| **Pending (code)** | **13 tasks** — ADMIN-CLEAN-1🔵TODAY · DC-8 · DC-12 · J10🔴 · J12🔴 · J7 · J11 · J13 · J14 · J17 · J19 · J20 · ADMIN-CLEAN-2(2026-05-17) |
-| **Pending (UAT)** | **5 กลุ่ม** — DC-1 · DC-2 · E9/E10 · J9(รอ live keys) · A–H(รอ owner test) |
-| **Last session** | **Session 37 (2026-05-10)** — LINE notify buyer · /checkout/[slug] → cart redirect · admin/orders ลบ Template tab + KPI fee/net · orders.customer_line_id migration · PDF header/footer rebrand couponkum → planprom (www.planprom.com) |
+| **Next task** | **DC-12** Publish Button ไม่ revalidate หลัง click |
+| **Pending (code)** | **12 tasks** — DC-12 · J10🔴 · J12🔴 · J7 · J11 · J13 · J14 · J17 · J19 · J20 · ADMIN-CLEAN-1 · ADMIN-CLEAN-2(2026-05-17) |
+| **Pending (UAT)** | **6 กลุ่ม** — DC-1 · DC-2 · DC-8(Planner⏳) · E9/E10 · J9(รอ live keys) · A–H(รอ owner test) |
+| **Last session** | **Session 38 (2026-05-10)** — DC-8 Engine Revision System live · Engine Checklist UAT ✅ครบลูป · Engine Planner UAT ⏳ pending · PDF rebrand www.planprom.com |
 | **ห้าม** | ไม่แตะ Later task ขณะที่ Now ยังค้างอยู่ · ไม่แตะ secrets โดยตรง · ไม่ทำให้ revenue channel หายไประหว่าง pivot |
 
 ---
@@ -161,7 +161,7 @@
 
 | # | Task | Priority | สถานะ |
 |---|---|---|---|
-| 1 | **DC-8** Engine Content Edit + Revision History | 🔵 NEXT | 🔲 Planned |
+| 1 | **DC-8** Engine Content Edit + Revision History | 🟡 UAT | ✅ Checklist ครบลูป · ⏳ Planner pending |
 | 2 | **DC-12** Publish Button ไม่ revalidate หลัง click | 🟡 Medium | 🔲 Planned |
 | 3 | **J10** Wallet login prompt หลัง download ใน tab เดิม | 🔴 High | 🔲 Planned |
 | 4 | **J12** LINE OAuth "Error getting user profile" | 🔴 Critical | 🔲 Deferred |
@@ -200,7 +200,7 @@
 | **Session 35. Engine Checklist fix** | ✅ Live 2026-05-10 — wrap all async try/catch — Engine Checklist กลับมาทำงานครบ loop |
 | **Session 36. Engine Checklist + Planner UAT ผ่านครบ** | ✅ Live 2026-05-10 — Nginx proxy_buffer 128k · generate-planner แยก route · slug check step 3 · 2 more engines planned |
 | **Session 37. Orders + Checkout refactor** | ✅ Live 2026-05-10 — LINE notify buyer · /checkout/[slug] redirect cart · admin/orders KPI fee/net · ลบ Template Orders tab |
-| **DC-8. Engine Revision System** | 🔵 **Next** |
+| **DC-8. Engine Revision System** | ✅ Live 2026-05-10 — Checklist UAT ✅ครบลูป · Planner UAT ⏳ pending |
 
 **✅ J18 UAT ผ่านครบ (2026-05-08 Session 28)** — payment flow ถูก lock ห้ามแก้ไขจนกว่าแอดมินจะสั่ง
 **🟡 Medium (J9):** ต้องสลับเป็น live Omise keys — test mode QR อ่านไม่ได้ด้วยแอปธนาคาร
