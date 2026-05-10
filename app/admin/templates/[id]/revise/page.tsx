@@ -58,9 +58,14 @@ export default async function RevisePage({ params }: { params: Promise<{ id: str
     categoryName = cat?.name
   }
 
+  // engine_data stored as double-encoded JSON string via JSON.stringify() in actions.ts — parse if needed
+  const rawEngineData = typeof t.engine_data === 'string'
+    ? JSON.parse(t.engine_data)
+    : t.engine_data
+
   const engineData = t.engine_type === 'checklist'
-    ? (t.engine_data as ChecklistEngineData)
-    : (t.engine_data as PlannerEngineData)
+    ? (rawEngineData as ChecklistEngineData)
+    : (rawEngineData as PlannerEngineData)
 
   return (
     <main className="min-h-screen bg-neutral-50 pb-20">
