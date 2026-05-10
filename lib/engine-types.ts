@@ -18,6 +18,7 @@ export type PlannerEngineData = {
     yearlyGoals: string[]
     quarterlyThemes: QuarterlyTheme[]
     bigRocks: string[]
+    planCode?: string
   }
   p2: {
     views: ('monthly' | 'weekly' | 'daily')[]

@@ -49,7 +49,9 @@ export async function POST(req: NextRequest) {
       const enriched: ChecklistEngineData = { ...d, s1: { ...d.s1, docCode } }
       html = generateChecklistHtml(enriched, watermark_text, category_name)
     } else if (engine_type === 'planner') {
-      html = generatePlannerHtml(engine_data as PlannerEngineData, watermark_text)
+      const d = engine_data as PlannerEngineData
+      const enriched: PlannerEngineData = { ...d, p1: { ...d.p1, planCode: docCode } }
+      html = generatePlannerHtml(enriched, watermark_text)
     } else {
       return NextResponse.json({ error: 'Unknown engine_type' }, { status: 400 })
     }
