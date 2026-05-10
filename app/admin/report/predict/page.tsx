@@ -13,15 +13,16 @@ export const dynamic = 'force-dynamic'
 const SEED_KEYWORDS = [
   'checklist',
   'planner',
-  'form',
-  'report',
+  'ฟอร์ม',
+  'รายงาน',
   'template',
-  'แผน',
+  'แผนงาน',
   'บัญชี',
   'งบประมาณ',
   'invoice',
   'timeline',
   'ใบเสนอราคา',
+  'ตาราง excel',
 ]
 
 async function fetchSuggestions(keyword: string): Promise<string[]> {
