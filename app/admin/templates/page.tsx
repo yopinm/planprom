@@ -6,6 +6,7 @@ import { db } from '@/lib/db'
 import { togglePublishAction } from './actions'
 import { DeleteTemplateButton } from '@/components/admin/DeleteTemplateButton'
 import { ArchiveTemplateButton } from '@/components/admin/ArchiveTemplateButton'
+import { ForceDeleteTemplateButton } from '@/components/admin/ForceDeleteTemplateButton'
 
 export const metadata: Metadata = {
   title: 'Template & Planner Manager — Admin',
@@ -202,6 +203,7 @@ export default async function AdminTemplatesPage({
 
                 <ArchiveTemplateButton id={t.id} status={t.status} />
                 <DeleteTemplateButton id={t.id} title={t.title} />
+                <ForceDeleteTemplateButton id={t.id} />
               </div>
             </div>
           ))}

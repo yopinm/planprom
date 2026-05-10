@@ -99,6 +99,24 @@ export async function deleteTemplateAction(formData: FormData): Promise<{ error?
   return {}
 }
 
+export async function forceDeleteTemplateAction(formData: FormData): Promise<{ error?: string }> {
+  await requireAdminSession('/admin/login')
+  const id = str(formData, 'id')
+  try {
+    await db`DELETE FROM template_revisions      WHERE template_id = ${id}`
+    await db`DELETE FROM order_items             WHERE template_id = ${id}`
+    await db`DELETE FROM template_orders         WHERE template_id = ${id}`
+    await db`DELETE FROM cart_items              WHERE template_id = ${id}`
+    await db`DELETE FROM template_category_links WHERE template_id = ${id}`
+    await db`DELETE FROM template_tags           WHERE template_id = ${id}`
+    await db`DELETE FROM templates               WHERE id = ${id}`
+  } catch (e) {
+    return { error: `Force ลบไม่สำเร็จ: ${String(e)}` }
+  }
+  revalidatePath('/admin/templates')
+  return {}
+}
+
 export async function archiveTemplateAction(formData: FormData): Promise<{ error?: string }> {
   await requireAdminSession('/admin/login')
   const id = str(formData, 'id')
