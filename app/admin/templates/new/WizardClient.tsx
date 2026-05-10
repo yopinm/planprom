@@ -1,7 +1,7 @@
 'use client'
 import { useState, useTransition, useRef, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { createTemplateWizardAction } from '../actions'
+import { createTemplateWizardAction, checkSlugExists } from '../actions'
 import type { TocItem } from '@/lib/pdf-types'
 import { ChecklistEngineForm } from './ChecklistEngineForm'
 import { PlannerEngineForm } from './PlannerEngineForm'
@@ -244,7 +244,7 @@ export function WizardClient({ categories, cloneSources }: Props) {
     }
   }
 
-  function goNext() {
+  async function goNext() {
     if (step === 1 && !mode) { setError('เลือก mode ก่อน'); return }
     if (step === 2 && !catSlug) { setError('เลือก catalog ก่อน'); return }
     if (step === 3) {
@@ -253,6 +253,17 @@ export function WizardClient({ categories, cloneSources }: Props) {
       if (!normalSlug)  { setError('Slug ต้องไม่ว่าง'); return }
       if (!/^[a-z0-9-]+$/.test(normalSlug)) { setError('Slug ใช้ได้แค่ a-z, 0-9, - (ห้ามมีช่องว่างหรืออักขระพิเศษ)'); return }
       setSlug(normalSlug)
+      // ตรวจ slug ซ้ำก่อนเสียเวลา generate PDF
+      try {
+        const exists = await checkSlugExists(normalSlug)
+        if (exists) {
+          setError(`Slug "${normalSlug}" มีอยู่แล้วในระบบ — เปลี่ยน Slug ก่อนดำเนินการต่อ`)
+          return
+        }
+      } catch {
+        setError('ตรวจสอบ Slug ไม่ได้ — ลองใหม่')
+        return
+      }
       if (mode === 'clone' && !cloneId) { setError('เลือก template ที่จะ clone ก่อน'); return }
       if (mode === 'docx' && docxState !== 'done') { setError('อัพโหลด .docx ก่อน'); return }
       if ((mode === 'engine-checklist' || mode === 'engine-planner') && engineState !== 'done') {

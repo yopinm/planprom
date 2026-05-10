@@ -107,6 +107,14 @@ export async function approveTemplateAction(formData: FormData): Promise<void> {
   redirect('/admin/templates')
 }
 
+export async function checkSlugExists(slug: string): Promise<boolean> {
+  await requireAdminSession('/admin/login')
+  const [row] = await db<{ exists: boolean }[]>`
+    SELECT EXISTS(SELECT 1 FROM templates WHERE slug = ${slug.toLowerCase().trim()}) AS exists
+  `
+  return row?.exists ?? false
+}
+
 export async function createTemplateWizardAction(data: {
   title: string
   slug: string
