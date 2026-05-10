@@ -22,6 +22,7 @@ type Template = {
   pdf_path: string; preview_path: string | null; thumbnail_path: string | null
   page_count: number | null; has_form_fields: boolean; document_type: string
   published_at: string | null; created_at: string
+  engine_type: string | null
 }
 
 export default async function EditTemplatePage({ params }: { params: Promise<{ id: string }> }) {
@@ -31,6 +32,12 @@ export default async function EditTemplatePage({ params }: { params: Promise<{ i
   const [t] = await db<Template[]>`
     SELECT * FROM templates WHERE id = ${id} LIMIT 1
   `.catch(() => [] as Template[])
+
+  const [{ rev_count }] = t?.engine_type
+    ? await db<{ rev_count: string }[]>`
+        SELECT COUNT(*)::text AS rev_count FROM template_revisions WHERE template_id = ${id}
+      `.catch(() => [{ rev_count: '0' }])
+    : [{ rev_count: '0' }]
 
   if (!t) notFound()
 
@@ -154,6 +161,39 @@ export default async function EditTemplatePage({ params }: { params: Promise<{ i
             </button>
           </div>
         </form>
+
+        {/* Engine Section — DC-8 */}
+        {t.engine_type && (
+          <div className="mt-6 rounded-3xl border border-amber-200 bg-amber-50 p-6">
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <div>
+                <p className="text-[11px] font-black uppercase tracking-widest text-amber-600 mb-1">Engine Content</p>
+                <div className="flex items-center gap-2">
+                  <span className="font-black text-neutral-900">
+                    {t.engine_type === 'checklist' ? '✅ Checklist' : '📅 Planner'}
+                  </span>
+                  <span className="rounded-full bg-white border border-amber-200 px-2 py-0.5 text-[11px] font-bold text-amber-700">
+                    {rev_count} revision{Number(rev_count) !== 1 ? 's' : ''}
+                  </span>
+                </div>
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                <Link
+                  href={`/admin/templates/${t.id}/revisions`}
+                  className="rounded-xl border border-amber-300 bg-white px-4 py-2 text-sm font-black text-amber-700 hover:bg-amber-100 transition"
+                >
+                  ดูประวัติ →
+                </Link>
+                <Link
+                  href={`/admin/templates/${t.id}/revise`}
+                  className="rounded-xl bg-amber-600 px-4 py-2 text-sm font-black text-white hover:bg-amber-700 transition"
+                >
+                  แก้ไขเนื้อหา →
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </main>
   )
