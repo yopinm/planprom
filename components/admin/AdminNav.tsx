@@ -37,7 +37,12 @@ const GROUPS: Record<GroupKey, NavGroup> = {
     label: 'Report',
     sublabel: 'Analytics · Logs',
     color: 'bg-indigo-600',
-    links: [],
+    links: [
+      { label: '📈 ยอดขาย',      path: '/admin/report/sales',     pattern: /^\/admin\/report\/sales/ },
+      { label: '💳 Payment Log', path: '/admin/report/payments',  pattern: /^\/admin\/report\/payments/ },
+      { label: '📥 Download Log',path: '/admin/report/downloads', pattern: /^\/admin\/report\/downloads/ },
+      { label: '📤 Order Export', path: '/admin/report/export',    pattern: /^\/admin\/report\/export/ },
+    ],
   },
 }
 
