@@ -5,6 +5,7 @@ import { requireAdminSession } from '@/lib/admin-auth'
 import { db } from '@/lib/db'
 import { togglePublishAction } from './actions'
 import { DeleteTemplateButton } from '@/components/admin/DeleteTemplateButton'
+import { ArchiveTemplateButton } from '@/components/admin/ArchiveTemplateButton'
 
 export const metadata: Metadata = {
   title: 'Template & Planner Manager — Admin',
@@ -199,6 +200,7 @@ export default async function AdminTemplatesPage({
                   </button>
                 </form>
 
+                <ArchiveTemplateButton id={t.id} status={t.status} />
                 <DeleteTemplateButton id={t.id} title={t.title} />
               </div>
             </div>

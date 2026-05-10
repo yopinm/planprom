@@ -73,19 +73,51 @@ export async function updateTemplateAction(formData: FormData) {
 export async function deleteTemplateAction(formData: FormData): Promise<{ error?: string }> {
   await requireAdminSession('/admin/login')
   const id = str(formData, 'id')
+
+  // Block delete if any paid orders reference this template
+  const [{ cnt }] = await db<{ cnt: string }[]>`
+    SELECT (
+      (SELECT COUNT(*) FROM order_items    WHERE template_id = ${id}) +
+      (SELECT COUNT(*) FROM template_orders WHERE template_id = ${id})
+    )::text AS cnt
+  `.catch(() => [{ cnt: '0' }])
+
+  if (Number(cnt) > 0) {
+    return { error: `มีคำสั่งซื้อ ${cnt} รายการ — ใช้ปุ่ม "ซ่อน" แทนการลบถาวร` }
+  }
+
   try {
-    // Safe child rows — remove regardless
-    await db`DELETE FROM cart_items WHERE template_id = ${id}`
-    await db`DELETE FROM free_template_grants WHERE template_id = ${id}`
+    await db`DELETE FROM template_revisions     WHERE template_id = ${id}`
+    await db`DELETE FROM cart_items             WHERE template_id = ${id}`
     await db`DELETE FROM template_category_links WHERE template_id = ${id}`
-    await db`DELETE FROM template_tags WHERE template_id = ${id}`
-    await db`DELETE FROM templates WHERE id = ${id}`
+    await db`DELETE FROM template_tags          WHERE template_id = ${id}`
+    await db`DELETE FROM templates              WHERE id = ${id}`
   } catch (e) {
-    const msg = String(e)
-    if (msg.includes('order_items') || msg.includes('template_orders')) {
-      return { error: 'ไม่สามารถลบได้ — มีคำสั่งซื้อที่อ้างอิง template นี้อยู่' }
-    }
-    return { error: `ลบไม่สำเร็จ: ${msg}` }
+    return { error: `ลบไม่สำเร็จ: ${String(e)}` }
+  }
+  revalidatePath('/admin/templates')
+  return {}
+}
+
+export async function archiveTemplateAction(formData: FormData): Promise<{ error?: string }> {
+  await requireAdminSession('/admin/login')
+  const id = str(formData, 'id')
+  try {
+    await db`UPDATE templates SET status = 'archived', updated_at = NOW() WHERE id = ${id}`
+  } catch (e) {
+    return { error: `ซ่อนไม่สำเร็จ: ${String(e)}` }
+  }
+  revalidatePath('/admin/templates')
+  return {}
+}
+
+export async function unarchiveTemplateAction(formData: FormData): Promise<{ error?: string }> {
+  await requireAdminSession('/admin/login')
+  const id = str(formData, 'id')
+  try {
+    await db`UPDATE templates SET status = 'draft', updated_at = NOW() WHERE id = ${id}`
+  } catch (e) {
+    return { error: `เลิกซ่อนไม่สำเร็จ: ${String(e)}` }
   }
   revalidatePath('/admin/templates')
   return {}
