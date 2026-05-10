@@ -80,7 +80,7 @@ export default async function SalesReportPage({
       t.title,
       COUNT(DISTINCT oi.order_id)                                                    AS orders,
       COUNT(DISTINCT oi.order_id) FILTER (WHERE o.status = 'paid')                  AS paid,
-      COALESCE(SUM(oi.price_baht) FILTER (WHERE o.status = 'paid'), 0)             AS revenue
+      COALESCE(SUM(t.price_baht) FILTER (WHERE o.status = 'paid'), 0)              AS revenue
     FROM order_items oi
     JOIN orders    o ON o.id  = oi.order_id
     JOIN templates t ON t.id  = oi.template_id
