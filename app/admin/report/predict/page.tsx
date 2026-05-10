@@ -19,6 +19,9 @@ const SEED_KEYWORDS = [
   'แผน',
   'บัญชี',
   'งบประมาณ',
+  'invoice',
+  'timeline',
+  'ใบเสนอราคา',
 ]
 
 async function fetchSuggestions(keyword: string): Promise<string[]> {
