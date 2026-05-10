@@ -1,3 +1,4 @@
+// WALLET-CLEAN: ลบออกถาวร 2026-05-17
 'use client'
 // WalletList — renders saved coupons with remove button
 // TASK 2.7

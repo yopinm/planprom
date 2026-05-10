@@ -1,3 +1,4 @@
+// WALLET-CLEAN: ลบออกถาวร 2026-05-17
 'use client'
 
 // WALLET-PUB-1: individual coupon card — masked code, tap to reveal + auto-copy

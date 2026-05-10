@@ -1,3 +1,4 @@
+// WALLET-CLEAN: ลบออกถาวร 2026-05-17
 // CollectibleGuide — Collectible Voucher Guide
 // TASK 2.7 — คำแนะนำขั้นตอนเก็บคูปอง (server component)
 

@@ -1,3 +1,4 @@
+// WALLET-CLEAN: ลบออกถาวร 2026-05-17
 // WALLET-PUB-1: fetch top-5 public coupons for /wallet page (no auth required)
 // Featured coupon (today's daily_featured_coupons pick) is always first.
 // Remaining slots filled by highest-value active coupons.

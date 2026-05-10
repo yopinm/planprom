@@ -1,3 +1,4 @@
+// WALLET-CLEAN: ลบออกถาวร 2026-05-17
 // src/lib/coupon-wallet.ts
 // TASK 2.7 — Coupon Wallet helpers (server-side only)
 //

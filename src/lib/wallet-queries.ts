@@ -1,3 +1,4 @@
+// WALLET-CLEAN: ลบออกถาวร 2026-05-17
 // WALLET-SWEEP-1: fetch coupons by tier (1=Platform, 2=Shop, 3=Bank, 4=Shipping)
 import { db } from '@/lib/db'
 import type { PublicCoupon } from '@/lib/public-wallet'

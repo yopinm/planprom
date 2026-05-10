@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 interface Props {
   token: string
@@ -17,8 +18,6 @@ export default function DownloadClient({ token, orderNumber, title, templateSlug
   const [state, setState] = useState<'idle' | 'downloading' | 'done' | 'error'>('idle')
   const [errMsg, setErrMsg] = useState('')
 
-  // Flush Next.js router cache when download completes so /wallet reflects
-  // updated credit balance and doesn't serve a stale logged-out version.
   useEffect(() => {
     if (state === 'done') router.refresh()
   }, [state, router])
@@ -90,14 +89,20 @@ export default function DownloadClient({ token, orderNumber, title, templateSlug
             : '⬇️ ดาวน์โหลด PDF'}
         </button>
 
+        {/* WALLET-CLEAN: ลบออกถาวร 2026-05-17
         {state === 'done' && (
-          /* eslint-disable-next-line @next/next/no-html-link-for-pages */
-          <a
-            href="/wallet"
-            className="flex items-center justify-center gap-2 w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl transition"
-          >
+          <a href="/wallet" className="flex items-center justify-center gap-2 w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl transition">
             🎫 ดูเครดิตที่เหลือ
           </a>
+        )}
+        */}
+        {state === 'done' && (
+          <Link
+            href="/orders"
+            className="flex items-center justify-center gap-2 w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl transition"
+          >
+            📋 ดูประวัติการสั่งซื้อ
+          </Link>
         )}
 
         {(state === 'done' || remaining <= 2) && (
@@ -112,7 +117,7 @@ export default function DownloadClient({ token, orderNumber, title, templateSlug
         )}
 
         <p className="text-xs text-gray-400">
-          หากมีปัญหา ติดต่อ LINE OA @couponkum
+          หากมีปัญหา ติดต่อ LINE OA แพลนพร้อม
         </p>
       </div>
     </div>
