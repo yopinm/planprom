@@ -30,7 +30,7 @@
 | **Scope Gate** | ก่อนเริ่ม implement ทุก task → ต้องมี scope + flow ใน `core/planprom.md` ก่อน → commit docs → รอ owner confirm → ค่อย implement |
 | **Blockers** | IA approved ✅ (Affiliate ID 1082367) · AT Datafeed ⏳ · Shopee API ⏳ · Lazada pool=49 fixed |
 | **Next task** | **DC-12** Publish Button ไม่ revalidate หลัง click |
-| **Pending (code)** | **17 tasks** — DC-12 · J10🔴 · J12🔴 · J7 · J11 · J13 · J14 · J17 · J19 · J20 · ADMIN-CLEAN-1 · ADMIN-CLEAN-2(2026-05-17) · ADMIN-EXPORT-TEMPLATE🔵 · HOME-FEAT-1 · PROMO-1 · PROMO-2 · PROMO-3 |
+| **Pending (code)** | **22 tasks** — DC-12 · J10🔴 · J12🔴 · J7 · J11 · J13 · J14 · J17 · J19 · J20 · ADMIN-CLEAN-1 · ADMIN-CLEAN-2(2026-05-17) · ADMIN-EXPORT-TEMPLATE🔵 · HOME-FEAT-1 · PROMO-1 · PROMO-2 · PROMO-3 · UI-A · UI-B · UI-C · UI-E · UI-F |
 | **Pending (UAT)** | **6 กลุ่ม** — DC-1 · DC-2 · DC-8(Planner⏳) · E9/E10 · J9(รอ live keys) · A–H(รอ owner test) |
 | **Last session** | **Session 40 (2026-05-10)** — ADMIN-TMPL-DEL-1: Archive + Hard Delete · ADMIN-TMPL-FORCE-1: Force Delete (pre-launch) · fix router.refresh() ทุก action button |
 | **ห้าม** | ไม่แตะ Later task ขณะที่ Now ยังค้างอยู่ · ไม่แตะ secrets โดยตรง · ไม่ทำให้ revenue channel หายไประหว่าง pivot |

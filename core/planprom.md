@@ -308,6 +308,26 @@ ALTER TABLE orders ADD COLUMN discount_baht NUMERIC(10,2) NOT NULL DEFAULT 0;
 
 ---
 
+### Homepage & Pricing — UI Series (2026-05-10)
+
+> **เป้าหมาย:** ปรับ pricing tier + hero copy + trust strip + homepage UX ให้ convert ได้ดีขึ้นช่วง test phase
+> **Owner confirmed 2026-05-10** — pricing change override J18 freeze โดย owner approve
+> **Frozen:** `lib/engine-checklist.ts` · `lib/engine-planner.ts` · ChecklistEngineForm · PlannerEngineForm · Cart/Checkout/Payment/Download flow · Omise webhook
+
+| Task | ชื่อ | Spec | สถานะ |
+|---|---|---|---|
+| UI-A | **Pricing Tier Update ฿8 → ฿10** | **Scope (2026-05-10):** · `lib/pricing.ts` — `PRICE_TIERS.TIER_2: 8 → 10` · `lib/pricing.test.ts` — update expected values ทั้ง 25 tests (totals/nextItemPrice/savedVsFullPrice/monotonic) · หา hardcode `฿8` / `8` ทุกที่: Hero tier card · `/templates` pricing callout (E11) · cart tier progress bar messages ("เพิ่มอีก 1 ชิ้น ลดเหลือ ฿8" → "฿10") · **CI:** `npx tsc --noEmit && npm run lint && npm run test` ต้องผ่านก่อน commit · **UAT expected values หลังเปลี่ยน:** 1ชิ้น=฿20 · 2ชิ้น=฿30 · 3ชิ้น=฿40 · 5ชิ้น=฿60 · 6ชิ้น=฿67 · 10ชิ้น=฿95 · **Files:** `lib/pricing.ts` · `lib/pricing.test.ts` · `app/page.tsx` · `app/templates/page.tsx` · `app/cart/page.tsx` | 🔲 Planned |
+| UI-B | **Hero Copy + Tier Card Redesign** | **Scope (2026-05-10):** · H1: "ยิ่งซื้อมาก ยิ่งคุ้ม" → **"ยิ่งวางแผนเยอะ ยิ่งจ่ายน้อย"** · Sub: → **"฿20 ชิ้นแรก · ฿10 ชิ้นต่อไป · ฿7 ตั้งแต่ชิ้นที่ 6"** · CTA: → **"เริ่มต้นที่ ฿20 → ดูเทมเพลตทั้งหมด"** · Tier card 1 (฿20): label "ชิ้นแรก" · Tier card 2 (฿10): label "ครึ่งราคา" + badge **"-50%"** มุมขวาบน + ยัง emerald highlight · Tier card 3 (฿7): label "คุ้มสุด" + badge **"6 ชิ้น+"** มุมขวาบน · **Dependency:** UI-A ต้องเสร็จก่อน · **Files:** `app/page.tsx` | 🔲 Planned |
+| UI-C | **Trust Strip + Beta Framing** | **Scope (2026-05-10):** · เพิ่ม strip ใต้ CTA orange บน hero · บรรทัด 1: "🚀 เปิดทดสอบ · เทมเพลตคัดสรร · เพิ่มใหม่ทุกสัปดาห์" · บรรทัด 2: "✓ จ่ายเดียว ดาวน์โหลดทันที · ✓ ไม่ต้องสมัครสมาชิก · ✓ ไฟล์ไม่หมดอายุ" · รวม commit เดียวกับ UI-B ได้ · **Files:** `app/page.tsx` | 🔲 Planned |
+| UI-E | **Section 2 H2 Split — 2 Category Cards** | **Scope (2026-05-10):** · แทน H2 ยาว "เช็คลิสต์ - ใช้แล้วไม่พลาด... · แพลนเนอร์..." ด้วย 2 cards side-by-side · Card 1: "✅ เช็คลิสต์" subtitle "ทำตามขั้น ไม่พลาด" → link `/catalog?type=checklist` · Card 2: "📅 แพลนเนอร์" subtitle "วางแผน บรรลุเป้า" → link `/catalog?type=planner` · **Files:** `app/page.tsx` | 🔲 Planned |
+| UI-F | **Hide Empty Categories** | **Scope (2026-05-10):** · Homepage category section + `/templates` filter chips · เพิ่ม `HAVING COUNT(tl.template_id) > 0` หรือ `WHERE template_count > 0` ใน query · ตอนนี้มีแค่หมวด "การเงิน" 2 เทมเพลต → แสดงเฉพาะหมวดที่มีของจริง · **Files:** `app/page.tsx` · `app/templates/page.tsx` · query functions ที่เกี่ยวข้อง | 🔲 Planned |
+| UI-G | **Coming Soon Roadmap Section** | **Defer** — รอ template count ≥ 5 หมวด · section ใต้ categories + "🔔 แจ้งเตือนผ่าน LINE เมื่อเปิด" | 📊 Defer |
+
+**ลำดับแนะนำ:** UI-A → UI-B + UI-C (รวม commit) → UI-F → UI-E → HOME-FEAT-1
+**Frozen during UI work:** engine forms · Cart/Checkout/Payment/Download core logic · Omise webhook
+
+---
+
 ### Document Control System — DC Series (2026-05-08)
 
 > **เป้าหมาย:** ทุกไฟล์ในระบบมีมาตรฐานเดียวกัน · ลูกค้าตัดสินใจซื้อได้จากสารบัญ · order ID สืบค้นได้และไม่ชน
