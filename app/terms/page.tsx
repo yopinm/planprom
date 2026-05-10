@@ -1,23 +1,20 @@
-// app/terms/page.tsx — Terms of Service
-// TASK 1.17: Legal & Compliance Pages
-
 import Link from 'next/link'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'ข้อกำหนดการใช้งาน — คูปองคุ้ม',
-  description: 'ข้อกำหนดและเงื่อนไขการใช้งานคูปองคุ้ม',
+  title: 'ข้อกำหนดการใช้งาน — แพลนพร้อม',
+  description: 'ข้อกำหนดและเงื่อนไขการใช้งานแพลนพร้อม',
 }
 
 export default function TermsPage() {
   return (
-    <main className="min-h-screen bg-orange-50">
+    <main className="min-h-screen bg-neutral-50">
       <div className="mx-auto max-w-2xl px-4 py-8 sm:px-5">
         <Link href="/" className="inline-flex rounded-full bg-black px-3 py-1 text-xs font-bold text-white">
-          ← คูปองคุ้ม
+          ← แพลนพร้อม
         </Link>
 
-        <article className="mt-6 rounded-4xl border border-orange-200 bg-white p-6 shadow-sm sm:p-8">
+        <article className="mt-6 rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-8">
           <h1 className="text-2xl font-black text-black">ข้อกำหนดการใช้งาน</h1>
           <p className="mt-1 text-xs text-neutral-400">อัปเดตล่าสุด: พฤษภาคม 2026</p>
 
@@ -25,7 +22,7 @@ export default function TermsPage() {
             <section>
               <h2 className="font-extrabold text-black">1. การยอมรับข้อกำหนด</h2>
               <p className="mt-2">
-                การใช้งานคูปองคุ้มถือว่าท่านยอมรับข้อกำหนดและเงื่อนไขเหล่านี้ทั้งหมด
+                การใช้งานแพลนพร้อมถือว่าท่านยอมรับข้อกำหนดและเงื่อนไขเหล่านี้ทั้งหมด
                 หากท่านไม่ยอมรับ กรุณาหยุดใช้งานเว็บไซต์
               </p>
             </section>
@@ -33,54 +30,58 @@ export default function TermsPage() {
             <section>
               <h2 className="font-extrabold text-black">2. คำอธิบายบริการ</h2>
               <p className="mt-2">
-                คูปองคุ้มเป็นแพลตฟอร์มที่รวบรวมและเปรียบเทียบคูปองส่วนลดจาก Shopee, Lazada
-                และแพลตฟอร์มอื่นๆ เพื่อช่วยให้ผู้ใช้งานได้รับส่วนลดสูงสุด
-                เราไม่ได้เป็นผู้จำหน่ายสินค้าโดยตรง
+                แพลนพร้อมเป็นแพลตฟอร์มจำหน่าย template ดิจิทัลสำหรับการวางแผนธุรกิจ การเงิน และการจัดการงาน
+                ผู้ซื้อได้รับไฟล์ดาวน์โหลดผ่านเว็บไซต์หรือ LINE หลังการยืนยันการชำระเงิน
+                แพลนพร้อมไม่ได้เป็นผู้จำหน่ายสินค้าจับต้องได้
               </p>
             </section>
 
             <section>
-              <h2 className="font-extrabold text-black">3. ความถูกต้องของข้อมูล</h2>
+              <h2 className="font-extrabold text-black">3. สิทธิ์การใช้งาน Template</h2>
               <p className="mt-2">
-                ราคาและคูปองที่แสดงบนเว็บไซต์อาจมีการเปลี่ยนแปลงตามเงื่อนไขของแต่ละแพลตฟอร์ม
-                คูปองคุ้มไม่รับประกันความถูกต้องหรือความพร้อมใช้งานของคูปองในทุกเวลา
-                กรุณาตรวจสอบเงื่อนไขโดยตรงกับแพลตฟอร์มก่อนทำการสั่งซื้อ
+                เมื่อซื้อ template ท่านได้รับสิทธิ์การใช้งานแบบไม่จำกัดเวลาสำหรับตนเองหรือธุรกิจของท่าน
+                ท่านสามารถแก้ไขเนื้อหาให้เหมาะกับความต้องการได้
+              </p>
+              <p className="mt-2 font-bold text-neutral-800">สิ่งที่ห้ามทำ:</p>
+              <ul className="mt-1 list-disc space-y-1 pl-5">
+                <li>นำ template ไปขายต่อหรือให้เช่าแก่บุคคลอื่น</li>
+                <li>แจกจ่าย แชร์ไฟล์ต้นฉบับ หรืออัปโหลดไปยังแพลตฟอร์มอื่น</li>
+                <li>อ้างว่าเป็นผู้สร้าง template หรือลบข้อมูลลิขสิทธิ์</li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 className="font-extrabold text-black">4. การชำระเงินและการคืนเงิน</h2>
+              <p className="mt-2">
+                แพลนพร้อมรับชำระผ่าน PromptPay เท่านั้น การชำระเงินจะได้รับการยืนยันภายใน 24 ชั่วโมงหลังส่งสลิป
+              </p>
+              <p className="mt-2">
+                เนื่องจาก template เป็นสินค้าดิจิทัลที่สามารถดาวน์โหลดได้ทันทีหลังยืนยัน
+                <span className="font-bold text-neutral-800"> แพลนพร้อมไม่คืนเงินหลังจากยืนยันการชำระและส่งไฟล์แล้ว</span>
+                ในกรณีที่เกิดปัญหาจากระบบของเรา กรุณาติดต่อ contact@planprom.com
               </p>
             </section>
 
             <section>
-              <h2 className="font-extrabold text-black">4. ลิงก์พาร์ทเนอร์</h2>
+              <h2 className="font-extrabold text-black">5. การระงับสิทธิ์การเข้าถึง</h2>
               <p className="mt-2">
-                ลิงก์สินค้าบางส่วนบนเว็บไซต์เป็นลิงก์พาร์ทเนอร์
-                คูปองคุ้มอาจได้รับค่าคอมมิชชันเมื่อท่านซื้อสินค้าผ่านลิงก์เหล่านี้
-                โดยไม่มีค่าใช้จ่ายเพิ่มเติมสำหรับท่าน
-                ดูรายละเอียดเพิ่มเติมที่{' '}
-                <Link href="/disclosure" className="font-bold text-orange-600 underline">
-                  การเปิดเผยข้อมูลพาร์ทเนอร์
-                </Link>
+                แพลนพร้อมสงวนสิทธิ์ระงับการเข้าถึงหรือยกเลิกบัญชีของผู้ใช้ที่ฝ่าฝืนข้อกำหนด
+                โดยเฉพาะกรณีนำ template ไปขายต่อหรือแจกจ่าย โดยไม่จำเป็นต้องแจ้งล่วงหน้า
               </p>
             </section>
 
             <section>
-              <h2 className="font-extrabold text-black">5. ทรัพย์สินทางปัญญา</h2>
+              <h2 className="font-extrabold text-black">6. ทรัพย์สินทางปัญญา</h2>
               <p className="mt-2">
-                เนื้อหา โลโก้ และรูปภาพบนคูปองคุ้มเป็นทรัพย์สินของคูปองคุ้ม
+                เนื้อหา โลโก้ การออกแบบ และ template ทั้งหมดบนแพลนพร้อมเป็นทรัพย์สินทางปัญญาของแพลนพร้อม
                 ห้ามนำไปใช้โดยไม่ได้รับอนุญาตเป็นลายลักษณ์อักษร
-              </p>
-            </section>
-
-            <section>
-              <h2 className="font-extrabold text-black">6. ข้อจำกัดความรับผิดชอบ</h2>
-              <p className="mt-2">
-                คูปองคุ้มไม่รับผิดชอบต่อความเสียหายที่เกิดจากการใช้งานข้อมูลหรือคูปอง
-                บนเว็บไซต์ รวมถึงกรณีที่คูปองหมดอายุ ไม่สามารถใช้ได้ หรือเงื่อนไขเปลี่ยนแปลง
               </p>
             </section>
 
             <section>
               <h2 className="font-extrabold text-black">7. การเปลี่ยนแปลงข้อกำหนด</h2>
               <p className="mt-2">
-                คูปองคุ้มสงวนสิทธิ์ในการเปลี่ยนแปลงข้อกำหนดเหล่านี้ได้ตลอดเวลา
+                แพลนพร้อมสงวนสิทธิ์ในการเปลี่ยนแปลงข้อกำหนดเหล่านี้ได้ตลอดเวลา
                 การใช้งานต่อเนื่องหลังการเปลี่ยนแปลงถือว่าท่านยอมรับข้อกำหนดใหม่
               </p>
             </section>
@@ -96,9 +97,9 @@ export default function TermsPage() {
         </article>
 
         <p className="mt-6 text-center text-xs text-neutral-400">
-          <Link href="/privacy" className="underline">นโยบายความเป็นส่วนตัว</Link>
-          {' '}·{' '}
-          <Link href="/disclosure" className="underline">Affiliate Disclosure</Link>
+          <Link href="/privacy" className="underline hover:text-indigo-600">นโยบายความเป็นส่วนตัว</Link>
+          {' · '}
+          <Link href="/legal" className="underline hover:text-indigo-600">ข้อจำกัดความรับผิดชอบ</Link>
         </p>
       </div>
     </main>
