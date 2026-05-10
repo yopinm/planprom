@@ -261,16 +261,40 @@
 
 | Task | Route | ข้อมูลหลัก | สถานะ |
 |---|---|---|---|
-| R-1 | `/admin/report/sales` | revenue + order count รายวัน · trend · avg order value · date filter | 🔲 Planned |
-| R-2 | `/admin/report/payments` | PromptPay verify log · Omise webhook log · status per order · date filter | 🔲 Planned |
-| R-3 | `/admin/report/downloads` | download events per template · unique/repeat · date filter | 🔲 Planned |
-| R-4 | `/admin/report/export` | export orders CSV · filter by date + status · download button | 🔲 Planned |
-| R-5 | `/admin/report/log/pm2` | PM2 stdout+stderr tail · filter 1h/6h/24h · copy to clipboard | 🔲 Planned |
-| R-6 | `/admin/report/log/nginx-access` | Nginx access log · top paths · 4xx/5xx count · date filter | 🔲 Planned |
-| R-7 | `/admin/report/log/nginx-error` | Nginx error log · 502/504 · upstream fail · date filter | 🔲 Planned |
-| R-8 | `/admin/report/log/errors` | Error Digest รวมทุก source → markdown block · copy-paste ให้ Claude ได้เลย | 🔲 Planned |
+| R-1 | `/admin/report/sales` | revenue + order count รายวัน · trend · avg order value · date filter | ✅ Live (Session 34) |
+| R-2 | `/admin/report/payments` | PromptPay verify log · Omise webhook log · status per order · date filter | ✅ Live (Session 34) |
+| R-3 | `/admin/report/downloads` | download events per template · unique/repeat · date filter | ✅ Live (Session 34) |
+| R-4 | `/admin/report/export` | export orders CSV · filter by date + status · download button | ✅ Live (Session 34) |
+| R-5 | `/admin/report/log/pm2` | PM2 stdout+stderr tail · filter 1h/6h/24h · copy to clipboard | ✅ Live (Session 34) |
+| R-6 | `/admin/report/log/nginx-access` | Nginx access log · top paths · 4xx/5xx count · date filter | ✅ Live (Session 34) |
+| R-7 | `/admin/report/log/nginx-error` | Nginx error log · 502/504 · upstream fail · date filter | ✅ Live (Session 34) |
+| R-8 | `/admin/report/log/errors` | Error Digest รวมทุก source → markdown block · copy-paste ให้ Claude ได้เลย | ✅ Live (Session 34) |
+| R-9 | `/admin/report/pageviews` | analytics_events page_view · KPI · top pages bar chart · daily breakdown · date filter | ✅ Live (Session 34) |
+| R-10 | `/admin/report/predict` | Google Suggest TH (4 keywords) + analysis (demand, audience, template ideas) · bestseller ranking · zero-sale list | ✅ Live (Session 34) |
 
-**ลำดับแนะนำ:** R-1 → R-2 → R-4 → R-3 → R-5 → R-6 → R-7 → R-8
+**Pending ideas (ยังไม่ทำ):**
+- **Smart Gap Finder** — expand Google Suggest 50–100 terms → filter เชิงพาณิชย์ → match กับ DB (มี/ไม่มี/มีแต่ 0 ยอด) → ranked opportunity table
+
+---
+
+## Session 34 Changes (2026-05-10) — Admin Report Suite + Wallet Cleanup
+
+| # | Change | Status |
+|---|---|---|
+| 1 | **Admin Nav** — ลบ System group ออก · เพิ่ม Report group (indigo) พร้อม 10 submenu links | ✅ Live |
+| 2 | **Admin Dashboard** — ลบ System cards (CTRL/SEC/DB/Preflight) + ลบ จัดการคูปอง form + คูปองในระบบ list | ✅ Live |
+| 3 | **R-1..R-8** — สร้างครบ 8 report pages: sales, payments, downloads, export, pm2, nginx-access, nginx-error, errors | ✅ Live |
+| 4 | **R-9 Pageviews** — `/admin/report/pageviews` ดึงจาก `analytics_events` (2,309+ events) · KPI + top pages + daily | ✅ Live |
+| 5 | **R-10 Predict Engine** — `/admin/report/predict` · Google Suggest TH 4 keywords (checklist/planner/ฟอร์ม/รายงาน) · demand signal · audience tags · template ideas · bestseller ranking · zero-sale list | ✅ Live |
+| 6 | **WALLET-CLEAN** — comment out `/wallet` button ใน DownloadClient → แทนด้วย `/orders` link · เพิ่ม `// WALLET-CLEAN: ลบออกถาวร 2026-05-17` ใน 9 wallet files | ✅ Live · ลบจริง 2026-05-17 |
+| 7 | **LogViewer** — shared client component: dark terminal block + Copy + Download ใช้ใน R-5/6/7/8 | ✅ Live |
+| 8 | **ExportClient** — client component: UTF-8 BOM CSV download (Thai Excel รองรับ) | ✅ Live |
+
+**Pending (WALLET-CLEAN 2026-05-17):**
+- ลบ `src/components/wallet/` ทั้งโฟลเดอร์ (6 files)
+- ลบ `src/lib/coupon-wallet.ts`, `src/lib/wallet-queries.ts`, `src/lib/public-wallet.ts`
+- ลบ `{/* WALLET-CLEAN */}` block ใน DownloadClient
+- ลบ `{false && ...}` affiliate blocks ใน app/admin/page.tsx (ADMIN-CLEAN-2)
 
 ---
 

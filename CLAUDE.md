@@ -93,7 +93,7 @@ git push origin main
 ssh root@103.52.109.85 "cd /var/www/planprom && git pull origin main"
 ssh root@103.52.109.85 "cd /var/www/planprom && npm run build"
 ssh root@103.52.109.85 "cd /var/www/planprom && cp -r .next/static .next/standalone/.next/static && cp -r public .next/standalone/public && cp .env.local .next/standalone/.env.local"
-ssh root@103.52.109.85 "pm2 reload ecosystem.config.js --update-env"
+ssh root@103.52.109.85 "pm2 restart planprom"
 curl -s -o /dev/null -w '%{http_code}' https://planprom.com/
 # ต้องได้ 200
 ```
