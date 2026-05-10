@@ -63,11 +63,10 @@ export default async function DownloadLogPage({
     LIMIT 300
   `
 
-  // Cart order items ที่ถูกดาวน์โหลด
+  // Cart order items ที่ถูกดาวน์โหลด (guest checkout — ไม่มี customer_line_id)
   const cartDownloads = await db<{
     order_uid: string
     template_title: string
-    customer_line_id: string
     download_count: number
     download_expires_at: string | null
     paid_at: string | null
@@ -76,7 +75,6 @@ export default async function DownloadLogPage({
     SELECT
       o.order_uid,
       t.title AS template_title,
-      o.customer_line_id,
       oi.download_count,
       oi.download_expires_at,
       o.paid_at,
@@ -112,14 +110,11 @@ export default async function DownloadLogPage({
 
   const totalDownloads = singleDownloads.reduce((s, r) => s + r.download_count, 0)
     + cartDownloads.reduce((s, r) => s + r.download_count, 0)
-  const uniqueCustomers = new Set([
-    ...singleDownloads.map(r => r.customer_line_id),
-    ...cartDownloads.map(r => r.customer_line_id),
-  ]).size
+  const uniqueCustomers = new Set(singleDownloads.map(r => r.customer_line_id)).size
 
   const allRows = [
     ...singleDownloads.map(r => ({ ref: r.order_number, title: r.template_title, customer: r.customer_line_id, count: r.download_count, expires: r.download_expires_at, at: r.created_at })),
-    ...cartDownloads.map(r => ({ ref: r.order_uid, title: r.template_title, customer: r.customer_line_id, count: r.download_count, expires: r.download_expires_at, at: r.created_at })),
+    ...cartDownloads.map(r => ({ ref: r.order_uid, title: r.template_title, customer: '(guest)', count: r.download_count, expires: r.download_expires_at, at: r.created_at })),
   ].sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime())
 
   return (
