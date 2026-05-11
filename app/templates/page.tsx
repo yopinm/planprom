@@ -102,93 +102,78 @@ export default async function TemplatesPage({ searchParams }: Props) {
           )}
         </div>
 
-        {/* Filters — 3 rows horizontal scroll */}
-        <div className="mb-6 space-y-2 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3">
+        {/* Filters — plain text rows */}
+        <div className="mb-6 space-y-2 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm">
 
           {/* Row 1: หมวดหมู่ */}
           {categories.length > 0 && (
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-baseline gap-x-1 gap-y-1">
               <span className="w-16 shrink-0 text-xs font-bold text-neutral-400">หมวดหมู่</span>
-              <div className="flex gap-2 overflow-x-auto pb-0.5">
-                <Link
-                  href={`/templates?${price ? `price=${price}&` : ''}${type ? `type=${type}` : ''}`}
-                  className={`shrink-0 rounded-full border px-4 py-1.5 text-sm font-medium transition ${
-                    !category
-                      ? 'border-emerald-500 bg-emerald-500 text-white'
-                      : 'border-neutral-300 bg-white text-neutral-700 hover:border-emerald-300 hover:bg-emerald-50'
-                  }`}
-                >
-                  ทั้งหมด
-                </Link>
-                {categories.map(cat => (
+              <Link
+                href={`/templates?${price ? `price=${price}&` : ''}${type ? `type=${type}` : ''}`}
+                className={!category ? 'font-bold text-emerald-600' : 'text-neutral-500 hover:text-neutral-800 hover:underline'}
+              >ทั้งหมด</Link>
+              {categories.map(cat => (
+                <>
+                  <span key={`sep-${cat.slug}`} className="text-neutral-300">|</span>
                   <Link
                     key={cat.slug}
                     href={`/templates?category=${cat.slug}${price ? `&price=${price}` : ''}${type ? `&type=${type}` : ''}`}
-                    className={`shrink-0 rounded-full border px-4 py-1.5 text-sm font-medium transition ${
-                      category === cat.slug
-                        ? 'border-emerald-500 bg-emerald-500 text-white'
-                        : 'border-neutral-300 bg-white text-neutral-700 hover:border-emerald-300 hover:bg-emerald-50'
-                    }`}
+                    className={category === cat.slug ? 'font-bold text-emerald-600' : 'text-neutral-500 hover:text-neutral-800 hover:underline'}
                   >
                     {cat.emoji} {cat.name}
                   </Link>
-                ))}
-              </div>
+                </>
+              ))}
             </div>
           )}
 
           <div className="border-t border-neutral-200" />
 
           {/* Row 2: ราคา */}
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-baseline gap-x-1 gap-y-1">
             <span className="w-16 shrink-0 text-xs font-bold text-neutral-400">ราคา</span>
-            <div className="flex gap-2 overflow-x-auto pb-0.5">
-              {[
-                { value: '',   label: 'ทุกราคา' },
-                { value: '0',  label: '🎁 ฟรี' },
-                { value: '20', label: '฿20' },
-              ].map(p => (
+            {[
+              { value: '',   label: 'ทุกราคา' },
+              { value: '0',  label: 'ฟรี' },
+              { value: '20', label: '฿20' },
+            ].map((p, i) => (
+              <>
+                {i > 0 && <span key={`sep-p-${i}`} className="text-neutral-300">|</span>}
                 <Link
                   key={p.value}
                   href={`/templates?${category ? `category=${category}&` : ''}${p.value ? `price=${p.value}` : ''}${type ? `&type=${type}` : ''}`}
-                  className={`shrink-0 rounded-full border px-4 py-1.5 text-sm font-medium transition ${
-                    price === p.value || (!price && !p.value)
-                      ? 'border-amber-500 bg-amber-500 text-white'
-                      : 'border-neutral-300 bg-white text-neutral-700 hover:border-amber-300 hover:bg-amber-50'
-                  }`}
+                  className={price === p.value || (!price && !p.value) ? 'font-bold text-amber-600' : 'text-neutral-500 hover:text-neutral-800 hover:underline'}
                 >
                   {p.label}
                 </Link>
-              ))}
-            </div>
+              </>
+            ))}
           </div>
 
           <div className="border-t border-neutral-200" />
 
           {/* Row 3: ประเภท */}
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-baseline gap-x-1 gap-y-1">
             <span className="w-16 shrink-0 text-xs font-bold text-neutral-400">ประเภท</span>
-            <div className="flex gap-2 overflow-x-auto pb-0.5">
-              {[
-                { value: '',          label: 'ทุกประเภท' },
-                { value: 'planner',   label: '📅 แพลนเนอร์' },
-                { value: 'checklist', label: '✅ เช็คลิสต์' },
-                { value: 'form',      label: '📝 ฟอร์ม' },
-                { value: 'report',    label: '📊 รายงาน' },
-              ].map(dt => (
+            {[
+              { value: '',          label: 'ทุกประเภท' },
+              { value: 'planner',   label: 'แพลนเนอร์' },
+              { value: 'checklist', label: 'เช็คลิสต์' },
+              { value: 'form',      label: 'ฟอร์ม' },
+              { value: 'report',    label: 'รายงาน' },
+            ].map((dt, i) => (
+              <>
+                {i > 0 && <span key={`sep-dt-${i}`} className="text-neutral-300">|</span>}
                 <Link
                   key={dt.value}
                   href={`/templates?${category ? `category=${category}&` : ''}${price ? `price=${price}&` : ''}${dt.value ? `type=${dt.value}` : ''}`}
-                  className={`shrink-0 rounded-full border px-4 py-1.5 text-sm font-medium transition ${
-                    type === dt.value || (!type && !dt.value)
-                      ? 'border-violet-500 bg-violet-500 text-white'
-                      : 'border-neutral-300 bg-white text-neutral-700 hover:border-violet-300 hover:bg-violet-50'
-                  }`}
+                  className={type === dt.value || (!type && !dt.value) ? 'font-bold text-violet-600' : 'text-neutral-500 hover:text-neutral-800 hover:underline'}
                 >
                   {dt.label}
                 </Link>
-              ))}
-            </div>
+              </>
+            ))}
           </div>
 
         </div>
