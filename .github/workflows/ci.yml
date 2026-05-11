@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [develop, main]
 
+# Cancel in-progress runs for the same branch — stops spam from rapid pushes
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check:
     name: Type-check, Lint, Test
@@ -28,7 +33,14 @@ jobs:
         run: npx tsc --noEmit
 
       - name: Lint
-        run: npm run lint
+        run: npm run lint -- --max-warnings 50
 
       - name: Test
         run: npm run test
+
+      - name: Summary
+        if: failure()
+        run: |
+          echo "## CI Failed" >> $GITHUB_STEP_SUMMARY
+          echo "Branch: \`${{ github.ref_name }}\` | Commit: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "Check the steps above for the failing step." >> $GITHUB_STEP_SUMMARY

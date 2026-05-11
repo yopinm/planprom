@@ -176,12 +176,12 @@ export default async function HomePage(): Promise<ReactElement> {
 
             {/* CTAs */}
             <div className="mt-5 flex flex-col gap-2">
-              <a
+              <Link
                 href="/templates"
                 className="flex h-12 w-full items-center justify-center rounded-2xl bg-amber-500 text-base font-black text-white shadow-md transition hover:bg-amber-600"
               >
                 เริ่มต้นที่ ฿20 → ดูเทมเพลตทั้งหมด
-              </a>
+              </Link>
             </div>
 
             {/* Trust strip (UI-C) */}

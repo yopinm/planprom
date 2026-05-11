@@ -32,7 +32,6 @@ export default function CheckoutPage() {
   const [qrSecsLeft,   setQrSecsLeft]   = useState(QR_EXPIRY_SECS)
   const [refreshingQr, setRefreshingQr] = useState(false)
   const [promoCode,    setPromoCode]    = useState<string | null>(null)
-  const [promoLabel,   setPromoLabel]   = useState('')
   const [promoDiscount,setPromoDiscount]= useState(0)
   const pollRef   = useRef<ReturnType<typeof setInterval> | null>(null)
   const expiryRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -200,12 +199,11 @@ export default function CheckoutPage() {
               cartTotal={cartTotal}
               paidItemCount={paidCount}
               appliedCode={promoCode}
-              onApply={(discount, code, label) => {
+              onApply={(discount, code, _label) => {
                 setPromoDiscount(discount)
                 setPromoCode(code)
-                setPromoLabel(label)
               }}
-              onRemove={() => { setPromoCode(null); setPromoDiscount(0); setPromoLabel('') }}
+              onRemove={() => { setPromoCode(null); setPromoDiscount(0) }}
             />
             <button
               onClick={handleCreateOrder}

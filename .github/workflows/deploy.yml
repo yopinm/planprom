@@ -15,6 +15,13 @@ name: Deploy to Production
 on:
   push:
     branches: [main]
+  # Allow manual trigger from GitHub UI
+  workflow_dispatch:
+
+# Cancel previous deploy if a new push arrives
+concurrency:
+  group: deploy-production
+  cancel-in-progress: true
 
 jobs:
   deploy:
@@ -22,9 +29,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
-    # Only run when all required secrets are present (prevents accidental partial deploys)
-    if: |
-      vars.DEPLOY_ENABLED == 'true'
+    # Skip silently when DEPLOY_ENABLED is not set — deploy is done manually via SSH
+    if: vars.DEPLOY_ENABLED == 'true'
 
     steps:
       - uses: actions/checkout@v4
