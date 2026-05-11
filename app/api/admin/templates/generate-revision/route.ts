@@ -5,8 +5,8 @@ import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 import { getAdminUser } from '@/lib/admin-auth'
 import { generateChecklistHtml } from '@/lib/engine-checklist'
-import { generatePlannerHtml } from '@/lib/engine-planner'
-import type { ChecklistEngineData, PlannerEngineData } from '@/lib/engine-types'
+import { generatePlannerHtml, generatePlannerHtmlV2, validatePlannerV2 } from '@/lib/engine-planner'
+import type { ChecklistEngineData, PlannerEngineData, PlannerEngineDataV2 } from '@/lib/engine-types'
 
 export async function POST(req: NextRequest) {
   const adminId = await getAdminUser()
@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
 
   let body: {
     engine_type: 'checklist' | 'planner'
-    engine_data: ChecklistEngineData | PlannerEngineData
+    engine_data: ChecklistEngineData | PlannerEngineData | PlannerEngineDataV2
     slug: string
     watermark_text?: string
     category_name?: string
@@ -34,7 +34,14 @@ export async function POST(req: NextRequest) {
       // docCode preserved as-is from engine_data.s1.docCode — no re-generation
       html = generateChecklistHtml(engine_data as ChecklistEngineData, watermark_text, category_name)
     } else if (engine_type === 'planner') {
-      html = generatePlannerHtml(engine_data as PlannerEngineData, watermark_text)
+      const isV2 = (engine_data as Record<string, unknown>).meta !== undefined &&
+        (engine_data as PlannerEngineDataV2).meta?.schemaVersion === '2.0'
+      if (isV2) {
+        validatePlannerV2(engine_data as PlannerEngineDataV2)
+        html = generatePlannerHtmlV2(engine_data as PlannerEngineDataV2, watermark_text)
+      } else {
+        html = generatePlannerHtml(engine_data as PlannerEngineData, watermark_text)
+      }
     } else {
       return NextResponse.json({ error: 'Unknown engine_type' }, { status: 400 })
     }
