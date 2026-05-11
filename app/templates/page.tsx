@@ -109,13 +109,9 @@ export default async function TemplatesPage({ searchParams }: Props) {
           {categories.length > 0 && (
             <div className="flex flex-wrap items-baseline gap-x-1 gap-y-1">
               <span className="w-16 shrink-0 text-xs font-bold text-neutral-400">หมวดหมู่</span>
-              <Link
-                href={`/templates?${price ? `price=${price}&` : ''}${type ? `type=${type}` : ''}`}
-                className={!category ? 'font-bold text-emerald-600' : 'text-neutral-500 hover:text-neutral-800 hover:underline'}
-              >ทั้งหมด</Link>
-              {categories.map(cat => (
+              {categories.map((cat, i) => (
                 <>
-                  <span key={`sep-${cat.slug}`} className="text-neutral-300">|</span>
+                  {i > 0 && <span key={`sep-${cat.slug}`} className="text-neutral-300">|</span>}
                   <Link
                     key={cat.slug}
                     href={`/templates?category=${cat.slug}${price ? `&price=${price}` : ''}${type ? `&type=${type}` : ''}`}
