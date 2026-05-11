@@ -29,7 +29,7 @@
 | **Doc Sync** | task เสร็จ → อัพเดต PRD.md + `core/planprom.md` เสมอ |
 | **Scope Gate** | ก่อนเริ่ม implement ทุก task → ต้องมี scope + flow ใน `core/planprom.md` ก่อน → commit docs → รอ owner confirm → ค่อย implement |
 | **Blockers** | IA approved ✅ (Affiliate ID 1082367) · AT Datafeed ⏳ · Shopee API ⏳ · Lazada pool=49 fixed |
-| **Next task** | **J13** Customer Request Form / **PROMO-1** Promo Code |
+| **Next task** | **PROMO-3** Admin Promo Code CRUD → **PROMO-1** API + Checkout → **PROMO-2** Banner |
 | **Pending (code)** | **6 tasks** — J13 · J14 · J17 · J19 · PROMO-1/2/3 · UI-G(defer) |
 | **Pending (UAT)** | **7 กลุ่ม** — DC-1 · DC-2 · DC-8(Planner⏳) · E9/E10 · J9(รอ live keys) · A–H(รอ owner test) · LINE ติดต่อเรา(รอทดสอบ) |
 | **Last session** | **Session 48 (2026-05-11)** — badge 2–5 ชิ้น · สัปดาห์ range · ติดต่อเรา LINE (nav+float) ⏳ UAT |
