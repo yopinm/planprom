@@ -13,6 +13,7 @@ import { PRICE_TIERS } from '@/lib/pricing'
 import { db } from '@/lib/db'
 import { RecoveryHashRedirect } from '@/components/auth/RecoveryHashRedirect'
 import FeaturedTemplateCard, { type FeaturedTemplate } from '@/components/home/FeaturedTemplateCard'
+import { PromoCodeBanner, PromoCodeBannerPlaceholder, type PromoData } from '@/components/promo/PromoCodeBanner'
 
 export const dynamic = 'force-dynamic'
 
@@ -35,6 +36,18 @@ export const metadata: Metadata = {
 
 type CatalogGroup = {
   key: string; emoji: string; label: string; totalCount: number
+}
+
+async function fetchActivePromo(): Promise<PromoData | null> {
+  const [row] = await db<PromoData[]>`
+    SELECT code, label, expires_at
+    FROM promo_codes
+    WHERE is_active = true
+      AND NOW() BETWEEN starts_at AND expires_at
+    ORDER BY expires_at ASC
+    LIMIT 1
+  `.catch(() => [])
+  return row ?? null
 }
 
 async function fetchFeaturedTemplate(): Promise<FeaturedTemplate | null> {
@@ -93,9 +106,10 @@ const MOCK_TEMPLATE_CARDS = [
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default async function HomePage(): Promise<ReactElement> {
-  const [catalogGroups, featuredTemplate] = await Promise.all([
+  const [catalogGroups, featuredTemplate, activePromo] = await Promise.all([
     fetchCatalogGroups(),
     fetchFeaturedTemplate(),
+    fetchActivePromo(),
   ])
 
   const websiteSchema = buildWebSiteJsonLd()
@@ -194,10 +208,11 @@ export default async function HomePage(): Promise<ReactElement> {
                 ) : (
                   <div className="rounded-xl border border-amber-200 bg-white px-4 py-4 shadow-sm" />
                 )}
-                {/* PROMO-2 placeholder */}
-                <div className="rounded-xl border border-amber-200 bg-white px-5 py-4 shadow-sm flex items-center justify-center">
-                  <p className="text-sm font-black text-neutral-300">🏷️ โค้ดส่วนลด<br/><span className="text-xs font-medium">เร็วๆ นี้</span></p>
-                </div>
+                {/* PROMO-2 */}
+                {activePromo
+                  ? <PromoCodeBanner promo={activePromo} />
+                  : <PromoCodeBannerPlaceholder />
+                }
               </div>
 
               {/* UI-E: 2 category cards */}
