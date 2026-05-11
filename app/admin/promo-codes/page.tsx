@@ -4,7 +4,7 @@ import type { Metadata } from 'next'
 import { requireAdminSession } from '@/lib/admin-auth'
 import { db } from '@/lib/db'
 import { PromoCodeRow } from './PromoCodeRow'
-import { PromoCreateForm } from './PromoCreateForm'
+import { PromoCodeSection } from './PromoCodeSection'
 
 export const metadata: Metadata = {
   title: 'Promo Codes — Admin',
@@ -41,7 +41,7 @@ export default async function PromoCodesPage() {
         <h1 className="mt-2 text-2xl font-black text-black">Promo Codes</h1>
         <p className="mt-0.5 text-sm text-neutral-500">สร้างและจัดการโค้ดส่วนลด · โผล่ที่หน้าโฮมอัตโนมัติเมื่อ active</p>
 
-        <PromoCreateForm suggested={suggested} />
+        <PromoCodeSection suggested={suggested} />
 
         {/* List */}
         <div className="mt-8 space-y-3">
