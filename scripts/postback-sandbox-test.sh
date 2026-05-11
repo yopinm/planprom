@@ -5,7 +5,7 @@ set -euo pipefail
 # Run on VPS after scripts/vps-disable-rls.sh:
 #   bash scripts/postback-sandbox-test.sh https://couponkum.com
 
-ENV_FILE="${ENV_FILE:-/var/www/couponkum/.env.local}"
+ENV_FILE="${ENV_FILE:-/var/www/planprom/.env.local}"
 BASE_URL="${1:-${BASE_URL:-}}"
 PASS=0
 FAIL=0

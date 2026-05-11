@@ -7,12 +7,12 @@
 set -euo pipefail
 
 BRANCH="${1:-main}"
-APP_DIR="/var/www/couponkum"
-LOG_DIR="/var/log/couponkum"
-APP_NAME="couponkum"
+APP_DIR="/var/www/planprom"
+LOG_DIR="/var/log/planprom"
+APP_NAME="planprom"
 
 echo "=========================================="
-echo " Couponkum Deploy — branch: $BRANCH"
+echo " Planprom Deploy — branch: $BRANCH"
 echo " $(date '+%Y-%m-%d %H:%M:%S')"
 echo "=========================================="
 

@@ -4,7 +4,7 @@ set -euo pipefail
 # DB-MIGRATION-VPS Step 4: Verify DATABASE_URL is set correctly before cutover
 # Run on VPS: bash scripts/db-env-check.sh
 
-ENV_FILE="/var/www/couponkum/.env.local"
+ENV_FILE="/var/www/planprom/.env.local"
 REQUIRED_SUPABASE_VARS=(
   "NEXT_PUBLIC_SUPABASE_URL"
   "NEXT_PUBLIC_SUPABASE_ANON_KEY"

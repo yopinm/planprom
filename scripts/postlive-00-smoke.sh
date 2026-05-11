@@ -5,8 +5,8 @@ set -euo pipefail
 # Run on VPS after go-live:
 #   bash scripts/postlive-00-smoke.sh https://couponkum.com
 
-ENV_FILE="${ENV_FILE:-/var/www/couponkum/.env.local}"
-BASE_URL="${1:-${BASE_URL:-https://couponkum.com}}"
+ENV_FILE="${ENV_FILE:-/var/www/planprom/.env.local}"
+BASE_URL="${1:-${BASE_URL:-https://planprom.com}}"
 PASS=0
 FAIL=0
 RESULTS=()

@@ -7,8 +7,8 @@ set -euo pipefail
 #   bash scripts/task-5-0-promote.sh
 #   bash scripts/task-5-0-promote.sh --yes
 
-ENV_FILE="${ENV_FILE:-/var/www/couponkum/.env.local}"
-BASE_URL="${BASE_URL:-https://couponkum.com}"
+ENV_FILE="${ENV_FILE:-/var/www/planprom/.env.local}"
+BASE_URL="${BASE_URL:-https://planprom.com}"
 SKIP_CONFIRM=0
 FLAGS=(
   affiliate_redirect
