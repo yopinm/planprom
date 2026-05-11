@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import type { CartData } from '@/lib/cart'
-import { itemsUntilNextTier } from '@/lib/pricing'
+import { itemsUntilNextTier, calculateCartTotal } from '@/lib/pricing'
 
 export default function CartPage() {
   const [cart, setCart] = useState<CartData | null>(null)
@@ -82,7 +82,7 @@ export default function CartPage() {
                 <span className="text-green-600 text-sm font-semibold">ฟรี</span>
               ) : (
                 <span className="text-gray-700 text-sm font-semibold">
-                  ฿{paidItems.indexOf(item) === 0 ? 20 : paidItems.indexOf(item) < 5 ? 8 : 7}
+                  ฿{calculateCartTotal(paidItems.indexOf(item) + 1).total - calculateCartTotal(paidItems.indexOf(item)).total}
                 </span>
               )}
             </div>
