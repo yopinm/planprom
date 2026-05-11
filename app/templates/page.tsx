@@ -86,7 +86,7 @@ export default async function TemplatesPage({ searchParams }: Props) {
             ← กลับหน้าแรก
           </Link>
           <h1 className="text-3xl font-black text-neutral-900">📋 เทมเพลตทั้งหมด</h1>
-          <p className="mt-1 text-base text-neutral-600">PDF กรอกข้อมูลได้ · ดาวน์โหลดทันที · ใช้ซ้ำตลอดกาล</p>
+          <p className="mt-1 text-base text-neutral-600">PDF พร้อมใช้งาน · ดาวน์โหลดทันที · ใช้ซ้ำตลอดกาล</p>
         </div>
 
         {/* Search box */}
