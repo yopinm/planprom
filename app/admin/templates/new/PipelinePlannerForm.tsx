@@ -220,14 +220,14 @@ export function PipelinePlannerForm({ onChange }: Props) {
             <div className="space-y-2">
               <label className={LABEL}>ข้อจำกัด (ไม่บังคับ)</label>
               <input value={budget} onChange={e => setBudget(e.target.value)}
-                placeholder="งบประมาณ เช่น ฿50,000" className={INPUT} />
+                placeholder="งบ เช่น ฿50,000" className={INPUT} />
               <input value={timeLimit} onChange={e => setTimeLimit(e.target.value)}
-                placeholder="ข้อจำกัดเวลา เช่น ทำได้วันละ 2 ชั่วโมง" className={INPUT} />
+                placeholder="เวลา เช่น ทำได้วันละ 2 ชั่วโมง" className={INPUT} />
               {others.length > 0
-                ? <DynList items={others} onChange={setOthers} placeholder="ข้อจำกัดอื่นๆ" addLabel="เพิ่มข้อจำกัด" />
+                ? <DynList items={others} onChange={setOthers} placeholder="อื่นๆ เช่น ต้องทำคนเดียว" addLabel="เพิ่มรายการ" />
                 : <button type="button" onClick={() => setOthers([''])}
                     className="text-xs font-black text-neutral-500 hover:text-neutral-700">
-                    + ข้อจำกัดอื่นๆ
+                    + อื่นๆ
                   </button>
               }
             </div>
