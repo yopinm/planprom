@@ -106,21 +106,14 @@ export function TemplateListWithPreview({ templates }: { templates: PreviewTempl
                 ปิด
               </button>
               {preview.tier !== 'free' ? (
-                <Link
-                  href={`/templates/${preview.slug}`}
-                  onClick={close}
-                  className="rounded-xl bg-amber-500 px-5 py-2 text-sm font-black text-white transition hover:bg-amber-600"
-                >
-                  ดูรายละเอียด / ซื้อ →
-                </Link>
+                <AddToCartButton
+                  templateId={preview.id}
+                  className="rounded-xl bg-indigo-600 px-5 py-2 text-sm font-black text-white transition hover:bg-indigo-700 disabled:opacity-60"
+                />
               ) : (
-                <a
-                  href="#line-cta"
-                  onClick={close}
-                  className="rounded-xl bg-[#06C755] px-5 py-2 text-sm font-black text-white transition hover:bg-green-500"
-                >
-                  🎁 รับฟรีผ่าน LINE OA
-                </a>
+                <span className="rounded-xl bg-emerald-100 px-4 py-2 text-sm font-black text-emerald-700">
+                  ฟรี
+                </span>
               )}
             </div>
           </div>
