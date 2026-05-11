@@ -161,10 +161,25 @@ export default async function HomePage(): Promise<ReactElement> {
               <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-700 px-4 py-1.5 text-lg font-semibold tracking-wide text-white">
                 📋 ร้านเช็คลิสต์และแพลนเนอร์เทมเพลต
               </div>
-              <h2 className="mt-2 text-4xl font-semibold leading-snug text-neutral-900">
-                เช็คลิสต์ - ใช้แล้วไม่พลาดทุกขั้นตอน · แพลนเนอร์ · ใช้แล้วบรรลุเป้าหมาย
-              </h2>
-              <p className="mt-1 text-base leading-[1.7] text-neutral-700">PDF กรอกข้อมูลได้ · ดาวน์โหลดทันที · ใช้ซ้ำตลอดกาล</p>
+              {/* UI-E: 2 category cards */}
+              <div className="mt-4 grid grid-cols-2 gap-3 sm:gap-4">
+                <Link
+                  href="/templates?type=checklist"
+                  className="group rounded-xl border border-emerald-200 bg-white px-5 py-4 shadow-sm transition hover:border-emerald-400 hover:shadow-md"
+                >
+                  <p className="text-2xl font-black text-neutral-900">✅ เช็คลิสต์</p>
+                  <p className="mt-1 text-sm text-neutral-500">ทำตามขั้น ไม่พลาด</p>
+                  <p className="mt-3 text-xs font-semibold text-emerald-600 group-hover:underline">ดูเช็คลิสต์ →</p>
+                </Link>
+                <Link
+                  href="/templates?type=planner"
+                  className="group rounded-xl border border-purple-200 bg-white px-5 py-4 shadow-sm transition hover:border-purple-400 hover:shadow-md"
+                >
+                  <p className="text-2xl font-black text-neutral-900">📅 แพลนเนอร์</p>
+                  <p className="mt-1 text-sm text-neutral-500">วางแผน บรรลุเป้า</p>
+                  <p className="mt-3 text-xs font-semibold text-purple-600 group-hover:underline">ดูแพลนเนอร์ →</p>
+                </Link>
+              </div>
             </div>
 
 
