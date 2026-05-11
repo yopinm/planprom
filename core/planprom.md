@@ -387,6 +387,25 @@ ALTER TABLE orders ADD COLUMN discount_baht NUMERIC(10,2) NOT NULL DEFAULT 0;
 
 ---
 
+## Session 48 Changes (2026-05-11) — UI Tweaks + LINE Contact
+
+| # | Change | Status |
+|---|---|---|
+| 1 | **UI** badge `2–5 ชิ้น` มุมบนซ้ายการ์ด ฿10 ใน pricing tiers (แนวเดียวกับ `-50%` มุมขวา) | ✅ Live |
+| 2 | **HOME-FEAT-1** แสดงช่วงวันสัปดาห์ `11–17 พ.ค.` ต่อท้าย "แนะนำสัปดาห์นี้" — คำนวณ client-side เปลี่ยนอัตโนมัติทุกจันทร์ | ✅ Live |
+| 3 | **LINE-CONTACT** ปุ่ม "ติดต่อเรา" สีเขียวใน navbar (hidden mobile) + Floating LINE button มุมขวาล่างทุกหน้า · URL: `line.me/R/ti/p/%40216xobzv` | ⏳ UAT pending (รอทดสอบ add LINE จริง) |
+
+---
+
+## Session 47 Changes (2026-05-11) — HOME-FEAT-1 Featured Card
+
+| # | Change | Status |
+|---|---|---|
+| 1 | **HOME-FEAT-1** `FeaturedTemplateCard.tsx` — modal preview "ดูพรีวิวสินค้า" เปิด inline modal แทน navigate ไป slug | ✅ Live |
+| 2 | **HOME-FEAT-1** admin toggle `is_featured_weekly` ใน `/admin/templates/[id]/edit` — ปุ่ม ⭐ Set Featured / ยกเลิก Featured · `setFeaturedWeeklyAction` + `clearFeaturedWeeklyAction` | ✅ Live · UAT ผ่าน |
+
+---
+
 ## Session 46 Changes (2026-05-11) — ADMIN-CLEAN-2 + J11 Free Download + UX Fixes
 
 | # | Change | Status |

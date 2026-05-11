@@ -31,8 +31,8 @@
 | **Blockers** | IA approved ✅ (Affiliate ID 1082367) · AT Datafeed ⏳ · Shopee API ⏳ · Lazada pool=49 fixed |
 | **Next task** | **J13** Customer Request Form / **PROMO-1** Promo Code |
 | **Pending (code)** | **6 tasks** — J13 · J14 · J17 · J19 · PROMO-1/2/3 · UI-G(defer) |
-| **Pending (UAT)** | **6 กลุ่ม** — DC-1 · DC-2 · DC-8(Planner⏳) · E9/E10 · J9(รอ live keys) · A–H(รอ owner test) |
-| **Last session** | **Session 47 (2026-05-11)** — HOME-FEAT-1 ✅ (Featured Card + modal preview + admin toggle) |
+| **Pending (UAT)** | **7 กลุ่ม** — DC-1 · DC-2 · DC-8(Planner⏳) · E9/E10 · J9(รอ live keys) · A–H(รอ owner test) · LINE ติดต่อเรา(รอทดสอบ) |
+| **Last session** | **Session 48 (2026-05-11)** — badge 2–5 ชิ้น · สัปดาห์ range · ติดต่อเรา LINE (nav+float) ⏳ UAT |
 | **ห้าม** | ไม่แตะ Later task ขณะที่ Now ยังค้างอยู่ · ไม่แตะ secrets โดยตรง · ไม่ทำให้ revenue channel หายไประหว่าง pivot |
 
 ---
