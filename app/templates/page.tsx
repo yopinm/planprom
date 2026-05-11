@@ -102,77 +102,95 @@ export default async function TemplatesPage({ searchParams }: Props) {
           )}
         </div>
 
-        {/* Category filter chips */}
-        {categories.length > 0 && (
-          <div className="mb-4 flex flex-wrap gap-2">
-            <Link
-              href="/templates"
-              className={`rounded-full border px-4 py-1.5 text-sm font-medium transition ${
-                !category
-                  ? 'border-emerald-500 bg-emerald-500 text-white'
-                  : 'border-neutral-300 bg-white text-neutral-700 hover:border-emerald-300 hover:bg-emerald-50'
-              }`}
-            >
-              ทั้งหมด
-            </Link>
-            {categories.map(cat => (
-              <Link
-                key={cat.slug}
-                href={`/templates?category=${cat.slug}${price ? `&price=${price}` : ''}`}
-                className={`rounded-full border px-4 py-1.5 text-sm font-medium transition ${
-                  category === cat.slug
-                    ? 'border-emerald-500 bg-emerald-500 text-white'
-                    : 'border-neutral-300 bg-white text-neutral-700 hover:border-emerald-300 hover:bg-emerald-50'
-                }`}
-              >
-                {cat.emoji} {cat.name}
-              </Link>
-            ))}
+        {/* Filters — 3 rows horizontal scroll */}
+        <div className="mb-6 space-y-2 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3">
+
+          {/* Row 1: หมวดหมู่ */}
+          {categories.length > 0 && (
+            <div className="flex items-center gap-3">
+              <span className="w-16 shrink-0 text-xs font-bold text-neutral-400">หมวดหมู่</span>
+              <div className="flex gap-2 overflow-x-auto pb-0.5">
+                <Link
+                  href={`/templates?${price ? `price=${price}&` : ''}${type ? `type=${type}` : ''}`}
+                  className={`shrink-0 rounded-full border px-4 py-1.5 text-sm font-medium transition ${
+                    !category
+                      ? 'border-emerald-500 bg-emerald-500 text-white'
+                      : 'border-neutral-300 bg-white text-neutral-700 hover:border-emerald-300 hover:bg-emerald-50'
+                  }`}
+                >
+                  ทั้งหมด
+                </Link>
+                {categories.map(cat => (
+                  <Link
+                    key={cat.slug}
+                    href={`/templates?category=${cat.slug}${price ? `&price=${price}` : ''}${type ? `&type=${type}` : ''}`}
+                    className={`shrink-0 rounded-full border px-4 py-1.5 text-sm font-medium transition ${
+                      category === cat.slug
+                        ? 'border-emerald-500 bg-emerald-500 text-white'
+                        : 'border-neutral-300 bg-white text-neutral-700 hover:border-emerald-300 hover:bg-emerald-50'
+                    }`}
+                  >
+                    {cat.emoji} {cat.name}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="border-t border-neutral-200" />
+
+          {/* Row 2: ราคา */}
+          <div className="flex items-center gap-3">
+            <span className="w-16 shrink-0 text-xs font-bold text-neutral-400">ราคา</span>
+            <div className="flex gap-2 overflow-x-auto pb-0.5">
+              {[
+                { value: '',   label: 'ทุกราคา' },
+                { value: '0',  label: '🎁 ฟรี' },
+                { value: '20', label: '฿20' },
+              ].map(p => (
+                <Link
+                  key={p.value}
+                  href={`/templates?${category ? `category=${category}&` : ''}${p.value ? `price=${p.value}` : ''}${type ? `&type=${type}` : ''}`}
+                  className={`shrink-0 rounded-full border px-4 py-1.5 text-sm font-medium transition ${
+                    price === p.value || (!price && !p.value)
+                      ? 'border-amber-500 bg-amber-500 text-white'
+                      : 'border-neutral-300 bg-white text-neutral-700 hover:border-amber-300 hover:bg-amber-50'
+                  }`}
+                >
+                  {p.label}
+                </Link>
+              ))}
+            </div>
           </div>
-        )}
 
-        {/* Price filter chips */}
-        <div className="mb-3 flex flex-wrap gap-2">
-          {[
-            { value: '',  label: 'ทุกราคา' },
-            { value: '0', label: '🎁 ฟรี' },
-            { value: '20', label: '฿20' },
-          ].map(p => (
-            <Link
-              key={p.value}
-              href={`/templates?${category ? `category=${category}&` : ''}${p.value ? `price=${p.value}` : ''}${type ? `&type=${type}` : ''}`}
-              className={`rounded-full border px-4 py-1.5 text-sm font-medium transition ${
-                price === p.value || (!price && !p.value)
-                  ? 'border-amber-500 bg-amber-500 text-white'
-                  : 'border-neutral-300 bg-white text-neutral-700 hover:border-amber-300 hover:bg-amber-50'
-              }`}
-            >
-              {p.label}
-            </Link>
-          ))}
-        </div>
+          <div className="border-t border-neutral-200" />
 
-        {/* Document type filter chips */}
-        <div className="mb-6 flex flex-wrap gap-2">
-          {[
-            { value: '',           label: 'ทุกประเภท' },
-            { value: 'planner',    label: '📅 แพลนเนอร์ (วางแผน)' },
-            { value: 'checklist',  label: '✅ เช็คลิสต์' },
-            { value: 'form',       label: '📝 ฟอร์ม' },
-            { value: 'report',     label: '📊 รายงาน' },
-          ].map(dt => (
-            <Link
-              key={dt.value}
-              href={`/templates?${category ? `category=${category}&` : ''}${price ? `price=${price}&` : ''}${dt.value ? `type=${dt.value}` : ''}`}
-              className={`rounded-full border px-4 py-1.5 text-sm font-medium transition ${
-                type === dt.value || (!type && !dt.value)
-                  ? 'border-violet-500 bg-violet-500 text-white'
-                  : 'border-neutral-300 bg-white text-neutral-700 hover:border-violet-300 hover:bg-violet-50'
-              }`}
-            >
-              {dt.label}
-            </Link>
-          ))}
+          {/* Row 3: ประเภท */}
+          <div className="flex items-center gap-3">
+            <span className="w-16 shrink-0 text-xs font-bold text-neutral-400">ประเภท</span>
+            <div className="flex gap-2 overflow-x-auto pb-0.5">
+              {[
+                { value: '',          label: 'ทุกประเภท' },
+                { value: 'planner',   label: '📅 แพลนเนอร์' },
+                { value: 'checklist', label: '✅ เช็คลิสต์' },
+                { value: 'form',      label: '📝 ฟอร์ม' },
+                { value: 'report',    label: '📊 รายงาน' },
+              ].map(dt => (
+                <Link
+                  key={dt.value}
+                  href={`/templates?${category ? `category=${category}&` : ''}${price ? `price=${price}&` : ''}${dt.value ? `type=${dt.value}` : ''}`}
+                  className={`shrink-0 rounded-full border px-4 py-1.5 text-sm font-medium transition ${
+                    type === dt.value || (!type && !dt.value)
+                      ? 'border-violet-500 bg-violet-500 text-white'
+                      : 'border-neutral-300 bg-white text-neutral-700 hover:border-violet-300 hover:bg-violet-50'
+                  }`}
+                >
+                  {dt.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+
         </div>
 
         {/* Result count */}
