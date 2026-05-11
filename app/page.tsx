@@ -12,6 +12,7 @@ import { buildWebSiteJsonLd, toJsonLdString } from '@/lib/json-ld'
 import { PRICE_TIERS } from '@/lib/pricing'
 import { db } from '@/lib/db'
 import { RecoveryHashRedirect } from '@/components/auth/RecoveryHashRedirect'
+import FeaturedTemplateCard, { type FeaturedTemplate } from '@/components/home/FeaturedTemplateCard'
 
 export const dynamic = 'force-dynamic'
 
@@ -34,6 +35,31 @@ export const metadata: Metadata = {
 
 type CatalogGroup = {
   key: string; emoji: string; label: string; totalCount: number
+}
+
+async function fetchFeaturedTemplate(): Promise<FeaturedTemplate | null> {
+  try {
+    const [row] = await db<FeaturedTemplate[]>`
+      SELECT t.id, t.slug, t.title, t.tier, t.preview_path,
+             c.name AS category_name, c.emoji AS category_emoji
+      FROM templates t
+      LEFT JOIN template_category_links l ON l.template_id = t.id
+      LEFT JOIN template_categories c ON c.id = l.category_id
+      WHERE t.status = 'published'
+        AND (t.is_featured_weekly = true
+             OR t.id = (
+               SELECT id FROM templates
+               WHERE status = 'published'
+               ORDER BY sale_count DESC, created_at DESC
+               LIMIT 1
+             ))
+      ORDER BY t.is_featured_weekly DESC
+      LIMIT 1
+    `
+    return row ?? null
+  } catch {
+    return null
+  }
 }
 
 async function fetchCatalogGroups(): Promise<CatalogGroup[]> {
@@ -67,8 +93,9 @@ const MOCK_TEMPLATE_CARDS = [
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default async function HomePage(): Promise<ReactElement> {
-  const [catalogGroups] = await Promise.all([
+  const [catalogGroups, featuredTemplate] = await Promise.all([
     fetchCatalogGroups(),
+    fetchFeaturedTemplate(),
   ])
 
   const websiteSchema = buildWebSiteJsonLd()
@@ -85,7 +112,13 @@ export default async function HomePage(): Promise<ReactElement> {
 
         {/* ── Hero ─────────────────────────────────────────────────────── */}
         <div className="bg-gradient-to-br from-emerald-50 via-white to-orange-50 px-4 py-10 text-center">
-          <div className="mx-auto max-w-md">
+          <div className="mx-auto flex max-w-4xl items-center gap-4 lg:gap-6">
+
+            {/* Left slot — PROMO-2 placeholder (hidden until promo is built) */}
+            <div className="hidden w-36 shrink-0 lg:block" />
+
+            {/* Center: hero content */}
+            <div className="flex-1 min-w-0">
 
             {/* Headline */}
             <h1 className="text-3xl font-black leading-tight text-neutral-900 sm:text-4xl">
@@ -147,7 +180,15 @@ export default async function HomePage(): Promise<ReactElement> {
               <p>เทมเพลตคัดสรร · เพิ่มใหม่ทุกสัปดาห์</p>
               <p>✓ จ่ายเดียว ดาวน์โหลดทันที &nbsp;·&nbsp; ✓ ไม่ต้องสมัครสมาชิก &nbsp;·&nbsp; ✓ ไฟล์ไม่หมดอายุ</p>
             </div>
-          </div>
+            </div>{/* end center */}
+
+            {/* Right: Featured template card */}
+            <div className="hidden w-36 shrink-0 lg:block">
+              {featuredTemplate && (
+                <FeaturedTemplateCard template={featuredTemplate} />
+              )}
+            </div>
+          </div>{/* end flex */}
         </div>
 
         {/* ══════════════════════════════════════════════════════════════
