@@ -59,6 +59,9 @@ export function WizardClient({ categories, cloneSources }: Props) {
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const docxInputRef = useRef<HTMLInputElement>(null)
+  const modeRef      = useRef<Mode | null>(null)
+  const titleRef     = useRef('')
+  const slugTouchedRef = useRef(false)
 
   const [step,            setStep]           = useState<number>(1)
   const [mode,            setMode]           = useState<Mode | null>(null)
@@ -109,8 +112,24 @@ export function WizardClient({ categories, cloneSources }: Props) {
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3) }
   }, [engineState])
 
+  // keep refs in sync so callbacks don't close over stale values
+  modeRef.current      = mode
+  titleRef.current     = title
+  slugTouchedRef.current = slugTouched
+
   const handleEngineDataChange = useCallback((data: Record<string, unknown>) => {
     setEngineData(data)
+    // pipeline: auto-fill title/slug from meta.title so "ถัดไป" isn't blocked
+    if (modeRef.current === 'engine-pipeline') {
+      const pipelineTitle = (data as { meta?: { title?: string } })?.meta?.title ?? ''
+      if (pipelineTitle) {
+        setTitle(prev => prev.trim() ? prev : pipelineTitle)
+        if (!slugTouchedRef.current) {
+          const generated = autoSlug(pipelineTitle)
+          if (generated) setSlug(generated)
+        }
+      }
+    }
   }, [])
 
   const isEngine  = mode === 'engine-checklist' || mode === 'engine-planner' || mode === 'engine-pipeline'
