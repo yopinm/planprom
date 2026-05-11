@@ -276,7 +276,11 @@ export function PipelinePlannerForm({ onChange }: Props) {
               </div>
             </div>
             <div>
-              <label className={LABEL}>Big Rocks — สิ่งสำคัญที่ต้องทำให้ได้ก่อน</label>
+              <label className={LABEL}>Big Rocks</label>
+              <p className="text-xs text-neutral-500 mb-2">
+                งานใหญ่ที่ถ้าไม่ทำ เป้าหมายจะไม่สำเร็จ — ใส่ deadline กำกับแต่ละงานด้วย
+                <span className="block text-neutral-400 mt-0.5">เช่น "ทำ Landing Page ให้เสร็จ" deadline "15 มิ.ย."</span>
+              </p>
               <div className="space-y-2">
                 {bigRocks.map((r, i) => (
                   <div key={i} className="flex gap-2">
