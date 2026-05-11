@@ -183,22 +183,6 @@ export default async function HomePage(): Promise<ReactElement> {
             </div>
 
 
-            {/* Planner vs Checklist chips */}
-            <div className="mb-5 flex gap-2">
-              <Link
-                href="/templates?type=planner"
-                className="inline-flex items-center gap-2 rounded-full border-2 border-purple-300 bg-purple-50 px-4 py-2 text-sm font-black text-purple-800 transition hover:border-purple-500 hover:bg-purple-100"
-              >
-                📅 แพลนเนอร์ (วางแผน) →
-              </Link>
-              <Link
-                href="/templates?type=checklist"
-                className="inline-flex items-center gap-2 rounded-full border-2 border-blue-300 bg-blue-50 px-4 py-2 text-sm font-black text-blue-800 transition hover:border-blue-500 hover:bg-blue-100"
-              >
-                ✅ เช็คลิสต์ (ตรวจสอบ) →
-              </Link>
-            </div>
-
             {/* Category chips */}
             <div className="mb-5 flex gap-2 overflow-x-auto pb-1">
               {catalogGroups.map(cat => (
