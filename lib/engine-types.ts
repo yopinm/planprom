@@ -104,3 +104,62 @@ export type PlannerEngineDataV2 = {
   axis5: PlannerAxis5
   extras?: Record<string, unknown>
 }
+
+// ── Planner Pipeline v3 ──────────────────────────────────────────────────────
+
+export type PipelinePhase = {
+  name: string
+  timeRange: string
+  tasks: string[]
+  budget?: string
+}
+
+export type PipelineBigRock = {
+  task: string
+  deadline: string
+}
+
+export type PipelineMetric = {
+  name: string
+  target: string
+  frequency: 'daily' | 'weekly' | 'monthly'
+}
+
+export type PlannerPipelineData = {
+  meta: {
+    schemaVersion: '3.0'
+    mode: 'pipeline'
+    title: string
+    description: string
+    colorTheme: 'violet' | 'rose' | 'emerald' | 'amber' | 'sky'
+    coverPage: boolean
+  }
+  stage1_goal: {
+    bigGoal: string
+    deadline: string
+    why: string
+    successCriteria: string[]
+    constraints: {
+      budget?: string
+      timeLimit?: string
+      others?: string[]
+    }
+  }
+  stage2_plan: {
+    phases: PipelinePhase[]
+    bigRocks: PipelineBigRock[]
+  }
+  stage3_track: {
+    habits: string[]
+    metrics: PipelineMetric[]
+    reviewCycle: 'daily' | 'weekly' | 'monthly'
+    reviewQuestions: string[]
+    adjustmentRules?: string[]
+  }
+  notes?: {
+    diaryDays: number
+    notesPages: number
+    notesStyle: 'lined' | 'dotgrid' | 'blank'
+  }
+  extras?: Record<string, unknown>
+}
