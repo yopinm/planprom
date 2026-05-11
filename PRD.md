@@ -29,10 +29,10 @@
 | **Doc Sync** | task เสร็จ → อัพเดต PRD.md + `core/planprom.md` เสมอ |
 | **Scope Gate** | ก่อนเริ่ม implement ทุก task → ต้องมี scope + flow ใน `core/planprom.md` ก่อน → commit docs → รอ owner confirm → ค่อย implement |
 | **Blockers** | IA approved ✅ (Affiliate ID 1082367) · AT Datafeed ⏳ · Shopee API ⏳ · Lazada pool=49 fixed |
-| **Next task** | **J11** Free tier download flow (ข้าม payment) |
-| **Pending (code)** | **10 tasks** — J11 · J13 · J14 · J17 · J19 · ADMIN-CLEAN-1 · ADMIN-CLEAN-2(2026-05-17) · HOME-FEAT-1 · PROMO-1/2/3 |
+| **Next task** | **HOME-FEAT-1** Featured Template Card / **J13** Customer Request Form |
+| **Pending (code)** | **7 tasks** — J13 · J14 · J17 · J19 · HOME-FEAT-1 · PROMO-1/2/3 · UI-G(defer) |
 | **Pending (UAT)** | **6 กลุ่ม** — DC-1 · DC-2 · DC-8(Planner⏳) · E9/E10 · J9(รอ live keys) · A–H(รอ owner test) |
-| **Last session** | **Session 45 (2026-05-11)** — DC-12/J10/J12/J20 closed · J7-preview ✅ · UI-A/B/C/E/F ✅ · cart ฿8 fix · filter UI plain text · hide empty categories |
+| **Last session** | **Session 46 (2026-05-11)** — ADMIN-CLEAN-2 ✅ · J11 free download ✅ · ลบปุ่ม LINE share ✅ |
 | **ห้าม** | ไม่แตะ Later task ขณะที่ Now ยังค้างอยู่ · ไม่แตะ secrets โดยตรง · ไม่ทำให้ revenue channel หายไประหว่าง pivot |
 
 ---
@@ -155,7 +155,7 @@
 ## UAT Status Summary (อัพเดต 2026-05-10 · Session 33)
 
 > รายละเอียดเต็ม → `core/planprom.md` Section "UAT Master Checklist"
-> **สรุป:** Code pending 11 tasks · UAT pending 6 กลุ่ม · รวม 17 รายการยังค้าง
+> **สรุป (Session 46):** Code pending 7 tasks · UAT pending 6 กลุ่ม · รวม 13 รายการยังค้าง
 
 ### Pending Code Tasks (เรียงตามลำดับ)
 
@@ -171,13 +171,13 @@
 | 8 | **UI-B+C** Hero copy + Trust strip | — | ✅ Done (Session 45) |
 | 9 | **UI-E** Section 2 → 2 category cards | — | ✅ Done (Session 45) |
 | 10 | **UI-F** Hide empty categories | — | ✅ Done (Session 45) |
-| 11 | **J11** Free tier download flow (ข้าม payment) | 🟡 Medium | 🔲 Planned |
-| 12 | **J13** Customer Request Form `/templates/request` | 🟡 Medium | 🔲 Planned |
-| 13 | **J14** ระบบสมาชิก + Auto Push LINE | 🟡 Medium | 🔲 Planned |
-| 14 | **J17** Subscription รายเดือน (Standard/Pro) | 🟡 Planned | 🔲 Planned |
-| 15 | **J19** Template Log Export `/admin/templates/log-export` | 🟡 Medium | 🔲 Planned |
-| 16 | **ADMIN-CLEAN-1** Admin page cleanup | 🟡 | 🔲 Planned |
-| 17 | **ADMIN-CLEAN-2** Admin cleanup ชุด 2 | 🟡 | 🔲 Planned (2026-05-17) |
+| 11 | **J11** Free tier download flow (ข้าม payment) | 🟡 Medium | ✅ Done (Session 46) |
+| 12 | **ADMIN-CLEAN-1** Admin wallet dead code | 🟡 | ✅ Done (Session 45) |
+| 13 | **ADMIN-CLEAN-2** Admin cleanup ชุด 2 | 🟡 | ✅ Done (Session 46) |
+| 14 | **J13** Customer Request Form `/templates/request` | 🟡 Medium | 🔲 Planned |
+| 15 | **J14** ระบบสมาชิก + Auto Push LINE | 🟡 Medium | 🔲 Planned |
+| 16 | **J17** Subscription รายเดือน (Standard/Pro) | 🟡 Planned | 🔲 Planned |
+| 17 | **J19** Template Log Export `/admin/templates/log-export` | 🟡 Medium | 🔲 Planned |
 | 18 | **PROMO-1** Promo Code API + Checkout Integration | 🟡 Medium | 🔲 Planned |
 | 19 | **PROMO-2** PromoCodeBanner Homepage + Countdown | 🟡 Medium | 🔲 Planned |
 | 20 | **PROMO-3** Admin Promo Code CRUD | 🟡 Medium | 🔲 Planned |

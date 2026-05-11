@@ -212,7 +212,7 @@
 | J8 | Owner สร้าง templates 2-10 | owner task — /templates UAT pending จนกว่าจะมี template ครบ | 🔴 Blocker UAT |
 | J9 | Omise test mode QR อ่านไม่ได้ด้วยแอปธนาคาร | ตั้งใจ — test QR เป็น fake EMVCo · **ต้องใช้ live keys เพื่อทดสอบ real scan** · UAT G4 pending live keys | 🟡 Medium |
 | J10 | Wallet แสดง login prompt หลัง download ใน tab เดิม | ~~ระบบ Wallet ถูกตัดออกแล้ว — task นี้ไม่มีผล~~ | ✅ **Closed (N/A — wallet removed)** |
-| J11 | Free tier ยังไม่โหลดได้เลย | ปัจจุบันลิ้งค์ไป `#line-cta` (LINE OA) แทน · **Plan**: login LINE → กด "รับฟรี" → สร้าง `template_order` + `download_token` ทันที (ข้าม payment) → redirect `/d/[token]` | 🟡 Medium |
+| J11 | Free tier ยังไม่โหลดได้เลย | `POST /api/free-download` → INSERT template_orders (amount=0, status='paid', payment_method='free') → return token · `FreeDownloadButton` client component → router.push('/d/[token]') · แทน href="#line-cta" ทั้ง 3 จุด (CatalogTemplateList modal+row, TemplateListWithPreview modal+row, /templates/[slug]) · ลบปุ่ม "แชร์ให้เพื่อนทาง LINE" จาก DownloadClient | ✅ **Done · Live (Session 46)** |
 | J12 | LINE OAuth ล้มเหลว — "Error getting user profile from external provider" | ~~ตัดระบบ LINE Login ออกแล้ว — ใช้ Cart flow แทน (ไม่ต้อง LINE)~~ | ✅ **Closed (N/A — LINE login removed)** |
 | J13 | ระบบ Customer Request ขอเทมเพลตด่วน | **Spec (2026-05-10):** · **UI** `/templates/request` — หัวข้อ "อยากได้เทมเพลตหมวดไหน? → บอกเรา" · input ช่องเดียว placeholder "เช่น แพลนเนอร์ออกกำลังกาย" · ปุ่ม "ส่ง" · ไม่ต้อง login (guest ส่งได้) · **Incentive:** แจ้งใต้ช่อง "เมื่อเราทำเทมเพลตนี้เสร็จ คุณได้รับไฟล์ฟรี 1 ใบ!" → เก็บ contact_line (optional) เพื่อให้ owner แจ้งกลับ · **DB:** `template_requests` (id UUID PK, topic TEXT NOT NULL, contact_line TEXT, session_id TEXT, fulfilled BOOLEAN DEFAULT false, free_token_issued BOOLEAN DEFAULT false, created_at TIMESTAMPTZ) · **Flow:** submit → INSERT → แสดง toast "ส่งคำขอแล้ว! เราจะแจ้งเมื่อพร้อม" · **Admin** `/admin/requests` — ตาราง: topic / contact / วันที่ / fulfilled toggle / ปุ่ม "ออก free token" (สร้าง download_token แล้วส่ง LINE หรือ copy link) · **Files:** `app/templates/request/page.tsx` (NEW) · `app/api/templates/request/route.ts` (NEW) · `app/admin/requests/page.tsx` (NEW) · `app/admin/requests/actions.ts` (NEW) · `migrations/YYYYMMDD_template_requests.sql` | 🟡 Medium |
 | J14 | ระบบสมาชิก + Auto Push download link | ลูกค้าที่ซื้อแล้ว = "สมาชิก" → เมื่อ owner เพิ่ม template ใหม่ในหมวดที่เคยซื้อ → LINE push แจ้งลิงก์ดาวน์โหลดอัตโนมัติ · **Plan**: `member_subscriptions` table (line_id, category_slug) + cron/webhook ตอน publish template ใหม่ → LINE push เฉพาะกลุ่มที่ subscribe หมวดนั้น | 🟡 Medium |
@@ -387,6 +387,18 @@ ALTER TABLE orders ADD COLUMN discount_baht NUMERIC(10,2) NOT NULL DEFAULT 0;
 
 ---
 
+## Session 46 Changes (2026-05-11) — ADMIN-CLEAN-2 + J11 Free Download + UX Fixes
+
+| # | Change | Status |
+|---|---|---|
+| 1 | **ADMIN-CLEAN-2** `app/admin/page.tsx` — ลบ `{false && ...}` blocks ทั้งหมด (Critical Alert, KPI Affiliate, Ops/Revenue/Products/Social/Content, TikTok Trends) + ลบ fetcher functions 10 ตัว + ลบ unused imports · ไฟล์ลดจาก 589 → 162 บรรทัด | ✅ Live |
+| 2 | **J11** `POST /api/free-download` (NEW) — verify tier='free'+published → INSERT template_orders (amount_baht=0, status='paid', payment_method='free', token=UUID, expires=72h) → return token | ✅ Live |
+| 3 | **J11** `FreeDownloadButton.tsx` (NEW) — client component: fetch POST → router.push('/d/[token]') · states: idle/loading/error | ✅ Live |
+| 4 | **J11** แทน `href="#line-cta"` ด้วย `FreeDownloadButton` ใน CatalogTemplateList (modal+row), TemplateListWithPreview (modal+row), /templates/[slug] | ✅ Live |
+| 5 | **UX** ลบปุ่ม "แชร์ให้เพื่อนทาง LINE" + `shareText/shareUrl/lineShareUrl` ออกจาก DownloadClient · ลบ `templateSlug` prop ที่ไม่ใช้ | ✅ Live |
+
+---
+
 ## Session 44 Changes (2026-05-11) — DC-16 Pipeline Planner v3
 
 | # | Change | Status |
@@ -486,11 +498,11 @@ ALTER TABLE orders ADD COLUMN discount_baht NUMERIC(10,2) NOT NULL DEFAULT 0;
 | 7 | **LogViewer** — shared client component: dark terminal block + Copy + Download ใช้ใน R-5/6/7/8 | ✅ Live |
 | 8 | **ExportClient** — client component: UTF-8 BOM CSV download (Thai Excel รองรับ) | ✅ Live |
 
-**Pending (WALLET-CLEAN 2026-05-17):**
-- ลบ `src/components/wallet/` ทั้งโฟลเดอร์ (6 files)
-- ลบ `src/lib/coupon-wallet.ts`, `src/lib/wallet-queries.ts`, `src/lib/public-wallet.ts`
-- ลบ `{/* WALLET-CLEAN */}` block ใน DownloadClient
-- ลบ `{false && ...}` affiliate blocks ใน app/admin/page.tsx (ADMIN-CLEAN-2)
+**WALLET-CLEAN + ADMIN-CLEAN ✅ Done (Session 45-46):**
+- ✅ ลบ `src/components/wallet/` ทั้งโฟลเดอร์ (6 files) — Session 45
+- ✅ ลบ `src/lib/coupon-wallet.ts`, `src/lib/wallet-queries.ts`, `src/lib/public-wallet.ts` — Session 45
+- ✅ ลบ `{/* WALLET-CLEAN */}` block ใน DownloadClient — Session 45
+- ✅ ลบ `{false && ...}` affiliate blocks ใน app/admin/page.tsx (ADMIN-CLEAN-2) — Session 46
 
 ---
 
