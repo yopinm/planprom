@@ -126,7 +126,9 @@ export function WizardClient({ categories, cloneSources }: Props) {
         setTitle(prev => prev.trim() ? prev : pipelineTitle)
         if (!slugTouchedRef.current) {
           const generated = autoSlug(pipelineTitle)
-          if (generated) setSlug(generated)
+          const bkk = new Date(Date.now() + 7 * 3600000)
+          const ds   = bkk.toISOString().slice(0, 10).replace(/-/g, '')
+          setSlug(generated || `pipeline-${ds}`)
         }
       }
     }
