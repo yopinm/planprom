@@ -70,8 +70,12 @@ export async function GET() {
 
   const now = dtLocal(new Date())
 
-  const slowSignal = weekData.rev_avg > 0 && weekData.rev_this < weekData.rev_avg * 0.6
-  const tierSignal = tierData.total >= 3 && tierData.single / tierData.total > 0.7
+  // avg=0 = site ใหม่ยังไม่มี baseline → ควรกระตุ้นยอดเสมอ
+  const slowSignal = weekData.rev_avg === 0
+    ? weekData.rev_this < VPS_WEEKLY_COST          // ใช้ VPS target เป็น floor แทน
+    : weekData.rev_this < weekData.rev_avg * 0.6
+  // ลด threshold เป็น 1 สำหรับ early-stage site
+  const tierSignal = tierData.total >= 1 && tierData.single / tierData.total > 0.7
   const cartSignal = cartData.abandoned >= 3
   const vpsGap     = Math.max(0, VPS_WEEKLY_COST - vpsData.rev_week)
   const vpsSignal  = vpsGap > 0
@@ -82,7 +86,9 @@ export async function GET() {
       signal:  slowSignal,
       metric:  `฿${weekData.rev_this} / avg ฿${weekData.rev_avg}/สัปดาห์`,
       reason:  slowSignal
-        ? `ยอดสัปดาห์นี้ ฿${weekData.rev_this} ต่ำกว่า avg ${Math.round((1 - weekData.rev_this / weekData.rev_avg) * 100)}%`
+        ? weekData.rev_avg === 0
+          ? `ยังไม่มี baseline — กระตุ้นยอดด้วย flash sale`
+          : `ยอดสัปดาห์นี้ ฿${weekData.rev_this} ต่ำกว่า avg ${Math.round((1 - weekData.rev_this / weekData.rev_avg) * 100)}%`
         : `ยอดสัปดาห์นี้ปกติดี ฿${weekData.rev_this}`,
       suggested: slowSignal ? {
         code: genCode('FLASH'), label: 'Flash Sale สัปดาห์นี้',
