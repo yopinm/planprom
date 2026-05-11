@@ -112,13 +112,7 @@ export default async function HomePage(): Promise<ReactElement> {
 
         {/* ── Hero ─────────────────────────────────────────────────────── */}
         <div className="bg-gradient-to-br from-emerald-50 via-white to-orange-50 px-4 py-10 text-center">
-          <div className="mx-auto flex max-w-4xl items-center gap-4 lg:gap-6">
-
-            {/* Left slot — PROMO-2 placeholder (hidden until promo is built) */}
-            <div className="hidden w-36 shrink-0 lg:block" />
-
-            {/* Center: hero content */}
-            <div className="flex-1 min-w-0">
+          <div className="mx-auto max-w-md">
 
             {/* Headline */}
             <h1 className="text-3xl font-black leading-tight text-neutral-900 sm:text-4xl">
@@ -180,15 +174,7 @@ export default async function HomePage(): Promise<ReactElement> {
               <p>เทมเพลตคัดสรร · เพิ่มใหม่ทุกสัปดาห์</p>
               <p>✓ จ่ายเดียว ดาวน์โหลดทันที &nbsp;·&nbsp; ✓ ไม่ต้องสมัครสมาชิก &nbsp;·&nbsp; ✓ ไฟล์ไม่หมดอายุ</p>
             </div>
-            </div>{/* end center */}
-
-            {/* Right: Featured template card */}
-            <div className="hidden w-36 shrink-0 lg:block">
-              {featuredTemplate && (
-                <FeaturedTemplateCard template={featuredTemplate} />
-              )}
-            </div>
-          </div>{/* end flex */}
+          </div>
         </div>
 
         {/* ══════════════════════════════════════════════════════════════
@@ -202,6 +188,14 @@ export default async function HomePage(): Promise<ReactElement> {
               <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-700 px-4 py-1.5 text-lg font-semibold tracking-wide text-white">
                 📋 ร้านเช็คลิสต์และแพลนเนอร์เทมเพลต
               </div>
+
+              {/* Featured template card */}
+              {featuredTemplate && (
+                <div className="mt-4 max-w-xs">
+                  <FeaturedTemplateCard template={featuredTemplate} />
+                </div>
+              )}
+
               {/* UI-E: 2 category cards */}
               <div className="mt-4 grid grid-cols-2 gap-3 sm:gap-4">
                 <Link
