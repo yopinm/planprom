@@ -3,7 +3,8 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { requireAdminSession } from '@/lib/admin-auth'
 import { db } from '@/lib/db'
-import { createPromoCodeAction, togglePromoCodeAction, deletePromoCodeAction } from './actions'
+import { createPromoCodeAction } from './actions'
+import { PromoCodeRow } from './PromoCodeRow'
 
 export const metadata: Metadata = {
   title: 'Promo Codes — Admin',
@@ -27,11 +28,6 @@ function generateCode(): string {
   return Array.from({ length: 8 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
 }
 
-function fmtDate(d: string) {
-  return new Date(d).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' })
-}
-
-function isExpired(d: string) { return new Date(d) < new Date() }
 
 export default async function PromoCodesPage() {
   await requireAdminSession('/admin/login')
@@ -117,55 +113,7 @@ export default async function PromoCodesPage() {
               ยังไม่มีโค้ด — สร้างอันแรกด้านบน
             </div>
           )}
-          {codes.map(c => {
-            const expired = isExpired(c.expires_at)
-            const full    = c.max_uses !== null && c.used_count >= c.max_uses
-            const statusOk = c.is_active && !expired && !full
-
-            return (
-              <div key={c.id} className={`rounded-2xl border bg-white p-4 shadow-sm ${statusOk ? 'border-emerald-200' : 'border-neutral-200 opacity-70'}`}>
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  {/* Left info */}
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-mono text-base font-black text-neutral-900">{c.code}</span>
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-black ${statusOk ? 'bg-emerald-100 text-emerald-700' : expired ? 'bg-neutral-100 text-neutral-500' : full ? 'bg-red-100 text-red-600' : 'bg-neutral-100 text-neutral-500'}`}>
-                        {statusOk ? 'ACTIVE' : expired ? 'หมดอายุ' : full ? 'ใช้ครบ' : 'ปิด'}
-                      </span>
-                      <span className="text-xs text-neutral-500">{c.label}</span>
-                    </div>
-                    <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-neutral-500">
-                      <span className="font-bold text-neutral-700">
-                        {c.discount_type === 'fixed' ? `฿${c.discount_value} off` : `${c.discount_value}% off`}
-                        {c.min_cart_value > 0 && ` · ขั้นต่ำ ฿${c.min_cart_value}`}
-                      </span>
-                      <span>ใช้แล้ว {c.used_count}{c.max_uses ? `/${c.max_uses}` : ''} ครั้ง</span>
-                      <span>{fmtDate(c.starts_at)} – {fmtDate(c.expires_at)}</span>
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-2 shrink-0">
-                    <form action={togglePromoCodeAction}>
-                      <input type="hidden" name="id" value={c.id} />
-                      <input type="hidden" name="is_active" value={String(c.is_active)} />
-                      <button type="submit" className={`rounded-lg border px-3 py-1.5 text-xs font-black transition ${c.is_active ? 'border-neutral-300 text-neutral-600 hover:bg-neutral-100' : 'border-emerald-300 text-emerald-700 hover:bg-emerald-50'}`}>
-                        {c.is_active ? 'ปิด' : 'เปิด'}
-                      </button>
-                    </form>
-                    {c.used_count === 0 && (
-                      <form action={deletePromoCodeAction}>
-                        <input type="hidden" name="id" value={c.id} />
-                        <button type="submit" className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-black text-red-500 transition hover:bg-red-50">
-                          ลบ
-                        </button>
-                      </form>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )
-          })}
+          {codes.map(c => <PromoCodeRow key={c.id} c={c} />)}
         </div>
       </div>
     </main>

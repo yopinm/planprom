@@ -30,6 +30,30 @@ export async function createPromoCodeAction(formData: FormData) {
   redirect('/admin/promo-codes')
 }
 
+export async function updatePromoCodeAction(formData: FormData) {
+  await requireAdminSession('/admin/login')
+  const id           = str(formData, 'id')
+  const label        = str(formData, 'label')
+  const discountType = str(formData, 'discount_type')
+  const discountVal  = parseFloat(str(formData, 'discount_value'))
+  const minCart      = parseFloat(str(formData, 'min_cart_value') || '0')
+  const maxUsesRaw   = str(formData, 'max_uses')
+  const maxUses      = maxUsesRaw ? parseInt(maxUsesRaw) : null
+  const expiresAt    = str(formData, 'expires_at')
+
+  await db`
+    UPDATE promo_codes SET
+      label          = ${label},
+      discount_type  = ${discountType},
+      discount_value = ${discountVal},
+      min_cart_value = ${minCart},
+      max_uses       = ${maxUses},
+      expires_at     = ${expiresAt}
+    WHERE id = ${id}
+  `
+  revalidatePath('/admin/promo-codes')
+}
+
 export async function togglePromoCodeAction(formData: FormData) {
   await requireAdminSession('/admin/login')
   const id       = str(formData, 'id')
