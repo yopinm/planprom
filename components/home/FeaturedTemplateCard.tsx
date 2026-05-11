@@ -1,6 +1,20 @@
 'use client'
 
 import { useState } from 'react'
+
+function getThisWeekRange(): string {
+  const now = new Date()
+  const day = now.getDay()
+  const diffToMon = day === 0 ? -6 : 1 - day
+  const mon = new Date(now)
+  mon.setDate(now.getDate() + diffToMon)
+  const sun = new Date(mon)
+  sun.setDate(mon.getDate() + 6)
+  const M = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.']
+  if (mon.getMonth() === sun.getMonth())
+    return `${mon.getDate()}–${sun.getDate()} ${M[sun.getMonth()]}`
+  return `${mon.getDate()} ${M[mon.getMonth()]}–${sun.getDate()} ${M[sun.getMonth()]}`
+}
 import AddToCartButton from '@/components/cart/AddToCartButton'
 import FreeDownloadButton from '@/components/templates/FreeDownloadButton'
 
@@ -22,6 +36,7 @@ export default function FeaturedTemplateCard({ template }: { template: FeaturedT
       <div className="rounded-xl border border-amber-200 bg-white px-5 py-4 shadow-sm transition hover:border-amber-400 hover:shadow-md">
         <p className="text-sm font-black text-amber-500 mb-3">
           ✨ แนะนำสัปดาห์นี้
+          <span className="ml-2 font-medium text-amber-400 text-xs">· {getThisWeekRange()}</span>
         </p>
         <div className="flex flex-wrap items-center gap-2">
           <p className="font-black text-neutral-900 text-sm flex-1 min-w-0 truncate">
