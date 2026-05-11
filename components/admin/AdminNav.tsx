@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
 
-type GroupKey = 'template' | 'report'
+type GroupKey = 'template' | 'report' | 'promo'
 
 interface NavLink {
   label: string
@@ -31,6 +31,14 @@ const GROUPS: Record<GroupKey, NavGroup> = {
       { label: '📦 Orders',      path: '/admin/orders',             pattern: /^\/admin\/orders/ },
       { label: '📊 Analytics',   path: '/admin/template-analytics', pattern: /^\/admin\/template-analytics/ },
       { label: '📝 Blog SEO',    path: '/admin/seo',                pattern: /^\/admin\/seo/ },
+    ],
+  },
+  promo: {
+    label: 'Promo',
+    sublabel: 'Codes · Campaign',
+    color: 'bg-rose-600',
+    links: [
+      { label: '🏷 Promo Codes', path: '/admin/promo-codes', pattern: /^\/admin\/promo-codes/ },
     ],
   },
   report: {
