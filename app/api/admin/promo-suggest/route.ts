@@ -70,13 +70,13 @@ export async function GET() {
 
   const now = dtLocal(new Date())
 
-  // avg=0 = site ใหม่ยังไม่มี baseline → ควรกระตุ้นยอดเสมอ
+  // avg=0 = ยังไม่มี baseline → always suggest (ไม่มีข้อมูลเปรียบเทียบ)
   const slowSignal = weekData.rev_avg === 0
-    ? weekData.rev_this < VPS_WEEKLY_COST          // ใช้ VPS target เป็น floor แทน
+    ? true
     : weekData.rev_this < weekData.rev_avg * 0.6
-  // ลด threshold เป็น 1 สำหรับ early-stage site
-  const tierSignal = tierData.total >= 1 && tierData.single / tierData.total > 0.7
-  const cartSignal = cartData.abandoned >= 3
+  // ลด ratio threshold 70%→50% และ min orders 3→1
+  const tierSignal = tierData.total >= 1 && tierData.single / tierData.total > 0.5
+  const cartSignal = cartData.abandoned >= 1
   const vpsGap     = Math.max(0, VPS_WEEKLY_COST - vpsData.rev_week)
   const vpsSignal  = vpsGap > 0
 
@@ -85,11 +85,11 @@ export async function GET() {
       engine:  'slow_week',
       signal:  slowSignal,
       metric:  `฿${weekData.rev_this} / avg ฿${weekData.rev_avg}/สัปดาห์`,
-      reason:  slowSignal
-        ? weekData.rev_avg === 0
-          ? `ยังไม่มี baseline — กระตุ้นยอดด้วย flash sale`
-          : `ยอดสัปดาห์นี้ ฿${weekData.rev_this} ต่ำกว่า avg ${Math.round((1 - weekData.rev_this / weekData.rev_avg) * 100)}%`
-        : `ยอดสัปดาห์นี้ปกติดี ฿${weekData.rev_this}`,
+      reason:  weekData.rev_avg === 0
+        ? `ยังไม่มี baseline — กระตุ้นยอดด้วย flash sale`
+        : slowSignal
+          ? `ยอดสัปดาห์นี้ ฿${weekData.rev_this} ต่ำกว่า avg ${Math.round((1 - weekData.rev_this / weekData.rev_avg) * 100)}%`
+          : `ยอดสัปดาห์นี้ปกติดี ฿${weekData.rev_this}`,
       suggested: slowSignal ? {
         code: genCode('FLASH'), label: 'Flash Sale สัปดาห์นี้',
         discount_type: 'fixed', discount_value: 10, min_cart_value: 0,
@@ -115,7 +115,7 @@ export async function GET() {
       metric:  `${cartData.abandoned} ตะกร้าค้างอยู่`,
       reason:  cartSignal
         ? `มี ${cartData.abandoned} ตะกร้าที่เลือกสินค้าแต่ไม่ชำระ`
-        : `ตะกร้าค้าง ${cartData.abandoned} อัน — ยังน้อย`,
+        : `ไม่มีตะกร้าค้าง`,
       suggested: cartSignal ? {
         code: genCode('BACK'), label: 'กลับมาซื้อวันนี้',
         discount_type: 'fixed', discount_value: 10, min_cart_value: 0,
