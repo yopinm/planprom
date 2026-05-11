@@ -185,16 +185,19 @@ export default async function HomePage(): Promise<ReactElement> {
 
             {/* Section header */}
             <div className="mb-5">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-700 px-4 py-1.5 text-lg font-semibold tracking-wide text-white">
-                📋 ร้านเช็คลิสต์และแพลนเนอร์เทมเพลต
-              </div>
 
-              {/* Featured template card */}
-              {featuredTemplate && (
-                <div className="mt-4 max-w-xs">
+              {/* Featured + Promo row */}
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                {featuredTemplate ? (
                   <FeaturedTemplateCard template={featuredTemplate} />
+                ) : (
+                  <div className="rounded-xl border border-amber-200 bg-white px-4 py-4 shadow-sm" />
+                )}
+                {/* PROMO-2 placeholder */}
+                <div className="rounded-xl border border-amber-200 bg-white px-5 py-4 shadow-sm flex items-center justify-center">
+                  <p className="text-sm font-black text-neutral-300">🏷️ โค้ดส่วนลด<br/><span className="text-xs font-medium">เร็วๆ นี้</span></p>
                 </div>
-              )}
+              </div>
 
               {/* UI-E: 2 category cards */}
               <div className="mt-4 grid grid-cols-2 gap-3 sm:gap-4">
