@@ -57,7 +57,11 @@ async function fetchAllTemplates(category?: string, price?: string, q?: string, 
 async function fetchCategories(): Promise<CategoryRow[]> {
   try {
     return db<CategoryRow[]>`
-      SELECT slug, name, emoji FROM template_categories ORDER BY sort_order ASC, name ASC
+      SELECT DISTINCT c.slug, c.name, c.emoji
+      FROM template_categories c
+      JOIN template_category_links l ON l.category_id = c.id
+      JOIN templates t ON t.id = l.template_id AND t.status = 'published'
+      ORDER BY c.slug ASC, c.name ASC
     `
   } catch {
     return []
