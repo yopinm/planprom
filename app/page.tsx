@@ -89,10 +89,10 @@ export default async function HomePage(): Promise<ReactElement> {
 
             {/* Headline */}
             <h1 className="text-3xl font-black leading-tight text-neutral-900 sm:text-4xl">
-              ยิ่งซื้อมาก ยิ่งคุ้ม
+              ยิ่งวางแผนเยอะ ยิ่งจ่ายน้อย
             </h1>
             <p className="mt-2 text-sm leading-relaxed text-neutral-500">
-              เทมเพลต PDF · ดาวน์โหลดทันที · ชีวิตง่ายขึ้นด้วยเช็คลิสต์และแพลนเนอร์
+              ฿20 ชิ้นแรก · ฿10 ชิ้นต่อไป · ฿7 ตั้งแต่ชิ้นที่ 6
             </p>
 
             {/* 4-step flow */}
@@ -114,13 +114,15 @@ export default async function HomePage(): Promise<ReactElement> {
                   <p className="mt-1 text-2xl font-black text-neutral-900">฿{PRICE_TIERS.TIER_1}</p>
                   <p className="text-[11px] text-neutral-400">/ชิ้น</p>
                 </div>
-                <div className="flex flex-col items-center bg-emerald-50 px-3 py-4">
-                  <p className="text-[10px] font-black uppercase tracking-wider text-emerald-600">ชิ้น 2–5</p>
+                <div className="relative flex flex-col items-center bg-emerald-50 px-3 py-4">
+                  <span className="absolute right-1.5 top-1.5 rounded-full bg-emerald-500 px-1.5 py-0.5 text-[9px] font-black text-white">-50%</span>
+                  <p className="text-[10px] font-black uppercase tracking-wider text-emerald-600">ครึ่งราคา</p>
                   <p className="mt-1 text-2xl font-black text-emerald-700">฿{PRICE_TIERS.TIER_2}</p>
                   <p className="text-[11px] text-emerald-500">/ชิ้น</p>
                 </div>
-                <div className="flex flex-col items-center px-3 py-4">
-                  <p className="text-[10px] font-black uppercase tracking-wider text-neutral-400">6 ชิ้น+</p>
+                <div className="relative flex flex-col items-center px-3 py-4">
+                  <span className="absolute right-1.5 top-1.5 rounded-full bg-neutral-200 px-1.5 py-0.5 text-[9px] font-black text-neutral-600">6 ชิ้น+</span>
+                  <p className="text-[10px] font-black uppercase tracking-wider text-neutral-400">คุ้มสุด</p>
                   <p className="mt-1 text-2xl font-black text-neutral-900">฿{PRICE_TIERS.TIER_3}</p>
                   <p className="text-[11px] text-neutral-400">/ชิ้น</p>
                 </div>
@@ -133,17 +135,18 @@ export default async function HomePage(): Promise<ReactElement> {
             {/* CTAs */}
             <div className="mt-5 flex flex-col gap-2">
               <a
-                href="#template-store"
+                href="/templates"
                 className="flex h-12 w-full items-center justify-center rounded-2xl bg-amber-500 text-base font-black text-white shadow-md transition hover:bg-amber-600"
               >
-                เริ่มเลือกเทมเพลต →
+                เริ่มต้นที่ ฿20 → ดูเทมเพลตทั้งหมด
               </a>
-
             </div>
 
-            <p className="mt-4 text-xs text-neutral-400">
-              ✓ จ่ายเดียว ดาวน์โหลดทันที &nbsp;·&nbsp; ✓ ไม่ต้องสมัครสมาชิก
-            </p>
+            {/* Trust strip (UI-C) */}
+            <div className="mt-4 space-y-1 text-center text-xs text-neutral-400">
+              <p>เทมเพลตคัดสรร · เพิ่มใหม่ทุกสัปดาห์</p>
+              <p>✓ จ่ายเดียว ดาวน์โหลดทันที &nbsp;·&nbsp; ✓ ไม่ต้องสมัครสมาชิก &nbsp;·&nbsp; ✓ ไฟล์ไม่หมดอายุ</p>
+            </div>
           </div>
         </div>
 
