@@ -358,9 +358,9 @@ ALTER TABLE orders ADD COLUMN discount_baht NUMERIC(10,2) NOT NULL DEFAULT 0;
 
 | DC-15 | **Planner Engine v2 — Time-Aware Dynamic Form** | **UAT ผ่านครบ (Session 43 · 2026-05-11)** — Planning Horizon master field + 5 Axes + Schema v2 (`PlannerEngineDataV2`) · T0 create+generate ✅ · T1 horizon cascade ✅ · T3 axis toggle ✅ · T6 engine_data double-encode fix + DB backfill ✅ · T0-2 thumbnail_path fix ✅ · UI: emoji→CSS (no white rect in PDF) ✅ · habit name wrap ✅ · label clarity + axis border colors ✅ · watermark placeholder ✅ · generate-revision v2 branch ✅ · FROZEN: `engine-checklist.ts` · `ChecklistEngineForm.tsx` | ✅ **UAT ผ่าน (Session 43)** |
 
-| DC-16 | **Planner Pipeline v3 — 3-Stage Connected Form** | **SCOPE GATE (Session 43 · 2026-05-11)** — เปลี่ยน concept จาก "5 axes อิสระ" → "3 stage pipeline บังคับ logic flow" · **Core idea:** Stage 1 output feed → Stage 2 → Stage 3 (ทุก stage สอดคล้องกัน ไม่อิสระ) · **PDF style: plain text เหมือน V2 เดิม — CSS-only ไม่มี emoji** · **Schema v3 (`PlannerPipelineData`):** `stage1_goal` {bigGoal, deadline, why, successCriteria[], constraints} · `stage2_plan` {phases[] + budget per phase, bigRocks[] + deadline} · `stage3_track` {habits[], metrics[], reviewCycle, reviewQuestions[], adjustmentRules?} · `notes?` optional · **Form (PipelinePlannerForm.tsx):** 3 stage sequential · "ถัดไป" disabled ถ้า required ยังไม่ครบ · summary panel ขวา sticky แสดง output stage ก่อนหน้า · ปุ่ม Generate PDF เหมือน V2 (ไม่ใช่ real-time) · **Backward compat:** schemaVersion discriminator → V1/V2 render ด้วย generator เดิม · V2 form เก็บ sunset 30 วัน · **5 commits:** PIPELINE-1 types · PIPELINE-2 generator · PIPELINE-3 form · PIPELINE-4 route + WizardClient branch · PIPELINE-5 UAT · **Defer:** preset templates · structured adjustmentRules builder · **FROZEN ห้ามแตะ:** `engine-checklist.ts` · `ChecklistEngineForm.tsx` · `engine-planner.ts` · `generate-engine/route.ts` (checklist portion) · **Files:** `lib/engine-types.ts` · `lib/engine-planner-pipeline.ts` (NEW) · `app/admin/templates/new/PipelinePlannerForm.tsx` (NEW) · `app/api/admin/templates/generate-planner-pipeline/route.ts` (NEW) · `app/admin/templates/new/WizardClient.tsx` | 🔲 **Scope Gate Done — รอ owner confirm** |
+| DC-16 | **Planner Pipeline v3 — 3-Stage Connected Form** | **PIPELINE-1~4 Done · Session 44 (2026-05-11)** — Schema v3 (`PlannerPipelineData` schemaVersion '3.0') · `stage1_goal` / `stage2_plan` / `stage3_track` / `notes?` · HTML generator CSS-only (ไม่มี emoji) · `PipelinePlannerForm` 3-stage sequential form (ถัดไป disabled ถ้า required ว่าง) · route `generate-planner-pipeline` · WizardClient mode `engine-pipeline` · generate-revision pipeline branch · ReviseClient `PipelineReviseForm` (pre-filled) · Bugs fixed: auto-sync title/slug จาก meta.title · slug fallback `pipeline-YYYYMMDD` สำหรับชื่อ Thai · constraints label ซ้ำ · Big Rocks คำอธิบาย Thai · **Pending:** habit tracker days hardcode 31 (defer — จดไว้) · **PIPELINE-5 UAT ⏳ owner กำลังทดสอบ** · **Defer:** preset / structured adjustmentRules builder · **FROZEN:** `engine-checklist.ts` · `ChecklistEngineForm.tsx` · `engine-planner.ts` | ⏳ **PIPELINE-5 UAT pending** |
 
-**ลำดับแนะนำ:** DC-3 ✅ → DC-4 ✅ → DC-5 ✅ → DC-6 ✅ → DC-7 ✅ → DC-9 ✅ → DC-10 ✅ → DC-11 ✅ → DC-13 ✅ → DC-14 ✅ · ADMIN-TMPL-DEL-1 ✅ · ADMIN-TMPL-FORCE-1 ✅ · DC-15 ✅ · DC-16 🔲 Scope Gate Done (Session 43) · DC-1/DC-2 🟡 UAT pending · DC-8/DC-12 🔲 planned
+**ลำดับแนะนำ:** DC-3 ✅ → DC-4 ✅ → DC-5 ✅ → DC-6 ✅ → DC-7 ✅ → DC-9 ✅ → DC-10 ✅ → DC-11 ✅ → DC-13 ✅ → DC-14 ✅ · ADMIN-TMPL-DEL-1 ✅ · ADMIN-TMPL-FORCE-1 ✅ · DC-15 ✅ · DC-16 ⏳ PIPELINE-5 UAT pending (Session 44) · DC-1/DC-2 🟡 UAT pending · DC-8/DC-12 🔲 planned
 
 ---
 
@@ -384,6 +384,23 @@ ALTER TABLE orders ADD COLUMN discount_baht NUMERIC(10,2) NOT NULL DEFAULT 0;
 
 **Pending ideas (ยังไม่ทำ):**
 - **Smart Gap Finder** — expand Google Suggest 50–100 terms → filter เชิงพาณิชย์ → match กับ DB (มี/ไม่มี/มีแต่ 0 ยอด) → ranked opportunity table
+
+---
+
+## Session 44 Changes (2026-05-11) — DC-16 Pipeline Planner v3
+
+| # | Change | Status |
+|---|---|---|
+| 1 | **PIPELINE-1** `lib/engine-types.ts` — เพิ่ม `PipelinePhase` · `PipelineBigRock` · `PipelineMetric` · `PlannerPipelineData` (schemaVersion '3.0') | ✅ Live |
+| 2 | **PIPELINE-2** `lib/engine-planner-pipeline.ts` (NEW) — HTML generator 3 sections (ตั้งเป้า / ลงมือทำ / ติดตาม) · habit grid · metrics table · CSS-only ไม่มี emoji · `validatePlannerPipeline` | ✅ Live |
+| 3 | **PIPELINE-3** `app/admin/templates/new/PipelinePlannerForm.tsx` (NEW) — 3-stage sequential form · stage indicator · summary bar ของ stage ที่ผ่านมา · "ถัดไป →" disabled ถ้า required ว่าง | ✅ Live |
+| 4 | **PIPELINE-4a** `app/api/admin/templates/generate-planner-pipeline/route.ts` (NEW) — PDF + preview · plan_code `TP3-YYYYMMDD-XXXX` | ✅ Live |
+| 5 | **PIPELINE-4b** `WizardClient.tsx` — mode `engine-pipeline` + button + form branch + generate call + auto-sync title/slug จาก `engineData.meta.title` + slug fallback `pipeline-YYYYMMDD` | ✅ Live |
+| 6 | **PIPELINE-4c** `generate-revision/route.ts` — เพิ่ม `'pipeline'` branch ใช้ `generatePlannerPipelineHtml` | ✅ Live |
+| 7 | **fix(revise)** `ReviseClient.tsx` + `revise/page.tsx` — เพิ่ม `PipelineReviseForm` (pre-filled ทุก field) · engineType `'pipeline'` ไม่ crash | ✅ Live |
+| 8 | **fix(UX)** constraints label ซ้ำ ("ข้อจำกัด" 3 ชั้น) → `งบ / เวลา / อื่นๆ` · Big Rocks เพิ่มคำอธิบาย Thai ทั้งใน Wizard และ Revise | ✅ Live |
+| 9 | **Pending (defer)** habit tracker days hardcode 31 — รอ UAT ก่อน ถ้าต้องการ configurable ให้ดึงจาก field ที่กรอก | ⏳ defer |
+| 10 | **PIPELINE-5 UAT** — owner กำลังทดสอบ | ⏳ pending |
 
 ---
 
