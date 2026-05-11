@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { requireAdminSession } from '@/lib/admin-auth'
 import { db } from '@/lib/db'
-import { updateTemplateAction, approveTemplateAction } from '../../actions'
+import { updateTemplateAction, approveTemplateAction, setFeaturedWeeklyAction, clearFeaturedWeeklyAction } from '../../actions'
 
 export const metadata: Metadata = {
   title: 'แก้ไข Template — Admin',
@@ -22,7 +22,7 @@ type Template = {
   pdf_path: string; preview_path: string | null; thumbnail_path: string | null
   page_count: number | null; has_form_fields: boolean; document_type: string
   published_at: string | null; created_at: string
-  engine_type: string | null
+  engine_type: string | null; is_featured_weekly: boolean
 }
 
 export default async function EditTemplatePage({ params }: { params: Promise<{ id: string }> }) {
@@ -161,6 +161,34 @@ export default async function EditTemplatePage({ params }: { params: Promise<{ i
             </button>
           </div>
         </form>
+
+        {/* Featured Weekly Toggle — HOME-FEAT-1 */}
+        <div className={`mt-6 rounded-3xl border p-5 ${t.is_featured_weekly ? 'border-amber-400 bg-amber-50' : 'border-neutral-200 bg-white'}`}>
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div>
+              <p className="text-[11px] font-black uppercase tracking-widest text-amber-600 mb-1">Featured หน้าโฮม</p>
+              <p className="text-sm font-bold text-neutral-700">
+                {t.is_featured_weekly ? '⭐ กำลังแสดงในการ์ด "แนะนำสัปดาห์นี้"' : '☆ ไม่ได้ถูกเลือกเป็น Featured'}
+              </p>
+              <p className="text-xs text-neutral-400 mt-0.5">มีได้แค่ 1 template — กด Set จะยกเลิก template เดิมอัตโนมัติ</p>
+            </div>
+            {t.is_featured_weekly ? (
+              <form action={clearFeaturedWeeklyAction}>
+                <input type="hidden" name="id" value={t.id} />
+                <button type="submit" className="rounded-xl border border-neutral-300 px-4 py-2 text-sm font-black text-neutral-600 hover:bg-neutral-100 transition">
+                  ยกเลิก Featured
+                </button>
+              </form>
+            ) : (
+              <form action={setFeaturedWeeklyAction}>
+                <input type="hidden" name="id" value={t.id} />
+                <button type="submit" className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-black text-white hover:bg-amber-600 transition">
+                  ⭐ Set Featured
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
 
         {/* Engine Section — DC-8 */}
         {t.engine_type && (

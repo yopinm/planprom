@@ -242,6 +242,24 @@ export async function createTemplateWizardAction(data: {
   }
 }
 
+export async function setFeaturedWeeklyAction(formData: FormData) {
+  await requireAdminSession('/admin/login')
+  const id = str(formData, 'id')
+  // clear all → set this one (only one featured at a time)
+  await db`UPDATE templates SET is_featured_weekly = false WHERE is_featured_weekly = true`
+  await db`UPDATE templates SET is_featured_weekly = true, updated_at = NOW() WHERE id = ${id}`
+  revalidatePath('/')
+  revalidatePath('/admin/templates')
+}
+
+export async function clearFeaturedWeeklyAction(formData: FormData) {
+  await requireAdminSession('/admin/login')
+  const id = str(formData, 'id')
+  await db`UPDATE templates SET is_featured_weekly = false, updated_at = NOW() WHERE id = ${id}`
+  revalidatePath('/')
+  revalidatePath('/admin/templates')
+}
+
 export async function togglePublishAction(formData: FormData) {
   await requireAdminSession('/admin/login')
   const id = str(formData, 'id')
