@@ -1,54 +1,47 @@
-// POST /api/admin/templates/generate-revision — DC-8
-// Same pipeline as generate-engine/generate-planner but preserves docCode (no re-generation)
+// POST /api/admin/templates/generate-planner-pipeline — DC-16 Pipeline v3
 import { NextRequest, NextResponse } from 'next/server'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 import { getAdminUser } from '@/lib/admin-auth'
-import { generateChecklistHtml } from '@/lib/engine-checklist'
-import { generatePlannerHtml, generatePlannerHtmlV2, validatePlannerV2 } from '@/lib/engine-planner'
 import { generatePlannerPipelineHtml, validatePlannerPipeline } from '@/lib/engine-planner-pipeline'
-import type { ChecklistEngineData, PlannerEngineData, PlannerEngineDataV2, PlannerPipelineData } from '@/lib/engine-types'
+import { db } from '@/lib/db'
+import type { PlannerPipelineData } from '@/lib/engine-types'
 
 export async function POST(req: NextRequest) {
-  const adminId = await getAdminUser()
+  let adminId: string | null = null
+  try {
+    adminId = await getAdminUser()
+  } catch {
+    return NextResponse.json({ error: 'Auth check failed' }, { status: 500 })
+  }
   if (!adminId) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
 
-  let body: {
-    engine_type: 'checklist' | 'planner' | 'pipeline'
-    engine_data: ChecklistEngineData | PlannerEngineData | PlannerEngineDataV2 | PlannerPipelineData
-    slug: string
-    watermark_text?: string
-    category_name?: string
-  }
+  let body: { engine_data: PlannerPipelineData; slug: string; watermark_text?: string }
   try { body = await req.json() } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  const { engine_type, engine_data, slug, watermark_text, category_name } = body
-  if (!engine_type || !engine_data || !slug) {
+  const { engine_data, slug, watermark_text } = body
+  if (!engine_data || !slug) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+  }
+
+  let planCode = ''
+  try {
+    const bkkNow = new Date(Date.now() + 7 * 60 * 60 * 1000)
+    const dateStr = bkkNow.toISOString().slice(0, 10).replace(/-/g, '')
+    const [{ count }] = await db<{ count: string }[]>`
+      SELECT COUNT(*)::text AS count FROM templates WHERE engine_type = 'pipeline'
+    `
+    planCode = `TP3-${dateStr}-${String(Number(count) + 1).padStart(4, '0')}`
+  } catch (err) {
+    return NextResponse.json({ error: `PlanCode generate failed: ${String(err)}` }, { status: 500 })
   }
 
   let html: string
   try {
-    if (engine_type === 'checklist') {
-      // docCode preserved as-is from engine_data.s1.docCode — no re-generation
-      html = generateChecklistHtml(engine_data as ChecklistEngineData, watermark_text, category_name)
-    } else if (engine_type === 'planner') {
-      const isV2 = (engine_data as Record<string, unknown>).meta !== undefined &&
-        (engine_data as PlannerEngineDataV2).meta?.schemaVersion === '2.0'
-      if (isV2) {
-        validatePlannerV2(engine_data as PlannerEngineDataV2)
-        html = generatePlannerHtmlV2(engine_data as PlannerEngineDataV2, watermark_text)
-      } else {
-        html = generatePlannerHtml(engine_data as PlannerEngineData, watermark_text)
-      }
-    } else if (engine_type === 'pipeline') {
-      validatePlannerPipeline(engine_data as PlannerPipelineData)
-      html = generatePlannerPipelineHtml(engine_data as PlannerPipelineData, watermark_text)
-    } else {
-      return NextResponse.json({ error: 'Unknown engine_type' }, { status: 400 })
-    }
+    validatePlannerPipeline(engine_data)
+    html = generatePlannerPipelineHtml(engine_data, watermark_text)
   } catch (err) {
     return NextResponse.json({ error: `HTML build failed: ${String(err)}` }, { status: 500 })
   }
@@ -77,9 +70,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: `Engine setup failed: ${String(err)}` }, { status: 500 })
   }
 
-  const safeSlug = slug.replace(/[^a-z0-9-]/g, '') || 'template'
+  const safeSlug = slug.replace(/[^a-z0-9-]/g, '') || 'pipeline'
   const ts = Date.now()
-  const pdfFilename = `${safeSlug}-${engine_type}-rev-${ts}.pdf`
+  const pdfFilename = `${safeSlug}-pipeline-${ts}.pdf`
 
   // Step 1: PDF
   let browser1 = null
@@ -119,21 +112,22 @@ export async function POST(req: NextRequest) {
       if (secs.length >= 2) return Math.ceil(secs[1].getBoundingClientRect().bottom) + 16
       return 560
     })
-    const previewFilename = `${safeSlug}-${engine_type}-rev-preview-${ts}.jpg`
+    const previewFilename = `${safeSlug}-pipeline-preview-${ts}.jpg`
     const shot = await page2.screenshot({
       type: 'jpeg', quality: 85,
       clip: { x: 0, y: 0, width: 560, height: clipHeight },
     })
     await writeFile(path.join(uploadBase, previewFilename), shot as Buffer)
     previewPath = `/api/preview/${previewFilename}`
-  } catch (err) {
-    console.error('Revision preview screenshot failed:', String(err))
+  } catch (screenshotErr) {
+    console.error('Pipeline preview screenshot failed:', String(screenshotErr))
   } finally {
     if (browser2) await (browser2 as { close(): Promise<void> }).close().catch(() => {})
   }
 
   return NextResponse.json({
-    path: `/uploads/templates/${pdfFilename}`,
+    path:         `/uploads/templates/${pdfFilename}`,
     preview_path: previewPath,
+    plan_code:    planCode,
   })
 }
