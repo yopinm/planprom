@@ -194,7 +194,7 @@ export default function CheckoutPage() {
               </div>
             </div>
             {cart.totals.savedVsFullPrice > 0 && (
-              <p className="text-xs text-indigo-600 text-right">ประหยัดจาก tier ฿{cart.totals.savedVsFullPrice}</p>
+              <p className="text-xs text-indigo-600 text-right">🎉 ซื้อหลายชิ้น ประหยัดไปอีก ฿{cart.totals.savedVsFullPrice}</p>
             )}
             <PromoCodeInput
               cartTotal={cartTotal}
