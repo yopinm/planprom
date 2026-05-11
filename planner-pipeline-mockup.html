@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Planner Pipeline v3.0 — Mockup เปรียบเทียบกับโครงสร้างเดิม</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Sarabun', Arial, sans-serif; background: #f3f4f6; color: #1a1a1a; line-height: 1.55; padding: 24px; }
+  .wrap { max-width: 1320px; margin: 0 auto; }
+  h1 { font-size: 22pt; color: #16a34a; margin-bottom: 6px; }
+  .lead { font-size: 11pt; color: #6b7280; margin-bottom: 22px; }
+
+  .legend { background: #fff; border-radius: 8px; padding: 14px 18px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
+  .legend h3 { font-size: 11pt; color: #1e293b; margin-bottom: 10px; }
+  .legend-row { display: flex; gap: 16px; flex-wrap: wrap; font-size: 9.5pt; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 8pt; font-weight: 700; margin-right: 6px; }
+  .b-old { background: #fee2e2; color: #991b1b; }
+  .b-new { background: #d1fae5; color: #065f46; }
+  .b-stage1 { background: #fef3c7; color: #92400e; }
+  .b-stage2 { background: #dbeafe; color: #1e40af; }
+  .b-stage3 { background: #d1fae5; color: #065f46; }
+
+  /* Comparison cards */
+  .compare-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 26px;
+  }
+  .compare-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px 22px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.06);
+  }
+  .compare-card.old { border-top: 4px solid #dc2626; }
+  .compare-card.new { border-top: 4px solid #16a34a; }
+  .compare-card h3 { font-size: 14pt; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .compare-card.old h3 { color: #dc2626; }
+  .compare-card.new h3 { color: #16a34a; }
+
+  /* Stage indicator */
+  .stage-flow {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto 1fr;
+    gap: 10px;
+    align-items: center;
+    margin: 20px 0;
+  }
+  .stage-box {
+    text-align: center;
+    padding: 16px 12px;
+    border-radius: 10px;
+    color: #fff;
+    font-weight: 700;
+  }
+  .stage-box.s1 { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+  .stage-box.s2 { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); }
+  .stage-box.s3 { background: linear-gradient(135deg, #10b981 0%, #047857 100%); }
+  .stage-box .num { font-size: 9pt; opacity: 0.9; }
+  .stage-box .icon { font-size: 24pt; margin: 4px 0; }
+  .stage-box .name { font-size: 13pt; }
+  .stage-box .desc { font-size: 9pt; opacity: 0.95; margin-top: 4px; line-height: 1.3; }
+  .stage-arrow { font-size: 28pt; color: #16a34a; }
+
+  /* Comparison table */
+  .compare-table { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
+  .compare-table th { background: #1e293b; color: #fbbf24; padding: 8px 10px; text-align: left; }
+  .compare-table td { padding: 8px 10px; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+  .compare-table tr:hover { background: #f8fafc; }
+  .compare-table .col-old { color: #991b1b; }
+  .compare-table .col-new { color: #065f46; font-weight: 600; }
+
+  /* Section */
+  .page {
+    background: #fff;
+    border-radius: 8px;
+    padding: 24px 28px;
+    margin-bottom: 22px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.06);
+  }
+  .page-no { font-size: 8.5pt; color: #94a3b8; letter-spacing: .04em; margin-bottom: 6px; }
+  .page-title { font-size: 14pt; font-weight: 700; color: #16a34a; border-bottom: 2px solid #22c55e; padding-bottom: 6px; margin-bottom: 16px; }
+
+  /* PDF preview frame */
+  .pdf-frame {
+    background: #fff;
+    border: 1px solid #cbd5e1;
+    padding: 24px 30px;
+    color: #1e293b;
+    line-height: 1.7;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.08);
+  }
+
+  /* Cover sheet */
+  .cover {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    text-align: center;
+    padding: 40px 20px;
+    border-radius: 6px;
+    border: 2px solid #86efac;
+  }
+  .cover h2 { font-size: 26pt; color: #14532d; margin-bottom: 8px; }
+  .cover .deadline { display: inline-block; background: #16a34a; color: #fff; padding: 8px 22px; border-radius: 20px; font-size: 12pt; font-weight: 700; margin: 14px 0; }
+  .cover .target { font-size: 12pt; color: #166534; margin: 6px 0; }
+
+  /* Stage section in PDF */
+  .pdf-stage {
+    margin-bottom: 22px;
+  }
+  .pdf-stage-hdr {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    padding: 10px 16px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+  }
+  .pdf-stage-hdr .num {
+    background: rgba(255,255,255,0.9);
+    border-radius: 50%;
+    width: 36px; height: 36px;
+    text-align: center;
+    line-height: 36px;
+    font-weight: 700;
+    font-size: 14pt;
+  }
+  .pdf-stage-hdr .icon { font-size: 22pt; }
+  .pdf-stage-hdr .label { font-size: 13pt; font-weight: 700; color: #fff; flex: 1; }
+  .pdf-stage-hdr.s1 { background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%); }
+  .pdf-stage-hdr.s2 { background: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%); }
+  .pdf-stage-hdr.s3 { background: linear-gradient(90deg, #10b981 0%, #047857 100%); }
+
+  /* Goal box */
+  .goal-big {
+    background: #fffbeb;
+    border: 2px solid #fbbf24;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 12px;
+  }
+  .goal-big .label { font-size: 9pt; color: #92400e; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+  .goal-big .text { font-size: 16pt; font-weight: 700; color: #78350f; line-height: 1.4; }
+
+  .info-row {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 10px;
+    padding: 6px 0;
+    border-bottom: 1px dashed #e5e7eb;
+    font-size: 10pt;
+  }
+  .info-row .lbl { color: #6b7280; font-weight: 600; }
+  .info-row .val { color: #1f2937; }
+  .info-row .val .highlight { color: #be123c; font-weight: 700; }
+
+  .success-list {
+    list-style: none;
+    padding: 8px 0;
+  }
+  .success-list li {
+    padding: 4px 0;
+    padding-left: 24px;
+    position: relative;
+    font-size: 10pt;
+  }
+  .success-list li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: #16a34a;
+    font-weight: 700;
+  }
+
+  /* Phase timeline */
+  .phases {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin: 12px 0;
+  }
+  .phase-card {
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 12px 14px;
+    background: #f8fafc;
+    position: relative;
+  }
+  .phase-card .ph-num {
+    position: absolute;
+    top: -10px; left: -10px;
+    background: #3b82f6;
+    color: #fff;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 26px;
+    font-weight: 700;
+    font-size: 10pt;
+  }
+  .phase-card .ph-name { font-size: 11pt; font-weight: 700; color: #1e40af; margin-bottom: 3px; }
+  .phase-card .ph-time { font-size: 8.5pt; color: #6b7280; margin-bottom: 8px; }
+  .phase-card .ph-task { font-size: 9pt; color: #1f2937; padding: 2px 0; border-bottom: 1px dotted #e5e7eb; }
+  .phase-card .ph-budget { font-size: 8.5pt; color: #be123c; font-weight: 700; margin-top: 6px; padding-top: 4px; border-top: 1px dashed #cbd5e1; }
+
+  /* Big rocks */
+  .rocks {
+    background: #fef2f2;
+    border-left: 4px solid #ef4444;
+    border-radius: 4px;
+    padding: 12px 16px;
+    margin: 14px 0;
+  }
+  .rocks-title { font-size: 10pt; font-weight: 700; color: #991b1b; margin-bottom: 8px; }
+  .rock { display: grid; grid-template-columns: 24px 1fr 110px; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid rgba(239,68,68,0.2); font-size: 10pt; }
+  .rock:last-child { border-bottom: none; }
+  .rock .icon { color: #ef4444; font-size: 14pt; }
+  .rock .text { color: #1f2937; font-weight: 600; }
+  .rock .due { color: #be123c; font-size: 9pt; font-weight: 700; text-align: right; }
+
+  /* Habit grid */
+  .habit-grid { width: 100%; border-collapse: collapse; font-size: 8pt; margin: 8px 0; }
+  .habit-grid th, .habit-grid td { border: 1px solid #cbd5e1; padding: 3px; text-align: center; }
+  .habit-grid th { background: #ecfdf5; color: #047857; font-weight: 700; }
+  .habit-grid td.habit-name { text-align: left; min-width: 160px; padding-left: 8px; font-size: 9pt; font-weight: 600; color: #1f2937; background: #f8fafc; }
+  .habit-grid td.week-sep { border-right: 2px solid #10b981; }
+
+  /* Metric table */
+  .metrics-table { width: 100%; border-collapse: collapse; font-size: 9.5pt; margin: 8px 0; }
+  .metrics-table th { background: #ecfdf5; color: #047857; padding: 6px 10px; border: 1px solid #cbd5e1; text-align: left; }
+  .metrics-table td { padding: 6px 10px; border: 1px solid #cbd5e1; }
+  .metrics-table .target { color: #be123c; font-weight: 700; }
+
+  /* Review questions */
+  .review-q {
+    margin: 6px 0;
+    padding: 8px 0;
+    border-bottom: 1px dashed #e5e7eb;
+  }
+  .review-q .q { font-size: 10pt; font-weight: 700; color: #1f2937; margin-bottom: 4px; }
+  .review-q .line { border-bottom: 1px solid #d1d5db; height: 20px; margin-bottom: 2px; }
+
+  /* Adjustment rules */
+  .adj {
+    background: #fffbeb;
+    border-left: 3px solid #f59e0b;
+    padding: 10px 14px;
+    margin: 4px 0;
+    font-size: 9.5pt;
+    border-radius: 4px;
+  }
+  .adj .if { color: #92400e; font-weight: 700; }
+  .adj .then { color: #1e40af; font-weight: 700; }
+
+  /* Admin UI mockup */
+  .admin-mockup {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 16px;
+    background: #f1f5f9;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 12px 0;
+  }
+  .admin-form {
+    background: #fff;
+    border-radius: 6px;
+    padding: 18px 22px;
+  }
+  .admin-progress {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  .progress-step {
+    text-align: center;
+    padding: 8px 10px;
+    border-radius: 4px;
+    font-size: 9pt;
+  }
+  .progress-step.active { background: #16a34a; color: #fff; font-weight: 700; }
+  .progress-step.locked { background: #e5e7eb; color: #9ca3af; }
+  .progress-step.done { background: #d1fae5; color: #065f46; font-weight: 700; }
+
+  .form-field { margin-bottom: 12px; }
+  .form-field .lbl { font-size: 9.5pt; font-weight: 700; color: #374151; margin-bottom: 4px; display: block; }
+  .form-field .input { border: 1px solid #cbd5e1; border-radius: 4px; padding: 7px 10px; font-size: 10pt; background: #f8fafc; }
+  .form-field .hint { font-size: 8.5pt; color: #9ca3af; margin-top: 3px; font-style: italic; }
+  .form-field .input.filled { color: #1e40af; font-weight: 600; }
+
+  /* Summary panel */
+  .summary-panel {
+    background: #fff;
+    border-radius: 6px;
+    padding: 14px 16px;
+    position: sticky;
+    top: 20px;
+    align-self: start;
+    font-size: 9pt;
+  }
+  .summary-panel h4 { font-size: 10pt; color: #16a34a; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #e5e7eb; }
+  .summary-section { margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px dashed #e5e7eb; }
+  .summary-section:last-child { border-bottom: none; }
+  .summary-section .s-lbl { font-size: 8pt; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 3px; }
+  .summary-section .s-val { font-size: 9.5pt; color: #1f2937; font-weight: 600; }
+  .summary-section.empty .s-val { color: #d1d5db; font-style: italic; font-weight: 400; }
+
+  /* Stage diff (rice case) */
+  .diff-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 14px 0;
+  }
+  .diff-col { background: #fff; border-radius: 6px; padding: 14px 16px; }
+  .diff-col.old { border-left: 4px solid #dc2626; }
+  .diff-col.new { border-left: 4px solid #16a34a; }
+  .diff-col h4 { font-size: 11pt; margin-bottom: 8px; }
+  .diff-col.old h4 { color: #dc2626; }
+  .diff-col.new h4 { color: #16a34a; }
+  .diff-item { font-size: 9.5pt; padding: 4px 0; border-bottom: 1px dotted #e5e7eb; }
+  .diff-col.old .diff-item { color: #991b1b; }
+  .diff-col.new .diff-item { color: #1f2937; }
+
+  /* Footer spec */
+  .footer-spec { background: #0f172a; color: #cbd5e1; padding: 22px 28px; border-radius: 8px; margin-top: 20px; }
+  .footer-spec h3 { color: #fff; margin-bottom: 12px; }
+  .footer-spec .code { font-family: monospace; background: #1e293b; color: #fbbf24; padding: 1px 6px; border-radius: 3px; font-size: 8.5pt; }
+  .footer-spec table { width: 100%; border-collapse: collapse; font-size: 9.5pt; margin: 8px 0; }
+  .footer-spec th { background: #1e293b; color: #fbbf24; padding: 6px 8px; text-align: left; }
+  .footer-spec td { padding: 6px 8px; border-bottom: 1px solid #1e293b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>🚀 Planner Pipeline v3.0 — เปลี่ยน "5 กล่องอิสระ" → "3 ขั้น Pipeline"</h1>
+<p class="lead">ออกแบบใหม่ตรงคำขอ "เอาแบบเดียว Pipeline · คนไทย ต้องคิดง่ายๆ · เห็นแพลนเนอเข้าใจทำตาม" · ใช้ตัวอย่างทำนาเปรียบเทียบกับ V2 เดิม</p>
+
+<div class="legend">
+  <h3>Legend</h3>
+  <div class="legend-row">
+    <div><span class="badge b-old">V2 เดิม</span> 5 axes parallel (ไม่มี logic flow)</div>
+    <div><span class="badge b-new">V3 ใหม่</span> 3 stages pipeline (บังคับ flow)</div>
+    <div><span class="badge b-stage1">Stage 1</span> 🎯 ตั้งเป้า</div>
+    <div><span class="badge b-stage2">Stage 2</span> 📋 ลงมือทำ</div>
+    <div><span class="badge b-stage3">Stage 3</span> ✅ ติดตาม</div>
+  </div>
+</div>
+
+<!-- ==================== SECTION 1: ARCHITECTURE COMPARISON ==================== -->
+<div class="page">
+  <div class="page-no">PART 1 · STRUCTURAL COMPARISON</div>
+  <div class="page-title">🔍 เปรียบเทียบโครงสร้าง — V2 (เดิม) vs V3 (ใหม่)</div>
+
+  <div class="compare-section">
+    <div class="compare-card old">
+      <h3>❌ V2 เดิม — 5 Axes Parallel</h3>
+      <div style="background: #fef2f2; padding: 12px; border-radius: 6px; margin-bottom: 12px;">
+        <div style="font-family: monospace; font-size: 9pt; color: #991b1b; line-height: 1.8;">
+META · AXIS1 · AXIS2 · AXIS3 · AXIS4 · AXIS5<br>
+&nbsp;&nbsp;↓&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓<br>
+[กรอก]&nbsp;[กรอก]&nbsp;[กรอก]&nbsp;[กรอก]&nbsp;[กรอก]&nbsp;[กรอก]<br><br>
+<b style="color: #dc2626;">ทุกกล่องอิสระ · ไม่มี cross-reference</b>
+        </div>
+      </div>
+      <div style="font-size: 9.5pt; color: #6b7280; line-height: 1.7;">
+        จาก <code style="background: #fff; padding: 1px 4px; border-radius: 2px; font-size: 8.5pt;">PlannerEngineForm.tsx</code> · <code style="background: #fff; padding: 1px 4px; border-radius: 2px; font-size: 8.5pt;">engine-types.ts</code>:<br>
+        • Admin กรอกแต่ละ axis โดยไม่เห็นกล่องอื่น<br>
+        • ไม่มี field ที่บังคับให้สอดคล้องกัน<br>
+        • Axis 2-4 เป็น <code style="background: #fff; padding: 1px 4px; border-radius: 2px; font-size: 8.5pt;">optional</code> · ปิดได้ → fragmented<br>
+        • <b>ผล:</b> PDF ทำนา = Q1=Q2=Q3=Q4 เป็นแค่ label · habits ไม่ link goal
+      </div>
+    </div>
+
+    <div class="compare-card new">
+      <h3>✅ V3 ใหม่ — 3 Stages Pipeline</h3>
+      <div style="background: #f0fdf4; padding: 12px; border-radius: 6px; margin-bottom: 12px;">
+        <div style="font-family: monospace; font-size: 9pt; color: #166534; line-height: 1.8;">
+🎯 ตั้งเป้า → 📋 ลงมือทำ → ✅ ติดตาม<br>
+&nbsp;Stage 1&nbsp;&nbsp;&nbsp;&nbsp;Stage 2&nbsp;&nbsp;&nbsp;&nbsp;Stage 3<br>
+&nbsp;[output]&nbsp;→&nbsp;[input]&nbsp;[output]&nbsp;→&nbsp;[input]<br><br>
+<b style="color: #16a34a;">ลำดับบังคับ · output → input</b>
+        </div>
+      </div>
+      <div style="font-size: 9.5pt; color: #6b7280; line-height: 1.7;">
+        Pipeline สำคัญที่:<br>
+        • Stage 2 <b>เห็น</b> output ของ Stage 1 ใน summary panel<br>
+        • ห้ามข้าม Stage 1 ไป Stage 2 ถ้ายังไม่ครบ<br>
+        • Stage 3 ต้อง derived จาก Stage 1+2<br>
+        • <b>ผล:</b> Admin <b>ถูกบังคับให้คิดเป็นระบบ</b> · PDF coherent
+      </div>
+    </div>
+  </div>
+
+  <h3 style="font-size: 11pt; color: #16a34a; margin: 18px 0 8px;">โครงสร้าง 3 Stages — เห็นภาพรวม</h3>
+  <div class="stage-flow">
+    <div class="stage-box s1">
+      <div class="num">STAGE 1</div>
+      <div class="icon">🎯</div>
+      <div class="name">ตั้งเป้า</div>
+      <div class="desc">อยากได้อะไร · เมื่อไหร่ · ทำไม</div>
+    </div>
+    <div class="stage-arrow">→</div>
+    <div class="stage-box s2">
+      <div class="num">STAGE 2</div>
+      <div class="icon">📋</div>
+      <div class="name">ลงมือทำ</div>
+      <div class="desc">แบ่งช่วง · งานเฉพาะ · งบ</div>
+    </div>
+    <div class="stage-arrow">→</div>
+    <div class="stage-box s3">
+      <div class="num">STAGE 3</div>
+      <div class="icon">✅</div>
+      <div class="name">ติดตาม</div>
+      <div class="desc">วัดผล · habit · ปรับแผน</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ==================== SECTION 2: SCHEMA MAPPING ==================== -->
+<div class="page">
+  <div class="page-no">PART 2 · SCHEMA MAPPING (V2 → V3)</div>
+  <div class="page-title">🗂 Schema Mapping — Field เดิมไปอยู่ที่ไหนใน Pipeline</div>
+
+  <table class="compare-table">
+    <tr><th>V2 Field (เดิม)</th><th>ย้ายไป (V3)</th><th>เหตุผล</th></tr>
+    <tr><td class="col-old"><code>meta.displayTitle</code></td><td class="col-new"><code>meta.title</code></td><td>คงเดิม</td></tr>
+    <tr><td class="col-old"><code>meta.planningHorizon</code></td><td class="col-new">— ตัด</td><td>Pipeline ไม่ผูกกับ horizon · ผู้ใช้ระบุ deadline เองใน Stage 1</td></tr>
+    <tr><td class="col-old"><code>axis1.goalItems[]</code></td><td class="col-new"><code>stage1_goal.bigGoal</code> (เลือก 1 ข้อหลัก)</td><td>เปลี่ยน "หลาย goals" → "1 goal หลัก" · ลด clutter</td></tr>
+    <tr><td class="col-old"><code>axis1.roadmap[]</code></td><td class="col-new"><code>stage2_plan.phases[]</code></td><td>roadmap = phases (clearer naming)</td></tr>
+    <tr><td class="col-old"><code>axis1.bigRocks[]</code></td><td class="col-new"><code>stage2_plan.bigRocks[]</code> (+ deadline)</td><td>เพิ่ม deadline field</td></tr>
+    <tr><td class="col-old"><code>axis2.decisions[]</code></td><td class="col-new">— ตัด</td><td>Decision matrix ไม่ตรง pipeline flow · ใส่ใน extras ได้</td></tr>
+    <tr><td class="col-old"><code>axis3.habitTracker.habits[]</code></td><td class="col-new"><code>stage3_track.habits[]</code></td><td>คงเดิม</td></tr>
+    <tr><td class="col-old"><code>axis3.financeTracker.categories</code></td><td class="col-new"><code>stage3_track.metrics[]</code></td><td>generalize เป็น metrics (เงิน เป็นแค่ 1 ประเภท)</td></tr>
+    <tr><td class="col-old"><code>axis3.reviewCycle</code></td><td class="col-new"><code>stage3_track.reviewCycle</code></td><td>คงเดิม</td></tr>
+    <tr><td class="col-old"><code>axis3.reviewQuestions[]</code></td><td class="col-new"><code>stage3_track.reviewQuestions[]</code></td><td>คงเดิม</td></tr>
+    <tr><td class="col-old"><code>axis4.checklist[]</code></td><td class="col-new"><code>stage2_plan.phases[].tasks[]</code></td><td>checklist กลายเป็น tasks ภายใต้ phase</td></tr>
+    <tr><td class="col-old"><code>axis4.packingList[]</code></td><td class="col-new"><code>extras.packing</code> (optional)</td><td>เฉพาะ trip planner — ไม่ใส่ใน core</td></tr>
+    <tr><td class="col-old"><code>axis5.dailyDiary</code></td><td class="col-new"><code>notes.diaryDays</code></td><td>ย้ายไป optional notes section</td></tr>
+    <tr><td class="col-old"><code>axis5.gratitude</code></td><td class="col-new">— ตัด</td><td>เฉพาะ wellness journal — ใส่ extras ได้</td></tr>
+    <tr><td class="col-old"><code>axis5.notesStyle/Pages</code></td><td class="col-new"><code>notes.notesStyle/notesPages</code></td><td>คงเดิม optional</td></tr>
+    <tr><td colspan="3" style="background: #f0fdf4; color: #16a34a; font-weight: 700; padding: 10px;">เพิ่มใหม่ใน V3:</td></tr>
+    <tr><td class="col-old">—</td><td class="col-new"><code>stage1_goal.why</code></td><td>NEW · motivation ที่ทำให้ goal มีพลัง</td></tr>
+    <tr><td class="col-old">—</td><td class="col-new"><code>stage1_goal.successCriteria[]</code></td><td>NEW · รู้ว่าสำเร็จเมื่อไหร่</td></tr>
+    <tr><td class="col-old">—</td><td class="col-new"><code>stage1_goal.constraints</code></td><td>NEW · budget/timeLimit/others</td></tr>
+    <tr><td class="col-old">—</td><td class="col-new"><code>stage2_plan.phases[].budget</code></td><td>NEW · งบต่อช่วง · auto-sum ตรวจกับ constraint</td></tr>
+    <tr><td class="col-old">—</td><td class="col-new"><code>stage3_track.metrics[]</code></td><td>NEW · {name, target, frequency} · ไม่ใช่แค่ habit</td></tr>
+    <tr><td class="col-old">—</td><td class="col-new"><code>stage3_track.adjustmentRules[]</code></td><td>NEW · "ถ้า X → ปรับ Y" · pivot trigger</td></tr>
+  </table>
+
+  <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 14px 18px; margin-top: 16px; border-radius: 4px; font-size: 9.5pt; color: #92400e;">
+    💡 <b>หลักการ Mapping:</b> ของเดิมเก็บ <b>เกือบทั้งหมด</b> แค่ <b>จัดใหม่ให้เป็นลำดับ</b> + เพิ่ม 6 fields ที่ช่วยให้ output ลึกขึ้น (why · success · constraints · budget · metrics · adjustmentRules)
+  </div>
+</div>
+
+<!-- ==================== SECTION 3: RICE FARMING — BEFORE/AFTER ==================== -->
+<div class="page">
+  <div class="page-no">PART 3 · CASE STUDY: ทำนา</div>
+  <div class="page-title">🌾 ตัวอย่างทำนา — เปรียบเทียบ V2 (ปัจจุบัน) vs V3 (Pipeline)</div>
+
+  <h3 style="font-size: 11pt; color: #6b7280; margin-bottom: 8px;">PDF ที่ Claude Code generate ออกมาด้วย V2 (ตอนนี้):</h3>
+
+  <div class="diff-grid">
+    <div class="diff-col old">
+      <h4>❌ V2: "วางแผนการทำนา 2026"</h4>
+      <div class="diff-item"><b>Q1:</b> หาพันธุ์ข้าว → หาพันธุ์ข้าว</div>
+      <div class="diff-item"><b>Q2:</b> หาปุ๋ย → หาปุ๋ย</div>
+      <div class="diff-item"><b>Q3:</b> ทำนา → ทำนา</div>
+      <div class="diff-item"><b>Q4:</b> ขายข้าว → ขายข้าว</div>
+      <div class="diff-item"><b>Goal:</b> ลดต้นทุนปุ๋ย · ลดต้นทึนคนงาน</div>
+      <div class="diff-item"><b>Habit:</b> หางาน · หาคนงานได้ดี · ไปทุกวัน</div>
+      <div class="diff-item"><b>Finance:</b> ค่าน้ำมัน 500 บาท</div>
+      <div class="diff-item" style="background: #fee2e2; padding: 8px; border-radius: 4px; margin-top: 8px;">
+        <b>⚠️ ปัญหา:</b><br>
+        • Q1-Q4 เป็นแค่ label · ไม่มีแผน<br>
+        • Goal "ลดต้นทุน" ไม่ link กับ Q1-Q4<br>
+        • Habit "หางาน" ไม่ใช่ habit ชาวนา<br>
+        • Finance orphan · ไม่มี budget context<br>
+        • ไม่มี success criteria · ปรับแผนยังไง
+      </div>
+    </div>
+
+    <div class="diff-col new">
+      <h4>✅ V3 Pipeline: "วางแผนทำนา 1 รอบ"</h4>
+      <div class="diff-item"><b>🎯 Stage 1:</b> "ลดต้นทุนปุ๋ย 30% และเพิ่มผลผลิตเป็น 700 กก./ไร่"</div>
+      <div class="diff-item">&nbsp;&nbsp;deadline: <b>4 เดือน</b> · budget ≤ <b>18,000/5 ไร่</b></div>
+      <div class="diff-item">&nbsp;&nbsp;success: ["ต้นทุน ≤ 3,500/ไร่", "ผลผลิต ≥ 700 กก./ไร่"]</div>
+      <div class="diff-item"><b>📋 Stage 2:</b> 4 phases ครบขั้น</div>
+      <div class="diff-item">&nbsp;&nbsp;P1 เตรียมดิน (เดือน 1) → ไถ · เลือกพันธุ์ · งบ 3,500</div>
+      <div class="diff-item">&nbsp;&nbsp;P2 ปลูก (เดือน 1-2) → หว่าน · ปุ๋ยรองพื้น · งบ 6,000</div>
+      <div class="diff-item">&nbsp;&nbsp;P3 ดูแล (เดือน 2-3) → ปุ๋ยครั้ง 2-3 · ฉีดยา · งบ 5,500</div>
+      <div class="diff-item">&nbsp;&nbsp;P4 เก็บเกี่ยว (เดือน 4) → เกี่ยว · ตาก · ขาย · งบ 3,000</div>
+      <div class="diff-item"><b>✅ Stage 3:</b> ติดตามที่ derived จาก Stage 1-2</div>
+      <div class="diff-item">&nbsp;&nbsp;habit: ["เดินดูแปลงเช้า", "เช็คระดับน้ำ", "บันทึกค่าใช้จ่าย"]</div>
+      <div class="diff-item">&nbsp;&nbsp;metric: ["ต้นทุนสะสม", "ระยะข้าว", "ฝนตก"]</div>
+      <div class="diff-item">&nbsp;&nbsp;rule: "ฝนน้อย 2 สัปดาห์ → เปิดปั๊มน้ำ"</div>
+      <div class="diff-item" style="background: #d1fae5; padding: 8px; border-radius: 4px; margin-top: 8px;">
+        <b>✓ ดีขึ้น:</b> ทุกอย่างเชื่อมโยง · admin <b>ไม่สามารถ</b>กรอกตื้นได้ · output ใช้งานได้จริง
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SECTION 4: PDF MOCKUP — RICE FARMING IN V3 ==================== -->
+<div class="page">
+  <div class="page-no">PART 4 · PDF MOCKUP (ทำนา V3 Pipeline)</div>
+  <div class="page-title">📄 PDF ที่จะออกจาก V3 — "แผนทำนา 1 รอบการเพาะปลูก"</div>
+
+  <div class="pdf-frame">
+    <!-- COVER -->
+    <div class="cover">
+      <h2>🌾 แผนทำนา 1 รอบ</h2>
+      <div style="font-size: 11pt; color: #166534; margin-bottom: 8px;">นาปี 2026 · 5 ไร่ · ปทุมธานี</div>
+      <div class="deadline">⏱ 4 เดือน</div>
+      <div class="target"><b>เป้า:</b> ลดต้นทุนปุ๋ย 30% · ผลผลิต 700 กก./ไร่</div>
+      <div style="margin-top: 18px; font-size: 9pt; color: #6b7280;">สำหรับ ____________ · เริ่ม __/__/____ · planprom.com</div>
+    </div>
+
+    <hr style="margin: 22px 0; border: none; border-top: 1px dashed #cbd5e1;">
+
+    <!-- STAGE 1 -->
+    <div class="pdf-stage">
+      <div class="pdf-stage-hdr s1">
+        <div class="num">1</div>
+        <div class="icon">🎯</div>
+        <div class="label">ตั้งเป้า</div>
+        <div style="font-size: 9pt; color: rgba(255,255,255,0.9);">อยากได้อะไร · เมื่อไหร่ · ทำไม</div>
+      </div>
+
+      <div class="goal-big">
+        <div class="label">เป้าหมายใหญ่</div>
+        <div class="text">ลดต้นทุนปุ๋ย 30% และเพิ่มผลผลิตเป็น 700 กก./ไร่</div>
+      </div>
+
+      <div class="info-row">
+        <div class="lbl">📅 กำหนดเสร็จ</div>
+        <div class="val"><span class="highlight">4 เดือน</span> (พ.ค. – ส.ค. 2026)</div>
+      </div>
+      <div class="info-row">
+        <div class="lbl">💭 ทำไมสำคัญ</div>
+        <div class="val">ต้นทุนปุ๋ยขึ้น 40% ในปีที่ผ่านมา — ถ้าไม่ลด ขาดทุนต่อรอบ</div>
+      </div>
+      <div class="info-row">
+        <div class="lbl">💰 งบจำกัด</div>
+        <div class="val"><span class="highlight">18,000 บาท</span> รวมทุกอย่าง (3,600/ไร่)</div>
+      </div>
+      <div class="info-row">
+        <div class="lbl">⏳ เวลาจำกัด</div>
+        <div class="val">นาปี (พ.ค.-ส.ค.) — พลาด timing = ผลผลิตเสีย</div>
+      </div>
+
+      <div style="margin-top: 12px;">
+        <div style="font-size: 10pt; font-weight: 700; color: #92400e; margin-bottom: 6px;">✓ รู้ว่าสำเร็จเมื่อ:</div>
+        <ul class="success-list">
+          <li>ต้นทุนรวม ≤ 3,500 บาท/ไร่ (เป้า)</li>
+          <li>ผลผลิต ≥ 700 กก./ไร่</li>
+          <li>ขายข้าวเปลือกได้ ≥ 8,000 บาท/ตัน</li>
+        </ul>
+      </div>
+    </div>
+
+    <hr style="margin: 22px 0; border: none; border-top: 1px dashed #cbd5e1;">
+
+    <!-- STAGE 2 -->
+    <div class="pdf-stage">
+      <div class="pdf-stage-hdr s2">
+        <div class="num">2</div>
+        <div class="icon">📋</div>
+        <div class="label">ลงมือทำ</div>
+        <div style="font-size: 9pt; color: rgba(255,255,255,0.9);">แบ่งช่วง · ทำอะไร · งบ</div>
+      </div>
+
+      <div class="phases">
+        <div class="phase-card">
+          <div class="ph-num">1</div>
+          <div class="ph-name">เตรียมดิน</div>
+          <div class="ph-time">เดือน 1 · 2 สัปดาห์</div>
+          <div class="ph-task">• ไถดะ + ไถแปร</div>
+          <div class="ph-task">• คราด + ปรับพื้น</div>
+          <div class="ph-task">• เลือกพันธุ์ กข.41</div>
+          <div class="ph-task">• แช่เมล็ดข้าว</div>
+          <div class="ph-budget">💰 3,500 บาท</div>
+        </div>
+        <div class="phase-card">
+          <div class="ph-num">2</div>
+          <div class="ph-name">ปลูก</div>
+          <div class="ph-time">เดือน 1-2 · 2 สัปดาห์</div>
+          <div class="ph-task">• หว่านน้ำตม 25 กก./ไร่</div>
+          <div class="ph-task">• ใส่ปุ๋ยรองพื้น 16-20-0</div>
+          <div class="ph-task">• คุมน้ำ 5-10 ซม.</div>
+          <div class="ph-task">• กำจัดวัชพืช</div>
+          <div class="ph-budget">💰 6,000 บาท</div>
+        </div>
+        <div class="phase-card">
+          <div class="ph-num">3</div>
+          <div class="ph-name">ดูแล</div>
+          <div class="ph-time">เดือน 2-3 · 4 สัปดาห์</div>
+          <div class="ph-task">• ปุ๋ยครั้ง 2 (46-0-0)</div>
+          <div class="ph-task">• ปุ๋ยครั้ง 3 ก่อนรวง</div>
+          <div class="ph-task">• ป้องกันโรค-แมลง</div>
+          <div class="ph-task">• ลดน้ำก่อนเก็บ</div>
+          <div class="ph-budget">💰 5,500 บาท</div>
+        </div>
+        <div class="phase-card">
+          <div class="ph-num">4</div>
+          <div class="ph-name">เก็บเกี่ยว</div>
+          <div class="ph-time">เดือน 4 · 2 สัปดาห์</div>
+          <div class="ph-task">• เกี่ยวข้าว (รถเกี่ยว)</div>
+          <div class="ph-task">• ตากข้าวเปลือก 3-5 วัน</div>
+          <div class="ph-task">• เปรียบเทียบราคาโรงสี</div>
+          <div class="ph-task">• ขาย / เก็บไว้</div>
+          <div class="ph-budget">💰 3,000 บาท</div>
+        </div>
+      </div>
+
+      <div style="background: #ecfdf5; border: 1px solid #86efac; border-radius: 4px; padding: 8px 12px; font-size: 9.5pt; color: #166534; margin: 10px 0;">
+        <b>รวมงบทุก phase:</b> 18,000 บาท ✓ ตรงตามเป้า (จาก Stage 1)
+      </div>
+
+      <div class="rocks">
+        <div class="rocks-title">🏔 งานสำคัญที่ต้องทำให้ได้</div>
+        <div class="rock">
+          <div class="icon">▶</div>
+          <div class="text">เลือกพันธุ์ กข.41 ที่ทนต่อโรคไหม้</div>
+          <div class="due">สิ้นสัปดาห์ 1</div>
+        </div>
+        <div class="rock">
+          <div class="icon">▶</div>
+          <div class="text">เปรียบเทียบราคาปุ๋ย 3 ร้านก่อนซื้อ</div>
+          <div class="due">ก่อนวันที่ 15</div>
+        </div>
+        <div class="rock">
+          <div class="icon">▶</div>
+          <div class="text">หา 3 โรงสีเพื่อต่อรองราคาก่อนขาย</div>
+          <div class="due">เดือน 3 ปลาย</div>
+        </div>
+      </div>
+    </div>
+
+    <hr style="margin: 22px 0; border: none; border-top: 1px dashed #cbd5e1;">
+
+    <!-- STAGE 3 -->
+    <div class="pdf-stage">
+      <div class="pdf-stage-hdr s3">
+        <div class="num">3</div>
+        <div class="icon">✅</div>
+        <div class="label">ติดตาม</div>
+        <div style="font-size: 9pt; color: rgba(255,255,255,0.9);">เช็คทุกวัน · ทบทวนทุกสัปดาห์</div>
+      </div>
+
+      <div style="font-size: 10pt; font-weight: 700; color: #047857; margin-bottom: 6px;">นิสัยรายวัน</div>
+      <table class="habit-grid">
+        <tr>
+          <th class="habit-name"></th>
+          <th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th class="week-sep">7</th>
+          <th>8</th><th>9</th><th>10</th><th>11</th><th>12</th><th>13</th><th class="week-sep">14</th>
+          <th>15</th><th>16</th><th>17</th><th>18</th><th>19</th><th>20</th><th class="week-sep">21</th>
+          <th>22</th><th>23</th><th>24</th><th>25</th><th>26</th><th>27</th><th class="week-sep">28</th>
+          <th>29</th><th>30</th><th>31</th>
+        </tr>
+        <tr>
+          <td class="habit-name">🌅 เดินดูแปลงเช้า</td>
+          <td></td><td></td><td></td><td></td><td></td><td></td><td class="week-sep"></td>
+          <td></td><td></td><td></td><td></td><td></td><td></td><td class="week-sep"></td>
+          <td></td><td></td><td></td><td></td><td></td><td></td><td class="week-sep"></td>
+          <td></td><td></td><td></td><td></td><td></td><td></td><td class="week-sep"></td>
+          <td></td><td></td><td></td>
+        </tr>
+        <tr>
+          <td class="habit-name">💧 เช็คระดับน้ำในนา</td>
+          <td></td><td></td><td></td><td></td><td></td><td></td><td class="week-sep"></td>
+          <td></td><td></td><td></td><td></td><td></td><td></td><td class="week-sep"></td>
+          <td></td><td></td><td></td><td></td><td></td><td></td><td class="week-sep"></td>
+          <td></td><td></td><td></td><td></td><td></td><td></td><td class="week-sep"></td>
+          <td></td><td></td><td></td>
+        </tr>
+        <tr>
+          <td class="habit-name">📝 บันทึกค่าใช้จ่าย</td>
+          <td></td><td></td><td></td><td></td><td></td><td></td><td class="week-sep"></td>
+          <td></td><td></td><td></td><td></td><td></td><td></td><td class="week-sep"></td>
+          <td></td><td></td><td></td><td></td><td></td><td></td><td class="week-sep"></td>
+          <td></td><td></td><td></td><td></td><td></td><td></td><td class="week-sep"></td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+
+      <div style="font-size: 10pt; font-weight: 700; color: #047857; margin: 12px 0 6px;">ตัววัดผลรายสัปดาห์</div>
+      <table class="metrics-table">
+        <tr><th>วัดอะไร</th><th>เป้า</th><th>หน่วย</th><th>ความถี่</th></tr>
+        <tr><td>ต้นทุนสะสม (จากบันทึกรายจ่าย)</td><td class="target">≤ 18,000</td><td>บาท</td><td>ทุกสัปดาห์</td></tr>
+        <tr><td>ระยะการเจริญเติบโตของข้าว</td><td class="target">ตามตาราง</td><td>ระยะ</td><td>ทุกสัปดาห์</td></tr>
+        <tr><td>ปริมาณฝน + ระดับน้ำในนา</td><td class="target">≥ 5 ซม.</td><td>ซม.</td><td>ทุกวัน</td></tr>
+      </table>
+
+      <div style="font-size: 10pt; font-weight: 700; color: #047857; margin: 12px 0 6px;">คำถามทบทวนรายสัปดาห์</div>
+      <div class="review-q">
+        <div class="q">1. สิ่งที่ทำได้ดีในสัปดาห์นี้คืออะไร?</div>
+        <div class="line"></div>
+        <div class="line"></div>
+      </div>
+      <div class="review-q">
+        <div class="q">2. ต้นทุนเป็นไปตามแผนไหม? ต้องปรับอะไร?</div>
+        <div class="line"></div>
+        <div class="line"></div>
+      </div>
+
+      <div style="font-size: 10pt; font-weight: 700; color: #047857; margin: 12px 0 6px;">ปรับแผน (เมื่อเจอเหตุการณ์)</div>
+      <div class="adj">
+        <span class="if">⚡ ถ้า</span> ฝนน้อยติดต่อกัน 2 สัปดาห์
+        <span class="then">→ ทำ</span> เปิดปั๊มน้ำเข้าจากคลอง
+      </div>
+      <div class="adj">
+        <span class="if">⚡ ถ้า</span> ต้นทุนสะสม > 80% ของ budget ใน Phase 2
+        <span class="then">→ ทำ</span> ลด input ใน Phase 3 (เลือกใช้ปุ๋ยสูตรถูกกว่า)
+      </div>
+      <div class="adj">
+        <span class="if">⚡ ถ้า</span> ตรวจพบโรคใบไหม้ในแปลง
+        <span class="then">→ ทำ</span> ฉีดสารชีวภัณฑ์ภายใน 24 ชม. · แจ้งเกษตรอำเภอ
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SECTION 5: ADMIN UI FLOW ==================== -->
+<div class="page">
+  <div class="page-no">PART 5 · ADMIN WIZARD UI</div>
+  <div class="page-title">⚙️ Admin UI Flow — เห็น Summary ของ Stage ก่อนตลอด</div>
+
+  <div style="margin-bottom: 12px; font-size: 10pt; color: #6b7280;">
+    <b>Layout:</b> ฟอร์มซ้าย 70% · summary panel ขวา 30% (sticky) · admin <b>เห็น</b> output ของ stage ก่อนหน้าตลอดเวลา
+  </div>
+
+  <!-- Stage 2 view (showing summary of Stage 1) -->
+  <h3 style="font-size: 11pt; color: #1e40af; margin: 14px 0 8px;">หน้าจอ Admin ขณะกำลังกรอก Stage 2 (เห็น Stage 1 ที่กรอกแล้ว)</h3>
+  <div class="admin-mockup">
+    <div class="admin-form">
+      <div class="admin-progress">
+        <div class="progress-step done">✓ Stage 1: ตั้งเป้า</div>
+        <div class="progress-step active">📋 Stage 2: ลงมือทำ</div>
+        <div class="progress-step locked">🔒 Stage 3: ติดตาม</div>
+      </div>
+
+      <h4 style="font-size: 12pt; color: #1e40af; margin-bottom: 8px;">แบ่งงานเป็นช่วง (Phases)</h4>
+      <div style="font-size: 9pt; color: #6b7280; margin-bottom: 12px; font-style: italic;">
+        💡 จาก Stage 1 — คุณตั้งเป้า "ลดต้นทุนปุ๋ย 30%" ใน 4 เดือน · งบ 18,000 บาท<br>
+        ตอนนี้แบ่งงานเป็น 2-6 ช่วง (รวมไม่เกินงบที่ตั้งไว้)
+      </div>
+
+      <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px 14px; margin-bottom: 8px; background: #f8fafc;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+          <div class="form-field">
+            <label class="lbl">ชื่อช่วง</label>
+            <div class="input filled">เตรียมดิน</div>
+          </div>
+          <div class="form-field">
+            <label class="lbl">ช่วงเวลา</label>
+            <div class="input filled">เดือน 1 · 2 สัปดาห์</div>
+          </div>
+        </div>
+        <div class="form-field">
+          <label class="lbl">สิ่งที่ต้องทำในช่วงนี้</label>
+          <div class="input filled" style="white-space: pre-line;">ไถดะ + ไถแปร
+คราด + ปรับพื้น
+เลือกพันธุ์ กข.41
+แช่เมล็ดข้าว</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; margin-top: 8px;">
+          <div class="form-field" style="margin-bottom: 0;">
+            <label class="lbl">งบ (บาท)</label>
+            <div class="input filled">3,500</div>
+          </div>
+          <div class="form-field" style="margin-bottom: 0;">
+            <label class="lbl">สิ่งที่ใช้</label>
+            <div class="input filled">รถไถ · พันธุ์ข้าว · ปุ๋ยคอก</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align: center; padding: 8px; color: #94a3b8; font-size: 10pt;">— ช่วงที่ 2, 3, 4 ในรูปแบบเดียวกัน —</div>
+
+      <button style="background: #16a34a; color: #fff; border: none; padding: 8px 14px; border-radius: 4px; font-size: 9.5pt; font-weight: 700; margin: 8px 0;">+ เพิ่มช่วง</button>
+
+      <div style="background: #ecfdf5; border: 1px solid #86efac; border-radius: 4px; padding: 8px 12px; font-size: 9.5pt; color: #166534; margin-top: 8px;">
+        ℹ️ <b>รวมงบทุกช่วง:</b> 18,000 / 18,000 ✓ ตรงตามเป้า
+      </div>
+
+      <div style="margin-top: 16px;">
+        <h4 style="font-size: 11pt; color: #be123c; margin-bottom: 6px;">🏔 งานสำคัญที่ต้องทำให้ได้ก่อน</h4>
+        <div style="display: grid; grid-template-columns: 1fr 100px; gap: 6px; margin-bottom: 4px;">
+          <div class="input filled" style="font-size: 9.5pt;">เลือกพันธุ์ กข.41 ที่ทนต่อโรคไหม้</div>
+          <div class="input filled" style="font-size: 9.5pt;">สัปดาห์ 1</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 100px; gap: 6px; margin-bottom: 4px;">
+          <div class="input filled" style="font-size: 9.5pt;">เปรียบเทียบราคาปุ๋ย 3 ร้าน</div>
+          <div class="input filled" style="font-size: 9.5pt;">ก่อน 15 ม.ค.</div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; margin-top: 18px;">
+        <button style="background: #e5e7eb; color: #374151; border: none; padding: 10px 20px; border-radius: 4px; font-size: 10pt; font-weight: 700;">← ย้อนกลับ</button>
+        <button style="background: #16a34a; color: #fff; border: none; padding: 10px 20px; border-radius: 4px; font-size: 10pt; font-weight: 700;">ถัดไป →</button>
+      </div>
+    </div>
+
+    <div class="summary-panel">
+      <h4>📊 สรุปสิ่งที่กรอกไป</h4>
+      <div class="summary-section">
+        <div class="s-lbl">🎯 เป้าหมายใหญ่</div>
+        <div class="s-val">ลดต้นทุนปุ๋ย 30% และเพิ่มผลผลิตเป็น 700 กก./ไร่</div>
+      </div>
+      <div class="summary-section">
+        <div class="s-lbl">📅 กำหนดเสร็จ</div>
+        <div class="s-val">4 เดือน · งบ 18,000</div>
+      </div>
+      <div class="summary-section">
+        <div class="s-lbl">✓ รู้ว่าสำเร็จเมื่อ</div>
+        <div class="s-val">ต้นทุน ≤ 3,500/ไร่ · ผลผลิต ≥ 700 กก./ไร่</div>
+      </div>
+      <div class="summary-section">
+        <div class="s-lbl">📋 ช่วงที่กรอกแล้ว (2/4)</div>
+        <div class="s-val">เตรียมดิน · ปลูก</div>
+      </div>
+      <div class="summary-section empty">
+        <div class="s-lbl">✅ Stage 3 — ติดตาม</div>
+        <div class="s-val">(ยังไม่เริ่ม)</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 14px 18px; margin-top: 14px; border-radius: 4px; font-size: 9.5pt; color: #92400e;">
+    💡 <b>Key UX insight:</b> Admin <b>เห็นเป้าหมาย + budget ของ Stage 1 ตลอดเวลา</b> ขณะกรอก Stage 2 → ใส่ phase ที่ "เกี่ยวกับเป้า" ไม่ใช่ "นึกอะไรก็ใส่"
+  </div>
+</div>
+
+<!-- ==================== FOOTER SPEC ==================== -->
+<div class="footer-spec">
+  <h3>📋 Implementation Summary สำหรับ Claude Code</h3>
+
+  <table>
+    <tr><th>มิติ</th><th>V2 (ปัจจุบัน)</th><th>V3 (Pipeline)</th></tr>
+    <tr><td>Architecture</td><td>5 axes parallel</td><td>3 stages sequential</td></tr>
+    <tr><td>Mental model</td><td>"กรอกกล่อง"</td><td>"คิดเป็นขั้น"</td></tr>
+    <tr><td>Cross-reference</td><td>❌ ไม่มี</td><td>✅ summary panel sticky</td></tr>
+    <tr><td>บังคับ logic flow</td><td>❌</td><td>✅ stage N locked ถ้า N-1 ไม่ครบ</td></tr>
+    <tr><td>Schema version</td><td>2.0</td><td>3.0 (เพิ่มใหม่ · เก็บ 2.0 ไว้ backward compat)</td></tr>
+    <tr><td>Form file</td><td><span class="code">PlannerEngineForm.tsx</span> (V2 — เก็บไว้)</td><td><span class="code">PipelinePlannerForm.tsx</span> (NEW)</td></tr>
+    <tr><td>Generator file</td><td><span class="code">engine-planner.ts</span> (V2 — เก็บไว้)</td><td><span class="code">engine-planner-pipeline.ts</span> (NEW)</td></tr>
+    <tr><td>Total fields</td><td>~30 (กระจาย 5 axes)</td><td>~20 (รวม 3 stages + เพิ่ม 6 fields ที่สำคัญ)</td></tr>
+    <tr><td>Dev effort</td><td>—</td><td>5-7 วัน</td></tr>
+  </table>
+
+  <div style="background: #1e293b; padding: 14px; border-radius: 4px; margin-top: 14px; font-size: 9.5pt; line-height: 1.7;">
+    <b style="color: #fbbf24;">📁 Files ที่ต้องสร้าง/แก้:</b><br>
+    <span style="color: #93c5fd;">+ <span class="code">lib/engine-planner-pipeline.ts</span></span> — Generator HTML→PDF (pattern จาก engine-planner.ts)<br>
+    <span style="color: #93c5fd;">+ <span class="code">app/admin/templates/new/PipelinePlannerForm.tsx</span></span> — 3-stage wizard form<br>
+    <span style="color: #93c5fd;">+ <span class="code">app/api/admin/templates/generate-planner-pipeline/route.ts</span></span> — API endpoint<br>
+    <span style="color: #93c5fd;">+ <span class="code">migrations/20260513_planner_pipeline.sql</span></span><br>
+    <span style="color: #fcd34d;">~ <span class="code">lib/engine-types.ts</span></span> — เพิ่ม PlannerPipelineData type<br>
+    <span style="color: #fcd34d;">~ <span class="code">app/admin/templates/new/WizardClient.tsx</span></span> — branch ใน Step Content (default = pipeline)<br>
+    <span style="color: #fcd34d;">~ <span class="code">core/planprom.md</span></span> — บันทึก task PIPELINE-1 ถึง PIPELINE-6<br>
+    <span style="color: #6ee7b7;">📌 เก็บไว้ deprecate 30 วัน:</span> <span class="code">PlannerEngineForm.tsx</span> · <span class="code">engine-planner.ts</span> (V2)<br>
+    <br>
+    <b style="color: #fbbf24;">📖 อ้างอิงเพิ่มเติม:</b><br>
+    • <span class="code">PIPELINE_BRIEF.md</span> — รายละเอียด schema + roadmap + acceptance criteria<br>
+    • <span class="code">planner-pipeline-mockup.html</span> — ไฟล์นี้ (visual reference)
+  </div>
+
+  <div style="background: #422006; padding: 14px; border-radius: 4px; margin-top: 12px; font-size: 9.5pt; line-height: 1.7; color: #fed7aa;">
+    <b style="color: #fbbf24;">⚠️ SCOPE GATE (CLAUDE.md):</b> ก่อน implement ต้องเขียน scope ใน <span class="code">core/planprom.md</span> · รอ owner confirm · ห้าม code โดยตรง<br>
+    <br>
+    <b style="color: #fbbf24;">🎯 Acceptance:</b><br>
+    [ ] Admin สร้าง pipeline template ได้ครบ 3 stages<br>
+    [ ] "ถัดไป" disabled ถ้า required ใน stage ปัจจุบันไม่ครบ<br>
+    [ ] Summary panel ขวา sticky · แสดง output stages ก่อนหน้า real-time<br>
+    [ ] PDF render Thai font ครบ (fix bug font subset ในรี case ทำนา)<br>
+    [ ] 5 preset templates: เก็บเงิน · ลดน้ำหนัก · เที่ยว · เปิดร้าน · เรียนภาษา<br>
+    [ ] L3: Deploy VPS · health 200 · revenue preserved
+  </div>
+</div>
+
+<div style="text-align: center; margin-top: 30px; padding: 18px; color: #6b7280; font-size: 9pt;">
+  🚀 Planner Pipeline v3.0 · planprom.com · generated 2026-05-11<br>
+  <span style="font-size: 8pt; color: #9ca3af;">Pipeline = 3 ขั้น · คนไทยจำง่าย · PDF เปิดมาทำตามได้ทันที</span>
+</div>
+
+</div>
+</body>
+</html>

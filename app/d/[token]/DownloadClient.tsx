@@ -89,13 +89,7 @@ export default function DownloadClient({ token, orderNumber, title, templateSlug
             : '⬇️ ดาวน์โหลด PDF'}
         </button>
 
-        {/* WALLET-CLEAN: ลบออกถาวร 2026-05-17
-        {state === 'done' && (
-          <a href="/wallet" className="flex items-center justify-center gap-2 w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl transition">
-            🎫 ดูเครดิตที่เหลือ
-          </a>
-        )}
-        */}
+
         {state === 'done' && (
           <Link
             href="/orders"

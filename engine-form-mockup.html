@@ -1,0 +1,1683 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Form Engine — Mockup Spec · planprom.com</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Sarabun', Arial, sans-serif;
+    background: #f1f5f9;
+    color: #1a1a1a;
+    line-height: 1.5;
+    padding: 24px;
+  }
+  .wrap { max-width: 1280px; margin: 0 auto; }
+  h1 { font-size: 22pt; color: #1e40af; margin-bottom: 6px; }
+  .lead { font-size: 11pt; color: #475569; margin-bottom: 24px; }
+
+  .legend { background: #fff; border-radius: 8px; padding: 14px 18px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
+  .legend h3 { font-size: 11pt; color: #1e293b; margin-bottom: 10px; }
+  .legend-row { display: flex; gap: 16px; flex-wrap: wrap; font-size: 9.5pt; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 8pt; font-weight: 700; margin-right: 6px; }
+  .b-new { background: #dbeafe; color: #1e40af; }
+  .b-thai { background: #fce7f3; color: #9f1239; }
+  .b-core { background: #d1fae5; color: #065f46; }
+  .b-shared { background: #fef3c7; color: #92400e; }
+
+  .page {
+    background: #fff;
+    border-radius: 8px;
+    padding: 22px 28px;
+    margin-bottom: 22px;
+    box-shadow: 0 2px 5px rgba(0,0,0,.06);
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 22px;
+  }
+  .page-no { font-size: 8.5pt; color: #94a3b8; margin-bottom: 4px; letter-spacing: .04em; }
+  .page-title { font-size: 13pt; font-weight: 700; color: #1e40af; border-bottom: 2px solid #3b82f6; padding-bottom: 6px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: baseline; }
+  .page-title .meta { font-size: 9pt; color: #64748b; font-weight: 400; }
+
+  .annot { background: #f8fafc; border-radius: 6px; padding: 14px; font-size: 9.5pt; line-height: 1.55; border-left: 3px solid #3b82f6; }
+  .annot h4 { font-size: 10pt; color: #1e40af; margin-bottom: 8px; }
+  .annot table { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
+  .annot td { padding: 4px 0; vertical-align: top; }
+  .annot td:first-child { width: 56px; }
+  .annot tr { border-bottom: 1px solid #e2e8f0; }
+  .annot tr:last-child { border-bottom: none; }
+  .annot .note { font-size: 8.5pt; color: #64748b; margin-top: 8px; padding-top: 8px; border-top: 1px solid #e2e8f0; }
+
+  /* Form page styling — formal Thai layout */
+  .form-doc {
+    background: #fff;
+    border: 1px solid #cbd5e1;
+    padding: 30px 36px;
+    font-family: 'Sarabun', sans-serif;
+    color: #1e293b;
+    font-size: 11pt;
+    line-height: 1.7;
+  }
+  .form-header {
+    display: grid;
+    grid-template-columns: 80px 1fr 160px;
+    gap: 12px;
+    align-items: center;
+    padding-bottom: 14px;
+    border-bottom: 2px solid #1e40af;
+    margin-bottom: 18px;
+  }
+  .form-logo {
+    width: 70px; height: 70px;
+    border: 1.5px dashed #94a3b8;
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 8pt; color: #94a3b8;
+    text-align: center;
+    line-height: 1.2;
+  }
+  .form-org { text-align: center; }
+  .form-org h1 { font-size: 16pt; font-weight: 700; color: #1e40af; margin-bottom: 4px; }
+  .form-org .dept { font-size: 11pt; color: #475569; }
+  .form-org .addr { font-size: 9pt; color: #64748b; margin-top: 2px; }
+  .form-meta { text-align: right; font-size: 10pt; color: #475569; }
+  .form-meta .row { margin-bottom: 4px; }
+  .form-meta .lbl { color: #94a3b8; font-size: 9pt; }
+
+  .form-doc-title {
+    text-align: center;
+    font-size: 16pt;
+    font-weight: 700;
+    color: #1e293b;
+    padding: 8px;
+    margin-bottom: 14px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 4px;
+  }
+
+  .form-subject-row {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 6px;
+    margin-bottom: 8px;
+    align-items: baseline;
+  }
+  .form-subject-row .lbl {
+    font-weight: 700;
+    color: #1e293b;
+  }
+  .form-subject-row .val {
+    border-bottom: 1px dotted #94a3b8;
+    padding-bottom: 2px;
+    min-height: 22px;
+    color: #1e293b;
+  }
+
+  /* Field input rows */
+  .field-row {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .field-row.cols-2 { grid-template-columns: 1fr 1fr; }
+  .field-row.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .field-row.cols-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+  .field-row.cols-id { grid-template-columns: 1.4fr 1fr 1fr 1fr 0.6fr; }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+  }
+  .field .lbl {
+    font-size: 9pt;
+    color: #475569;
+    margin-bottom: 3px;
+  }
+  .field .lbl.required::after {
+    content: ' *';
+    color: #dc2626;
+  }
+  .field .input {
+    border-bottom: 1px solid #475569;
+    min-height: 24px;
+    padding: 2px 4px;
+    font-size: 10pt;
+    color: #1e293b;
+  }
+  .field .input.filled {
+    color: #1e40af;
+    font-weight: 500;
+    border-bottom-color: #1e40af;
+  }
+  .field .input-box {
+    border: 1px solid #94a3b8;
+    border-radius: 3px;
+    min-height: 32px;
+    padding: 4px 6px;
+  }
+  .field .input-area {
+    border: 1px solid #94a3b8;
+    border-radius: 3px;
+    min-height: 60px;
+    padding: 6px 8px;
+    font-size: 10pt;
+    line-height: 1.6;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent,
+      transparent 25px,
+      #e2e8f0 25px,
+      #e2e8f0 26px
+    );
+  }
+  .field .helper {
+    font-size: 8pt;
+    color: #94a3b8;
+    margin-top: 2px;
+  }
+
+  /* ID card style (13-digit) */
+  .id-cells {
+    display: grid;
+    grid-template-columns: 30px 60px 80px 60px 30px;
+    gap: 4px;
+  }
+  .id-cells .cell {
+    border: 1px solid #475569;
+    text-align: center;
+    padding: 4px 0;
+    font-size: 10pt;
+    background: #f8fafc;
+    border-radius: 2px;
+  }
+
+  /* Choices (radio/checkbox) */
+  .choices {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    padding: 4px 0;
+  }
+  .choice {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    font-size: 10pt;
+  }
+  .choice .radio {
+    width: 14px; height: 14px;
+    border: 1.5px solid #475569;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+  .choice .radio.checked {
+    background: #1e40af;
+    border-color: #1e40af;
+    position: relative;
+  }
+  .choice .radio.checked::after {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    background: #fff;
+    border-radius: 50%;
+  }
+  .choice .check {
+    width: 14px; height: 14px;
+    border: 1.5px solid #475569;
+    border-radius: 2px;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+  .choice .check.checked {
+    background: #1e40af;
+    border-color: #1e40af;
+    position: relative;
+  }
+  .choice .check.checked::after {
+    content: '✓';
+    color: #fff;
+    position: absolute;
+    inset: 0;
+    font-size: 10pt;
+    text-align: center;
+    line-height: 14px;
+    font-weight: 700;
+  }
+
+  /* Tables (item list) */
+  .item-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10pt;
+    margin: 8px 0;
+  }
+  .item-table th {
+    background: #eff6ff;
+    color: #1e40af;
+    padding: 6px 8px;
+    border: 1px solid #cbd5e1;
+    font-weight: 700;
+    text-align: left;
+    font-size: 9.5pt;
+  }
+  .item-table td {
+    padding: 6px 8px;
+    border: 1px solid #cbd5e1;
+    min-height: 28px;
+  }
+  .item-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .item-table .center { text-align: center; }
+  .item-table tr.total td {
+    background: #1e40af;
+    color: #fff;
+    font-weight: 700;
+  }
+  .item-table tr.subtotal td {
+    background: #f1f5f9;
+    font-weight: 600;
+  }
+
+  /* Section header */
+  .form-sec-hdr {
+    background: #1e40af;
+    color: #fff;
+    padding: 6px 12px;
+    font-weight: 700;
+    font-size: 10pt;
+    margin: 14px 0 8px 0;
+    border-radius: 3px;
+    letter-spacing: .02em;
+  }
+  .form-sec-num {
+    display: inline-block;
+    background: #fff;
+    color: #1e40af;
+    border-radius: 50%;
+    width: 22px; height: 22px;
+    text-align: center;
+    line-height: 22px;
+    margin-right: 8px;
+    font-size: 10pt;
+    font-weight: 700;
+  }
+
+  /* Paragraph (formal text) */
+  .form-paragraph {
+    font-size: 11pt;
+    color: #1e293b;
+    line-height: 1.9;
+    text-indent: 60px;
+    margin: 8px 0;
+  }
+
+  /* Signature blocks */
+  .signature-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
+  }
+  .signature {
+    text-align: center;
+  }
+  .signature .line {
+    border-bottom: 1px dotted #475569;
+    margin: 30px 12px 6px;
+    height: 1px;
+  }
+  .signature .name-line {
+    font-size: 10pt;
+    color: #1e293b;
+    margin-bottom: 2px;
+  }
+  .signature .position {
+    font-size: 9pt;
+    color: #64748b;
+    margin-bottom: 4px;
+  }
+  .signature .role-tag {
+    font-size: 9pt;
+    color: #1e40af;
+    font-weight: 700;
+    background: #eff6ff;
+    padding: 2px 8px;
+    border-radius: 10px;
+    display: inline-block;
+    margin-bottom: 8px;
+  }
+  .signature .date-line {
+    font-size: 9pt;
+    color: #64748b;
+    margin-top: 4px;
+  }
+
+  /* Approval flow */
+  .approval-flow {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin: 14px 0;
+  }
+  .approval-step {
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 8px 10px;
+    background: #f8fafc;
+    text-align: center;
+    position: relative;
+    font-size: 9pt;
+  }
+  .approval-step .step-num {
+    background: #1e40af;
+    color: #fff;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    line-height: 22px;
+    margin: 0 auto 6px;
+    font-size: 9pt;
+    font-weight: 700;
+  }
+  .approval-step .step-role {
+    font-weight: 700;
+    color: #1e40af;
+    margin-bottom: 3px;
+  }
+  .approval-step .step-action {
+    font-size: 8pt;
+    color: #64748b;
+  }
+
+  /* Anatomy diagram */
+  .anatomy {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 16px;
+  }
+  .anatomy-item {
+    display: grid;
+    grid-template-columns: 30px 1fr 80px;
+    gap: 12px;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .anatomy-num {
+    background: #1e40af;
+    color: #fff;
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 24px;
+    font-size: 9pt;
+    font-weight: 700;
+  }
+  .anatomy-name { font-size: 10pt; color: #1e293b; }
+  .anatomy-name b { color: #1e40af; }
+  .anatomy-tag { font-size: 8pt; text-align: right; }
+
+  /* Field catalog */
+  .field-catalog {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .field-card {
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 12px;
+    background: #f8fafc;
+  }
+  .field-card .ft-name {
+    font-size: 10pt;
+    color: #1e40af;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .field-card .ft-code {
+    font-family: monospace;
+    font-size: 8.5pt;
+    color: #be123c;
+    background: #fff;
+    padding: 1px 6px;
+    border-radius: 3px;
+    display: inline-block;
+    margin-left: 6px;
+  }
+  .field-card .ft-desc {
+    font-size: 9pt;
+    color: #64748b;
+    margin-bottom: 6px;
+  }
+  .field-card .ft-preview {
+    margin-top: 4px;
+    padding: 6px 8px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 3px;
+    font-size: 9pt;
+  }
+
+  /* Comparison table */
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9pt;
+  }
+  .compare-table th {
+    background: #1e293b;
+    color: #fff;
+    padding: 8px 10px;
+    border: 1px solid #334155;
+    text-align: left;
+  }
+  .compare-table td {
+    padding: 8px 10px;
+    border: 1px solid #cbd5e1;
+  }
+  .compare-table .yes { color: #16a34a; font-weight: 700; }
+  .compare-table .no { color: #dc2626; }
+  .compare-table .partial { color: #f59e0b; }
+
+  .footer-spec { background: #0f172a; color: #cbd5e1; padding: 20px 28px; border-radius: 8px; margin-top: 20px; }
+  .footer-spec h3 { color: #fff; margin-bottom: 10px; }
+  .footer-spec .code-block {
+    font-family: monospace;
+    background: #1e293b;
+    color: #93c5fd;
+    padding: 12px 16px;
+    border-radius: 4px;
+    font-size: 8.5pt;
+    line-height: 1.6;
+    margin: 10px 0;
+    white-space: pre;
+    overflow-x: auto;
+  }
+  .footer-spec table { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
+  .footer-spec th { text-align: left; padding: 6px 8px; background: #1e293b; color: #fbbf24; }
+  .footer-spec td { padding: 6px 8px; border-bottom: 1px solid #1e293b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>📋 Form Engine — Mockup Spec</h1>
+<p class="lead">Engine ตัวที่ 3 ของ planprom (เพิ่มจาก Checklist + Planner) — ขาย template ฟอร์มเอกสารไทยที่ใช้ในชีวิตประจำวัน · ฿20-50/template</p>
+
+<div class="legend">
+  <h3>Legend</h3>
+  <div class="legend-row">
+    <div><span class="badge b-new">ใหม่</span> Form Engine concept</div>
+    <div><span class="badge b-thai">ไทย</span> Thai-specific design</div>
+    <div><span class="badge b-core">core</span> required ทุก form</div>
+    <div><span class="badge b-shared">shared</span> shared logic กับ Checklist/Planner Engine</div>
+  </div>
+</div>
+
+<!-- ==================== PAGE 1: COVER + CONCEPT ==================== -->
+<div class="page">
+  <div>
+    <div class="page-no">หน้า 1 / 8 · CONCEPT</div>
+    <div style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-radius: 8px; padding: 40px 30px; text-align: center; margin-bottom: 18px;">
+      <div style="font-size: 60pt; margin-bottom: 8px;">📋</div>
+      <h2 style="font-size: 24pt; color: #1e40af; margin-bottom: 8px;">Form Engine</h2>
+      <div style="font-size: 13pt; color: #3b82f6; margin-bottom: 16px;">"ฟอร์มเอกสารพร้อมใช้ · กรอกง่าย · พิมพ์ออกใช้ได้ทันที"</div>
+      <div style="display: inline-block; background: #fff; padding: 12px 24px; border-radius: 8px; font-size: 11pt; color: #1e293b;">
+        ขายเป็น template ฟอร์มไทยที่ใช้บ่อย → admin ออกแบบครั้งเดียว → ลูกค้าหลายคนซื้อ
+      </div>
+    </div>
+
+    <div style="background: #f8fafc; padding: 14px 18px; border-radius: 6px; margin-bottom: 14px;">
+      <h3 style="font-size: 11pt; color: #1e40af; margin-bottom: 8px;">ทำไมต้องมี Form Engine แยกจาก Checklist และ Planner?</h3>
+      <table class="compare-table">
+        <tr><th>มิติ</th><th>Checklist</th><th>Planner</th><th>Form (ใหม่)</th></tr>
+        <tr><td>วัตถุประสงค์</td><td>ทำตามขั้นตอน · ติ๊ก</td><td>วางแผน · ติดตาม</td><td>กรอกข้อมูล · ส่งให้คนอื่น</td></tr>
+        <tr><td>โครงสร้าง</td><td>linear list</td><td>multi-section</td><td>field-based (mixed input types)</td></tr>
+        <tr><td>ผู้กรอก</td><td>คนเดียว</td><td>คนเดียว</td><td>หลายคน (ผู้ยื่น + อนุมัติ)</td></tr>
+        <tr><td>Output</td><td>ติ๊กเสร็จ</td><td>เขียนแผน</td><td><b>ส่งต่อ · เก็บไว้ใช้</b></td></tr>
+        <tr><td>Field types</td><td>checkbox + text</td><td>text + list + grid</td><td><b>20+ types</b> (date · money · ID · signature · table)</td></tr>
+        <tr><td>Layout</td><td>flexible</td><td>flexible</td><td><b>formal Thai style</b> (header · subject · เรียน · ลงนาม)</td></tr>
+        <tr><td>Print quality</td><td>good</td><td>good</td><td><b>must be perfect</b> (ส่งหน่วยงานจริง)</td></tr>
+      </table>
+    </div>
+
+    <div style="background: #fef3c7; padding: 14px 18px; border-radius: 6px;">
+      <h3 style="font-size: 11pt; color: #92400e; margin-bottom: 8px;">💡 Form Engine = "1 template = ใช้ได้หลายร้อยคน"</h3>
+      <div style="font-size: 10pt; color: #92400e; line-height: 1.7;">
+        ตัวอย่าง template ที่ขาย ฿20-50: <b>ใบลา · ใบสมัครงาน · ใบมอบฉันทะ · ใบเสนอราคา · ใบสั่งซื้อ · ใบเสร็จรับเงิน · ใบส่งของ · ใบประเมินผล · แบบฟอร์มยินยอม · ใบสมัครสมาชิก · ใบรับรองรายได้ · แบบฟอร์มร้องเรียน</b>
+      </div>
+    </div>
+  </div>
+  <div class="annot">
+    <h4>Concept</h4>
+    <table>
+      <tr><td><span class="badge b-new">ใหม่</span></td><td>Engine ตัวที่ 3 ของ planprom</td></tr>
+      <tr><td><span class="badge b-new">ใหม่</span></td><td><code>engine_type</code> = <code>'form'</code> (เพิ่มใน DB enum)</td></tr>
+      <tr><td><span class="badge b-new">ใหม่</span></td><td><code>FormEngineData</code> type ใน <code>lib/engine-types.ts</code></td></tr>
+      <tr><td><span class="badge b-new">ใหม่</span></td><td><code>lib/engine-form.ts</code> generator</td></tr>
+      <tr><td><span class="badge b-new">ใหม่</span></td><td><code>app/admin/templates/new/FormEngineForm.tsx</code> admin wizard</td></tr>
+    </table>
+    <div class="note"><b>Market size:</b> ฟอร์มไทยมาตรฐานในตลาด ~30-50 template · ทำดีๆ ขายได้ทุกตัว · cumulative revenue สูงกว่า planner</div>
+  </div>
+</div>
+
+<!-- ==================== PAGE 2: ANATOMY OF THAI FORM ==================== -->
+<div class="page">
+  <div>
+    <div class="page-no">หน้า 2 / 8 · ANATOMY</div>
+    <div class="page-title">🔍 โครงสร้างฟอร์มมาตรฐานไทย <span class="meta">11 ส่วน · universal</span></div>
+
+    <div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; margin-bottom: 18px;">
+      <div class="form-doc" style="padding: 18px 22px; font-size: 9pt;">
+        <div style="position: relative;">
+          <div style="position: absolute; left: -22px; top: 4px; background: #1e40af; color: #fff; width: 22px; height: 22px; border-radius: 50%; text-align: center; line-height: 22px; font-size: 9pt; font-weight: 700;">1</div>
+          <div class="form-header" style="grid-template-columns: 50px 1fr 110px; padding-bottom: 8px; margin-bottom: 12px;">
+            <div class="form-logo" style="width: 45px; height: 45px; font-size: 6pt;">โลโก้</div>
+            <div class="form-org">
+              <h1 style="font-size: 12pt;">บริษัท แพลนพร้อม จำกัด</h1>
+              <div class="dept" style="font-size: 9pt;">แผนกทรัพยากรบุคคล</div>
+            </div>
+            <div class="form-meta" style="font-size: 8pt;">
+              <div class="row">ที่ HR/2569/__</div>
+              <div class="row">วันที่ __/__/2569</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="position: relative;">
+          <div style="position: absolute; left: -22px; top: 4px; background: #1e40af; color: #fff; width: 22px; height: 22px; border-radius: 50%; text-align: center; line-height: 22px; font-size: 9pt; font-weight: 700;">2</div>
+          <div class="form-doc-title" style="font-size: 12pt; padding: 6px;">ใบลา (LEAVE FORM)</div>
+        </div>
+
+        <div style="position: relative;">
+          <div style="position: absolute; left: -22px; top: 4px; background: #1e40af; color: #fff; width: 22px; height: 22px; border-radius: 50%; text-align: center; line-height: 22px; font-size: 9pt; font-weight: 700;">3</div>
+          <div class="form-subject-row" style="grid-template-columns: 60px 1fr;">
+            <div class="lbl" style="font-size: 9pt;">เรียน</div>
+            <div class="val" style="font-size: 9pt;">ผู้จัดการฝ่ายทรัพยากรบุคคล</div>
+          </div>
+          <div class="form-subject-row" style="grid-template-columns: 60px 1fr;">
+            <div class="lbl" style="font-size: 9pt;">เรื่อง</div>
+            <div class="val" style="font-size: 9pt;">ขออนุญาตลา</div>
+          </div>
+        </div>
+
+        <div style="position: relative; margin-top: 14px;">
+          <div style="position: absolute; left: -22px; top: 4px; background: #1e40af; color: #fff; width: 22px; height: 22px; border-radius: 50%; text-align: center; line-height: 22px; font-size: 9pt; font-weight: 700;">4</div>
+          <div class="form-sec-hdr" style="font-size: 9pt; padding: 4px 10px; background: #1e40af;">
+            <span style="background: #fff; color: #1e40af; border-radius: 50%; width: 18px; height: 18px; display: inline-block; text-align: center; line-height: 18px; font-size: 8pt; margin-right: 6px;">1</span>ข้อมูลผู้ลา
+          </div>
+          <div style="font-size: 8.5pt; padding: 4px 12px; color: #64748b;">ชื่อ-นามสกุล · ตำแหน่ง · แผนก · รหัสพนักงาน</div>
+        </div>
+
+        <div style="position: relative; margin-top: 8px;">
+          <div style="position: absolute; left: -22px; top: 4px; background: #1e40af; color: #fff; width: 22px; height: 22px; border-radius: 50%; text-align: center; line-height: 22px; font-size: 9pt; font-weight: 700;">5</div>
+          <div class="form-sec-hdr" style="font-size: 9pt; padding: 4px 10px; background: #1e40af;">
+            <span style="background: #fff; color: #1e40af; border-radius: 50%; width: 18px; height: 18px; display: inline-block; text-align: center; line-height: 18px; font-size: 8pt; margin-right: 6px;">2</span>รายละเอียดการลา
+          </div>
+          <div style="font-size: 8.5pt; padding: 4px 12px; color: #64748b;">ประเภทการลา (radio) · วันที่ · จำนวนวัน · เหตุผล</div>
+        </div>
+
+        <div style="position: relative; margin-top: 8px;">
+          <div style="position: absolute; left: -22px; top: 4px; background: #1e40af; color: #fff; width: 22px; height: 22px; border-radius: 50%; text-align: center; line-height: 22px; font-size: 9pt; font-weight: 700;">6</div>
+          <div style="font-size: 9pt; padding: 4px 0; color: #1e293b;"><b>เอกสารแนบ:</b> <span style="color: #64748b;">ใบรับรองแพทย์, หนังสือมอบหมายงาน</span></div>
+        </div>
+
+        <div style="position: relative; margin-top: 8px;">
+          <div style="position: absolute; left: -22px; top: 4px; background: #1e40af; color: #fff; width: 22px; height: 22px; border-radius: 50%; text-align: center; line-height: 22px; font-size: 9pt; font-weight: 700;">7</div>
+          <div style="font-size: 9pt; padding: 4px 0; color: #1e293b; font-style: italic;">"จึงเรียนมาเพื่อโปรดพิจารณาอนุญาต"</div>
+        </div>
+
+        <div style="position: relative; margin-top: 14px;">
+          <div style="position: absolute; left: -22px; top: 4px; background: #1e40af; color: #fff; width: 22px; height: 22px; border-radius: 50%; text-align: center; line-height: 22px; font-size: 9pt; font-weight: 700;">8</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; font-size: 8pt;">
+            <div style="text-align: center;">
+              <div style="background: #eff6ff; color: #1e40af; padding: 2px 6px; border-radius: 8px; display: inline-block; font-weight: 700;">ผู้ยื่น</div>
+              <div style="border-bottom: 1px dotted #475569; margin: 16px 8px 4px;"></div>
+              <div>(ผู้ลา)</div>
+            </div>
+            <div style="text-align: center;">
+              <div style="background: #eff6ff; color: #1e40af; padding: 2px 6px; border-radius: 8px; display: inline-block; font-weight: 700;">หัวหน้างาน</div>
+              <div style="border-bottom: 1px dotted #475569; margin: 16px 8px 4px;"></div>
+              <div>(ความเห็น)</div>
+            </div>
+            <div style="text-align: center;">
+              <div style="background: #eff6ff; color: #1e40af; padding: 2px 6px; border-radius: 8px; display: inline-block; font-weight: 700;">HR</div>
+              <div style="border-bottom: 1px dotted #475569; margin: 16px 8px 4px;"></div>
+              <div>(อนุมัติ)</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="position: relative; margin-top: 14px; padding-top: 8px; border-top: 1px solid #e2e8f0; font-size: 7.5pt; color: #94a3b8; display: flex; justify-content: space-between;">
+          <span><span style="background: #1e40af; color: #fff; width: 16px; height: 16px; border-radius: 50%; display: inline-block; text-align: center; line-height: 16px; font-size: 7pt; font-weight: 700; margin-right: 4px;">9</span>FORM-LEAVE-V1.0</span>
+          <span><span style="background: #1e40af; color: #fff; width: 16px; height: 16px; border-radius: 50%; display: inline-block; text-align: center; line-height: 16px; font-size: 7pt; font-weight: 700; margin-right: 4px;">10</span>หน้า 1/1</span>
+          <span><span style="background: #1e40af; color: #fff; width: 16px; height: 16px; border-radius: 50%; display: inline-block; text-align: center; line-height: 16px; font-size: 7pt; font-weight: 700; margin-right: 4px;">11</span>planprom.com</span>
+        </div>
+      </div>
+
+      <div class="anatomy">
+        <h3 style="font-size: 11pt; color: #1e40af; margin-bottom: 10px;">11 ส่วนของฟอร์มไทย</h3>
+        <div class="anatomy-item"><div class="anatomy-num">1</div><div class="anatomy-name"><b>Header</b><br><span style="font-size: 8.5pt; color: #94a3b8;">โลโก้ + ชื่อหน่วยงาน + เลขที่ + วันที่</span></div><div class="anatomy-tag"><span class="badge b-core">core</span></div></div>
+        <div class="anatomy-item"><div class="anatomy-num">2</div><div class="anatomy-name"><b>Document Title</b><br><span style="font-size: 8.5pt; color: #94a3b8;">ชื่อฟอร์ม (TH + EN)</span></div><div class="anatomy-tag"><span class="badge b-core">core</span></div></div>
+        <div class="anatomy-item"><div class="anatomy-num">3</div><div class="anatomy-name"><b>เรียน / เรื่อง</b><br><span style="font-size: 8.5pt; color: #94a3b8;">recipient + subject (formal)</span></div><div class="anatomy-tag"><span class="badge b-thai">ไทย</span></div></div>
+        <div class="anatomy-item"><div class="anatomy-num">4</div><div class="anatomy-name"><b>Identity Section</b><br><span style="font-size: 8.5pt; color: #94a3b8;">ข้อมูลผู้กรอก/ผู้ยื่น</span></div><div class="anatomy-tag"><span class="badge b-core">core</span></div></div>
+        <div class="anatomy-item"><div class="anatomy-num">5</div><div class="anatomy-name"><b>Body Sections</b><br><span style="font-size: 8.5pt; color: #94a3b8;">เนื้อหาหลัก (1-N section)</span></div><div class="anatomy-tag"><span class="badge b-core">core</span></div></div>
+        <div class="anatomy-item"><div class="anatomy-num">6</div><div class="anatomy-name"><b>Attachments</b><br><span style="font-size: 8.5pt; color: #94a3b8;">รายการเอกสารแนบ</span></div><div class="anatomy-tag"><span class="badge b-shared">shared</span></div></div>
+        <div class="anatomy-item"><div class="anatomy-num">7</div><div class="anatomy-name"><b>Closing Statement</b><br><span style="font-size: 8.5pt; color: #94a3b8;">"จึงเรียนมาเพื่อโปรด..."</span></div><div class="anatomy-tag"><span class="badge b-thai">ไทย</span></div></div>
+        <div class="anatomy-item"><div class="anatomy-num">8</div><div class="anatomy-name"><b>Signature Blocks</b><br><span style="font-size: 8.5pt; color: #94a3b8;">ผู้ยื่น · ผู้รับรอง · ผู้อนุมัติ</span></div><div class="anatomy-tag"><span class="badge b-core">core</span></div></div>
+        <div class="anatomy-item"><div class="anatomy-num">9</div><div class="anatomy-name"><b>Form Code</b><br><span style="font-size: 8.5pt; color: #94a3b8;">FORM-XXX-VX.X (footer)</span></div><div class="anatomy-tag"><span class="badge b-shared">shared</span></div></div>
+        <div class="anatomy-item"><div class="anatomy-num">10</div><div class="anatomy-name"><b>Page Number</b><br><span style="font-size: 8.5pt; color: #94a3b8;">"หน้า X/Y"</span></div><div class="anatomy-tag"><span class="badge b-shared">shared</span></div></div>
+        <div class="anatomy-item"><div class="anatomy-num">11</div><div class="anatomy-name"><b>Brand Footer</b><br><span style="font-size: 8.5pt; color: #94a3b8;">planprom.com</span></div><div class="anatomy-tag"><span class="badge b-shared">shared</span></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="annot">
+    <h4>Anatomy</h4>
+    <table>
+      <tr><td><span class="badge b-new">ใหม่</span></td><td>11 ส่วน — ครอบฟอร์มไทยมาตรฐาน 90%+</td></tr>
+      <tr><td><span class="badge b-thai">ไทย</span></td><td>ส่วน "เรียน/เรื่อง" + "จึงเรียนมาเพื่อ..." เป็น Thai-specific</td></tr>
+      <tr><td><span class="badge b-shared">shared</span></td><td>ส่วน Header, Footer, Form Code reuse logic จาก Checklist Engine</td></tr>
+    </table>
+    <div class="note"><b>Design principle:</b> ส่วนที่ 1, 2, 9, 10, 11 ใช้ระบบเดียวกับ Checklist Engine — ลด dev effort 30%</div>
+  </div>
+</div>
+
+<!-- ==================== PAGE 3: EXAMPLE — LEAVE FORM ==================== -->
+<div class="page">
+  <div>
+    <div class="page-no">หน้า 3 / 8 · TEMPLATE EXAMPLE 1</div>
+    <div class="page-title">📄 ใบลา (Leave Form) <span class="meta">template ขาย ฿20</span></div>
+
+    <div class="form-doc">
+      <div class="form-header">
+        <div class="form-logo">โลโก้<br>บริษัท</div>
+        <div class="form-org">
+          <h1>บริษัท ____________________ จำกัด</h1>
+          <div class="dept">แผนก ____________________</div>
+          <div class="addr">โทร __________ · อีเมล __________</div>
+        </div>
+        <div class="form-meta">
+          <div class="row"><span class="lbl">ที่</span> ________</div>
+          <div class="row"><span class="lbl">วันที่</span> __ / __ / __</div>
+        </div>
+      </div>
+
+      <div class="form-doc-title">ใบลา · LEAVE FORM</div>
+
+      <div class="form-subject-row">
+        <div class="lbl">เรียน</div>
+        <div class="val">_____________________________________________</div>
+      </div>
+      <div class="form-subject-row">
+        <div class="lbl">เรื่อง</div>
+        <div class="val">ขออนุญาตลา</div>
+      </div>
+
+      <div class="form-sec-hdr"><span class="form-sec-num">1</span>ข้อมูลผู้ลา</div>
+      <div class="field-row cols-4">
+        <div class="field">
+          <div class="lbl required">คำนำหน้า</div>
+          <div class="choices" style="padding: 6px 0; gap: 8px;">
+            <div class="choice"><span class="radio"></span> นาย</div>
+            <div class="choice"><span class="radio"></span> นาง</div>
+            <div class="choice"><span class="radio"></span> น.ส.</div>
+          </div>
+        </div>
+        <div class="field">
+          <div class="lbl required">ชื่อ-นามสกุล</div>
+          <div class="input"></div>
+        </div>
+        <div class="field">
+          <div class="lbl required">ตำแหน่ง</div>
+          <div class="input"></div>
+        </div>
+        <div class="field">
+          <div class="lbl">รหัสพนักงาน</div>
+          <div class="input"></div>
+        </div>
+      </div>
+      <div class="field-row cols-3">
+        <div class="field">
+          <div class="lbl">แผนก/ฝ่าย</div>
+          <div class="input"></div>
+        </div>
+        <div class="field">
+          <div class="lbl">หัวหน้าโดยตรง</div>
+          <div class="input"></div>
+        </div>
+        <div class="field">
+          <div class="lbl">เบอร์ติดต่อ</div>
+          <div class="input"></div>
+        </div>
+      </div>
+
+      <div class="form-sec-hdr"><span class="form-sec-num">2</span>ประเภทการลา</div>
+      <div class="choices" style="padding: 6px 0;">
+        <div class="choice"><span class="radio"></span> ลาป่วย</div>
+        <div class="choice"><span class="radio"></span> ลากิจ</div>
+        <div class="choice"><span class="radio"></span> ลาพักร้อน</div>
+        <div class="choice"><span class="radio"></span> ลาคลอด</div>
+        <div class="choice"><span class="radio"></span> ลาบวช</div>
+        <div class="choice"><span class="radio"></span> อื่นๆ ___________</div>
+      </div>
+
+      <div class="form-sec-hdr"><span class="form-sec-num">3</span>รายละเอียดการลา</div>
+      <div class="field-row cols-3">
+        <div class="field">
+          <div class="lbl required">ตั้งแต่วันที่</div>
+          <div class="input"></div>
+          <div class="helper">__/__/____</div>
+        </div>
+        <div class="field">
+          <div class="lbl required">ถึงวันที่</div>
+          <div class="input"></div>
+          <div class="helper">__/__/____</div>
+        </div>
+        <div class="field">
+          <div class="lbl required">รวม (วัน)</div>
+          <div class="input"></div>
+          <div class="helper">เต็มวัน · ครึ่งวัน · ชั่วโมง</div>
+        </div>
+      </div>
+      <div class="field">
+        <div class="lbl required">เหตุผลการลา</div>
+        <div class="input-area"></div>
+      </div>
+      <div class="field" style="margin-top: 8px;">
+        <div class="lbl">ที่อยู่ที่ติดต่อได้ระหว่างลา</div>
+        <div class="input-area" style="min-height: 40px;"></div>
+      </div>
+      <div class="field" style="margin-top: 8px;">
+        <div class="lbl">ผู้รับผิดชอบงานแทน</div>
+        <div class="input"></div>
+      </div>
+
+      <div class="form-sec-hdr"><span class="form-sec-num">4</span>เอกสารแนบ</div>
+      <div class="choices" style="padding: 6px 0;">
+        <div class="choice"><span class="check"></span> ใบรับรองแพทย์</div>
+        <div class="choice"><span class="check"></span> หนังสือมอบหมายงาน</div>
+        <div class="choice"><span class="check"></span> เอกสารอื่นๆ ___________</div>
+      </div>
+
+      <div style="margin-top: 18px; font-size: 11pt; color: #1e293b; font-style: italic;">
+        จึงเรียนมาเพื่อโปรดพิจารณาอนุญาต
+      </div>
+
+      <div class="signature-grid">
+        <div class="signature">
+          <div class="role-tag">ผู้ยื่น</div>
+          <div class="line"></div>
+          <div class="name-line">(ลงชื่อ ___________________)</div>
+          <div class="position">ผู้ลา</div>
+          <div class="date-line">วันที่ __/__/____</div>
+        </div>
+        <div class="signature">
+          <div class="role-tag">หัวหน้างาน</div>
+          <div class="choices" style="justify-content: center; padding: 4px 0;">
+            <div class="choice"><span class="check"></span> อนุญาต</div>
+            <div class="choice"><span class="check"></span> ไม่อนุญาต</div>
+          </div>
+          <div class="line"></div>
+          <div class="name-line">(ลงชื่อ ___________________)</div>
+          <div class="position">หัวหน้างาน</div>
+          <div class="date-line">วันที่ __/__/____</div>
+        </div>
+        <div class="signature">
+          <div class="role-tag">ฝ่ายบุคคล (HR)</div>
+          <div class="choices" style="justify-content: center; padding: 4px 0;">
+            <div class="choice"><span class="check"></span> อนุมัติ</div>
+            <div class="choice"><span class="check"></span> ไม่อนุมัติ</div>
+          </div>
+          <div class="line"></div>
+          <div class="name-line">(ลงชื่อ ___________________)</div>
+          <div class="position">ผู้จัดการฝ่ายบุคคล</div>
+          <div class="date-line">วันที่ __/__/____</div>
+        </div>
+      </div>
+
+      <div style="margin-top: 16px; padding-top: 10px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; font-size: 8.5pt; color: #94a3b8;">
+        <span>FORM-LEAVE-V1.0</span>
+        <span>หน้า 1/1</span>
+        <span>www.planprom.com</span>
+      </div>
+    </div>
+  </div>
+  <div class="annot">
+    <h4>ใบลา (Leave Form)</h4>
+    <table>
+      <tr><td><span class="badge b-thai">ไทย</span></td><td>"เรียน / เรื่อง" — Thai formal pattern</td></tr>
+      <tr><td><span class="badge b-thai">ไทย</span></td><td>คำนำหน้า: นาย/นาง/น.ส. — Thai title pattern</td></tr>
+      <tr><td><span class="badge b-new">ใหม่</span></td><td><b>section types</b>: identity · choices · fields · attachment · signature</td></tr>
+      <tr><td><span class="badge b-new">ใหม่</span></td><td><b>fieldTypes</b>: text, date, textarea, radio, checkbox, choices-list</td></tr>
+      <tr><td><span class="badge b-thai">ไทย</span></td><td>ลงนาม 3 ฝ่าย: ผู้ยื่น · หัวหน้า · HR (Thai org structure)</td></tr>
+      <tr><td><span class="badge b-thai">ไทย</span></td><td>"จึงเรียนมาเพื่อ..." — formal closing</td></tr>
+    </table>
+    <div class="note"><b>Coverage:</b> ใบลา = ฟอร์มที่ขายดีที่สุดในวงการ HR ไทย · ทุกบริษัทใช้ทุกเดือน · target ฿20-30</div>
+  </div>
+</div>
+
+<!-- ==================== PAGE 4: EXAMPLE — QUOTATION ==================== -->
+<div class="page">
+  <div>
+    <div class="page-no">หน้า 4 / 8 · TEMPLATE EXAMPLE 2</div>
+    <div class="page-title">💼 ใบเสนอราคา (Quotation) <span class="meta">template ขาย ฿30 · business</span></div>
+
+    <div class="form-doc">
+      <div class="form-header">
+        <div class="form-logo">โลโก้<br>บริษัท</div>
+        <div class="form-org">
+          <h1>__________________________________</h1>
+          <div class="dept">เลขประจำตัวผู้เสียภาษี __________________</div>
+          <div class="addr">ที่อยู่ ____________________________________ · โทร __________</div>
+        </div>
+        <div class="form-meta">
+          <div class="row"><span class="lbl">เลขที่</span> QT-________</div>
+          <div class="row"><span class="lbl">วันที่</span> __/__/____</div>
+          <div class="row"><span class="lbl">ใช้ได้ถึง</span> __/__/____</div>
+        </div>
+      </div>
+
+      <div class="form-doc-title">ใบเสนอราคา · QUOTATION</div>
+
+      <div class="form-sec-hdr"><span class="form-sec-num">1</span>ข้อมูลลูกค้า</div>
+      <div class="field-row cols-2">
+        <div class="field">
+          <div class="lbl required">ชื่อลูกค้า/บริษัท</div>
+          <div class="input"></div>
+        </div>
+        <div class="field">
+          <div class="lbl">เลขประจำตัวผู้เสียภาษี</div>
+          <div class="input"></div>
+        </div>
+      </div>
+      <div class="field">
+        <div class="lbl">ที่อยู่ลูกค้า</div>
+        <div class="input-area" style="min-height: 40px;"></div>
+      </div>
+      <div class="field-row cols-3">
+        <div class="field">
+          <div class="lbl">ผู้ติดต่อ</div>
+          <div class="input"></div>
+        </div>
+        <div class="field">
+          <div class="lbl">โทรศัพท์</div>
+          <div class="input"></div>
+        </div>
+        <div class="field">
+          <div class="lbl">อีเมล</div>
+          <div class="input"></div>
+        </div>
+      </div>
+
+      <div class="form-sec-hdr"><span class="form-sec-num">2</span>รายการสินค้า/บริการ</div>
+      <table class="item-table">
+        <tr>
+          <th class="center" style="width: 40px;">ลำดับ</th>
+          <th>รายการ</th>
+          <th class="center" style="width: 80px;">จำนวน</th>
+          <th class="center" style="width: 60px;">หน่วย</th>
+          <th class="num" style="width: 100px;">ราคา/หน่วย</th>
+          <th class="num" style="width: 100px;">รวม (บาท)</th>
+        </tr>
+        <tr><td class="center">1</td><td></td><td class="num"></td><td class="center"></td><td class="num"></td><td class="num"></td></tr>
+        <tr><td class="center">2</td><td></td><td class="num"></td><td class="center"></td><td class="num"></td><td class="num"></td></tr>
+        <tr><td class="center">3</td><td></td><td class="num"></td><td class="center"></td><td class="num"></td><td class="num"></td></tr>
+        <tr><td class="center">4</td><td></td><td class="num"></td><td class="center"></td><td class="num"></td><td class="num"></td></tr>
+        <tr><td class="center">5</td><td></td><td class="num"></td><td class="center"></td><td class="num"></td><td class="num"></td></tr>
+        <tr class="subtotal"><td colspan="5" style="text-align: right;">รวมเงิน</td><td class="num"></td></tr>
+        <tr class="subtotal"><td colspan="5" style="text-align: right;">ส่วนลด</td><td class="num"></td></tr>
+        <tr class="subtotal"><td colspan="5" style="text-align: right;">ราคาหลังหักส่วนลด</td><td class="num"></td></tr>
+        <tr class="subtotal"><td colspan="5" style="text-align: right;">ภาษีมูลค่าเพิ่ม 7%</td><td class="num"></td></tr>
+        <tr class="total"><td colspan="5" style="text-align: right;">รวมเป็นเงินทั้งสิ้น</td><td class="num"></td></tr>
+      </table>
+
+      <div class="field" style="margin-top: 10px;">
+        <div class="lbl">จำนวนเงิน (ตัวอักษร)</div>
+        <div class="input"></div>
+        <div class="helper">เช่น "หนึ่งหมื่นสองพันห้าร้อยบาทถ้วน"</div>
+      </div>
+
+      <div class="form-sec-hdr"><span class="form-sec-num">3</span>เงื่อนไขการชำระเงิน</div>
+      <div class="choices" style="padding: 4px 0;">
+        <div class="choice"><span class="radio"></span> เงินสด</div>
+        <div class="choice"><span class="radio"></span> โอนผ่านธนาคาร</div>
+        <div class="choice"><span class="radio"></span> เครดิต 30 วัน</div>
+        <div class="choice"><span class="radio"></span> เครดิต 60 วัน</div>
+        <div class="choice"><span class="radio"></span> อื่นๆ ___________</div>
+      </div>
+
+      <div class="field-row cols-2" style="margin-top: 10px;">
+        <div class="field">
+          <div class="lbl">กำหนดส่งสินค้า</div>
+          <div class="input"></div>
+        </div>
+        <div class="field">
+          <div class="lbl">การรับประกัน</div>
+          <div class="input"></div>
+        </div>
+      </div>
+
+      <div class="form-sec-hdr"><span class="form-sec-num">4</span>หมายเหตุ</div>
+      <div class="field">
+        <div class="input-area"></div>
+      </div>
+
+      <div class="signature-grid" style="grid-template-columns: 1fr 1fr;">
+        <div class="signature">
+          <div class="role-tag">ผู้เสนอราคา</div>
+          <div class="line"></div>
+          <div class="name-line">(ลงชื่อ ___________________)</div>
+          <div class="position">ตำแหน่ง ___________________</div>
+          <div class="date-line">วันที่ __/__/____</div>
+        </div>
+        <div class="signature">
+          <div class="role-tag">ผู้รับเอกสาร</div>
+          <div class="line"></div>
+          <div class="name-line">(ลงชื่อ ___________________)</div>
+          <div class="position">ตำแหน่ง ___________________</div>
+          <div class="date-line">วันที่ __/__/____</div>
+        </div>
+      </div>
+
+      <div style="margin-top: 16px; padding-top: 10px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; font-size: 8.5pt; color: #94a3b8;">
+        <span>FORM-QUOTATION-V1.0</span>
+        <span>หน้า 1/1</span>
+        <span>www.planprom.com</span>
+      </div>
+    </div>
+  </div>
+  <div class="annot">
+    <h4>ใบเสนอราคา</h4>
+    <table>
+      <tr><td><span class="badge b-new">ใหม่</span></td><td><b>section type</b>: table (รายการสินค้า)</td></tr>
+      <tr><td><span class="badge b-new">ใหม่</span></td><td><b>field type</b>: money (พร้อม comma format + ตัวอักษรไทย)</td></tr>
+      <tr><td><span class="badge b-thai">ไทย</span></td><td>VAT 7% · เลขประจำตัวผู้เสียภาษี · ตัวเลขเป็นตัวอักษร</td></tr>
+      <tr><td><span class="badge b-new">ใหม่</span></td><td><b>table.calculations</b>: subtotal, discount, vat, total (auto-format)</td></tr>
+      <tr><td><span class="badge b-thai">ไทย</span></td><td>วันที่ทั้งหมดเป็น พ.ศ.</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ==================== PAGE 5: FIELD CATALOG ==================== -->
+<div class="page">
+  <div>
+    <div class="page-no">หน้า 5 / 8 · FIELD CATALOG</div>
+    <div class="page-title">🔤 Field Types Catalog <span class="meta">20 types · ครอบทุก use case</span></div>
+
+    <div class="field-catalog">
+      <!-- Text -->
+      <div class="field-card">
+        <div class="ft-name">📝 ข้อความ 1 บรรทัด <span class="ft-code">type: text</span></div>
+        <div class="ft-desc">ใช้กับ: ชื่อ · ที่อยู่บรรทัดเดียว · หัวข้อ</div>
+        <div class="ft-preview">
+          <div style="border-bottom: 1px solid #475569; min-height: 24px; padding: 2px 4px;"></div>
+        </div>
+      </div>
+
+      <!-- Textarea -->
+      <div class="field-card">
+        <div class="ft-name">📄 ข้อความหลายบรรทัด <span class="ft-code">type: textarea</span></div>
+        <div class="ft-desc">ใช้กับ: เหตุผล · รายละเอียด · ที่อยู่เต็ม</div>
+        <div class="ft-preview">
+          <div style="border: 1px solid #94a3b8; min-height: 40px; border-radius: 3px; padding: 4px; background: repeating-linear-gradient(to bottom, transparent, transparent 18px, #e2e8f0 18px, #e2e8f0 19px);"></div>
+        </div>
+      </div>
+
+      <!-- Date (Buddhist) -->
+      <div class="field-card">
+        <div class="ft-name">📅 วันที่ (พ.ศ.) <span class="ft-code">type: date-be</span></div>
+        <div class="ft-desc">ใช้กับ: วันที่ออกเอกสาร · วันลา (default พ.ศ.)</div>
+        <div class="ft-preview">
+          <div style="display: flex; gap: 6px; align-items: center;">
+            <span style="border: 1px solid #475569; padding: 3px 8px; border-radius: 3px;">__</span>/
+            <span style="border: 1px solid #475569; padding: 3px 8px; border-radius: 3px;">__</span>/
+            <span style="border: 1px solid #475569; padding: 3px 8px; border-radius: 3px;">____</span>
+            <span style="color: #94a3b8; font-size: 8.5pt;">(พ.ศ.)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Number -->
+      <div class="field-card">
+        <div class="ft-name">🔢 ตัวเลข <span class="ft-code">type: number</span></div>
+        <div class="ft-desc">ใช้กับ: จำนวน · อายุ · จำนวนวัน</div>
+        <div class="ft-preview">
+          <div style="border: 1px solid #475569; padding: 4px 8px; border-radius: 3px; text-align: right;">_______</div>
+        </div>
+      </div>
+
+      <!-- Money -->
+      <div class="field-card">
+        <div class="ft-name">💰 จำนวนเงิน <span class="ft-code">type: money</span></div>
+        <div class="ft-desc">ใช้กับ: ราคา · เงินเดือน · ค่าใช้จ่าย (auto comma + ตัวอักษร)</div>
+        <div class="ft-preview">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+            <div style="border: 1px solid #475569; padding: 4px 8px; border-radius: 3px; text-align: right;">_______.00 บาท</div>
+            <div style="border-bottom: 1px solid #475569; padding: 4px 2px; font-size: 8.5pt;">(ตัวอักษร)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ID Card 13 digit -->
+      <div class="field-card">
+        <div class="ft-name">🪪 บัตรประชาชน 13 หลัก <span class="ft-code">type: idcard</span></div>
+        <div class="ft-desc">ใช้กับ: ผู้สมัคร · ผู้ลาคลอด · ผู้ทำสัญญา</div>
+        <div class="ft-preview">
+          <div class="id-cells" style="grid-template-columns: 25px 50px 70px 50px 25px; gap: 3px;">
+            <div class="cell" style="font-size: 8pt;">_</div>
+            <div class="cell" style="font-size: 8pt;">_ _ _ _</div>
+            <div class="cell" style="font-size: 8pt;">_ _ _ _ _</div>
+            <div class="cell" style="font-size: 8pt;">_ _</div>
+            <div class="cell" style="font-size: 8pt;">_</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phone -->
+      <div class="field-card">
+        <div class="ft-name">📞 เบอร์โทรศัพท์ <span class="ft-code">type: phone</span></div>
+        <div class="ft-desc">รูปแบบ 0XX-XXX-XXXX · auto-format</div>
+        <div class="ft-preview">
+          <div style="display: flex; gap: 4px; align-items: center;">
+            <span style="border: 1px solid #475569; padding: 3px 8px;">___</span> -
+            <span style="border: 1px solid #475569; padding: 3px 8px;">___</span> -
+            <span style="border: 1px solid #475569; padding: 3px 8px;">____</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Email -->
+      <div class="field-card">
+        <div class="ft-name">✉️ อีเมล <span class="ft-code">type: email</span></div>
+        <div class="ft-desc">รูปแบบ name@domain.com</div>
+        <div class="ft-preview">
+          <div style="border-bottom: 1px solid #475569; padding: 4px 2px;">___________@___________</div>
+        </div>
+      </div>
+
+      <!-- Address (Thai) -->
+      <div class="field-card">
+        <div class="ft-name">🏠 ที่อยู่ไทย <span class="ft-code">type: address-th</span></div>
+        <div class="ft-desc">multi-field: เลขที่/หมู่/ซอย/ถนน/ตำบล/อำเภอ/จังหวัด/รหัสไปรษณีย์</div>
+        <div class="ft-preview">
+          <div style="font-size: 8.5pt; line-height: 1.6;">บ้านเลขที่ ___ หมู่ ___ ซอย ___ ถนน ___<br>ตำบล ___ อำเภอ ___ จังหวัด ___ ___</div>
+        </div>
+      </div>
+
+      <!-- Radio -->
+      <div class="field-card">
+        <div class="ft-name">⚪ เลือก 1 ตัวเลือก <span class="ft-code">type: radio</span></div>
+        <div class="ft-desc">ใช้กับ: เพศ · ประเภทการลา · ระดับการศึกษา</div>
+        <div class="ft-preview">
+          <div class="choices">
+            <div class="choice"><span class="radio checked"></span> ตัวเลือก 1</div>
+            <div class="choice"><span class="radio"></span> ตัวเลือก 2</div>
+            <div class="choice"><span class="radio"></span> ตัวเลือก 3</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Checkbox -->
+      <div class="field-card">
+        <div class="ft-name">☑️ เลือกหลายตัวเลือก <span class="ft-code">type: checkbox</span></div>
+        <div class="ft-desc">ใช้กับ: เอกสารแนบ · ทักษะ · ความสนใจ</div>
+        <div class="ft-preview">
+          <div class="choices">
+            <div class="choice"><span class="check checked"></span> ตัวเลือก 1</div>
+            <div class="choice"><span class="check"></span> ตัวเลือก 2</div>
+            <div class="choice"><span class="check checked"></span> ตัวเลือก 3</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dropdown -->
+      <div class="field-card">
+        <div class="ft-name">📋 Dropdown <span class="ft-code">type: select</span></div>
+        <div class="ft-desc">ใช้กับ: จังหวัด · ตำแหน่ง · แผนก (รายการยาว)</div>
+        <div class="ft-preview">
+          <div style="border: 1px solid #475569; padding: 4px 30px 4px 10px; border-radius: 3px; position: relative;">เลือก... <span style="position: absolute; right: 8px;">▼</span></div>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="field-card">
+        <div class="ft-name">📊 ตารางข้อมูล <span class="ft-code">type: table</span></div>
+        <div class="ft-desc">ใช้กับ: รายการสินค้า · รายการประสบการณ์ · รายการครอบครัว</div>
+        <div class="ft-preview">
+          <table style="width: 100%; border-collapse: collapse; font-size: 8pt;">
+            <tr><th style="border: 1px solid #475569; padding: 2px;">คอลัมน์ 1</th><th style="border: 1px solid #475569; padding: 2px;">คอลัมน์ 2</th><th style="border: 1px solid #475569; padding: 2px;">คอลัมน์ 3</th></tr>
+            <tr><td style="border: 1px solid #475569; padding: 2px;">&nbsp;</td><td style="border: 1px solid #475569; padding: 2px;">&nbsp;</td><td style="border: 1px solid #475569; padding: 2px;">&nbsp;</td></tr>
+            <tr><td style="border: 1px solid #475569; padding: 2px;">&nbsp;</td><td style="border: 1px solid #475569; padding: 2px;">&nbsp;</td><td style="border: 1px solid #475569; padding: 2px;">&nbsp;</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- Signature -->
+      <div class="field-card">
+        <div class="ft-name">✍️ ลายเซ็น <span class="ft-code">type: signature</span></div>
+        <div class="ft-desc">ใช้กับ: ลายมือชื่อผู้ยื่น/อนุมัติ</div>
+        <div class="ft-preview">
+          <div style="text-align: center;">
+            <div style="border-bottom: 1px dotted #475569; height: 24px; margin: 0 12px;"></div>
+            <div style="font-size: 8pt; color: #475569;">(ลงชื่อ)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Photo -->
+      <div class="field-card">
+        <div class="ft-name">📸 ติดรูปถ่าย <span class="ft-code">type: photo</span></div>
+        <div class="ft-desc">ใช้กับ: ใบสมัครงาน · ใบสมัครเรียน · บัตรประจำตัว</div>
+        <div class="ft-preview">
+          <div style="border: 1.5px dashed #94a3b8; width: 80px; height: 100px; display: flex; align-items: center; justify-content: center; font-size: 8pt; color: #94a3b8; text-align: center;">ติดรูป<br>1 นิ้ว</div>
+        </div>
+      </div>
+
+      <!-- Yes/No -->
+      <div class="field-card">
+        <div class="ft-name">✅ ใช่/ไม่ใช่ <span class="ft-code">type: yes-no</span></div>
+        <div class="ft-desc">ใช้กับ: ใช่ · ไม่ใช่ · มี · ไม่มี · อนุมัติ · ไม่อนุมัติ</div>
+        <div class="ft-preview">
+          <div class="choices">
+            <div class="choice"><span class="check"></span> ใช่</div>
+            <div class="choice"><span class="check"></span> ไม่ใช่</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Currency -->
+      <div class="field-card">
+        <div class="ft-name">💱 อัตราแลกเปลี่ยน <span class="ft-code">type: currency-rate</span></div>
+        <div class="ft-desc">ใช้กับ: เอกสาร export · ใบเบิก travel</div>
+        <div class="ft-preview">
+          <div style="display: flex; gap: 6px; font-size: 9pt;">
+            <span style="border: 1px solid #475569; padding: 2px 8px;">USD</span> ×
+            <span style="border: 1px solid #475569; padding: 2px 8px;">35.50</span> =
+            <span style="border: 1px solid #475569; padding: 2px 8px;">_______ THB</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- License Plate (Thai) -->
+      <div class="field-card">
+        <div class="ft-name">🚗 ทะเบียนรถ <span class="ft-code">type: license-th</span></div>
+        <div class="ft-desc">ใช้กับ: ใบเบิกค่าเดินทาง · ใบประกัน</div>
+        <div class="ft-preview">
+          <div style="display: flex; gap: 4px; align-items: center;">
+            <span style="border: 1px solid #475569; padding: 4px 10px; background: #fffbe8;">__</span>
+            <span style="border: 1px solid #475569; padding: 4px 10px;">____</span>
+            <span style="font-size: 8.5pt; color: #475569;">/</span>
+            <span style="border: 1px solid #475569; padding: 4px 10px;">________</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Divider -->
+      <div class="field-card">
+        <div class="ft-name">➖ เส้นแบ่ง <span class="ft-code">type: divider</span></div>
+        <div class="ft-desc">ใช้แบ่ง section ภายในฟอร์ม</div>
+        <div class="ft-preview">
+          <div style="border-bottom: 2px solid #1e40af; padding: 4px 0; text-align: center; font-size: 8.5pt; color: #1e40af; font-weight: 700;">--- หัวข้อใหม่ ---</div>
+        </div>
+      </div>
+
+      <!-- Rich Text -->
+      <div class="field-card">
+        <div class="ft-name">📜 ข้อความคงที่ <span class="ft-code">type: static-text</span></div>
+        <div class="ft-desc">ใช้กับ: คำชี้แจง · เงื่อนไข · "จึงเรียนมาเพื่อ..."</div>
+        <div class="ft-preview" style="background: #f8fafc; font-size: 9pt; font-style: italic; color: #475569;">
+          "ข้อความคงที่ ไม่ต้องกรอก เช่น คำชี้แจง..."
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <div class="annot">
+    <h4>Field Types (20 ตัว)</h4>
+    <table>
+      <tr><td><span class="badge b-new">ใหม่</span></td><td><b>20 field types</b> — ครอบฟอร์มไทยมาตรฐาน 95%+</td></tr>
+      <tr><td><span class="badge b-thai">ไทย</span></td><td>Thai-specific: <code>date-be</code>, <code>idcard</code>, <code>address-th</code>, <code>license-th</code>, <code>money</code> (ตัวอักษร)</td></tr>
+      <tr><td><span class="badge b-core">core</span></td><td>Generic 15 types ใช้ในฟอร์มได้ทั้งโลก</td></tr>
+    </table>
+    <div class="note"><b>Engine logic:</b> generator มี <code>renderField(type, data)</code> · branch by type · render HTML/PDF ตาม</div>
+  </div>
+</div>
+
+<!-- ==================== PAGE 6: SECTION TYPES + LAYOUT ==================== -->
+<div class="page">
+  <div>
+    <div class="page-no">หน้า 6 / 8 · SECTION TYPES</div>
+    <div class="page-title">🧱 Section Types <span class="meta">7 patterns ที่ใช้สร้างฟอร์มได้ทุกแบบ</span></div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+
+      <!-- 1. Identity -->
+      <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px;">
+        <div style="font-size: 11pt; color: #1e40af; font-weight: 700; margin-bottom: 6px;">1. Identity Section</div>
+        <div style="font-size: 9pt; color: #64748b; margin-bottom: 8px;">ข้อมูลผู้กรอก — ใช้เกือบทุกฟอร์ม</div>
+        <div style="background: #f8fafc; padding: 8px; border-radius: 4px; font-size: 8.5pt;">
+          <b>Pre-built fields:</b> คำนำหน้า · ชื่อ-นามสกุล · ตำแหน่ง · แผนก · รหัส · เบอร์โทร · อีเมล · ที่อยู่<br>
+          <b>JSON:</b> <code style="background: #1e293b; color: #93c5fd; padding: 0 4px;">{ type: 'identity', preset: 'employee'|'customer'|'student' }</code>
+        </div>
+      </div>
+
+      <!-- 2. Fields -->
+      <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px;">
+        <div style="font-size: 11pt; color: #1e40af; font-weight: 700; margin-bottom: 6px;">2. Fields Section</div>
+        <div style="font-size: 9pt; color: #64748b; margin-bottom: 8px;">ฟิลด์อิสระ — admin กำหนดเอง</div>
+        <div style="background: #f8fafc; padding: 8px; border-radius: 4px; font-size: 8.5pt;">
+          <b>Configuration:</b> array of fields · grid layout (1-4 cols)<br>
+          <b>JSON:</b> <code style="background: #1e293b; color: #93c5fd; padding: 0 4px;">{ type: 'fields', cols: 3, fields: [{lbl, type, required}] }</code>
+        </div>
+      </div>
+
+      <!-- 3. Choices -->
+      <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px;">
+        <div style="font-size: 11pt; color: #1e40af; font-weight: 700; margin-bottom: 6px;">3. Choices Section</div>
+        <div style="font-size: 9pt; color: #64748b; margin-bottom: 8px;">checkbox/radio list · ใช้กับประเภท/เงื่อนไข</div>
+        <div style="background: #f8fafc; padding: 8px; border-radius: 4px; font-size: 8.5pt;">
+          <b>Modes:</b> single (radio) · multi (checkbox) · yes-no<br>
+          <b>JSON:</b> <code style="background: #1e293b; color: #93c5fd; padding: 0 4px;">{ type: 'choices', mode: 'single', options: ['ลาป่วย','ลากิจ',...] }</code>
+        </div>
+      </div>
+
+      <!-- 4. Table -->
+      <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px;">
+        <div style="font-size: 11pt; color: #1e40af; font-weight: 700; margin-bottom: 6px;">4. Table Section</div>
+        <div style="font-size: 9pt; color: #64748b; margin-bottom: 8px;">ตาราง — ใช้กับ list items + calc</div>
+        <div style="background: #f8fafc; padding: 8px; border-radius: 4px; font-size: 8.5pt;">
+          <b>Features:</b> dynamic rows · auto-calc (subtotal, VAT, total) · running number<br>
+          <b>JSON:</b> <code style="background: #1e293b; color: #93c5fd; padding: 0 4px;">{ type: 'table', columns: [...], rowCount: 10, calc: {vat: 7} }</code>
+        </div>
+      </div>
+
+      <!-- 5. Paragraph -->
+      <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px;">
+        <div style="font-size: 11pt; color: #1e40af; font-weight: 700; margin-bottom: 6px;">5. Paragraph Section</div>
+        <div style="font-size: 9pt; color: #64748b; margin-bottom: 8px;">ข้อความคงที่ — closing, terms, instructions</div>
+        <div style="background: #f8fafc; padding: 8px; border-radius: 4px; font-size: 8.5pt;">
+          <b>Use case:</b> "จึงเรียนมาเพื่อ..." · "ข้าพเจ้ายืนยันว่า..." · เงื่อนไข<br>
+          <b>JSON:</b> <code style="background: #1e293b; color: #93c5fd; padding: 0 4px;">{ type: 'paragraph', text: '...', style: 'normal'|'italic'|'bold' }</code>
+        </div>
+      </div>
+
+      <!-- 6. Signature -->
+      <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px;">
+        <div style="font-size: 11pt; color: #1e40af; font-weight: 700; margin-bottom: 6px;">6. Signature Section</div>
+        <div style="font-size: 9pt; color: #64748b; margin-bottom: 8px;">ช่องลงนาม · 1-4 ฝ่าย</div>
+        <div style="background: #f8fafc; padding: 8px; border-radius: 4px; font-size: 8.5pt;">
+          <b>Roles:</b> ผู้ยื่น · หัวหน้างาน · HR · ผู้รับเอกสาร · พยาน<br>
+          <b>JSON:</b> <code style="background: #1e293b; color: #93c5fd; padding: 0 4px;">{ type: 'signature', signers: [{role, includeApproval}] }</code>
+        </div>
+      </div>
+
+      <!-- 7. Attachment List -->
+      <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px; grid-column: span 2;">
+        <div style="font-size: 11pt; color: #1e40af; font-weight: 700; margin-bottom: 6px;">7. Attachment List Section</div>
+        <div style="font-size: 9pt; color: #64748b; margin-bottom: 8px;">รายการเอกสารแนบ · checklist + "อื่นๆ" line</div>
+        <div style="background: #f8fafc; padding: 8px; border-radius: 4px; font-size: 8.5pt;">
+          <b>Features:</b> pre-defined items + free-text last option<br>
+          <b>JSON:</b> <code style="background: #1e293b; color: #93c5fd; padding: 0 4px;">{ type: 'attachment-list', items: ['ใบรับรองแพทย์', 'สำเนาบัตร'], includeOther: true }</code>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="margin-top: 18px;">
+      <div style="background: #fef3c7; padding: 14px 18px; border-radius: 6px;">
+        <h3 style="font-size: 11pt; color: #92400e; margin-bottom: 8px;">💡 หลักการ Layout — สำหรับ Thai-eye</h3>
+        <table style="width: 100%; font-size: 9.5pt; line-height: 1.7;">
+          <tr><td style="padding: 3px 0; width: 130px;"><b>ภาษา:</b></td><td>ใช้ Sarabun 11pt body / 16pt heading · spacing แน่น (line-height 1.7)</td></tr>
+          <tr><td style="padding: 3px 0;"><b>สี:</b></td><td>หลัก = น้ำเงิน <code style="background: #1e40af; color: #fff; padding: 0 4px;">#1e40af</code> · contrast สูง · เห็นจาก photocopy ได้</td></tr>
+          <tr><td style="padding: 3px 0;"><b>ช่องว่าง:</b></td><td>ช่องเขียนสูง ≥24px · ตารางสูง ≥28px · เผื่อเขียนด้วยปากกาเส้นใหญ่</td></tr>
+          <tr><td style="padding: 3px 0;"><b>วันที่:</b></td><td>__/__/____ (พ.ศ. default) · ขนาดช่องเท่ากัน</td></tr>
+          <tr><td style="padding: 3px 0;"><b>ลายเซ็น:</b></td><td>เส้น dotted ยาว ≥120px · "(ลงชื่อ ...)" ใต้เส้น · ตำแหน่งใต้ชื่อ</td></tr>
+          <tr><td style="padding: 3px 0;"><b>Margin:</b></td><td>top/bottom 25mm · left 30mm (เผื่อเย็บ) · right 20mm</td></tr>
+          <tr><td style="padding: 3px 0;"><b>Print:</b></td><td>A4 portrait default · A4 landscape สำหรับฟอร์มที่มี table กว้าง</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="annot">
+    <h4>Section Types (7 ตัว)</h4>
+    <table>
+      <tr><td><span class="badge b-new">ใหม่</span></td><td>7 section types ครอบฟอร์มไทยทั้งหมด</td></tr>
+      <tr><td><span class="badge b-shared">shared</span></td><td>3 ตัว shared กับ Checklist: paragraph, attachment-list, divider</td></tr>
+      <tr><td><span class="badge b-new">ใหม่</span></td><td>4 ตัวใหม่: identity, fields, choices, table, signature</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ==================== PAGE 7: ADMIN WIZARD UI ==================== -->
+<div class="page">
+  <div>
+    <div class="page-no">หน้า 7 / 8 · ADMIN WIZARD</div>
+    <div class="page-title">⚙️ Admin Wizard — สร้าง Form Template <span class="meta">UI ที่ admin ใช้</span></div>
+
+    <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 18px; background: #fff;">
+      <!-- Step indicator -->
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 14px;">
+        <div style="background: #1e40af; color: #fff; padding: 8px 10px; border-radius: 4px; font-size: 9pt; text-align: center;"><b>1.</b> ข้อมูลพื้นฐาน</div>
+        <div style="background: #dbeafe; color: #1e40af; padding: 8px 10px; border-radius: 4px; font-size: 9pt; text-align: center;"><b>2.</b> Header + Title</div>
+        <div style="background: #dbeafe; color: #1e40af; padding: 8px 10px; border-radius: 4px; font-size: 9pt; text-align: center;"><b>3.</b> Section Builder</div>
+        <div style="background: #dbeafe; color: #1e40af; padding: 8px 10px; border-radius: 4px; font-size: 9pt; text-align: center;"><b>4.</b> Preview + Save</div>
+      </div>
+
+      <!-- Step 1 fields -->
+      <div style="margin-bottom: 14px;">
+        <h4 style="font-size: 11pt; color: #1e40af; margin-bottom: 8px;">Step 1: ข้อมูลพื้นฐาน</h4>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="field">
+            <div class="lbl">ชื่อ Template</div>
+            <div style="border: 1px solid #94a3b8; padding: 6px 10px; border-radius: 4px; background: #f8fafc;">ใบลา (Leave Form)</div>
+          </div>
+          <div class="field">
+            <div class="lbl">หมวดหมู่</div>
+            <div style="border: 1px solid #94a3b8; padding: 6px 10px; border-radius: 4px; background: #f8fafc;">HR · บริษัท</div>
+          </div>
+          <div class="field">
+            <div class="lbl">รหัสฟอร์ม</div>
+            <div style="border: 1px solid #94a3b8; padding: 6px 10px; border-radius: 4px; background: #f8fafc; font-family: monospace;">FORM-LEAVE-V1.0 (auto)</div>
+          </div>
+          <div class="field">
+            <div class="lbl">ราคา / Tier</div>
+            <div style="border: 1px solid #94a3b8; padding: 6px 10px; border-radius: 4px; background: #f8fafc;">฿20 (Standard)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section builder -->
+      <div style="margin-bottom: 14px;">
+        <h4 style="font-size: 11pt; color: #1e40af; margin-bottom: 8px;">Step 3: Section Builder (drag-drop)</h4>
+        <div style="background: #f1f5f9; padding: 12px; border-radius: 6px;">
+
+          <!-- Existing sections -->
+          <div style="background: #fff; border-left: 4px solid #1e40af; padding: 10px 14px; margin-bottom: 8px; border-radius: 4px; display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;">
+            <div>
+              <div style="font-size: 9.5pt; font-weight: 700;">🪪 Section 1: ข้อมูลผู้ลา <span style="background: #dbeafe; color: #1e40af; padding: 1px 6px; border-radius: 3px; font-size: 8pt;">identity</span></div>
+              <div style="font-size: 8.5pt; color: #64748b; margin-top: 3px;">7 fields: คำนำหน้า · ชื่อ · ตำแหน่ง · แผนก · รหัส · เบอร์ · หัวหน้า</div>
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <button style="background: #f59e0b; color: #fff; border: none; padding: 4px 10px; border-radius: 3px; font-size: 8pt; cursor: pointer;">แก้ไข</button>
+              <button style="background: #dc2626; color: #fff; border: none; padding: 4px 10px; border-radius: 3px; font-size: 8pt; cursor: pointer;">ลบ</button>
+              <span style="cursor: move; color: #94a3b8; padding: 4px;">⋮⋮</span>
+            </div>
+          </div>
+
+          <div style="background: #fff; border-left: 4px solid #1e40af; padding: 10px 14px; margin-bottom: 8px; border-radius: 4px; display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;">
+            <div>
+              <div style="font-size: 9.5pt; font-weight: 700;">⚪ Section 2: ประเภทการลา <span style="background: #dbeafe; color: #1e40af; padding: 1px 6px; border-radius: 3px; font-size: 8pt;">choices (single)</span></div>
+              <div style="font-size: 8.5pt; color: #64748b; margin-top: 3px;">6 options: ลาป่วย · ลากิจ · ลาพักร้อน · ลาคลอด · ลาบวช · อื่นๆ</div>
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <button style="background: #f59e0b; color: #fff; border: none; padding: 4px 10px; border-radius: 3px; font-size: 8pt; cursor: pointer;">แก้ไข</button>
+              <button style="background: #dc2626; color: #fff; border: none; padding: 4px 10px; border-radius: 3px; font-size: 8pt; cursor: pointer;">ลบ</button>
+              <span style="cursor: move; color: #94a3b8; padding: 4px;">⋮⋮</span>
+            </div>
+          </div>
+
+          <div style="background: #fff; border-left: 4px solid #1e40af; padding: 10px 14px; margin-bottom: 8px; border-radius: 4px; display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;">
+            <div>
+              <div style="font-size: 9.5pt; font-weight: 700;">📝 Section 3: รายละเอียดการลา <span style="background: #dbeafe; color: #1e40af; padding: 1px 6px; border-radius: 3px; font-size: 8pt;">fields</span></div>
+              <div style="font-size: 8.5pt; color: #64748b; margin-top: 3px;">5 fields: ตั้งแต่ · ถึง · รวม · เหตุผล · ที่อยู่ติดต่อ · ผู้ทำงานแทน</div>
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <button style="background: #f59e0b; color: #fff; border: none; padding: 4px 10px; border-radius: 3px; font-size: 8pt; cursor: pointer;">แก้ไข</button>
+              <button style="background: #dc2626; color: #fff; border: none; padding: 4px 10px; border-radius: 3px; font-size: 8pt; cursor: pointer;">ลบ</button>
+              <span style="cursor: move; color: #94a3b8; padding: 4px;">⋮⋮</span>
+            </div>
+          </div>
+
+          <div style="background: #fff; border-left: 4px solid #1e40af; padding: 10px 14px; margin-bottom: 8px; border-radius: 4px; display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;">
+            <div>
+              <div style="font-size: 9.5pt; font-weight: 700;">📎 Section 4: เอกสารแนบ <span style="background: #dbeafe; color: #1e40af; padding: 1px 6px; border-radius: 3px; font-size: 8pt;">attachment-list</span></div>
+              <div style="font-size: 8.5pt; color: #64748b; margin-top: 3px;">3 items: ใบรับรองแพทย์ · มอบหมายงาน · อื่นๆ</div>
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <button style="background: #f59e0b; color: #fff; border: none; padding: 4px 10px; border-radius: 3px; font-size: 8pt; cursor: pointer;">แก้ไข</button>
+              <button style="background: #dc2626; color: #fff; border: none; padding: 4px 10px; border-radius: 3px; font-size: 8pt; cursor: pointer;">ลบ</button>
+              <span style="cursor: move; color: #94a3b8; padding: 4px;">⋮⋮</span>
+            </div>
+          </div>
+
+          <div style="background: #fff; border-left: 4px solid #1e40af; padding: 10px 14px; margin-bottom: 8px; border-radius: 4px; display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;">
+            <div>
+              <div style="font-size: 9.5pt; font-weight: 700;">✍️ Section 5: ลงนาม <span style="background: #dbeafe; color: #1e40af; padding: 1px 6px; border-radius: 3px; font-size: 8pt;">signature (3 ฝ่าย)</span></div>
+              <div style="font-size: 8.5pt; color: #64748b; margin-top: 3px;">ผู้ยื่น · หัวหน้างาน (อนุมัติ Y/N) · HR (อนุมัติ Y/N)</div>
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <button style="background: #f59e0b; color: #fff; border: none; padding: 4px 10px; border-radius: 3px; font-size: 8pt; cursor: pointer;">แก้ไข</button>
+              <button style="background: #dc2626; color: #fff; border: none; padding: 4px 10px; border-radius: 3px; font-size: 8pt; cursor: pointer;">ลบ</button>
+              <span style="cursor: move; color: #94a3b8; padding: 4px;">⋮⋮</span>
+            </div>
+          </div>
+
+          <!-- Add new -->
+          <button style="width: 100%; background: #dbeafe; color: #1e40af; border: 2px dashed #1e40af; padding: 14px; border-radius: 6px; font-size: 11pt; font-weight: 700; cursor: pointer;">+ เพิ่ม Section</button>
+        </div>
+      </div>
+
+      <!-- Section type picker (popup) -->
+      <div style="margin-top: 14px;">
+        <h4 style="font-size: 10pt; color: #1e40af; margin-bottom: 6px;">เมื่อกด "เพิ่ม Section" — popup เลือกประเภท</h4>
+        <div style="background: #f1f5f9; padding: 12px; border-radius: 6px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+          <div style="background: #fff; border: 1px solid #cbd5e1; padding: 10px; border-radius: 4px; text-align: center; cursor: pointer;">
+            <div style="font-size: 16pt;">🪪</div>
+            <div style="font-size: 9pt; font-weight: 700; margin-top: 4px;">Identity</div>
+            <div style="font-size: 8pt; color: #64748b;">ข้อมูลผู้กรอก</div>
+          </div>
+          <div style="background: #fff; border: 1px solid #cbd5e1; padding: 10px; border-radius: 4px; text-align: center; cursor: pointer;">
+            <div style="font-size: 16pt;">📝</div>
+            <div style="font-size: 9pt; font-weight: 700; margin-top: 4px;">Fields</div>
+            <div style="font-size: 8pt; color: #64748b;">ฟิลด์อิสระ</div>
+          </div>
+          <div style="background: #fff; border: 1px solid #cbd5e1; padding: 10px; border-radius: 4px; text-align: center; cursor: pointer;">
+            <div style="font-size: 16pt;">⚪</div>
+            <div style="font-size: 9pt; font-weight: 700; margin-top: 4px;">Choices</div>
+            <div style="font-size: 8pt; color: #64748b;">radio/checkbox</div>
+          </div>
+          <div style="background: #fff; border: 1px solid #cbd5e1; padding: 10px; border-radius: 4px; text-align: center; cursor: pointer;">
+            <div style="font-size: 16pt;">📊</div>
+            <div style="font-size: 9pt; font-weight: 700; margin-top: 4px;">Table</div>
+            <div style="font-size: 8pt; color: #64748b;">ตารางข้อมูล</div>
+          </div>
+          <div style="background: #fff; border: 1px solid #cbd5e1; padding: 10px; border-radius: 4px; text-align: center; cursor: pointer;">
+            <div style="font-size: 16pt;">📜</div>
+            <div style="font-size: 9pt; font-weight: 700; margin-top: 4px;">Paragraph</div>
+            <div style="font-size: 8pt; color: #64748b;">ข้อความคงที่</div>
+          </div>
+          <div style="background: #fff; border: 1px solid #cbd5e1; padding: 10px; border-radius: 4px; text-align: center; cursor: pointer;">
+            <div style="font-size: 16pt;">✍️</div>
+            <div style="font-size: 9pt; font-weight: 700; margin-top: 4px;">Signature</div>
+            <div style="font-size: 8pt; color: #64748b;">ลงนาม</div>
+          </div>
+          <div style="background: #fff; border: 1px solid #cbd5e1; padding: 10px; border-radius: 4px; text-align: center; cursor: pointer;">
+            <div style="font-size: 16pt;">📎</div>
+            <div style="font-size: 9pt; font-weight: 700; margin-top: 4px;">Attachments</div>
+            <div style="font-size: 8pt; color: #64748b;">เอกสารแนบ</div>
+          </div>
+          <div style="background: #fff; border: 1px solid #cbd5e1; padding: 10px; border-radius: 4px; text-align: center; cursor: pointer;">
+            <div style="font-size: 16pt;">➖</div>
+            <div style="font-size: 9pt; font-weight: 700; margin-top: 4px;">Divider</div>
+            <div style="font-size: 8pt; color: #64748b;">เส้นแบ่ง</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preset library -->
+      <div style="margin-top: 14px; background: #fef3c7; padding: 12px 14px; border-radius: 6px;">
+        <h4 style="font-size: 10pt; color: #92400e; margin-bottom: 6px;">💡 Preset Library — สร้างได้ในคลิกเดียว</h4>
+        <div style="font-size: 9pt; color: #92400e;">
+          แทนที่ admin จะสร้างจาก scratch · ให้มี <b>preset templates</b> 10-20 ตัว: ใบลา · ใบสมัครงาน · ใบเสนอราคา · ใบสั่งซื้อ · ใบเสร็จ · ใบมอบฉันทะ · ใบรับรอง · ใบยินยอม · ฯลฯ<br>
+          → admin เลือก preset → แก้ field ที่อยากปรับ → save เป็น template ใหม่
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="annot">
+    <h4>Admin Wizard (หน้า 7)</h4>
+    <table>
+      <tr><td><span class="badge b-new">ใหม่</span></td><td>4-step wizard — ตรงกับ Planner/Checklist UX</td></tr>
+      <tr><td><span class="badge b-new">ใหม่</span></td><td><b>Section builder</b> — drag-drop reorder · edit/delete buttons</td></tr>
+      <tr><td><span class="badge b-new">ใหม่</span></td><td><b>Preset library</b> — 10-20 templates ที่ admin สร้างไว้ก่อน</td></tr>
+      <tr><td><span class="badge b-shared">shared</span></td><td>Reuse <code>WizardClient</code> pattern จาก Planner/Checklist</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ==================== PAGE 8: SCHEMA SPEC ==================== -->
+<div class="page">
+  <div>
+    <div class="page-no">หน้า 8 / 8 · SCHEMA SPEC</div>
+    <div class="page-title">🗂 FormEngineData Schema <span class="meta">final spec สำหรับ implementation</span></div>
+
+    <div style="background: #0f172a; padding: 18px; border-radius: 6px; color: #93c5fd; font-family: monospace; font-size: 8.5pt; line-height: 1.7; white-space: pre-wrap; overflow-x: auto;">
+<span style="color: #94a3b8;">// lib/engine-types.ts — เพิ่ม FormEngineData</span>
+
+<span style="color: #f97316;">export type</span> <span style="color: #fbbf24;">FormEngineData</span> = {
+  <span style="color: #94a3b8;">// === Meta (top-level) ===</span>
+  meta: {
+    schemaVersion: <span style="color: #d1d5db;">'1.0'</span>
+    formCode: <span style="color: #d1d5db;">string</span>              <span style="color: #94a3b8;">// e.g. 'FORM-LEAVE-V1.0'</span>
+    formTitle: <span style="color: #d1d5db;">{ th: string, en?: string }</span>
+    formCategory: <span style="color: #d1d5db;">string</span>            <span style="color: #94a3b8;">// 'HR' | 'Business' | 'Personal' | 'Government'</span>
+    pageSize: <span style="color: #d1d5db;">'A4' | 'A5' | 'Letter'</span>
+    orientation: <span style="color: #d1d5db;">'portrait' | 'landscape'</span>
+    colorTheme: <span style="color: #d1d5db;">'blue' | 'navy' | 'green' | 'purple'</span>
+    yearMode: <span style="color: #d1d5db;">'buddhist' | 'gregorian'</span>
+    extras?: <span style="color: #d1d5db;">Record&lt;string, unknown&gt;</span>  <span style="color: #94a3b8;">// escape hatch</span>
+  }
+
+  <span style="color: #94a3b8;">// === Header (top of every page) ===</span>
+  header: {
+    showLogo: <span style="color: #d1d5db;">boolean</span>
+    orgName?: <span style="color: #d1d5db;">string</span>             <span style="color: #94a3b8;">// "บริษัท __________ จำกัด"</span>
+    deptName?: <span style="color: #d1d5db;">string</span>
+    docNumber?: <span style="color: #d1d5db;">{ label: string, placeholder?: string }</span>  <span style="color: #94a3b8;">// "ที่ ____"</span>
+    issueDate: <span style="color: #d1d5db;">boolean</span>          <span style="color: #94a3b8;">// แสดงช่องวันที่</span>
+  }
+
+  <span style="color: #94a3b8;">// === Subject (เรียน / เรื่อง) ===</span>
+  subject?: {
+    toLabel?: <span style="color: #d1d5db;">string</span>            <span style="color: #94a3b8;">// "เรียน"</span>
+    toDefault?: <span style="color: #d1d5db;">string</span>          <span style="color: #94a3b8;">// "ผู้จัดการฝ่ายบุคคล"</span>
+    subjectLabel?: <span style="color: #d1d5db;">string</span>       <span style="color: #94a3b8;">// "เรื่อง"</span>
+    subjectDefault?: <span style="color: #d1d5db;">string</span>     <span style="color: #94a3b8;">// "ขออนุญาตลา"</span>
+  }
+
+  <span style="color: #94a3b8;">// === Body Sections (1-N) ===</span>
+  sections: <span style="color: #d1d5db;">FormSection[]</span>
+
+  <span style="color: #94a3b8;">// === Closing ===</span>
+  closing?: {
+    text: <span style="color: #d1d5db;">string</span>                <span style="color: #94a3b8;">// "จึงเรียนมาเพื่อโปรดพิจารณา"</span>
+    style: <span style="color: #d1d5db;">'normal' | 'italic'</span>
+  }
+
+  <span style="color: #94a3b8;">// === Signature Block ===</span>
+  signatures: <span style="color: #d1d5db;">FormSignatureBlock</span>
+
+  <span style="color: #94a3b8;">// === Footer ===</span>
+  footer: {
+    showFormCode: <span style="color: #d1d5db;">boolean</span>
+    showPageNumber: <span style="color: #d1d5db;">boolean</span>
+    showBrand: <span style="color: #d1d5db;">boolean</span>          <span style="color: #94a3b8;">// "planprom.com"</span>
+    customText?: <span style="color: #d1d5db;">string</span>
+  }
+}
+
+<span style="color: #f97316;">export type</span> <span style="color: #fbbf24;">FormSection</span> =
+  | { type: <span style="color: #d1d5db;">'identity'</span>, title?: <span style="color: #d1d5db;">string</span>, preset: <span style="color: #d1d5db;">'employee'|'customer'|'student'|'custom'</span>, fields?: <span style="color: #d1d5db;">FormField[]</span> }
+  | { type: <span style="color: #d1d5db;">'fields'</span>, title?: <span style="color: #d1d5db;">string</span>, cols: <span style="color: #d1d5db;">1|2|3|4</span>, fields: <span style="color: #d1d5db;">FormField[]</span> }
+  | { type: <span style="color: #d1d5db;">'choices'</span>, title?: <span style="color: #d1d5db;">string</span>, mode: <span style="color: #d1d5db;">'single'|'multi'|'yes-no'</span>, options: <span style="color: #d1d5db;">string[]</span>, includeOther?: <span style="color: #d1d5db;">boolean</span> }
+  | { type: <span style="color: #d1d5db;">'table'</span>, title?: <span style="color: #d1d5db;">string</span>, columns: <span style="color: #d1d5db;">TableColumn[]</span>, rowCount: <span style="color: #d1d5db;">number</span>, calc?: <span style="color: #d1d5db;">TableCalc</span> }
+  | { type: <span style="color: #d1d5db;">'paragraph'</span>, text: <span style="color: #d1d5db;">string</span>, style?: <span style="color: #d1d5db;">'normal'|'italic'|'bold'</span> }
+  | { type: <span style="color: #d1d5db;">'attachment-list'</span>, title?: <span style="color: #d1d5db;">string</span>, items: <span style="color: #d1d5db;">string[]</span>, includeOther?: <span style="color: #d1d5db;">boolean</span> }
+  | { type: <span style="color: #d1d5db;">'divider'</span>, label?: <span style="color: #d1d5db;">string</span> }
+
+<span style="color: #f97316;">export type</span> <span style="color: #fbbf24;">FormField</span> = {
+  lbl: <span style="color: #d1d5db;">string</span>
+  type: <span style="color: #d1d5db;">'text' | 'textarea' | 'number' | 'money' | 'date-be' | 'date-greg'
+    | 'time' | 'phone' | 'email' | 'idcard' | 'address-th' | 'license-th'
+    | 'radio' | 'checkbox' | 'select' | 'yes-no' | 'currency-rate' | 'static-text'</span>
+  required?: <span style="color: #d1d5db;">boolean</span>
+  options?: <span style="color: #d1d5db;">string[]</span>              <span style="color: #94a3b8;">// for radio/checkbox/select</span>
+  placeholder?: <span style="color: #d1d5db;">string</span>
+  helper?: <span style="color: #d1d5db;">string</span>                  <span style="color: #94a3b8;">// hint text under field</span>
+  defaultValue?: <span style="color: #d1d5db;">string</span>
+  colSpan?: <span style="color: #d1d5db;">1|2|3|4</span>                <span style="color: #94a3b8;">// span ใน grid</span>
+}
+
+<span style="color: #f97316;">export type</span> <span style="color: #fbbf24;">FormSignatureBlock</span> = {
+  cols: <span style="color: #d1d5db;">1|2|3|4</span>
+  signers: <span style="color: #d1d5db;">{
+    roleTag: string</span>           <span style="color: #94a3b8;">// "ผู้ยื่น", "หัวหน้างาน", "HR"</span>
+    <span style="color: #d1d5db;">positionLabel?: string</span>   <span style="color: #94a3b8;">// "ผู้จัดการฝ่ายบุคคล"</span>
+    <span style="color: #d1d5db;">includeApproval?: boolean</span>  <span style="color: #94a3b8;">// แสดง อนุมัติ/ไม่อนุมัติ</span>
+    <span style="color: #d1d5db;">includeDate?: boolean
+  }[]</span>
+}
+    </div>
+  </div>
+  <div class="annot">
+    <h4>Schema Spec</h4>
+    <table>
+      <tr><td><span class="badge b-new">ใหม่</span></td><td><b>FormEngineData</b> + 4 sub-types</td></tr>
+      <tr><td><span class="badge b-new">ใหม่</span></td><td><b>20 field types</b> + <b>7 section types</b></td></tr>
+      <tr><td><span class="badge b-shared">shared</span></td><td>Pattern <code>meta.schemaVersion + extras</code> เหมือน Planner v2</td></tr>
+      <tr><td><span class="badge b-new">ใหม่</span></td><td><code>migration: 20260512_form_engine.sql</code></td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ==================== FOOTER ==================== -->
+<div class="footer-spec">
+  <h3>📋 Implementation Roadmap — สำหรับ Claude Code</h3>
+
+  <table style="margin-top: 12px;">
+    <tr><th style="width: 60px;">Phase</th><th style="width: 200px;">Task</th><th style="width: 90px;">Effort</th><th>Output</th></tr>
+
+    <tr><td><b>1</b></td><td>Schema + types</td><td>0.5 วัน</td><td><code class="code">FormEngineData</code> ใน <code class="code">lib/engine-types.ts</code> + migration เพิ่ม <code class="code">engine_type</code> enum</td></tr>
+
+    <tr><td><b>2</b></td><td>Generator (PDF)</td><td>2-3 วัน</td><td><code class="code">lib/engine-form.ts</code> — render 7 section types + 20 field types → HTML → PDF</td></tr>
+
+    <tr><td><b>3</b></td><td>Admin Wizard</td><td>2 วัน</td><td><code class="code">app/admin/templates/new/FormEngineForm.tsx</code> — 4-step wizard + section builder + drag-drop</td></tr>
+
+    <tr><td><b>4</b></td><td>Preset Library</td><td>1-2 วัน</td><td>10 preset templates: ใบลา · ใบสมัครงาน · ใบเสนอราคา · ใบสั่งซื้อ · ใบเสร็จ · ใบมอบฉันทะ · ใบรับรอง · ใบยินยอม · ใบเบิกของ · ใบแจ้งหนี้</td></tr>
+
+    <tr><td><b>5</b></td><td>Public preview</td><td>1 วัน</td><td>หน้า <code class="code">/templates/[slug]</code> ปรับ render สำหรับ form (preview thumbnail)</td></tr>
+
+    <tr><td><b>6</b></td><td>Catalog filter</td><td>0.5 วัน</td><td>เพิ่ม filter chip "Forms" ใน <code class="code">/templates</code> · เพิ่มหมวด: HR, Business, Personal, Gov</td></tr>
+
+    <tr><td><b>7</b></td><td>UAT</td><td>1 วัน</td><td>ทดสอบ render 10 preset · print test · feedback admin</td></tr>
+  </table>
+
+  <div style="margin-top: 16px; padding: 12px; background: #1e293b; border-radius: 4px; font-size: 9pt; color: #93c5fd; line-height: 1.6;">
+    <b style="color: #fbbf24;">🎯 Total: ~8-10 วัน · ขายได้ 10 template ในรอบแรก @ ฿20-50 = ตลาด ฿200-500 ต่อ template × 100 user = ฿20,000-50,000 ต่อ template</b><br>
+    <b style="color: #fbbf24;">💡 Cumulative revenue:</b> Form Engine ขายดีกว่า Planner เพราะ <b>(1) ตลาดใหญ่กว่า — ฟอร์มไทยเป็นพันแบบ</b> · <b>(2) buy intent สูงกว่า — user ต้องการตอนนี้ ไม่ต้องวางแผน</b> · <b>(3) repeat purchase — บริษัทใช้หลายฟอร์ม</b>
+  </div>
+
+  <div style="margin-top: 14px; padding: 12px; background: #422006; border-radius: 4px; font-size: 9pt; color: #fed7aa; line-height: 1.6;">
+    <b style="color: #fbbf24;">⚠️ Risk + ข้อระวัง:</b><br>
+    1. <b>Legal compliance</b> — ใบกำกับภาษี/ใบเสร็จต้องตรงตาม spec กรมสรรพากร · ใบสำคัญรับเงินต้องมี VAT format ถูกต้อง<br>
+    2. <b>Trademark</b> — ห้ามใช้ตราของหน่วยงาน (เช่น ตราครุฑ, ตราโรงเรียน) ใน template ขาย<br>
+    3. <b>Standard variations</b> — บริษัทแต่ละที่มี header ของตัวเอง → template ต้องเป็น "blank skeleton" ไม่ใช่ "completed form"<br>
+    4. <b>Font + print quality</b> — Form ส่งเข้าหน่วยงานราชการ → ต้อง print ได้ชัด · scan ได้ดี<br>
+    5. <b>Buddhist year</b> — default พ.ศ. แต่ต้อง toggle ได้ (บางฟอร์มต้อง ค.ศ.)<br>
+  </div>
+</div>
+
+<div style="text-align: center; margin-top: 30px; padding: 18px; color: #64748b; font-size: 9pt;">
+  📋 Form Engine — Mockup Spec · planprom.com · generated 2026-05-11<br>
+  <span style="font-size: 8pt; color: #94a3b8;">Engine ตัวที่ 3 ของ planprom — เสริม Checklist + Planner เพื่อขยายตลาด</span>
+</div>
+
+</div>
+</body>
+</html>
