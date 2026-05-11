@@ -8,12 +8,11 @@ interface Props {
   token: string
   orderNumber: string
   title: string
-  templateSlug: string
   remaining: number
   expiresAt: string
 }
 
-export default function DownloadClient({ token, orderNumber, title, templateSlug, remaining, expiresAt }: Props) {
+export default function DownloadClient({ token, orderNumber, title, remaining, expiresAt }: Props) {
   const router = useRouter()
   const [state, setState] = useState<'idle' | 'downloading' | 'done' | 'error'>('idle')
   const [errMsg, setErrMsg] = useState('')
@@ -55,10 +54,6 @@ export default function DownloadClient({ token, orderNumber, title, templateSlug
     }
   }
 
-  const shareText = encodeURIComponent(`ซื้อ ${title} จาก แพลนพร้อม — เช็คทุกขั้น แพลนทุกวัน ง่ายทุกงานวางแผน`)
-  const shareUrl  = encodeURIComponent(`https://planprom.com/templates/${templateSlug}`)
-  const lineShareUrl = `https://social-plugins.line.me/lineit/share?url=${shareUrl}&text=${shareText}`
-
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow p-8 max-w-sm w-full text-center space-y-5">
@@ -97,17 +92,6 @@ export default function DownloadClient({ token, orderNumber, title, templateSlug
           >
             📋 ดูประวัติการสั่งซื้อ
           </Link>
-        )}
-
-        {(state === 'done' || remaining <= 2) && (
-          <a
-            href={lineShareUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full py-3 bg-[#06C755] hover:bg-green-500 text-white font-bold rounded-xl transition"
-          >
-            <span className="text-lg">💬</span> แชร์ให้เพื่อนทาง LINE
-          </a>
         )}
 
         <p className="text-xs text-gray-400">

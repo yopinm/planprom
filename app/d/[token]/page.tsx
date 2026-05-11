@@ -53,8 +53,7 @@ export default async function DownloadPage({ params }: Props) {
       token={token}
       orderNumber={row.order_number}
       title={row.title}
-      templateSlug={row.template_slug}
-      remaining={remaining}
+remaining={remaining}
       expiresAt={row.download_expires_at}
     />
   )
