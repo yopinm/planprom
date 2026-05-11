@@ -142,6 +142,7 @@ export default async function HomePage(): Promise<ReactElement> {
                   <p className="text-[11px] text-neutral-400">/ชิ้น</p>
                 </div>
                 <div className="relative flex flex-col items-center bg-emerald-50 px-3 py-4">
+                  <span className="absolute left-1.5 top-1.5 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[9px] font-black text-emerald-700">2–5 ชิ้น</span>
                   <span className="absolute right-1.5 top-1.5 rounded-full bg-emerald-500 px-1.5 py-0.5 text-[9px] font-black text-white">-50%</span>
                   <p className="text-[10px] font-black uppercase tracking-wider text-emerald-600">ครึ่งราคา</p>
                   <p className="mt-1 text-2xl font-black text-emerald-700">฿{PRICE_TIERS.TIER_2}</p>
