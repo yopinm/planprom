@@ -29,10 +29,10 @@
 | **Doc Sync** | task เสร็จ → อัพเดต PRD.md + `core/planprom.md` เสมอ |
 | **Scope Gate** | ก่อนเริ่ม implement ทุก task → ต้องมี scope + flow ใน `core/planprom.md` ก่อน → commit docs → รอ owner confirm → ค่อย implement |
 | **Blockers** | IA approved ✅ (Affiliate ID 1082367) · AT Datafeed ⏳ · Shopee API ⏳ · Lazada pool=49 fixed |
-| **Next task** | **HOME-FEAT-1** Featured Template Card / **J13** Customer Request Form |
-| **Pending (code)** | **7 tasks** — J13 · J14 · J17 · J19 · HOME-FEAT-1 · PROMO-1/2/3 · UI-G(defer) |
+| **Next task** | **J13** Customer Request Form / **PROMO-1** Promo Code |
+| **Pending (code)** | **6 tasks** — J13 · J14 · J17 · J19 · PROMO-1/2/3 · UI-G(defer) |
 | **Pending (UAT)** | **6 กลุ่ม** — DC-1 · DC-2 · DC-8(Planner⏳) · E9/E10 · J9(รอ live keys) · A–H(รอ owner test) |
-| **Last session** | **Session 46 (2026-05-11)** — ADMIN-CLEAN-2 ✅ · J11 free download ✅ · ลบปุ่ม LINE share ✅ |
+| **Last session** | **Session 47 (2026-05-11)** — HOME-FEAT-1 ✅ (Featured Card + modal preview + admin toggle) |
 | **ห้าม** | ไม่แตะ Later task ขณะที่ Now ยังค้างอยู่ · ไม่แตะ secrets โดยตรง · ไม่ทำให้ revenue channel หายไประหว่าง pivot |
 
 ---
@@ -181,7 +181,7 @@
 | 18 | **PROMO-1** Promo Code API + Checkout Integration | 🟡 Medium | 🔲 Planned |
 | 19 | **PROMO-2** PromoCodeBanner Homepage + Countdown | 🟡 Medium | 🔲 Planned |
 | 20 | **PROMO-3** Admin Promo Code CRUD | 🟡 Medium | 🔲 Planned |
-| 21 | **HOME-FEAT-1** Featured Template Card | 🟡 | 🔲 Planned |
+| 21 | **HOME-FEAT-1** Featured Template Card | 🟡 | ✅ Done · Live (Session 47) |
 
 ### Pending UAT (6 กลุ่ม — code พร้อม รอ owner test)
 
