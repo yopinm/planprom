@@ -165,7 +165,7 @@ export function generatePlannerHtml(data: PlannerEngineData, watermarkText?: str
       <div style="font-size:9pt;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Review &amp; Reflection (${p3.reviewCycle === 'both' ? 'รายสัปดาห์ + รายเดือน' : p3.reviewCycle === 'weekly' ? 'รายสัปดาห์' : 'รายเดือน'})</div>
       ${validReview.map(q=>`
         <div style="margin-bottom:8px">
-          <div style="font-size:10pt;font-weight:700;color:#374151;margin-bottom:2px">• ${esc(q)}</div>
+          <div style="font-size:10pt;font-weight:700;color:#374151;margin-bottom:2px;overflow-wrap:anywhere">• ${esc(q)}</div>
           ${lines(2,'22px')}
         </div>`).join('')}
     </div>` : ''
@@ -374,7 +374,7 @@ export function generatePlannerHtmlV2(data: PlannerEngineDataV2, watermarkText?:
   if (axis3) {
     const { days } = axis3.habitTracker
     const validHabits = axis3.habitTracker.habits.filter(h=>h.trim())
-    const nameColW = days <= 7 ? '100px' : '80px'
+    const nameColW = days <= 7 ? '120px' : '100px'
     const habitHtml = validHabits.length > 0 && days > 0 ? `
       <div class="sub">ตารางติดตามนิสัย (${days <= 7 ? 'รายสัปดาห์' : 'รายเดือน'})</div>
       <table style="width:100%;border-collapse:collapse;table-layout:fixed;font-size:7pt;margin-bottom:12px">
@@ -384,7 +384,7 @@ export function generatePlannerHtmlV2(data: PlannerEngineDataV2, watermarkText?:
           ${Array.from({length:days}).map((_,i)=>`<td style="padding:2px 1px;border:1px solid #e5e7eb;text-align:center;font-size:6pt;font-weight:700;color:${t.accent}">${i+1}</td>`).join('')}
         </tr>
         ${validHabits.map(h=>`<tr>
-          <td style="padding:3px 4px;border:1px solid #e5e7eb;font-size:8pt;font-weight:700;color:#374151;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${esc(h)}</td>
+          <td style="padding:3px 4px;border:1px solid #e5e7eb;font-size:8pt;font-weight:700;color:#374151;word-break:break-all;overflow-wrap:anywhere">${esc(h)}</td>
           ${Array.from({length:days}).map(()=>`<td style="border:1px solid #e5e7eb;height:22px"></td>`).join('')}
         </tr>`).join('')}
       </table>` : ''
@@ -417,7 +417,7 @@ export function generatePlannerHtmlV2(data: PlannerEngineDataV2, watermarkText?:
       <div class="sub" style="margin-top:10px">ทบทวนตัวเอง (${REVIEW_TH[axis3.reviewCycle] ?? axis3.reviewCycle})</div>
       ${validRQs.map(q=>`
         <div style="margin-bottom:8px">
-          <div style="font-size:10pt;font-weight:700;color:#374151;margin-bottom:2px">• ${esc(q)}</div>
+          <div style="font-size:10pt;font-weight:700;color:#374151;margin-bottom:2px;overflow-wrap:anywhere">• ${esc(q)}</div>
           ${lines(2,'22px')}
         </div>`).join('')}` : ''
 
@@ -510,7 +510,7 @@ export function generatePlannerHtmlV2(data: PlannerEngineDataV2, watermarkText?:
     <div class="sub" style="margin-top:10px">ทบทวนบทเรียน</div>
     ${validRQs5.map(q=>`
       <div style="margin-bottom:8px">
-        <div style="font-size:10pt;font-weight:700;color:#374151;margin-bottom:2px">• ${esc(q)}</div>
+        <div style="font-size:10pt;font-weight:700;color:#374151;margin-bottom:2px;overflow-wrap:anywhere">• ${esc(q)}</div>
         ${lines(2,'22px')}
       </div>`).join('')}` : ''
 
