@@ -356,9 +356,9 @@ ALTER TABLE orders ADD COLUMN discount_baht NUMERIC(10,2) NOT NULL DEFAULT 0;
 | ADMIN-TMPL-DEL-1 | **Template Archive + Hard Delete** | แยกปุ่ม "ซ่อน" (archived) / "ลบถาวร" (block ถ้ามี order) · `archiveTemplateAction` / `unarchiveTemplateAction` / `deleteTemplateAction` fix · `ArchiveTemplateButton` (NEW) · `DeleteTemplateButton` label → "ลบถาวร" · fix `router.refresh()` ทุก button | ✅ **Done · Live** (Session 40) |
 | ADMIN-TMPL-FORCE-1 | **Force Delete (pre-launch)** | ปุ่ม "Force ลบ" — cascade ลบทุก FK รวม order_items · confirm 2 ครั้ง · `forceDeleteTemplateAction` · `ForceDeleteTemplateButton` (NEW) | ✅ **Done · Live** (Session 40) |
 
-| DC-15 | **Planner Form UX — Label Redesign** | ปรับ label/placeholder ของ `ReviseClient.tsx` (PlannerReviseForm) + PDF section headers ให้เข้าใจง่ายสำหรับทุกระดับ · ไม่เปลี่ยน engine logic / DB / PDF structure · **เปลี่ยน ~20 field labels** ดังนี้: Section แกนที่1→"ภาพรวมและเป้าหมาย" / แกนที่2→"โครงสร้างหน้า" / แกนที่3→"สิ่งที่อยากติดตาม" / แกนที่4→"หน้าพิเศษเพิ่มเติม" · Fields: `framework` OKR→"รูปแบบการตั้งเป้าหมาย" (option: "วัดผลด้วยตัวเลขชัดเจน") · `bigRocks`→"เรื่องสำคัญที่ต้องทำให้สำเร็จก่อน" · `quarterlyThemes.keyActions`→"สิ่งที่จะทำเพื่อให้บรรลุธีมนี้" · `focusAreas`→"ด้านชีวิตที่อยากโฟกัส (เช่น สุขภาพ งาน ครอบครัว)" · `includeEisenhower`→"ตารางจัดลำดับงาน (เร่งด่วน vs สำคัญ)" · `habitNames`→"Habit ที่อยากทำทุกวัน (เช่น ออกกำลังกาย อ่านหนังสือ)" · `includeMoodTracker`→"บันทึกอารมณ์ประจำวัน" · `reviewCycle`→"ทบทวนตัวเองทุก..." · `reviewQuestions`→"คำถามสำหรับทบทวนตัวเอง" · `projectAreas`→"โปรเจกต์หรืองานที่กำลังดูแลอยู่" · `includeGratitudeJournal`→"หน้าจดสิ่งดีๆ ที่เกิดขึ้นในชีวิต" · `gratitudePrompts`→"คำถามชวนคิดสิ่งดีๆ" · `notesStyle` lined→"เส้นบรรทัด" dotgrid→"ตารางจุด" blank→"หน้าเปล่า" · `brainDumpPages`→"หน้าเทความคิดออกมา" · **Files:** `app/admin/templates/[id]/revise/ReviseClient.tsx` | 🔲 **Planned** — prerequisite ก่อน DC-8 UAT pass |
+| DC-15 | **Planner Engine v2 — Time-Aware Dynamic Form** | **SCOPE GATE (Session 42 · 2026-05-11)** — ยกระดับ Planner Engine ทั้งระบบ ไม่ใช่แค่ label · **Hard Rule:** field key names (OKR, SMART, yearly, expense, dotgrid ฯลฯ) ต้องไม่ปรากฏใน PDF เป็น text เด็ดขาด · **Planning Horizon** = master field ที่ cascade ทุก field ถัดไป (`'year' \| 'month' \| 'week' \| 'day'`) · **5 Axes:** SETUP invisible + Axis1 ทิศทาง/เป้าหมาย + Axis2 ตัดสินใจ/Big Rocks + Axis3 ติดตาม + Axis4 เช็คลิสต์ + Axis5 บันทึก/ทบทวน · **Cascade rules:** year→Q1-Q4 segments / habit 31d / review monthly / no diary · month→W-4→W-1 segments / habit 31d / review weekly / diary 7d · week→จ-อา segments / habit 7d / review daily · day→time-blocks / no habit · **Schema v2:** `PlannerEngineDataV2 = { meta: PlannerMeta, axis1: Axis1, axis2?: Axis2, axis3?: Axis3, axis4?: Axis4, axis5: Axis5, extras?: Record<string,unknown> }` · `meta` fields: schemaVersion / planningHorizon / timelineLength / colorTheme / coverPage / howToUse · **10 commits:** T0-1 Font fix (Sarabun display:block + Thai vowel range) · T0-2 displayTitle แยกจาก slug ใน PDF header/footer · T0-3 Validation guard reject `/^เพิ่ม.*/` `/^ทดสอบ.*/` `/^test.*/i` · T1 `PlannerEngineDataV2` type + defaults ใน `engine-types.ts` · T2 PlannerEngineForm v2 — Planning Horizon master field + useEffect cascade · T3 cascade fields — roadmap segments / habit days / review cycle / diary visibility adapt ตาม horizon · T4 `generatePlannerHtmlV2()` — cover / roadmap / goal+budget / axis3-5 ใน `engine-planner.ts` · T5 `generate-planner/route.ts` — v2 branch + Zod validation · T6 DB migration `schemaVersion` column + backfill existing rows → '1.0' · T7 `ReviseClient.tsx` rewrite + `/templates/[slug]` preview handle v2 · **FROZEN ห้ามแตะ:** `engine-checklist.ts` · `ChecklistEngineForm.tsx` · `generate-engine/route.ts` (checklist portion) · **Files:** `lib/engine-types.ts` · `lib/engine-planner.ts` · `app/admin/templates/new/PlannerEngineForm.tsx` · `app/admin/templates/[id]/revise/ReviseClient.tsx` · `app/api/admin/templates/generate-planner/route.ts` · `app/templates/[slug]/page.tsx` · `migrations/20260511_planner_schema_version.sql` | 🔲 **Planned (Session 42)** — Scope Gate Done · รอ owner confirm ก่อน implement |
 
-**ลำดับแนะนำ:** DC-3 ✅ → DC-4 ✅ → DC-5 ✅ → DC-6 ✅ → DC-7 ✅ → DC-9 ✅ → DC-10 ✅ → DC-11 ✅ → DC-13 ✅ → DC-14 ✅ · ADMIN-TMPL-DEL-1 ✅ · ADMIN-TMPL-FORCE-1 ✅ · DC-1/DC-2 🟡 UAT pending · DC-8/DC-12 🔲 planned (DC-15 prerequisite) · DC-15 🔲 planned · 2 engines more (TBD)
+**ลำดับแนะนำ:** DC-3 ✅ → DC-4 ✅ → DC-5 ✅ → DC-6 ✅ → DC-7 ✅ → DC-9 ✅ → DC-10 ✅ → DC-11 ✅ → DC-13 ✅ → DC-14 ✅ · ADMIN-TMPL-DEL-1 ✅ · ADMIN-TMPL-FORCE-1 ✅ · DC-1/DC-2 🟡 UAT pending · DC-15 🔲 Scope Gate Done (Session 42) · DC-8/DC-12 🔲 planned (หลัง DC-15) · 2 engines more (TBD)
 
 ---
 
@@ -382,6 +382,14 @@ ALTER TABLE orders ADD COLUMN discount_baht NUMERIC(10,2) NOT NULL DEFAULT 0;
 
 **Pending ideas (ยังไม่ทำ):**
 - **Smart Gap Finder** — expand Google Suggest 50–100 terms → filter เชิงพาณิชย์ → match กับ DB (มี/ไม่มี/มีแต่ 0 ยอด) → ranked opportunity table
+
+---
+
+## Session 42 Changes (2026-05-11) — DC-15 Scope Gate: Planner Engine v2
+
+| # | Change | Status |
+|---|---|---|
+| 1 | **DC-15 Scope Gate** — ยกระดับ scope จาก "label redesign" → Planner Engine v2 ทั้งระบบ · Planning Horizon master field + 5 Axes + Time-Aware Dynamic Form + Schema v2 (`PlannerEngineDataV2`) + 10-commit sequence · Hard Rule: field key names ห้ามปรากฏใน PDF · FROZEN files ระบุชัด | 📝 Scope Gate Done |
 
 ---
 
@@ -1581,5 +1589,5 @@ Next priorities:
 
 ---
 
-_Last updated: 2026-05-10 (Session 41) · Domain: planprom.com live · SSL + Email routing ✅ · App: VPS port 3001 fork mode · Next: DC-15 Planner Form Label Redesign → DC-8 UAT_
+_Last updated: 2026-05-11 (Session 42) · Domain: planprom.com live · SSL + Email routing ✅ · App: VPS port 3001 fork mode · Next: DC-15 Planner Engine v2 (Time-Aware Dynamic Form) — รอ owner confirm → implement T0-1 ก่อน_
 _Owner: yopinm@gmail.com · LINE: yopinm · PromptPay: 0948859962_
