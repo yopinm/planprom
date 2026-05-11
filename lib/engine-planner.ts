@@ -264,7 +264,7 @@ ${wm ? `body::before{content:"${wm}";position:fixed;top:50%;left:50%;transform:t
 
 // ── Planner Engine v2 ──────────────────────────────────────────────────────
 
-const PLACEHOLDER_RE = [/^เพิ่ม/u, /^ทดสอบ/u, /^test/i]
+const PLACEHOLDER_RE = [/^ทดสอบ/u, /^test/i]
 
 export function validatePlannerV2(data: PlannerEngineDataV2): void {
   const check = (s: string, field: string) => {
