@@ -1,5 +1,5 @@
 // POST /api/checkout — create order from cart + Omise PromptPay charge
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { randomBytes } from 'crypto'
 import { db } from '@/lib/db'
@@ -19,7 +19,10 @@ function tierPriceForItem(position: number): number {
   return 7
 }
 
-export async function POST() {
+export async function POST(req: NextRequest) {
+  const body        = await req.json().catch(() => ({})) as { promo_code?: string }
+  const promoCodeStr = body?.promo_code?.toUpperCase().trim() ?? null
+
   const cookieStore = await cookies()
   const sessionId   = cookieStore.get(CART_COOKIE)?.value
   if (!sessionId) return NextResponse.json({ error: 'cart empty' }, { status: 400 })
@@ -41,6 +44,29 @@ export async function POST() {
 
   const { total } = cart.totals
 
+  // Validate promo code server-side
+  let promoCodeId: string | null = null
+  let discountBaht = 0
+  if (promoCodeStr) {
+    const [pc] = await db<{
+      id: string; discount_type: string; discount_value: number
+      min_cart_value: number; max_uses: number | null; used_count: number
+      starts_at: string; expires_at: string; is_active: boolean
+    }[]>`
+      SELECT * FROM promo_codes WHERE code = ${promoCodeStr} AND is_active = true LIMIT 1
+    `.catch(() => [])
+    if (pc && new Date() >= new Date(pc.starts_at) && new Date() <= new Date(pc.expires_at)
+        && (pc.max_uses === null || pc.used_count < pc.max_uses)
+        && total >= pc.min_cart_value) {
+      const raw = pc.discount_type === 'percent'
+        ? Math.round(total * (pc.discount_value / 100) * 100) / 100
+        : pc.discount_value
+      discountBaht = Math.min(raw, total)
+      promoCodeId  = pc.id
+    }
+  }
+  const chargeTotal = Math.max(0, total - discountBaht)
+
   // Assign per-item unit prices
   let paidIdx = 0
   const itemPrices = cart.items.map(item => {
@@ -54,10 +80,10 @@ export async function POST() {
   let qrImageUrl   = ''
   let omiseChargeId: string | null = null
 
-  if (total > 0) {
+  if (chargeTotal > 0) {
     let charge
     try {
-      charge = await createPromptPayCharge(total, { type: 'cart', order_uid: uid })
+      charge = await createPromptPayCharge(chargeTotal, { type: 'cart', order_uid: uid })
     } catch (err) {
       return NextResponse.json({ error: `Omise error: ${(err as Error).message}` }, { status: 502 })
     }
@@ -66,14 +92,16 @@ export async function POST() {
   }
 
   const [order] = await db<{ id: string }[]>`
-    INSERT INTO orders (order_uid, total_baht, omise_charge_id, status, order_type, customer_line_id)
+    INSERT INTO orders (order_uid, total_baht, omise_charge_id, status, order_type, customer_line_id, promo_code_id, discount_baht)
     VALUES (
       ${uid},
-      ${total},
+      ${chargeTotal},
       ${omiseChargeId},
-      ${total === 0 ? 'paid' : 'pending_payment'},
+      ${chargeTotal === 0 ? 'paid' : 'pending_payment'},
       'cart',
-      ${customerLineId}
+      ${customerLineId},
+      ${promoCodeId},
+      ${discountBaht}
     )
     RETURNING id
   `
@@ -85,14 +113,24 @@ export async function POST() {
     `
   }
 
+  // Record promo usage
+  if (promoCodeId && discountBaht > 0) {
+    await db`
+      INSERT INTO promo_code_uses (promo_code_id, order_id, session_id, discount_applied)
+      VALUES (${promoCodeId}, ${order.id}, ${sessionId}, ${discountBaht})
+      ON CONFLICT (promo_code_id, order_id) DO NOTHING
+    `
+    await db`UPDATE promo_codes SET used_count = used_count + 1 WHERE id = ${promoCodeId}`
+  }
+
   // Free-only cart — issue tokens immediately + clear cart
-  if (total === 0) {
+  if (chargeTotal === 0) {
     await issueTokens(order.id)
     await db`DELETE FROM carts WHERE session_id = ${sessionId}`
     return NextResponse.json({ orderUid: uid, qrImageUrl: '', total: 0, paid: true })
   }
 
-  return NextResponse.json({ orderUid: uid, qrImageUrl, total, paid: false })
+  return NextResponse.json({ orderUid: uid, qrImageUrl, total: chargeTotal, paid: false })
 }
 
 async function issueTokens(orderId: string): Promise<void> {

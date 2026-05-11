@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import type { CartData } from '@/lib/cart'
+import { PromoCodeInput } from '@/components/checkout/PromoCodeInput'
 
 type Step = 'summary' | 'creating' | 'qr' | 'done' | 'error'
 
@@ -30,6 +31,9 @@ export default function CheckoutPage() {
   const [qrExpired,    setQrExpired]    = useState(false)
   const [qrSecsLeft,   setQrSecsLeft]   = useState(QR_EXPIRY_SECS)
   const [refreshingQr, setRefreshingQr] = useState(false)
+  const [promoCode,    setPromoCode]    = useState<string | null>(null)
+  const [promoLabel,   setPromoLabel]   = useState('')
+  const [promoDiscount,setPromoDiscount]= useState(0)
   const pollRef   = useRef<ReturnType<typeof setInterval> | null>(null)
   const expiryRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -78,7 +82,11 @@ export default function CheckoutPage() {
   async function handleCreateOrder() {
     setStep('creating')
     try {
-      const res  = await fetch('/api/checkout', { method: 'POST' })
+      const res  = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ promo_code: promoCode ?? undefined }),
+      })
       const json = await res.json() as {
         orderUid?: string; qrImageUrl?: string; total?: number; paid?: boolean; error?: string
       }
@@ -139,7 +147,9 @@ export default function CheckoutPage() {
     })
   }
 
-  const paidCount = cart?.totals.paidItemCount ?? 0
+  const paidCount   = cart?.totals.paidItemCount ?? 0
+  const cartTotal   = cart?.totals.total ?? 0
+  const finalTotal  = Math.max(0, cartTotal - promoDiscount)
 
   const cartItemsWithPrice = (() => {
     if (!cart) return []
@@ -167,18 +177,41 @@ export default function CheckoutPage() {
                 </li>
               ))}
             </ul>
-            <div className="border-t pt-3 flex justify-between font-bold">
-              <span>รวม</span>
-              <span>฿{cart.totals.total}</span>
+            <div className="border-t pt-3 space-y-1">
+              <div className="flex justify-between text-sm text-gray-500">
+                <span>ราคารวม</span>
+                <span>฿{cartTotal}</span>
+              </div>
+              {promoDiscount > 0 && (
+                <div className="flex justify-between text-sm text-emerald-600 font-semibold">
+                  <span>ส่วนลด ({promoCode})</span>
+                  <span>-฿{promoDiscount}</span>
+                </div>
+              )}
+              <div className="flex justify-between font-bold text-base pt-1">
+                <span>ชำระ</span>
+                <span>฿{finalTotal}</span>
+              </div>
             </div>
             {cart.totals.savedVsFullPrice > 0 && (
-              <p className="text-xs text-indigo-600 text-right">ประหยัด ฿{cart.totals.savedVsFullPrice}</p>
+              <p className="text-xs text-indigo-600 text-right">ประหยัดจาก tier ฿{cart.totals.savedVsFullPrice}</p>
             )}
+            <PromoCodeInput
+              cartTotal={cartTotal}
+              paidItemCount={paidCount}
+              appliedCode={promoCode}
+              onApply={(discount, code, label) => {
+                setPromoDiscount(discount)
+                setPromoCode(code)
+                setPromoLabel(label)
+              }}
+              onRemove={() => { setPromoCode(null); setPromoDiscount(0); setPromoLabel('') }}
+            />
             <button
               onClick={handleCreateOrder}
               className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl transition"
             >
-              {paidCount === 0 ? 'รับเทมเพลตฟรี' : `สร้าง QR PromptPay ฿${cart.totals.total}`}
+              {paidCount === 0 ? 'รับเทมเพลตฟรี' : `สร้าง QR PromptPay ฿${finalTotal}`}
             </button>
             <Link href="/cart" className="block text-center text-sm text-gray-400 hover:text-gray-600">
               ← กลับแก้ไขตะกร้า
