@@ -6,7 +6,7 @@ import type {
 } from '@/lib/engine-types'
 
 const INPUT = 'w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none focus:border-violet-400 focus:bg-white transition'
-const LABEL = 'block text-[11px] font-black uppercase tracking-widest text-neutral-400 mb-1.5'
+const LABEL = 'block text-[11px] font-black uppercase tracking-widest text-neutral-600 mb-1.5'
 const SELECT = `${INPUT} cursor-pointer`
 
 function DynList({ items, onChange, placeholder, addLabel }: {
@@ -33,13 +33,13 @@ function DynList({ items, onChange, placeholder, addLabel }: {
   )
 }
 
-function AxisCard({ num, title, color, children, optional, enabled, onToggle }: {
-  num: string; title: string; color: string; children: React.ReactNode
+function AxisCard({ num, title, color, borderClass, children, optional, enabled, onToggle }: {
+  num: string; title: string; color: string; borderClass?: string; children: React.ReactNode
   optional?: boolean; enabled?: boolean; onToggle?: () => void
 }) {
   const [open, setOpen] = useState(num === 'META' || num === '1' || num === '5')
   return (
-    <div className="rounded-xl border border-neutral-200 overflow-hidden">
+    <div className={`rounded-xl border-2 overflow-hidden ${borderClass ?? 'border-neutral-300'}`}>
       <div className={`flex items-center gap-3 px-4 py-3 ${color}`}>
         {optional && (
           <input type="checkbox" checked={enabled} onChange={onToggle}
@@ -270,7 +270,7 @@ export function PlannerEngineForm({ onChange }: Props) {
       </AxisCard>
 
       {/* AXIS 1 */}
-      <AxisCard num="1" title="ทิศทางและเป้าหมาย" color="bg-violet-50 text-violet-800">
+      <AxisCard num="1" title="ทิศทางและเป้าหมาย" color="bg-violet-50 text-violet-800" borderClass="border-violet-300">
         <div>
           <label className={LABEL}>โครงสร้างแผนงาน (ปรับชื่อ + ธีมแต่ละช่วงได้)</label>
           <div className="space-y-3">
@@ -308,7 +308,7 @@ export function PlannerEngineForm({ onChange }: Props) {
       </AxisCard>
 
       {/* AXIS 2 */}
-      <AxisCard num="2" title="ตารางช่วยตัดสินใจ" color="bg-sky-50 text-sky-800"
+      <AxisCard num="2" title="ตารางช่วยตัดสินใจ" color="bg-sky-50 text-sky-800" borderClass="border-sky-300"
         optional enabled={showAxis2} onToggle={() => setShowAxis2(v => !v)}>
         <div>
           <label className={LABEL}>คำถามสำหรับตัดสินใจ</label>
@@ -346,7 +346,7 @@ export function PlannerEngineForm({ onChange }: Props) {
       </AxisCard>
 
       {/* AXIS 3 */}
-      <AxisCard num="3" title="ติดตามและดูแลตัวเอง" color="bg-emerald-50 text-emerald-800"
+      <AxisCard num="3" title="ติดตามและดูแลตัวเอง" color="bg-emerald-50 text-emerald-800" borderClass="border-emerald-300"
         optional enabled={showAxis3} onToggle={() => setShowAxis3(v => !v)}>
         <div>
           <label className={LABEL}>
@@ -406,7 +406,7 @@ export function PlannerEngineForm({ onChange }: Props) {
       </AxisCard>
 
       {/* AXIS 4 */}
-      <AxisCard num="4" title="เช็คลิสต์และรายการเตรียมตัว" color="bg-rose-50 text-rose-800"
+      <AxisCard num="4" title="เช็คลิสต์และรายการเตรียมตัว" color="bg-rose-50 text-rose-800" borderClass="border-rose-300"
         optional enabled={showAxis4} onToggle={() => setShowAxis4(v => !v)}>
         <div>
           <label className={LABEL}>เช็คลิสต์แบ่งตามช่วง</label>
@@ -459,7 +459,7 @@ export function PlannerEngineForm({ onChange }: Props) {
       </AxisCard>
 
       {/* AXIS 5 */}
-      <AxisCard num="5" title="บันทึกและทบทวน" color="bg-amber-50 text-amber-800">
+      <AxisCard num="5" title="บันทึกและทบทวน" color="bg-amber-50 text-amber-800" borderClass="border-amber-300">
         <div>
           <label className={LABEL}>
             บันทึกประจำวัน

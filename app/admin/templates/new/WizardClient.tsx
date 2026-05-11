@@ -76,7 +76,7 @@ export function WizardClient({ categories, cloneSources }: Props) {
   const [docxError,       setDocxError]      = useState('')
   const [tocSections,     setTocSections]    = useState<TocItem[]>([])
   const [watermarkOn,     setWatermarkOn]    = useState(true)
-  const [watermarkText,   setWatermarkText]  = useState('couponkum.com')
+  const [watermarkText,   setWatermarkText]  = useState('planprom.com')
 
   const [pages,       setPages]      = useState('')
   const [tier,        setTier]       = useState('standard')
@@ -457,12 +457,12 @@ export function WizardClient({ categories, cloneSources }: Props) {
           )}
 
           <div>
-            <label className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-neutral-400">ชื่อ Template *</label>
+            <label className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-neutral-400">ชื่อ Template (ใช้ในระบบ) *</label>
             <input value={title} onChange={e => handleTitleChange(e.target.value)} placeholder="เช่น แพลนเนอร์งบประมาณรายเดือน" className={INPUT} />
           </div>
 
           <div>
-            <label className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-neutral-400">Slug * (a-z, 0-9, -)</label>
+            <label className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-neutral-400">Slug (ใช้ในระบบ) * (a-z, 0-9, -)</label>
             <input
               value={slug}
               onChange={e => { setSlug(e.target.value); setSlugTouched(true) }}
@@ -538,7 +538,7 @@ export function WizardClient({ categories, cloneSources }: Props) {
                 </div>
                 {watermarkOn && (
                   <input value={watermarkText} onChange={e => setWatermarkText(e.target.value)}
-                    placeholder="couponkum.com" className={`${INPUT} mt-2 font-mono`} />
+                    placeholder="planprom.com" className={`${INPUT} mt-2 font-mono`} />
                 )}
               </div>
 
@@ -623,7 +623,7 @@ export function WizardClient({ categories, cloneSources }: Props) {
                   <input
                     value={watermarkText}
                     onChange={e => setWatermarkText(e.target.value)}
-                    placeholder="couponkum.com"
+                    placeholder="planprom.com"
                     className={`${INPUT} mt-2 font-mono`}
                   />
                 )}
