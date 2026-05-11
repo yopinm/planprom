@@ -5,6 +5,7 @@ import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
+import { FloatingLineButton } from '@/components/layout/FloatingLineButton'
 import { track } from '@/lib/analytics-client'
 
 export function RootShell({ children }: { children: ReactNode }) {
@@ -24,6 +25,7 @@ export function RootShell({ children }: { children: ReactNode }) {
       <Header />
       <div className="flex-1">{children}</div>
       <Footer />
+      <FloatingLineButton />
     </>
   )
 }
