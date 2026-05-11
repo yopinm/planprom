@@ -75,7 +75,7 @@ export async function GET() {
     ? true
     : weekData.rev_this < weekData.rev_avg * 0.6
   // ลด ratio threshold 70%→50% และ min orders 3→1
-  const tierSignal = tierData.total >= 1 && tierData.single / tierData.total > 0.5
+  const tierSignal = tierData.total >= 1 && tierData.single / tierData.total >= 0.5
   const cartSignal = cartData.abandoned >= 1
   const vpsGap     = Math.max(0, VPS_WEEKLY_COST - vpsData.rev_week)
   const vpsSignal  = vpsGap > 0
