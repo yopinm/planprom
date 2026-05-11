@@ -1,10 +1,13 @@
 'use client'
 // DC-8: ReviseClient — pre-filled engine form for revision flow
 // Does NOT import ChecklistEngineForm/PlannerEngineForm (frozen) — owns its own state + UI
-// Fix: uses useEffect (same pattern as frozen forms) to avoid stale closure on DynList onChange
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import type { ChecklistEngineData, PlannerEngineData, QuarterlyTheme } from '@/lib/engine-types'
+import type {
+  ChecklistEngineData, PlannerEngineData, QuarterlyTheme,
+  PlannerEngineDataV2, PlanningHorizon, PlannerSegment,
+  PlannerDecisionMatrix, PlannerAxis3,
+} from '@/lib/engine-types'
 
 const INPUT = 'w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none focus:border-amber-400 focus:bg-white transition'
 const LABEL = 'block text-[11px] font-black uppercase tracking-widest text-neutral-400 mb-1.5'
@@ -357,12 +360,332 @@ function PlannerReviseForm({ initial, onChange }: {
   )
 }
 
+// ── Planner Revise Form v2 ───────────────────────────────────────────────────
+function PlannerReviseFormV2({ initial, onChange }: {
+  initial: PlannerEngineDataV2
+  onChange: (d: PlannerEngineDataV2) => void
+}) {
+  const [displayTitle, setDisplayTitle] = useState(initial.meta.displayTitle)
+  const [description,  setDescription]  = useState(initial.meta.description)
+  const [horizon,      setHorizon]      = useState<PlanningHorizon>(initial.meta.planningHorizon)
+  const [colorTheme,   setColorTheme]   = useState(initial.meta.colorTheme)
+  const [coverPage,    setCoverPage]    = useState(initial.meta.coverPage)
+  const [howToUse,     setHowToUse]     = useState(initial.meta.howToUse)
+
+  const [roadmap,     setRoadmap]     = useState<PlannerSegment[]>(initial.axis1.roadmap.length ? initial.axis1.roadmap : getDefaultSegV2(initial.meta.planningHorizon))
+  const [goalItems,   setGoalItems]   = useState(initial.axis1.goalItems.length ? initial.axis1.goalItems : [''])
+  const [showKpiLine, setShowKpiLine] = useState(initial.axis1.showKpiLine)
+  const [bigRocks,    setBigRocks]    = useState(initial.axis1.bigRocks.length ? initial.axis1.bigRocks : [''])
+
+  const [showAxis2,     setShowAxis2]     = useState(!!initial.axis2)
+  const [decisions,     setDecisions]     = useState<PlannerDecisionMatrix[]>(initial.axis2?.decisions.length ? initial.axis2.decisions : [{ question: '', options: ['', ''] }])
+  const [extraBigRocks, setExtraBigRocks] = useState(initial.axis2?.extraBigRocks.length ? initial.axis2.extraBigRocks : [''])
+
+  const [showAxis3,   setShowAxis3]   = useState(!!initial.axis3)
+  const [habits,      setHabits]      = useState(initial.axis3?.habitTracker.habits.length ? initial.axis3.habitTracker.habits : [''])
+  const [habitDays,   setHabitDays]   = useState(initial.axis3?.habitTracker.days ?? getHabitDaysV2(initial.meta.planningHorizon))
+  const [includeMood, setIncludeMood] = useState(initial.axis3?.includeMoodTracker ?? false)
+  const [finCats,     setFinCats]     = useState<{name:string;type:'income'|'expense'}[]>(
+    initial.axis3?.financeTracker.categories.length ? initial.axis3.financeTracker.categories : [{ name: 'รายรับ', type: 'income' }, { name: 'รายจ่าย', type: 'expense' }]
+  )
+  const [reviewCycle, setReviewCycle] = useState<PlannerAxis3['reviewCycle']>(initial.axis3?.reviewCycle ?? getReviewCycleV2(initial.meta.planningHorizon))
+  const [reviewQs,    setReviewQs]    = useState(initial.axis3?.reviewQuestions.length ? initial.axis3.reviewQuestions : [''])
+
+  const [showAxis4,   setShowAxis4]   = useState(!!initial.axis4)
+  const [checklist,   setChecklist]   = useState<{phase:string;items:string[]}[]>(initial.axis4?.checklist.length ? initial.axis4.checklist : [{ phase: '', items: [''] }])
+  const [packingList, setPackingList] = useState<{category:string;items:string[]}[]>(initial.axis4?.packingList.length ? initial.axis4.packingList : [{ category: '', items: [''] }])
+  const [ideaBoard,   setIdeaBoard]   = useState(initial.axis4?.ideaBoard ?? false)
+
+  const [diaryEnabled, setDiaryEnabled] = useState(initial.axis5.dailyDiary.enabled)
+  const [diaryDays,    setDiaryDays]    = useState(initial.axis5.dailyDiary.days || 7)
+  const [reviewQs5,    setReviewQs5]    = useState(initial.axis5.reviewQuestions.length ? initial.axis5.reviewQuestions : [''])
+  const [notesStyle,   setNotesStyle]   = useState(initial.axis5.notesStyle)
+  const [notesPages,   setNotesPages]   = useState(initial.axis5.notesPages)
+  const [gratitude,    setGratitude]    = useState(initial.axis5.includeGratitudeJournal)
+  const [gratitudePs,  setGratitudePs]  = useState(initial.axis5.gratitudePrompts.length ? initial.axis5.gratitudePrompts : [''])
+
+  const firstMount = useRef(true)
+  useEffect(() => {
+    if (firstMount.current) { firstMount.current = false; return }
+    setRoadmap(getDefaultSegV2(horizon))
+    setHabitDays(getHabitDaysV2(horizon))
+    setReviewCycle(getReviewCycleV2(horizon))
+    const dd = horizon === 'month' ? 7 : 0
+    setDiaryEnabled(dd > 0)
+    setDiaryDays(dd > 0 ? dd : diaryDays)
+  }, [horizon]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    onChange({
+      meta: { schemaVersion: '2.0', planningHorizon: horizon, displayTitle, description, colorTheme, coverPage, howToUse },
+      axis1: {
+        roadmap: roadmap.filter(s => s.label.trim()),
+        goalItems: goalItems.filter(g => g.trim()),
+        showKpiLine,
+        bigRocks: bigRocks.filter(r => r.trim()),
+      },
+      ...(showAxis2 ? { axis2: {
+        decisions: decisions.filter(d => d.question.trim()),
+        extraBigRocks: extraBigRocks.filter(r => r.trim()),
+      }} : {}),
+      ...(showAxis3 ? { axis3: {
+        habitTracker: { habits: habits.filter(h => h.trim()), days: habitDays },
+        includeMoodTracker: includeMood,
+        financeTracker: { categories: finCats.filter(c => c.name.trim()) },
+        reviewCycle,
+        reviewQuestions: reviewQs.filter(q => q.trim()),
+      }} : {}),
+      ...(showAxis4 ? { axis4: {
+        checklist: checklist.filter(p => p.phase.trim() && p.items.filter(i=>i.trim()).length > 0),
+        packingList: packingList.filter(p => p.category.trim() && p.items.filter(i=>i.trim()).length > 0),
+        ideaBoard,
+      }} : {}),
+      axis5: {
+        dailyDiary: { enabled: diaryEnabled, days: diaryEnabled ? diaryDays : 0 },
+        reviewQuestions: reviewQs5.filter(q => q.trim()),
+        notesStyle,
+        notesPages,
+        includeGratitudeJournal: gratitude,
+        gratitudePrompts: gratitude ? gratitudePs.filter(p => p.trim()) : [],
+      },
+      extras: initial.extras,
+    })
+  }, [
+    displayTitle, description, horizon, colorTheme, coverPage, howToUse,
+    roadmap, goalItems, showKpiLine, bigRocks,
+    showAxis2, decisions, extraBigRocks,
+    showAxis3, habits, habitDays, includeMood, finCats, reviewCycle, reviewQs,
+    showAxis4, checklist, packingList, ideaBoard,
+    diaryEnabled, diaryDays, reviewQs5, notesStyle, notesPages, gratitude, gratitudePs,
+    onChange, initial.extras,
+  ])
+
+  return (
+    <div className="space-y-3">
+      <Card title="ตั้งค่าพื้นฐาน" color="bg-neutral-100 text-neutral-800">
+        <div>
+          <label className={LABEL}>ชื่อ Planner ที่แสดงใน PDF *</label>
+          <input value={displayTitle} onChange={e => setDisplayTitle(e.target.value)} className={INPUT} />
+        </div>
+        <div>
+          <label className={LABEL}>คำอธิบาย</label>
+          <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} className={INPUT} />
+        </div>
+        <div>
+          <label className={LABEL}>ช่วงเวลาหลักของแผน</label>
+          <select value={horizon} onChange={e => setHorizon(e.target.value as PlanningHorizon)} className={SELECT}>
+            <option value="year">รายปี</option>
+            <option value="month">รายเดือน</option>
+            <option value="week">รายสัปดาห์</option>
+            <option value="day">รายวัน</option>
+          </select>
+        </div>
+        <div>
+          <label className={LABEL}>สีธีม</label>
+          <select value={colorTheme} onChange={e => setColorTheme(e.target.value as typeof colorTheme)} className={SELECT}>
+            <option value="violet">ม่วง</option>
+            <option value="indigo">น้ำเงิน</option>
+            <option value="emerald">เขียว</option>
+            <option value="rose">ชมพู</option>
+            <option value="amber">เหลือง</option>
+          </select>
+        </div>
+        <div className="flex gap-6">
+          <label className="flex items-center gap-2 cursor-pointer text-sm font-bold text-neutral-700">
+            <input type="checkbox" checked={coverPage} onChange={e => setCoverPage(e.target.checked)} /> หน้าปก
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer text-sm font-bold text-neutral-700">
+            <input type="checkbox" checked={howToUse} onChange={e => setHowToUse(e.target.checked)} /> วิธีใช้
+          </label>
+        </div>
+      </Card>
+
+      <Card title="แกนที่ 1 — ทิศทางและเป้าหมาย" color="bg-violet-50 text-violet-800">
+        <div>
+          <label className={LABEL}>โครงสร้างแผนงาน</label>
+          <div className="space-y-3">
+            {roadmap.map((s, i) => (
+              <div key={i} className="rounded-lg border border-violet-100 p-3 space-y-2">
+                <div className="flex gap-2">
+                  <input value={s.label} onChange={e => setRoadmap(prev => prev.map((x,j)=>j===i?{...x,label:e.target.value}:x))}
+                    placeholder="ช่วงเวลา" className={`${INPUT} w-32 font-bold`} />
+                  <input value={s.theme} onChange={e => setRoadmap(prev => prev.map((x,j)=>j===i?{...x,theme:e.target.value}:x))}
+                    placeholder="ธีม / เป้าหมายช่วงนี้..." className={INPUT} />
+                </div>
+                <textarea value={s.keyActions} onChange={e => setRoadmap(prev => prev.map((x,j)=>j===i?{...x,keyActions:e.target.value}:x))}
+                  rows={2} placeholder="สิ่งที่จะทำ (1 บรรทัด = 1 รายการ)" className={`${INPUT} text-xs`} />
+              </div>
+            ))}
+          </div>
+        </div>
+        <div>
+          <label className={LABEL}>เป้าหมายหลัก</label>
+          <DynList items={goalItems} onChange={setGoalItems} placeholder="เช่น เพิ่มยอดขาย 30%" addLabel="เพิ่มเป้าหมาย" color="violet" />
+        </div>
+        <label className="flex items-center gap-2 text-sm font-bold text-neutral-700 cursor-pointer">
+          <input type="checkbox" checked={showKpiLine} onChange={e => setShowKpiLine(e.target.checked)} />
+          แสดงช่อง "ตัวชี้วัด / วิธีวัดผล" ใน PDF
+        </label>
+        <div>
+          <label className={LABEL}>สิ่งสำคัญที่ต้องทำให้ได้ก่อน</label>
+          <DynList items={bigRocks} onChange={setBigRocks} placeholder="เช่น เปิดตัวสินค้าใหม่" addLabel="เพิ่ม" color="violet" />
+        </div>
+      </Card>
+
+      <Card title={`แกนที่ 2 — ตารางตัดสินใจ ${showAxis2 ? '✓' : '(ปิด)'}`} color="bg-sky-50 text-sky-800">
+        <label className="flex items-center gap-2 text-sm font-bold text-neutral-700 cursor-pointer">
+          <input type="checkbox" checked={showAxis2} onChange={e => setShowAxis2(e.target.checked)} />
+          เปิดใช้งานแกนที่ 2
+        </label>
+        {showAxis2 && (
+          <>
+            {decisions.map((d, di) => (
+              <div key={di} className="rounded-lg border border-sky-100 p-3 space-y-2">
+                <input value={d.question}
+                  onChange={e => setDecisions(prev => prev.map((x,j)=>j===di?{...x,question:e.target.value}:x))}
+                  placeholder="คำถามสำหรับตัดสินใจ" className={INPUT} />
+                {d.options.map((o, oi) => (
+                  <input key={oi} value={o}
+                    onChange={e => setDecisions(prev => prev.map((x,j)=>j===di?{...x,options:x.options.map((v,k)=>k===oi?e.target.value:v)}:x))}
+                    placeholder={`ตัวเลือกที่ ${oi+1}`} className={INPUT} />
+                ))}
+              </div>
+            ))}
+            <DynList items={extraBigRocks} onChange={setExtraBigRocks} placeholder="รายการเพิ่มเติม" addLabel="เพิ่ม" />
+          </>
+        )}
+      </Card>
+
+      <Card title={`แกนที่ 3 — ติดตามและดูแลตัวเอง ${showAxis3 ? '✓' : '(ปิด)'}`} color="bg-emerald-50 text-emerald-800">
+        <label className="flex items-center gap-2 text-sm font-bold text-neutral-700 cursor-pointer">
+          <input type="checkbox" checked={showAxis3} onChange={e => setShowAxis3(e.target.checked)} />
+          เปิดใช้งานแกนที่ 3
+        </label>
+        {showAxis3 && (
+          <>
+            <div>
+              <label className={LABEL}>ตารางนิสัย ({habitDays} วัน)</label>
+              <DynList items={habits} onChange={setHabits} placeholder="เช่น ออกกำลังกาย" addLabel="เพิ่มนิสัย" />
+            </div>
+            <label className="flex items-center gap-2 text-sm font-bold text-neutral-700 cursor-pointer">
+              <input type="checkbox" checked={includeMood} onChange={e => setIncludeMood(e.target.checked)} />
+              บันทึกอารมณ์ประจำวัน
+            </label>
+            <div>
+              <label className={LABEL}>รายรับ-รายจ่าย</label>
+              <div className="space-y-2">
+                {finCats.map((c, i) => (
+                  <div key={i} className="flex gap-2">
+                    <input value={c.name}
+                      onChange={e => setFinCats(prev => prev.map((x,j)=>j===i?{...x,name:e.target.value}:x))}
+                      placeholder="ชื่อรายการ" className={INPUT} />
+                    <select value={c.type}
+                      onChange={e => setFinCats(prev => prev.map((x,j)=>j===i?{...x,type:e.target.value as 'income'|'expense'}:x))}
+                      className="rounded-lg border border-neutral-200 bg-neutral-50 px-2 text-sm cursor-pointer">
+                      <option value="income">รายรับ</option>
+                      <option value="expense">รายจ่าย</option>
+                    </select>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className={LABEL}>รอบทบทวน</label>
+              <select value={reviewCycle} onChange={e => setReviewCycle(e.target.value as PlannerAxis3['reviewCycle'])} className={SELECT}>
+                <option value="daily">ทุกวัน</option>
+                <option value="weekly">รายสัปดาห์</option>
+                <option value="monthly">รายเดือน</option>
+              </select>
+            </div>
+            <div>
+              <label className={LABEL}>คำถามทบทวน</label>
+              <DynList items={reviewQs} onChange={setReviewQs} placeholder="เช่น สิ่งที่ทำได้ดีคืออะไร?" addLabel="เพิ่มคำถาม" />
+            </div>
+          </>
+        )}
+      </Card>
+
+      <Card title={`แกนที่ 4 — เช็คลิสต์ ${showAxis4 ? '✓' : '(ปิด)'}`} color="bg-rose-50 text-rose-800">
+        <label className="flex items-center gap-2 text-sm font-bold text-neutral-700 cursor-pointer">
+          <input type="checkbox" checked={showAxis4} onChange={e => setShowAxis4(e.target.checked)} />
+          เปิดใช้งานแกนที่ 4
+        </label>
+        {showAxis4 && (
+          <>
+            {checklist.map((p, pi) => (
+              <div key={pi} className="rounded-lg border border-rose-100 p-3 space-y-2">
+                <input value={p.phase}
+                  onChange={e => setChecklist(prev => prev.map((x,j)=>j===pi?{...x,phase:e.target.value}:x))}
+                  placeholder="ชื่อช่วง" className={INPUT} />
+                <DynList items={p.items}
+                  onChange={items => setChecklist(prev => prev.map((x,j)=>j===pi?{...x,items}:x))}
+                  placeholder="รายการ" addLabel="เพิ่ม" />
+              </div>
+            ))}
+            <label className="flex items-center gap-2 text-sm font-bold text-neutral-700 cursor-pointer">
+              <input type="checkbox" checked={ideaBoard} onChange={e => setIdeaBoard(e.target.checked)} />
+              บอร์ดไอเดีย
+            </label>
+          </>
+        )}
+      </Card>
+
+      <Card title="แกนที่ 5 — บันทึกและทบทวน" color="bg-amber-50 text-amber-800">
+        <label className="flex items-center gap-2 text-sm font-bold text-neutral-700 cursor-pointer">
+          <input type="checkbox" checked={diaryEnabled} onChange={e => setDiaryEnabled(e.target.checked)} />
+          บันทึกประจำวัน
+          {diaryEnabled && (
+            <input type="number" min={1} max={31} value={diaryDays}
+              onChange={e => setDiaryDays(Number(e.target.value))}
+              className={`${INPUT} w-20 ml-2`} />
+          )}
+        </label>
+        <div>
+          <label className={LABEL}>คำถามทบทวนบทเรียน</label>
+          <DynList items={reviewQs5} onChange={setReviewQs5} placeholder="เช่น สิ่งที่เรียนรู้มากที่สุด?" addLabel="เพิ่มคำถาม" />
+        </div>
+        <div>
+          <label className={LABEL}>สไตล์หน้าจดบันทึก</label>
+          <select value={notesStyle} onChange={e => setNotesStyle(e.target.value as typeof notesStyle)} className={SELECT}>
+            <option value="lined">เส้นบรรทัด</option>
+            <option value="dotgrid">ตารางจุด</option>
+            <option value="blank">ว่างเปล่า</option>
+          </select>
+        </div>
+        <div>
+          <label className={LABEL}>จำนวนหน้าจดบันทึก</label>
+          <input type="number" min={0} max={10} value={notesPages}
+            onChange={e => setNotesPages(Number(e.target.value))} className={`${INPUT} w-24`} />
+        </div>
+        <label className="flex items-center gap-2 text-sm font-bold text-neutral-700 cursor-pointer">
+          <input type="checkbox" checked={gratitude} onChange={e => setGratitude(e.target.checked)} />
+          บันทึกสิ่งดีๆ
+        </label>
+        {gratitude && (
+          <DynList items={gratitudePs} onChange={setGratitudePs} placeholder="วันนี้ขอบคุณสำหรับ..." addLabel="เพิ่มคำถาม" />
+        )}
+      </Card>
+    </div>
+  )
+}
+
+function getDefaultSegV2(h: PlanningHorizon): PlannerSegment[] {
+  switch (h) {
+    case 'year':  return ['Q1 (ม.ค.–มี.ค.)','Q2 (เม.ย.–มิ.ย.)','Q3 (ก.ค.–ก.ย.)','Q4 (ต.ค.–ธ.ค.)'].map(l=>({label:l,theme:'',keyActions:''}))
+    case 'month': return ['สัปดาห์ที่ 1','สัปดาห์ที่ 2','สัปดาห์ที่ 3','สัปดาห์ที่ 4'].map(l=>({label:l,theme:'',keyActions:''}))
+    case 'week':  return ['จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์','อาทิตย์'].map(l=>({label:l,theme:'',keyActions:''}))
+    case 'day':   return ['เช้า (06:00–09:00)','สาย (09:00–12:00)','บ่าย (12:00–15:00)','เย็น (15:00–18:00)','ค่ำ (18:00–21:00)'].map(l=>({label:l,theme:'',keyActions:''}))
+  }
+}
+function getHabitDaysV2(h: PlanningHorizon): number { return h === 'year' || h === 'month' ? 31 : h === 'week' ? 7 : 0 }
+function getReviewCycleV2(h: PlanningHorizon): PlannerAxis3['reviewCycle'] { return h === 'year' ? 'monthly' : h === 'month' ? 'weekly' : 'daily' }
+
 // ── Main ReviseClient ────────────────────────────────────────────────────────
 interface Props {
   templateId: string
   slug: string
   engineType: 'checklist' | 'planner'
-  initialData: ChecklistEngineData | PlannerEngineData
+  initialData: ChecklistEngineData | PlannerEngineData | PlannerEngineDataV2
   nextRevisionNumber: number
   categoryName?: string
 }
@@ -372,7 +695,7 @@ type ApproveState = 'idle' | 'loading' | 'done' | 'error'
 
 export function ReviseClient({ templateId, slug, engineType, initialData, nextRevisionNumber, categoryName }: Props) {
   const router = useRouter()
-  const [engineData, setEngineData] = useState<ChecklistEngineData | PlannerEngineData>(initialData)
+  const [engineData, setEngineData] = useState<ChecklistEngineData | PlannerEngineData | PlannerEngineDataV2>(initialData)
   const [genState,   setGenState]   = useState<GenState>('idle')
   const [genError,   setGenError]   = useState('')
   const [pdfPath,    setPdfPath]    = useState('')
@@ -442,6 +765,11 @@ export function ReviseClient({ templateId, slug, engineType, initialData, nextRe
         {engineType === 'checklist' ? (
           <ChecklistReviseForm
             initial={initialData as ChecklistEngineData}
+            onChange={setEngineData}
+          />
+        ) : (initialData as PlannerEngineDataV2).meta?.schemaVersion === '2.0' ? (
+          <PlannerReviseFormV2
+            initial={initialData as PlannerEngineDataV2}
             onChange={setEngineData}
           />
         ) : (

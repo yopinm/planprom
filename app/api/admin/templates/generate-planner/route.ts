@@ -4,9 +4,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 import { getAdminUser } from '@/lib/admin-auth'
-import { generatePlannerHtml } from '@/lib/engine-planner'
+import { generatePlannerHtml, generatePlannerHtmlV2, validatePlannerV2 } from '@/lib/engine-planner'
 import { db } from '@/lib/db'
-import type { PlannerEngineData } from '@/lib/engine-types'
+import type { PlannerEngineData, PlannerEngineDataV2 } from '@/lib/engine-types'
 
 export async function POST(req: NextRequest) {
   let adminId: string | null = null
@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
   if (!adminId) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
 
   let body: {
-    engine_data: PlannerEngineData
+    engine_data: PlannerEngineData | PlannerEngineDataV2
     slug: string
     watermark_text?: string
   }
@@ -46,7 +46,14 @@ export async function POST(req: NextRequest) {
 
   let html: string
   try {
-    html = generatePlannerHtml(engine_data, watermark_text)
+    const isV2 = (engine_data as Record<string, unknown>).meta !== undefined &&
+      (engine_data as PlannerEngineDataV2).meta?.schemaVersion === '2.0'
+    if (isV2) {
+      validatePlannerV2(engine_data as PlannerEngineDataV2)
+      html = generatePlannerHtmlV2(engine_data as PlannerEngineDataV2, watermark_text)
+    } else {
+      html = generatePlannerHtml(engine_data as PlannerEngineData, watermark_text)
+    }
   } catch (err) {
     return NextResponse.json({ error: `HTML build failed: ${String(err)}` }, { status: 500 })
   }

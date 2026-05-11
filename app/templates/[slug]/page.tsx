@@ -6,7 +6,7 @@ import type { Metadata } from 'next'
 import { FileText } from 'lucide-react'
 import { db } from '@/lib/db'
 import type { TocItem } from '@/lib/pdf-types'
-import type { ChecklistEngineData, PlannerEngineData } from '@/lib/engine-types'
+import type { ChecklistEngineData, PlannerEngineData, PlannerEngineDataV2 } from '@/lib/engine-types'
 
 interface Props { params: Promise<{ slug: string }> }
 
@@ -183,7 +183,48 @@ export default async function TemplateDetailPage({ params }: Props) {
             })()}
 
             {tmpl.engine_type === 'planner' && tmpl.engine_data && (() => {
-              const d = tmpl.engine_data as PlannerEngineData
+              const raw = tmpl.engine_data as PlannerEngineData | PlannerEngineDataV2
+
+              // v2 path
+              if ((raw as PlannerEngineDataV2).meta?.schemaVersion === '2.0') {
+                const d2 = raw as PlannerEngineDataV2
+                const HORIZON_TH: Record<string,string> = { year:'รายปี', month:'รายเดือน', week:'รายสัปดาห์', day:'รายวัน' }
+                const badges = [
+                  d2.axis3 && d2.axis3.habitTracker.habits.filter(h=>h.trim()).length > 0 && 'ตารางนิสัย',
+                  d2.axis4 && d2.axis4.checklist.length > 0 && 'เช็คลิสต์',
+                  d2.axis5.dailyDiary.enabled && 'บันทึกประจำวัน',
+                  d2.axis4?.ideaBoard && 'บอร์ดไอเดีย',
+                ].filter(Boolean) as string[]
+                return (
+                  <div className="mt-5 rounded-2xl bg-violet-50 p-5">
+                    <h2 className="font-bold text-neutral-900 mb-1">ภาพรวม Planner</h2>
+                    <div className="flex gap-2 flex-wrap mb-3">
+                      <span className="rounded-full bg-violet-100 px-3 py-1 text-xs font-black text-violet-700">
+                        📅 {HORIZON_TH[d2.meta.planningHorizon] ?? d2.meta.planningHorizon}
+                      </span>
+                      {badges.map(b => (
+                        <span key={b} className="rounded-full bg-white border border-violet-200 px-3 py-1 text-xs font-bold text-violet-600">✓ {b}</span>
+                      ))}
+                    </div>
+                    {d2.meta.description && <p className="text-sm text-neutral-700 mb-3">{d2.meta.description}</p>}
+                    {d2.axis1.goalItems.filter(g=>g.trim()).length > 0 && (
+                      <div className="rounded-lg bg-white p-3 border border-violet-100">
+                        <p className="text-[10px] font-black text-neutral-400 uppercase tracking-wider mb-2">เป้าหมายหลักที่รวมอยู่</p>
+                        <ul className="space-y-1">
+                          {d2.axis1.goalItems.filter(g=>g.trim()).map((g,i) => (
+                            <li key={i} className="flex items-start gap-2 text-sm text-neutral-700">
+                              <span className="text-violet-400 shrink-0">●</span>{g}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )
+              }
+
+              // v1 path
+              const d = raw as PlannerEngineData
               if (!d.p1) return null
               const PERIOD: Record<string,string> = { yearly:'รายปี', quarterly:'รายไตรมาส', monthly:'รายเดือน', weekly:'รายสัปดาห์' }
               const FW: Record<string,string> = { SMART:'SMART', OKR:'OKR', both:'SMART+OKR', none:'' }

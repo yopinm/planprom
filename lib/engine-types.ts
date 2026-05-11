@@ -9,6 +9,7 @@ export type ChecklistEngineData = {
 
 export type QuarterlyTheme = { quarter: string; theme: string; keyActions: string }
 
+// ── Planner Engine v1 (frozen — do not modify) ─────────────────────────────
 export type PlannerEngineData = {
   p1: {
     plannerTitle: string
@@ -39,4 +40,67 @@ export type PlannerEngineData = {
     notesStyle: 'lined' | 'dotgrid' | 'blank'
     brainDumpPages: number
   }
+}
+
+// ── Planner Engine v2 ──────────────────────────────────────────────────────
+
+export type PlanningHorizon = 'year' | 'month' | 'week' | 'day'
+
+export type PlannerMeta = {
+  schemaVersion: '2.0'
+  planningHorizon: PlanningHorizon
+  displayTitle: string
+  description: string
+  colorTheme: 'violet' | 'indigo' | 'emerald' | 'rose' | 'amber'
+  coverPage: boolean
+  howToUse: boolean
+}
+
+export type PlannerSegment = { label: string; theme: string; keyActions: string }
+
+export type PlannerAxis1 = {
+  roadmap: PlannerSegment[]
+  goalItems: string[]
+  showKpiLine: boolean
+  bigRocks: string[]
+}
+
+export type PlannerDecisionMatrix = { question: string; options: string[] }
+
+export type PlannerAxis2 = {
+  decisions: PlannerDecisionMatrix[]
+  extraBigRocks: string[]
+}
+
+export type PlannerAxis3 = {
+  habitTracker: { habits: string[]; days: number }
+  includeMoodTracker: boolean
+  financeTracker: { categories: { name: string; type: 'income' | 'expense' }[] }
+  reviewCycle: 'daily' | 'weekly' | 'monthly'
+  reviewQuestions: string[]
+}
+
+export type PlannerAxis4 = {
+  checklist: { phase: string; items: string[] }[]
+  packingList: { category: string; items: string[] }[]
+  ideaBoard: boolean
+}
+
+export type PlannerAxis5 = {
+  dailyDiary: { enabled: boolean; days: number }
+  reviewQuestions: string[]
+  notesStyle: 'lined' | 'dotgrid' | 'blank'
+  notesPages: number
+  includeGratitudeJournal: boolean
+  gratitudePrompts: string[]
+}
+
+export type PlannerEngineDataV2 = {
+  meta: PlannerMeta
+  axis1: PlannerAxis1
+  axis2?: PlannerAxis2
+  axis3?: PlannerAxis3
+  axis4?: PlannerAxis4
+  axis5: PlannerAxis5
+  extras?: Record<string, unknown>
 }

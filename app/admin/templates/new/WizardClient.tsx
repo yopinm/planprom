@@ -283,7 +283,9 @@ export function WizardClient({ categories, cloneSources }: Props) {
     const finalDesc = isEngine
       ? mode === 'engine-checklist'
         ? (engineData as Record<string, Record<string, string>> | null)?.s2?.purpose ?? ''
-        : (engineData as Record<string, Record<string, string>> | null)?.p1?.description ?? ''
+        : ((engineData as Record<string, Record<string, string>> | null)?.p1?.description
+         ?? (engineData as Record<string, Record<string, string>> | null)?.meta?.description
+         ?? '')
       : desc.trim()
     const finalDocType = isEngine
       ? (mode === 'engine-checklist' ? 'checklist' : 'planner')

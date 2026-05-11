@@ -1,0 +1,9 @@
+-- DC-15 T6: Planner Engine v2 — schema version tracking
+-- engine_data JSONB already supports v2 — no new column needed
+-- v2 records: engine_data->'meta'->>'schemaVersion' = '2.0'
+-- v1 records: engine_data->>'p1' IS NOT NULL (existing behavior preserved)
+--
+-- Optional: add GIN index for faster v2 detection on large datasets
+-- CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_templates_planner_schema
+--   ON templates USING gin (engine_data)
+--   WHERE engine_type = 'planner';
