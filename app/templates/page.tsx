@@ -203,7 +203,7 @@ export default async function TemplatesPage({ searchParams }: Props) {
             </div>
             <span className="text-emerald-400 font-black text-lg">→</span>
             <div className="rounded-xl bg-white border border-emerald-300 px-4 py-2.5 text-center">
-              <p className="text-lg font-black text-emerald-700">฿8<span className="text-xs font-bold">/ชิ้น</span></p>
+              <p className="text-lg font-black text-emerald-700">฿10<span className="text-xs font-bold">/ชิ้น</span></p>
               <p className="text-[11px] text-emerald-600 mt-0.5">ชิ้น 2–5</p>
             </div>
             <span className="text-emerald-400 font-black text-lg">→</span>
