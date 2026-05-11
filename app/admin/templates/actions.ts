@@ -192,17 +192,18 @@ export async function createTemplateWizardAction(data: {
     const [row] = await db<{ id: string }[]>`
       INSERT INTO templates
         (slug, title, description, tier, price_baht, pdf_path, preview_path,
-         page_count, has_form_fields, status, published_at, document_type,
+         thumbnail_path, page_count, has_form_fields, status, published_at, document_type,
          toc_sections, watermark_text, engine_type, engine_data)
       VALUES (
         ${data.slug}, ${data.title}, ${data.description || null},
         ${data.tier}, ${price}, ${data.pdfPath || '/uploads/templates/placeholder.pdf'},
         ${data.previewPath ?? null},
+        ${data.previewPath ?? null},
         ${data.pageCount}, ${data.hasFormFields}, ${data.status}, ${now}, ${docType},
         ${data.tocSections ? JSON.stringify(data.tocSections) : null},
         ${data.watermarkText ?? null},
         ${data.engineType ?? null},
-        ${data.engineData ? JSON.stringify(data.engineData) : null}
+        ${(data.engineData ?? null) as unknown as string}
       )
       RETURNING id
     `

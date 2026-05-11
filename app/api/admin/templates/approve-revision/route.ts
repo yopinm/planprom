@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
         (template_id, revision_number, engine_data, pdf_path, preview_path, change_note)
       VALUES (
         ${template_id}, ${revisionNumber},
-        ${JSON.stringify(engine_data)},
+        ${engine_data as unknown as string},
         ${pdf_path},
         ${preview_path ?? null},
         ${change_note || null}
@@ -44,9 +44,10 @@ export async function POST(req: NextRequest) {
     `
     await db`
       UPDATE templates
-      SET engine_data  = ${JSON.stringify(engine_data)},
-          pdf_path     = ${pdf_path},
-          preview_path = ${preview_path ?? null}
+      SET engine_data    = ${engine_data as unknown as string},
+          pdf_path       = ${pdf_path},
+          preview_path   = ${preview_path ?? null},
+          thumbnail_path = COALESCE(thumbnail_path, ${preview_path ?? null})
       WHERE id = ${template_id}
     `
     return NextResponse.json({ ok: true, revision_number: revisionNumber })
