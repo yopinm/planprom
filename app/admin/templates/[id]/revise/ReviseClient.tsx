@@ -7,6 +7,7 @@ import type {
   ChecklistEngineData, PlannerEngineData, QuarterlyTheme,
   PlannerEngineDataV2, PlanningHorizon, PlannerSegment,
   PlannerDecisionMatrix, PlannerAxis3,
+  PlannerPipelineData, PipelinePhase, PipelineBigRock, PipelineMetric,
 } from '@/lib/engine-types'
 
 const INPUT = 'w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none focus:border-amber-400 focus:bg-white transition'
@@ -669,6 +670,235 @@ function PlannerReviseFormV2({ initial, onChange }: {
   )
 }
 
+// ── Pipeline Revise Form ─────────────────────────────────────────────────────
+function PipelineReviseForm({ initial, onChange }: {
+  initial: PlannerPipelineData
+  onChange: (d: PlannerPipelineData) => void
+}) {
+  const [displayTitle, setDisplayTitle] = useState(initial.meta.title)
+  const [description,  setDescription]  = useState(initial.meta.description)
+  const [colorTheme,   setColorTheme]   = useState(initial.meta.colorTheme)
+  const [coverPage,    setCoverPage]    = useState(initial.meta.coverPage)
+
+  const [bigGoal,         setBigGoal]         = useState(initial.stage1_goal.bigGoal)
+  const [deadline,        setDeadline]        = useState(initial.stage1_goal.deadline)
+  const [why,             setWhy]             = useState(initial.stage1_goal.why)
+  const [successCriteria, setSuccessCriteria] = useState<string[]>(initial.stage1_goal.successCriteria.length ? initial.stage1_goal.successCriteria : [''])
+  const [budget,          setBudget]          = useState(initial.stage1_goal.constraints.budget ?? '')
+  const [timeLimit,       setTimeLimit]       = useState(initial.stage1_goal.constraints.timeLimit ?? '')
+  const [others,          setOthers]          = useState<string[]>(initial.stage1_goal.constraints.others ?? [])
+
+  const [phases,   setPhases]   = useState<PipelinePhase[]>(initial.stage2_plan.phases.length ? initial.stage2_plan.phases : [{ name: 'Phase 1', timeRange: '', tasks: [''], budget: '' }])
+  const [bigRocks, setBigRocks] = useState<PipelineBigRock[]>(initial.stage2_plan.bigRocks.length ? initial.stage2_plan.bigRocks : [{ task: '', deadline: '' }])
+
+  const [habits,          setHabits]          = useState<string[]>(initial.stage3_track.habits.length ? initial.stage3_track.habits : [''])
+  const [metrics,         setMetrics]         = useState<PipelineMetric[]>(initial.stage3_track.metrics.length ? initial.stage3_track.metrics : [{ name: '', target: '', frequency: 'weekly' }])
+  const [reviewCycle,     setReviewCycle]     = useState(initial.stage3_track.reviewCycle)
+  const [reviewQuestions, setReviewQuestions] = useState<string[]>(initial.stage3_track.reviewQuestions.length ? initial.stage3_track.reviewQuestions : [''])
+  const [adjustmentRules, setAdjustmentRules] = useState<string[]>(initial.stage3_track.adjustmentRules ?? [])
+
+  const [notesStyle, setNotesStyle] = useState(initial.notes?.notesStyle ?? 'lined' as 'lined'|'dotgrid'|'blank')
+  const [notesPages, setNotesPages] = useState(initial.notes?.notesPages ?? 1)
+  const [diaryDays,  setDiaryDays]  = useState(initial.notes?.diaryDays ?? 0)
+
+  useEffect(() => {
+    onChange({
+      meta: { schemaVersion: '3.0', mode: 'pipeline', title: displayTitle, description, colorTheme, coverPage },
+      stage1_goal: {
+        bigGoal, deadline, why,
+        successCriteria: successCriteria.filter(s => s.trim()),
+        constraints: {
+          ...(budget.trim()    ? { budget }    : {}),
+          ...(timeLimit.trim() ? { timeLimit } : {}),
+          ...(others.filter(o => o.trim()).length > 0 ? { others: others.filter(o => o.trim()) } : {}),
+        },
+      },
+      stage2_plan: {
+        phases: phases.filter(p => p.name.trim()).map(p => ({ ...p, tasks: p.tasks.filter(t => t.trim()) })),
+        bigRocks: bigRocks.filter(r => r.task.trim()),
+      },
+      stage3_track: {
+        habits: habits.filter(h => h.trim()),
+        metrics: metrics.filter(m => m.name.trim()),
+        reviewCycle,
+        reviewQuestions: reviewQuestions.filter(q => q.trim()),
+        ...(adjustmentRules.filter(r => r.trim()).length > 0 ? { adjustmentRules: adjustmentRules.filter(r => r.trim()) } : {}),
+      },
+      notes: (notesPages > 0 || diaryDays > 0) ? { diaryDays, notesPages, notesStyle } : undefined,
+      extras: initial.extras,
+    })
+  }, [
+    displayTitle, description, colorTheme, coverPage,
+    bigGoal, deadline, why, successCriteria, budget, timeLimit, others,
+    phases, bigRocks, habits, metrics, reviewCycle, reviewQuestions, adjustmentRules,
+    notesStyle, notesPages, diaryDays, onChange, initial.extras,
+  ])
+
+  return (
+    <div className="space-y-3">
+      <Card title="ตั้งค่า PDF" color="bg-neutral-100 text-neutral-800">
+        <div>
+          <label className={LABEL}>ชื่อที่แสดงใน PDF *</label>
+          <input value={displayTitle} onChange={e => setDisplayTitle(e.target.value)} className={INPUT} />
+        </div>
+        <div>
+          <label className={LABEL}>คำอธิบาย</label>
+          <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} className={INPUT} />
+        </div>
+        <div>
+          <label className={LABEL}>สีธีม</label>
+          <select value={colorTheme} onChange={e => setColorTheme(e.target.value as typeof colorTheme)} className={SELECT}>
+            <option value="violet">ม่วง</option>
+            <option value="rose">ชมพู</option>
+            <option value="emerald">เขียว</option>
+            <option value="amber">เหลือง</option>
+            <option value="sky">ฟ้า</option>
+          </select>
+        </div>
+        <label className="flex items-center gap-2 text-sm font-bold text-neutral-700 cursor-pointer">
+          <input type="checkbox" checked={coverPage} onChange={e => setCoverPage(e.target.checked)} /> หน้าปก
+        </label>
+      </Card>
+
+      <Card title="ขั้นที่ 1 — ตั้งเป้าหมาย" color="bg-violet-50 text-violet-800">
+        <div>
+          <label className={LABEL}>เป้าหมายใหญ่ *</label>
+          <textarea value={bigGoal} onChange={e => setBigGoal(e.target.value)} rows={2} className={INPUT} />
+        </div>
+        <div>
+          <label className={LABEL}>Deadline *</label>
+          <input value={deadline} onChange={e => setDeadline(e.target.value)} className={INPUT} />
+        </div>
+        <div>
+          <label className={LABEL}>ทำไมเป้าหมายนี้ถึงสำคัญ?</label>
+          <input value={why} onChange={e => setWhy(e.target.value)} className={INPUT} />
+        </div>
+        <div>
+          <label className={LABEL}>เกณฑ์ความสำเร็จ</label>
+          <DynList items={successCriteria} onChange={setSuccessCriteria} placeholder="เช่น ยอดขายถึง ฿100,000" addLabel="เพิ่มเกณฑ์" color="violet" />
+        </div>
+        <div className="space-y-2">
+          <label className={LABEL}>ข้อจำกัด (ไม่บังคับ)</label>
+          <input value={budget} onChange={e => setBudget(e.target.value)} placeholder="งบ เช่น ฿50,000" className={INPUT} />
+          <input value={timeLimit} onChange={e => setTimeLimit(e.target.value)} placeholder="เวลา เช่น ทำได้วันละ 2 ชั่วโมง" className={INPUT} />
+          {others.length > 0
+            ? <DynList items={others} onChange={setOthers} placeholder="อื่นๆ" addLabel="เพิ่ม" />
+            : <button type="button" onClick={() => setOthers([''])} className="text-xs font-black text-neutral-500 hover:text-neutral-700">+ อื่นๆ</button>
+          }
+        </div>
+      </Card>
+
+      <Card title="ขั้นที่ 2 — วางแผนลงมือทำ" color="bg-emerald-50 text-emerald-800">
+        <div>
+          <label className={LABEL}>Phase / ขั้นตอน</label>
+          <div className="space-y-3">
+            {phases.map((p, pi) => (
+              <div key={pi} className="rounded-lg border border-emerald-100 p-3 space-y-2">
+                <div className="flex gap-2">
+                  <input value={p.name} onChange={e => setPhases(prev => prev.map((x,j)=>j===pi?{...x,name:e.target.value}:x))}
+                    placeholder={`Phase ${pi+1}`} className={`${INPUT} font-bold`} />
+                  {phases.length > 1 && (
+                    <button type="button" onClick={() => setPhases(prev => prev.filter((_,j)=>j!==pi))} className="text-red-400 text-sm px-1">✕</button>
+                  )}
+                </div>
+                <input value={p.timeRange} onChange={e => setPhases(prev => prev.map((x,j)=>j===pi?{...x,timeRange:e.target.value}:x))}
+                  placeholder="ช่วงเวลา เช่น ม.ค. – ก.พ." className={INPUT} />
+                <DynList items={p.tasks} onChange={tasks => setPhases(prev => prev.map((x,j)=>j===pi?{...x,tasks}:x))}
+                  placeholder="งานที่ต้องทำ" addLabel="เพิ่มงาน" />
+                <input value={p.budget ?? ''} onChange={e => setPhases(prev => prev.map((x,j)=>j===pi?{...x,budget:e.target.value}:x))}
+                  placeholder="งบ (ไม่บังคับ)" className={`${INPUT} text-xs`} />
+              </div>
+            ))}
+            <button type="button" onClick={() => setPhases(prev => [...prev, { name: `Phase ${prev.length+1}`, timeRange: '', tasks: [''], budget: '' }])}
+              className="text-xs font-black text-emerald-600 hover:text-emerald-700">+ เพิ่ม Phase</button>
+          </div>
+        </div>
+        <div>
+          <label className={LABEL}>Big Rocks</label>
+          <div className="space-y-2">
+            {bigRocks.map((r, i) => (
+              <div key={i} className="flex gap-2">
+                <input value={r.task} onChange={e => setBigRocks(prev => prev.map((x,j)=>j===i?{...x,task:e.target.value}:x))} placeholder="งานสำคัญ" className={INPUT} />
+                <input value={r.deadline} onChange={e => setBigRocks(prev => prev.map((x,j)=>j===i?{...x,deadline:e.target.value}:x))} placeholder="Deadline" className={`${INPUT} w-32`} />
+                {bigRocks.length > 1 && (
+                  <button type="button" onClick={() => setBigRocks(prev => prev.filter((_,j)=>j!==i))} className="text-red-400 text-sm px-1">✕</button>
+                )}
+              </div>
+            ))}
+            <button type="button" onClick={() => setBigRocks(prev => [...prev, { task: '', deadline: '' }])}
+              className="text-xs font-black text-emerald-600 hover:text-emerald-700">+ เพิ่ม Big Rock</button>
+          </div>
+        </div>
+      </Card>
+
+      <Card title="ขั้นที่ 3 — ติดตามผล" color="bg-amber-50 text-amber-800">
+        <div>
+          <label className={LABEL}>นิสัยที่ต้องติดตาม</label>
+          <DynList items={habits} onChange={setHabits} placeholder="เช่น ทบทวนแผน 15 นาที" addLabel="เพิ่มนิสัย" />
+        </div>
+        <div>
+          <label className={LABEL}>ตัวชี้วัด (KPI)</label>
+          <div className="space-y-2">
+            {metrics.map((m, i) => (
+              <div key={i} className="flex gap-2">
+                <input value={m.name} onChange={e => setMetrics(prev => prev.map((x,j)=>j===i?{...x,name:e.target.value}:x))} placeholder="ชื่อ KPI" className={INPUT} />
+                <input value={m.target} onChange={e => setMetrics(prev => prev.map((x,j)=>j===i?{...x,target:e.target.value}:x))} placeholder="เป้า" className={INPUT} />
+                <select value={m.frequency} onChange={e => setMetrics(prev => prev.map((x,j)=>j===i?{...x,frequency:e.target.value as 'daily'|'weekly'|'monthly'}:x))}
+                  className="rounded-lg border border-neutral-200 bg-neutral-50 px-2 text-sm cursor-pointer">
+                  <option value="daily">ทุกวัน</option>
+                  <option value="weekly">รายสัปดาห์</option>
+                  <option value="monthly">รายเดือน</option>
+                </select>
+                {metrics.length > 1 && (
+                  <button type="button" onClick={() => setMetrics(prev => prev.filter((_,j)=>j!==i))} className="text-red-400 text-sm px-1">✕</button>
+                )}
+              </div>
+            ))}
+            <button type="button" onClick={() => setMetrics(prev => [...prev, { name: '', target: '', frequency: 'weekly' }])}
+              className="text-xs font-black text-amber-600 hover:text-amber-700">+ เพิ่ม Metric</button>
+          </div>
+        </div>
+        <div>
+          <label className={LABEL}>รอบทบทวน</label>
+          <select value={reviewCycle} onChange={e => setReviewCycle(e.target.value as typeof reviewCycle)} className={SELECT}>
+            <option value="daily">ทุกวัน</option>
+            <option value="weekly">รายสัปดาห์</option>
+            <option value="monthly">รายเดือน</option>
+          </select>
+        </div>
+        <div>
+          <label className={LABEL}>คำถามทบทวน</label>
+          <DynList items={reviewQuestions} onChange={setReviewQuestions} placeholder="เช่น สิ่งที่ทำได้ดีคืออะไร?" addLabel="เพิ่มคำถาม" />
+        </div>
+        {adjustmentRules.length > 0 && (
+          <div>
+            <label className={LABEL}>กฎปรับแผน</label>
+            <DynList items={adjustmentRules} onChange={setAdjustmentRules} placeholder="เช่น ถ้าช้า 2 สัปดาห์ ตัด Phase สุดท้าย" addLabel="เพิ่มกฎ" />
+          </div>
+        )}
+        <div className="border-t border-neutral-100 pt-3 space-y-2">
+          <label className={LABEL}>หน้าบันทึก</label>
+          <div className="flex gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-neutral-600">จดบันทึก</span>
+              <input type="number" min={0} max={10} value={notesPages} onChange={e => setNotesPages(Number(e.target.value))} className={`${INPUT} w-20`} />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-neutral-600">บันทึกรายวัน (วัน)</span>
+              <input type="number" min={0} max={31} value={diaryDays} onChange={e => setDiaryDays(Number(e.target.value))} className={`${INPUT} w-20`} />
+            </div>
+          </div>
+          <select value={notesStyle} onChange={e => setNotesStyle(e.target.value as typeof notesStyle)} className={SELECT}>
+            <option value="lined">เส้นบรรทัด</option>
+            <option value="dotgrid">ตารางจุด</option>
+            <option value="blank">ว่างเปล่า</option>
+          </select>
+        </div>
+      </Card>
+    </div>
+  )
+}
+
 function getDefaultSegV2(h: PlanningHorizon): PlannerSegment[] {
   switch (h) {
     case 'year':  return ['Q1 (ม.ค.–มี.ค.)','Q2 (เม.ย.–มิ.ย.)','Q3 (ก.ค.–ก.ย.)','Q4 (ต.ค.–ธ.ค.)'].map(l=>({label:l,theme:'',keyActions:''}))
@@ -684,8 +914,8 @@ function getReviewCycleV2(h: PlanningHorizon): PlannerAxis3['reviewCycle'] { ret
 interface Props {
   templateId: string
   slug: string
-  engineType: 'checklist' | 'planner'
-  initialData: ChecklistEngineData | PlannerEngineData | PlannerEngineDataV2
+  engineType: 'checklist' | 'planner' | 'pipeline'
+  initialData: ChecklistEngineData | PlannerEngineData | PlannerEngineDataV2 | PlannerPipelineData
   nextRevisionNumber: number
   categoryName?: string
 }
@@ -695,7 +925,7 @@ type ApproveState = 'idle' | 'loading' | 'done' | 'error'
 
 export function ReviseClient({ templateId, slug, engineType, initialData, nextRevisionNumber, categoryName }: Props) {
   const router = useRouter()
-  const [engineData, setEngineData] = useState<ChecklistEngineData | PlannerEngineData | PlannerEngineDataV2>(initialData)
+  const [engineData, setEngineData] = useState<ChecklistEngineData | PlannerEngineData | PlannerEngineDataV2 | PlannerPipelineData>(initialData)
   const [genState,   setGenState]   = useState<GenState>('idle')
   const [genError,   setGenError]   = useState('')
   const [pdfPath,    setPdfPath]    = useState('')
@@ -765,6 +995,11 @@ export function ReviseClient({ templateId, slug, engineType, initialData, nextRe
         {engineType === 'checklist' ? (
           <ChecklistReviseForm
             initial={initialData as ChecklistEngineData}
+            onChange={setEngineData}
+          />
+        ) : engineType === 'pipeline' ? (
+          <PipelineReviseForm
+            initial={initialData as PlannerPipelineData}
             onChange={setEngineData}
           />
         ) : (initialData as PlannerEngineDataV2).meta?.schemaVersion === '2.0' ? (
