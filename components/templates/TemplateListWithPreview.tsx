@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import AddToCartButton from '@/components/cart/AddToCartButton'
+import FreeDownloadButton from '@/components/templates/FreeDownloadButton'
 import { TocPreview, type TocItem } from '@/components/templates/TocPreview'
 
 export type PreviewTemplate = {
@@ -111,9 +112,11 @@ export function TemplateListWithPreview({ templates }: { templates: PreviewTempl
                   className="rounded-xl bg-indigo-600 px-5 py-2 text-sm font-black text-white transition hover:bg-indigo-700 disabled:opacity-60"
                 />
               ) : (
-                <span className="rounded-xl bg-emerald-100 px-4 py-2 text-sm font-black text-emerald-700">
-                  ฟรี
-                </span>
+                <FreeDownloadButton
+                  templateId={preview.id}
+                  label="⬇️ รับฟรี"
+                  className="rounded-xl bg-emerald-600 px-5 py-2 text-sm font-black text-white transition hover:bg-emerald-700 disabled:opacity-60"
+                />
               )}
             </div>
           </div>
@@ -128,7 +131,7 @@ export function TemplateListWithPreview({ templates }: { templates: PreviewTempl
             <div className="flex items-center gap-3">
               <span className="shrink-0 text-base text-neutral-300">📄</span>
               <Link
-                href={t.tier === 'free' ? '#line-cta' : `/templates/${t.slug}`}
+                href={`/templates/${t.slug}`}
                 className="min-w-0 flex-1 truncate text-sm font-medium text-neutral-700 group-hover:text-emerald-800"
               >
                 {t.title}
@@ -149,7 +152,11 @@ export function TemplateListWithPreview({ templates }: { templates: PreviewTempl
                 />
               )}
               {t.tier === 'free' && (
-                <span className="shrink-0 text-sm font-black text-emerald-700">ฟรี</span>
+                <FreeDownloadButton
+                  templateId={t.id}
+                  label="รับฟรี"
+                  className="shrink-0 rounded px-2 py-1 text-xs font-medium text-white transition-colors bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60"
+                />
               )}
             </div>
 

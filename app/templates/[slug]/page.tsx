@@ -5,6 +5,7 @@ import Image from 'next/image'
 import type { Metadata } from 'next'
 import { FileText } from 'lucide-react'
 import { db } from '@/lib/db'
+import FreeDownloadButton from '@/components/templates/FreeDownloadButton'
 import type { TocItem } from '@/lib/pdf-types'
 import type { ChecklistEngineData, PlannerEngineData, PlannerEngineDataV2 } from '@/lib/engine-types'
 
@@ -316,12 +317,11 @@ export default async function TemplateDetailPage({ params }: Props) {
               </div>
 
               {isFree ? (
-                <a
-                  href="#line-cta"
-                  className="block w-full rounded-2xl bg-[#06C755] py-3.5 text-center text-base font-black text-white transition hover:bg-green-500"
-                >
-                  🎁 รับฟรี ผ่าน LINE OA
-                </a>
+                <FreeDownloadButton
+                  templateId={tmpl.id}
+                  label="⬇️ รับฟรี — ดาวน์โหลดเลย"
+                  className="block w-full rounded-2xl bg-emerald-600 py-3.5 text-center text-base font-black text-white transition hover:bg-emerald-700 disabled:opacity-60"
+                />
               ) : (
                 <Link
                   href={`/checkout/${slug}`}

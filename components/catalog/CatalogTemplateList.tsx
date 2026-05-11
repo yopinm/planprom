@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
-import Link from 'next/link'
 import AddToCartButton from '@/components/cart/AddToCartButton'
+import FreeDownloadButton from '@/components/templates/FreeDownloadButton'
 
 export type CatalogTemplate = {
   id: string; slug: string; title: string
@@ -108,13 +108,11 @@ export function CatalogTemplateList({ templates }: { templates: CatalogTemplate[
                   className="rounded-xl bg-indigo-600 px-5 py-2 text-sm font-black text-white transition hover:bg-indigo-700 disabled:opacity-60"
                 />
               ) : (
-                <Link
-                  href="/#line-cta"
-                  onClick={close}
-                  className="rounded-xl bg-[#06C755] px-5 py-2 text-sm font-black text-white transition hover:bg-green-500"
-                >
-                  🎁 รับฟรีผ่าน LINE OA
-                </Link>
+                <FreeDownloadButton
+                  templateId={preview.id}
+                  label="⬇️ รับฟรี"
+                  className="rounded-xl bg-emerald-600 px-5 py-2 text-sm font-black text-white transition hover:bg-emerald-700 disabled:opacity-60"
+                />
               )}
             </div>
           </div>
@@ -154,12 +152,11 @@ export function CatalogTemplateList({ templates }: { templates: CatalogTemplate[
                         {TIER_LABEL[t.tier] ?? t.tier}
                       </span>
                       {t.tier === 'free' ? (
-                        <Link
-                          href="/#line-cta"
-                          className="shrink-0 rounded px-2 py-1 text-xs font-medium text-white transition-colors bg-emerald-600 hover:bg-emerald-700"
-                        >
-                          รับฟรี
-                        </Link>
+                        <FreeDownloadButton
+                          templateId={t.id}
+                          label="รับฟรี"
+                          className="shrink-0 rounded px-2 py-1 text-xs font-medium text-white transition-colors bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60"
+                        />
                       ) : (
                         <AddToCartButton
                           templateId={t.id}
