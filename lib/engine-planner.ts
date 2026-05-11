@@ -44,7 +44,7 @@ export function generatePlannerHtml(data: PlannerEngineData, watermarkText?: str
 
   const rocksHtml = validRocks.map(r => `
     <div style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid #f3f4f6">
-      <span style="font-size:11pt;flex-shrink:0">🏔</span>
+      <span style="display:inline-block;width:8px;height:8px;background:#7c3aed;border-radius:2px;flex-shrink:0;margin-top:4px"></span>
       <span style="font-size:10pt;color:#374151;font-weight:700">${esc(r)}</span>
     </div>`).join('')
 
@@ -223,8 +223,8 @@ ${wm ? `body::before{content:"${wm}";position:fixed;top:50%;left:50%;transform:t
 <div class="hdr">
   <div class="hdr-title">${esc(p1.plannerTitle)}</div>
   <div class="hdr-meta">
-    <span>📅 ${PERIOD[p1.period] ?? p1.period}</span>
-    ${fw ? `<span>🎯 ${fw}</span>` : ''}
+    <span>${PERIOD[p1.period] ?? p1.period}</span>
+    ${fw ? `<span>${fw}</span>` : ''}
     <span style="margin-left:auto">www.planprom.com</span>
   </div>
   ${p1.description.trim() ? `<p style="font-size:10pt;color:#6b7280;margin-top:5px">${esc(p1.description)}</p>` : ''}
@@ -338,7 +338,7 @@ export function generatePlannerHtmlV2(data: PlannerEngineDataV2, watermarkText?:
     <div class="sub" style="margin-top:10px">สิ่งสำคัญที่ต้องทำให้ได้ก่อน</div>
     ${validRocks.map(r=>`
       <div style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid #f3f4f6">
-        <span style="font-size:11pt">🏔</span>
+        <span style="display:inline-block;width:8px;height:8px;background:#7c3aed;border-radius:2px;flex-shrink:0;margin-top:4px"></span>
         <span style="font-size:10pt;color:#374151;font-weight:700">${esc(r)}</span>
       </div>`).join('')}` : ''
 
@@ -353,12 +353,12 @@ export function generatePlannerHtmlV2(data: PlannerEngineDataV2, watermarkText?:
   if (axis2) {
     const decisionsHtml = axis2.decisions.filter(d=>d.question.trim()).map(d=>`
       <div style="border:1px solid #e5e7eb;border-radius:6px;padding:10px;margin-bottom:8px">
-        <div style="font-weight:700;font-size:10pt;color:#374151;margin-bottom:6px">❓ ${esc(d.question)}</div>
-        ${d.options.filter(o=>o.trim()).map(o=>`<div style="padding:4px 0;border-bottom:1px dashed #f3f4f6;font-size:9pt;color:#6b7280">□ ${esc(o)}</div>`).join('')}
+        <div style="font-weight:700;font-size:10pt;color:#374151;margin-bottom:6px">${esc(d.question)}</div>
+        ${d.options.filter(o=>o.trim()).map(o=>`<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px dashed #f3f4f6;font-size:9pt;color:#6b7280"><span style="display:inline-block;width:9px;height:9px;border:1.5px solid #9ca3af;border-radius:1px;flex-shrink:0"></span>${esc(o)}</div>`).join('')}
         <div style="margin-top:6px;font-size:9pt;color:#9ca3af">เลือก: ________________________________</div>
       </div>`).join('')
     const extraRocksHtml = axis2.extraBigRocks.filter(r=>r.trim()).map(r=>`
-      <div style="padding:5px 0;border-bottom:1px solid #f3f4f6;font-size:10pt;color:#374151">□ ${esc(r)}</div>`).join('')
+      <div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid #f3f4f6;font-size:10pt;color:#374151"><span style="display:inline-block;width:9px;height:9px;border:1.5px solid #9ca3af;border-radius:1px;flex-shrink:0"></span>${esc(r)}</div>`).join('')
     if (decisionsHtml || extraRocksHtml) {
       axis2Html = `
         <div class="sec" style="page-break-before:auto">
@@ -538,7 +538,7 @@ ${wm ? `body::before{content:"${wm}";position:fixed;top:50%;left:50%;transform:t
 <div class="hdr">
   <div class="hdr-title">${esc(meta.displayTitle)}</div>
   <div class="hdr-meta">
-    <span>📅 ${HORIZON_TH[meta.planningHorizon] ?? meta.planningHorizon}</span>
+    <span>${HORIZON_TH[meta.planningHorizon] ?? meta.planningHorizon}</span>
     <span style="margin-left:auto">www.planprom.com</span>
   </div>
 </div>
