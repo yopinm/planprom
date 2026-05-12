@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import type { PlannerPipelineDataV4, PipelineHorizon, PipelineWeeklyLayout, PipelineDailyLayout, PipelinePhase, PipelineBigRock, PipelineStartDay } from '@/lib/engine-types'
+import type { PlannerPipelineDataV4, PipelineHorizon, PipelinePhase, PipelineBigRock, MonthlyPlanItem, WeeklyTaskItem, DailyRoutineItem } from '@/lib/engine-types'
 
 const INPUT = 'w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none focus:border-violet-400 focus:bg-white transition'
 const LABEL = 'block text-[11px] font-black uppercase tracking-widest text-neutral-600 mb-1.5'
@@ -65,18 +65,37 @@ export function PipelinePlannerForm({ onChange }: Props) {
   const [phases,   setPhases]   = useState<PipelinePhase[]>([{ name: 'Phase 1', timeRange: '', tasks: [''], budget: '' }])
   const [bigRocks, setBigRocks] = useState<PipelineBigRock[]>([{ task: '', deadline: '' }])
 
-  // Stage 3
-  const [weekCount,   setWeekCount]   = useState(4)
-  const [weekLayout,  setWeekLayout]  = useState<PipelineWeeklyLayout>('135rule')
-  const [startDay,    setStartDay]    = useState<PipelineStartDay>('mon')
+  // Stage 3 — content-first (auto-synced from stage 2)
+  const [monthlyPlans, setMonthlyPlans] = useState<MonthlyPlanItem[]>([])
+  const [weeklyPlans,  setWeeklyPlans]  = useState<WeeklyTaskItem[]>([])
+  const [flexItems,    setFlexItems]    = useState<{ label: string; tasks: string[] }[]>([{ label: '', tasks: [''] }])
 
-  // Stage 4
-  const [dayCount,    setDayCount]    = useState(7)
-  const [dayLayout,   setDayLayout]   = useState<PipelineDailyLayout>('combined')
+  // Stage 4 — content-first
+  const [weeklyTasks,   setWeeklyTasks]   = useState<WeeklyTaskItem[]>([{ weekLabel: '', goal: '', main1: '', secondary: ['', '', ''], small: ['', '', '', '', '', ''] }])
+  const [dailyRoutines, setDailyRoutines] = useState<DailyRoutineItem[]>([{ time: '', activity: '' }])
 
   // Stage 5
   const [reviewCycle, setReviewCycle] = useState<'daily' | 'weekly' | 'monthly'>('weekly')
   const [reviewQs,    setReviewQs]    = useState(['ทำสำเร็จอะไรบ้างในรอบนี้?', 'สิ่งที่ยังติดขัดคืออะไร?', 'จะปรับแผนอย่างไรในรอบหน้า?'])
+
+  const MONTH_ABBR = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.']
+
+  // Sync monthlyPlans length to month range (yearly)
+  useEffect(() => {
+    if (horizon !== 'yearly') return
+    const count = Math.max(1, toMonth - fromMonth + 1)
+    setMonthlyPlans(prev => Array.from({ length: count }, (_, i) =>
+      prev[i] ?? { monthLabel: MONTH_ABBR[fromMonth - 1 + i] ?? `เดือน ${i + 1}`, goal: '', mainTasks: ['', '', ''], keyDates: '' }
+    ))
+  }, [horizon, fromMonth, toMonth]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Sync weeklyPlans length to monthlyWeekCount (monthly)
+  useEffect(() => {
+    if (horizon !== 'monthly') return
+    setWeeklyPlans(prev => Array.from({ length: monthlyWeekCount }, (_, i) =>
+      prev[i] ?? { weekLabel: `สัปดาห์ที่ ${i + 1}`, goal: '', main1: '', secondary: ['', '', ''], small: ['', '', '', '', '', ''] }
+    ))
+  }, [horizon, monthlyWeekCount]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const s2: PlannerPipelineDataV4['s2_timeplan'] = horizon === 'yearly'
@@ -88,12 +107,22 @@ export function PipelinePlannerForm({ onChange }: Props) {
             bigRocks: bigRocks.filter(r => r.task.trim()),
           }
 
+    const s3_content: PlannerPipelineDataV4['s3_content'] = horizon === 'yearly'
+      ? { monthlyPlans }
+      : horizon === 'monthly'
+        ? { weeklyPlans }
+        : { flexItems: flexItems.filter(f => f.label.trim() || f.tasks.some(t => t.trim())) }
+
+    const s4_content: PlannerPipelineDataV4['s4_content'] = horizon === 'yearly'
+      ? { weeklyTasks }
+      : { dailyRoutines: dailyRoutines.filter(r => r.time.trim() || r.activity.trim()) }
+
     onChange({
       meta: { schemaVersion: '4.0', mode: 'pipeline', title: displayTitle, description, colorTheme, coverPage },
       s1_goal: { goal, why, deadline, horizon, horizonValue },
       s2_timeplan: s2,
-      s3_weekly: { weekCount, layout: weekLayout, startDay },
-      s4_daily:  { dayCount,  layout: dayLayout  },
+      s3_content,
+      s4_content,
       s5_review: { reviewCycle, reviewQuestions: reviewQs.filter(q => q.trim()) },
     })
   }, [
@@ -101,8 +130,8 @@ export function PipelinePlannerForm({ onChange }: Props) {
     goal, why, deadline, horizon, horizonValue,
     fromMonth, toMonth, monthlyWeekCount,
     phases, bigRocks,
-    weekCount, weekLayout, startDay,
-    dayCount, dayLayout,
+    monthlyPlans, weeklyPlans, flexItems,
+    weeklyTasks, dailyRoutines,
     reviewCycle, reviewQs,
     onChange,
   ])
@@ -367,99 +396,208 @@ export function PipelinePlannerForm({ onChange }: Props) {
         </div>
       )}
 
-      {/* ── STAGE 3: รายสัปดาห์ ── */}
+      {/* ── STAGE 3: แผนรายเดือน / รายสัปดาห์ / งาน ── */}
       {stage === 3 && (
         <div className="rounded-xl border-2 border-sky-300 overflow-hidden">
           <div className="px-4 py-3 bg-sky-50 text-sky-800 flex items-center gap-2">
             <span className="text-xs font-black bg-sky-200 rounded-full px-2 py-0.5">3</span>
-            <span className="font-black text-sm">แผนรายสัปดาห์</span>
+            <span className="font-black text-sm">
+              {horizon === 'yearly' ? 'แผนรายเดือน' : horizon === 'monthly' ? 'แผนรายสัปดาห์ (1-3-6)' : 'แผนงาน'}
+            </span>
           </div>
-          <div className="px-4 py-4 space-y-4">
-            <div>
-              <label className={LABEL}>จำนวนหน้าสัปดาห์</label>
-              <div className="flex items-center gap-3">
-                <input type="number" min={0} max={52} value={weekCount}
-                  onChange={e => setWeekCount(Math.max(0, Math.min(52, Number(e.target.value))))}
-                  className="w-24 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm" />
-                <span className="text-sm text-neutral-500">หน้า</span>
-              </div>
+
+          {/* Yearly: monthly plan forms (auto-generated from range) */}
+          {horizon === 'yearly' && (
+            <div className="px-4 py-4 space-y-4">
+              <p className="text-xs text-neutral-500">กรอกแผนสำหรับแต่ละเดือนตามช่วงที่เลือกใน Stage 2</p>
+              {monthlyPlans.map((mp, i) => (
+                <div key={i} className="rounded-lg border border-sky-100 p-3 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-black bg-sky-600 text-white rounded-full px-2.5 py-0.5">{mp.monthLabel}</span>
+                  </div>
+                  <div>
+                    <label className={LABEL}>เป้าหมายเดือนนี้</label>
+                    <input value={mp.goal}
+                      onChange={e => setMonthlyPlans(prev => prev.map((x, j) => j === i ? { ...x, goal: e.target.value } : x))}
+                      placeholder="เช่น เตรียมเปิดตัวสินค้าและทำ 3 content" className={INPUT} />
+                  </div>
+                  <div>
+                    <label className={LABEL}>วันสำคัญ / นัดหมาย</label>
+                    <input value={mp.keyDates}
+                      onChange={e => setMonthlyPlans(prev => prev.map((x, j) => j === i ? { ...x, keyDates: e.target.value } : x))}
+                      placeholder="เช่น 15 มิ.ย. — นัดลูกค้า, 28 มิ.ย. — ส่งงาน" className={INPUT} />
+                  </div>
+                  <div>
+                    <label className={LABEL}>งานหลัก 3 อย่าง</label>
+                    {mp.mainTasks.map((t, ti) => (
+                      <input key={ti} value={t}
+                        onChange={e => setMonthlyPlans(prev => prev.map((x, j) => j === i
+                          ? { ...x, mainTasks: x.mainTasks.map((m, k) => k === ti ? e.target.value : m) } : x))}
+                        placeholder={`งานที่ ${ti + 1}`} className={`${INPUT} mt-1`} />
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
-            <div>
-              <label className={LABEL}>รูปแบบหน้าสัปดาห์</label>
-              <div className="space-y-2">
-                {([
-                  { v: 'simple',   l: 'แบบง่าย',        desc: 'เป้าสัปดาห์ + ช่องงาน 5 บรรทัด' },
-                  { v: '135rule',  l: 'กฎ 1-3-5',        desc: '1 งานหลัก + 3 งานรอง + 5 งานเล็ก' },
-                  { v: 'timeblock', l: 'Time Block',      desc: 'ตาราง × เช้า/กลางวัน/เย็น (ใช้วันเริ่มต้นด้านล่าง)' },
-                ] as { v: PipelineWeeklyLayout; l: string; desc: string }[]).map(({ v, l, desc }) => (
-                  <label key={v}
-                    className={`flex items-center gap-3 rounded-xl border-2 px-4 py-3 cursor-pointer transition
-                      ${weekLayout === v ? 'border-sky-500 bg-sky-50' : 'border-neutral-200 hover:border-sky-300'}`}>
-                    <input type="radio" checked={weekLayout === v} onChange={() => setWeekLayout(v)} className="hidden" />
-                    <div>
-                      <p className={`text-sm font-black ${weekLayout === v ? 'text-sky-800' : 'text-neutral-700'}`}>{weekLayout === v ? '✓ ' : ''}{l}</p>
-                      <p className="text-[11px] text-neutral-500">{desc}</p>
+          )}
+
+          {/* Monthly: weekly plan forms (1-3-6) */}
+          {horizon === 'monthly' && (
+            <div className="px-4 py-4 space-y-4">
+              <p className="text-xs text-neutral-500">กรอกแผน 1-3-6 สำหรับแต่ละสัปดาห์</p>
+              {weeklyPlans.map((wp, i) => (
+                <div key={i} className="rounded-lg border border-sky-100 p-3 space-y-3">
+                  <div>
+                    <label className={LABEL}>ชื่อสัปดาห์</label>
+                    <input value={wp.weekLabel}
+                      onChange={e => setWeeklyPlans(prev => prev.map((x, j) => j === i ? { ...x, weekLabel: e.target.value } : x))}
+                      className={INPUT} />
+                  </div>
+                  <div>
+                    <label className={LABEL}>เป้าหมายสัปดาห์นี้</label>
+                    <input value={wp.goal}
+                      onChange={e => setWeeklyPlans(prev => prev.map((x, j) => j === i ? { ...x, goal: e.target.value } : x))}
+                      placeholder="เช่น ทำ Prototype ให้เสร็จ" className={INPUT} />
+                  </div>
+                  <div>
+                    <label className={LABEL}>งานหลัก 1 อย่าง (ต้องทำ)</label>
+                    <input value={wp.main1}
+                      onChange={e => setWeeklyPlans(prev => prev.map((x, j) => j === i ? { ...x, main1: e.target.value } : x))}
+                      placeholder="งานที่สำคัญที่สุด ถ้าทำได้แค่อย่างเดียวในสัปดาห์นี้" className={`${INPUT} font-bold`} />
+                  </div>
+                  <div>
+                    <label className={LABEL}>งานรอง 3 อย่าง (พยายามทำ)</label>
+                    {wp.secondary.map((s, si) => (
+                      <input key={si} value={s}
+                        onChange={e => setWeeklyPlans(prev => prev.map((x, j) => j === i
+                          ? { ...x, secondary: x.secondary.map((v, k) => k === si ? e.target.value : v) } : x))}
+                        placeholder={`งานรอง ${si + 1}`} className={`${INPUT} mt-1`} />
+                    ))}
+                  </div>
+                  <div>
+                    <label className={LABEL}>งานเล็ก 6 อย่าง (ถ้ามีเวลา)</label>
+                    <div className="grid grid-cols-2 gap-1.5 mt-1">
+                      {wp.small.map((s, si) => (
+                        <input key={si} value={s}
+                          onChange={e => setWeeklyPlans(prev => prev.map((x, j) => j === i
+                            ? { ...x, small: x.small.map((v, k) => k === si ? e.target.value : v) } : x))}
+                          placeholder={`งานเล็ก ${si + 1}`} className={INPUT} />
+                      ))}
                     </div>
-                  </label>
-                ))}
-              </div>
+                  </div>
+                </div>
+              ))}
             </div>
-            <div>
-              <label className={LABEL}>วันเริ่มต้นสัปดาห์</label>
-              <div className="flex gap-1.5 flex-wrap">
-                {([
-                  { v: 'mon', l: 'จันทร์' }, { v: 'tue', l: 'อังคาร' }, { v: 'wed', l: 'พุธ' },
-                  { v: 'thu', l: 'พฤหัส' }, { v: 'fri', l: 'ศุกร์' }, { v: 'sat', l: 'เสาร์' }, { v: 'sun', l: 'อาทิตย์' },
-                ] as { v: PipelineStartDay; l: string }[]).map(({ v, l }) => (
-                  <button key={v} type="button" onClick={() => setStartDay(v)}
-                    className={`rounded-lg border-2 px-2.5 py-1.5 text-xs font-black transition ${
-                      startDay === v ? 'border-sky-600 bg-sky-600 text-white' : 'border-neutral-200 text-neutral-600 hover:border-sky-400'
-                    }`}>{l}</button>
-                ))}
-              </div>
+          )}
+
+          {/* Project: flexible task items */}
+          {horizon === 'project' && (
+            <div className="px-4 py-4 space-y-4">
+              <p className="text-xs text-neutral-500">กรอกแผนงานแต่ละช่วง — เพิ่มช่วงได้ไม่จำกัด</p>
+              {flexItems.map((fi, i) => (
+                <div key={i} className="rounded-lg border border-sky-100 p-3 space-y-2">
+                  <div className="flex gap-2">
+                    <input value={fi.label}
+                      onChange={e => setFlexItems(prev => prev.map((x, j) => j === i ? { ...x, label: e.target.value } : x))}
+                      placeholder={`ช่วงที่ ${i + 1} — ชื่อช่วง`} className={`${INPUT} font-bold`} />
+                    {flexItems.length > 1 && (
+                      <button type="button" onClick={() => setFlexItems(prev => prev.filter((_, j) => j !== i))}
+                        className="text-red-400 text-sm px-1">✕</button>
+                    )}
+                  </div>
+                  <DynList items={fi.tasks}
+                    onChange={tasks => setFlexItems(prev => prev.map((x, j) => j === i ? { ...x, tasks } : x))}
+                    placeholder="งานที่ต้องทำ" addLabel="เพิ่มงาน" />
+                </div>
+              ))}
+              <button type="button" onClick={() => setFlexItems(prev => [...prev, { label: '', tasks: [''] }])}
+                className="text-xs font-black text-sky-600 hover:text-sky-700">+ เพิ่มช่วง</button>
             </div>
-          </div>
+          )}
         </div>
       )}
 
-      {/* ── STAGE 4: รายวัน ── */}
+      {/* ── STAGE 4: แผนสัปดาห์ (yearly) / ตารางประจำวัน (monthly/project) ── */}
       {stage === 4 && (
         <div className="rounded-xl border-2 border-amber-300 overflow-hidden">
           <div className="px-4 py-3 bg-amber-50 text-amber-800 flex items-center gap-2">
             <span className="text-xs font-black bg-amber-200 rounded-full px-2 py-0.5">4</span>
-            <span className="font-black text-sm">แผนรายวัน</span>
+            <span className="font-black text-sm">
+              {horizon === 'yearly' ? 'แผนรายสัปดาห์ (1-3-6)' : 'ตารางประจำวัน'}
+            </span>
           </div>
-          <div className="px-4 py-4 space-y-4">
-            <div>
-              <label className={LABEL}>จำนวนหน้าวัน</label>
-              <div className="flex items-center gap-3">
-                <input type="number" min={0} max={365} value={dayCount}
-                  onChange={e => setDayCount(Math.max(0, Math.min(365, Number(e.target.value))))}
-                  className="w-24 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm" />
-                <span className="text-sm text-neutral-500">หน้า</span>
-              </div>
-            </div>
-            <div>
-              <label className={LABEL}>รูปแบบหน้าวัน</label>
-              <div className="space-y-2">
-                {([
-                  { v: 'todo',       l: 'To-Do 1-3-5',    desc: '1 ต้องทำ + 3 ควรทำ + 5 ถ้ามีเวลา + โน้ต' },
-                  { v: 'timeblock',  l: 'Time Block',      desc: 'ตาราง 06:00–22:00 รายชั่วโมง' },
-                  { v: 'combined',   l: 'รวม (แนะนำ)',     desc: 'Time Block ซ้าย + To-Do ขวา' },
-                ] as { v: PipelineDailyLayout; l: string; desc: string }[]).map(({ v, l, desc }) => (
-                  <label key={v}
-                    className={`flex items-center gap-3 rounded-xl border-2 px-4 py-3 cursor-pointer transition
-                      ${dayLayout === v ? 'border-amber-500 bg-amber-50' : 'border-neutral-200 hover:border-amber-300'}`}>
-                    <input type="radio" checked={dayLayout === v} onChange={() => setDayLayout(v)} className="hidden" />
-                    <div>
-                      <p className={`text-sm font-black ${dayLayout === v ? 'text-amber-800' : 'text-neutral-700'}`}>{dayLayout === v ? '✓ ' : ''}{l}</p>
-                      <p className="text-[11px] text-neutral-500">{desc}</p>
+
+          {/* Yearly: dynamic weekly task blocks (1-3-6) */}
+          {horizon === 'yearly' && (
+            <div className="px-4 py-4 space-y-4">
+              <p className="text-xs text-neutral-500">ระบุชื่อสัปดาห์เองได้ — กรอกงาน 1-3-6 เพิ่มได้ไม่จำกัด</p>
+              {weeklyTasks.map((wt, i) => (
+                <div key={i} className="rounded-lg border border-amber-100 p-3 space-y-3">
+                  <div className="flex gap-2">
+                    <input value={wt.weekLabel}
+                      onChange={e => setWeeklyTasks(prev => prev.map((x, j) => j === i ? { ...x, weekLabel: e.target.value } : x))}
+                      placeholder={`สัปดาห์ที่ ${i + 1} (ระบุชื่อเอง)`} className={`${INPUT} font-bold`} />
+                    {weeklyTasks.length > 1 && (
+                      <button type="button" onClick={() => setWeeklyTasks(prev => prev.filter((_, j) => j !== i))}
+                        className="text-red-400 text-sm px-1">✕</button>
+                    )}
+                  </div>
+                  <div>
+                    <label className={LABEL}>งานหลัก 1 อย่าง (ต้องทำ)</label>
+                    <input value={wt.main1}
+                      onChange={e => setWeeklyTasks(prev => prev.map((x, j) => j === i ? { ...x, main1: e.target.value } : x))}
+                      placeholder="งานที่สำคัญที่สุดสัปดาห์นี้" className={INPUT} />
+                  </div>
+                  <div>
+                    <label className={LABEL}>งานรอง 3 อย่าง (พยายามทำ)</label>
+                    {wt.secondary.map((s, si) => (
+                      <input key={si} value={s}
+                        onChange={e => setWeeklyTasks(prev => prev.map((x, j) => j === i
+                          ? { ...x, secondary: x.secondary.map((v, k) => k === si ? e.target.value : v) } : x))}
+                        placeholder={`งานรอง ${si + 1}`} className={`${INPUT} mt-1`} />
+                    ))}
+                  </div>
+                  <div>
+                    <label className={LABEL}>งานเล็ก 6 อย่าง (ถ้ามีเวลา)</label>
+                    <div className="grid grid-cols-2 gap-1.5 mt-1">
+                      {wt.small.map((s, si) => (
+                        <input key={si} value={s}
+                          onChange={e => setWeeklyTasks(prev => prev.map((x, j) => j === i
+                            ? { ...x, small: x.small.map((v, k) => k === si ? e.target.value : v) } : x))}
+                          placeholder={`งานเล็ก ${si + 1}`} className={INPUT} />
+                      ))}
                     </div>
-                  </label>
-                ))}
-              </div>
+                  </div>
+                </div>
+              ))}
+              <button type="button"
+                onClick={() => setWeeklyTasks(prev => [...prev, { weekLabel: '', goal: '', main1: '', secondary: ['', '', ''], small: ['', '', '', '', '', ''] }])}
+                className="text-xs font-black text-amber-600 hover:text-amber-700">+ เพิ่มแผนสัปดาห์</button>
             </div>
-          </div>
+          )}
+
+          {/* Monthly / Project: daily routine rows */}
+          {(horizon === 'monthly' || horizon === 'project') && (
+            <div className="px-4 py-4 space-y-3">
+              <p className="text-xs text-neutral-500">กรอกตารางประจำวันที่แนะนำ — เพิ่มช่วงเวลาได้ไม่จำกัด</p>
+              {dailyRoutines.map((dr, i) => (
+                <div key={i} className="flex gap-2">
+                  <input value={dr.time}
+                    onChange={e => setDailyRoutines(prev => prev.map((x, j) => j === i ? { ...x, time: e.target.value } : x))}
+                    placeholder="06:00" className={`${INPUT} w-24`} />
+                  <input value={dr.activity}
+                    onChange={e => setDailyRoutines(prev => prev.map((x, j) => j === i ? { ...x, activity: e.target.value } : x))}
+                    placeholder="กิจกรรม" className={INPUT} />
+                  {dailyRoutines.length > 1 && (
+                    <button type="button" onClick={() => setDailyRoutines(prev => prev.filter((_, j) => j !== i))}
+                      className="text-red-400 text-sm px-1">✕</button>
+                  )}
+                </div>
+              ))}
+              <button type="button" onClick={() => setDailyRoutines(prev => [...prev, { time: '', activity: '' }])}
+                className="text-xs font-black text-amber-600 hover:text-amber-700">+ เพิ่ม routine</button>
+            </div>
+          )}
         </div>
       )}
 

@@ -9,6 +9,7 @@ import type {
   PlannerDecisionMatrix, PlannerAxis3,
   PlannerPipelineData, PipelinePhase, PipelineBigRock, PipelineMetric,
   PlannerPipelineDataV4, PipelineHorizon, PipelineWeeklyLayout, PipelineDailyLayout,
+  MonthlyPlanItem, WeeklyTaskItem, DailyRoutineItem,
 } from '@/lib/engine-types'
 
 const INPUT = 'w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none focus:border-amber-400 focus:bg-white transition'
@@ -926,13 +927,22 @@ function PipelineReviseFormV4({ initial, onChange }: {
   const [phases,   setPhases]   = useState<PipelinePhase[]>(initial.s2_timeplan.phases?.length ? initial.s2_timeplan.phases : [{ name: 'Phase 1', timeRange: '', tasks: [''], budget: '' }])
   const [bigRocks, setBigRocks] = useState<PipelineBigRock[]>(initial.s2_timeplan.bigRocks?.length ? initial.s2_timeplan.bigRocks : [{ task: '', deadline: '' }])
 
-  const [weekCount,   setWeekCount]   = useState(initial.s3_weekly.weekCount)
-  const [weekLayout,  setWeekLayout]  = useState<PipelineWeeklyLayout>(initial.s3_weekly.layout)
-  const [startDay,    setStartDay]    = useState(initial.s3_weekly.startDay ?? 'mon')
-  const [dayCount,    setDayCount]    = useState(initial.s4_daily.dayCount)
-  const [dayLayout,   setDayLayout]   = useState<PipelineDailyLayout>(initial.s4_daily.layout)
+  const [weekCount,   setWeekCount]   = useState(initial.s3_weekly?.weekCount ?? 0)
+  const [weekLayout,  setWeekLayout]  = useState<PipelineWeeklyLayout>(initial.s3_weekly?.layout ?? '135rule')
+  const [startDay,    setStartDay]    = useState(initial.s3_weekly?.startDay ?? 'mon')
+  const [dayCount,    setDayCount]    = useState(initial.s4_daily?.dayCount ?? 0)
+  const [dayLayout,   setDayLayout]   = useState<PipelineDailyLayout>(initial.s4_daily?.layout ?? 'combined')
   const [reviewCycle, setReviewCycle] = useState(initial.s5_review.reviewCycle)
   const [reviewQs,    setReviewQs]    = useState<string[]>(initial.s5_review.reviewQuestions.length ? initial.s5_review.reviewQuestions : [''])
+
+  // s3_content
+  const [monthlyPlans, setMonthlyPlans] = useState<MonthlyPlanItem[]>(initial.s3_content?.monthlyPlans ?? [])
+  const [weeklyPlans,  setWeeklyPlans]  = useState<WeeklyTaskItem[]>(initial.s3_content?.weeklyPlans ?? [])
+  const [flexItems,    setFlexItems]    = useState<{ label: string; tasks: string[] }[]>(initial.s3_content?.flexItems ?? [{ label: '', tasks: [''] }])
+
+  // s4_content
+  const [weeklyTasks,   setWeeklyTasks]   = useState<WeeklyTaskItem[]>(initial.s4_content?.weeklyTasks ?? [{ weekLabel: '', goal: '', main1: '', secondary: ['', '', ''], small: ['', '', '', '', '', ''] }])
+  const [dailyRoutines, setDailyRoutines] = useState<DailyRoutineItem[]>(initial.s4_content?.dailyRoutines ?? [{ time: '', activity: '' }])
 
   useEffect(() => {
     const s2: PlannerPipelineDataV4['s2_timeplan'] = horizon === 'yearly'
@@ -943,12 +953,26 @@ function PipelineReviseFormV4({ initial, onChange }: {
             phases: phases.filter(p => p.name.trim()).map(p => ({ ...p, tasks: p.tasks.filter(t => t.trim()) })),
             bigRocks: bigRocks.filter(r => r.task.trim()),
           }
+
+    const s3_content: PlannerPipelineDataV4['s3_content'] | undefined =
+      monthlyPlans.length > 0 ? { monthlyPlans } :
+      weeklyPlans.length > 0  ? { weeklyPlans } :
+      flexItems.some(f => f.label.trim() || f.tasks.some(t => t.trim())) ? { flexItems } :
+      undefined
+
+    const s4_content: PlannerPipelineDataV4['s4_content'] | undefined =
+      weeklyTasks.some(wt => wt.main1.trim() || wt.weekLabel.trim()) ? { weeklyTasks } :
+      dailyRoutines.some(r => r.time.trim() || r.activity.trim()) ? { dailyRoutines } :
+      undefined
+
     onChange({
       meta: { schemaVersion: '4.0', mode: 'pipeline', title: displayTitle, description, colorTheme, coverPage },
       s1_goal: { goal, why, deadline, horizon, horizonValue },
       s2_timeplan: s2,
-      s3_weekly: { weekCount, layout: weekLayout, startDay },
-      s4_daily:  { dayCount,  layout: dayLayout  },
+      ...(weekCount > 0 ? { s3_weekly: { weekCount, layout: weekLayout, startDay } } : {}),
+      ...(s3_content ? { s3_content } : {}),
+      ...(dayCount > 0 ? { s4_daily: { dayCount, layout: dayLayout } } : {}),
+      ...(s4_content ? { s4_content } : {}),
       s5_review: { reviewCycle, reviewQuestions: reviewQs.filter(q => q.trim()) },
     })
   }, [
@@ -957,6 +981,8 @@ function PipelineReviseFormV4({ initial, onChange }: {
     fromMonth, toMonth, monthlyWeekCount,
     phases, bigRocks,
     weekCount, weekLayout, startDay, dayCount, dayLayout,
+    monthlyPlans, weeklyPlans, flexItems,
+    weeklyTasks, dailyRoutines,
     reviewCycle, reviewQs, onChange,
   ])
 
@@ -1096,7 +1122,8 @@ function PipelineReviseFormV4({ initial, onChange }: {
         </Card>
       )}
 
-      <Card title="แกนที่ 3 — แผนรายสัปดาห์" color="bg-sky-50 text-sky-800">
+      <Card title="แกนที่ 3 — แผนรายสัปดาห์ (legacy blank)" color="bg-sky-50 text-sky-800">
+        <p className="text-xs text-neutral-500">ตั้งค่าฟอร์มเปล่า (สำหรับ template เก่า) — ถ้ากรอก Content ด้านล่างจะใช้ Content แทน</p>
         <div className="flex items-center gap-3">
           <label className={LABEL}>จำนวนหน้า</label>
           <input type="number" min={0} max={52} value={weekCount}
@@ -1125,7 +1152,82 @@ function PipelineReviseFormV4({ initial, onChange }: {
         </div>
       </Card>
 
-      <Card title="แกนที่ 4 — แผนรายวัน" color="bg-amber-50 text-amber-800">
+      {/* s3_content — content-first */}
+      <Card title="แกนที่ 3 — Content แผนรายเดือน (yearly)" color="bg-sky-50 text-sky-800">
+        <p className="text-xs text-neutral-500">กรอกเพื่อใช้แทน blank form — เพิ่ม/ลบได้</p>
+        {monthlyPlans.map((mp, i) => (
+          <div key={i} className="rounded-lg border border-sky-100 p-3 space-y-2">
+            <div className="flex gap-2">
+              <input value={mp.monthLabel}
+                onChange={e => setMonthlyPlans(prev => prev.map((x, j) => j === i ? { ...x, monthLabel: e.target.value } : x))}
+                placeholder="เช่น ม.ค." className={`${INPUT} w-20 font-bold`} />
+              <input value={mp.goal}
+                onChange={e => setMonthlyPlans(prev => prev.map((x, j) => j === i ? { ...x, goal: e.target.value } : x))}
+                placeholder="เป้าหมายเดือนนี้" className={INPUT} />
+              {monthlyPlans.length > 1 && (
+                <button type="button" onClick={() => setMonthlyPlans(prev => prev.filter((_, j) => j !== i))}
+                  className="text-red-400 text-sm px-1">✕</button>
+              )}
+            </div>
+            <input value={mp.keyDates}
+              onChange={e => setMonthlyPlans(prev => prev.map((x, j) => j === i ? { ...x, keyDates: e.target.value } : x))}
+              placeholder="วันสำคัญ / นัดหมาย" className={INPUT} />
+            {mp.mainTasks.map((t, ti) => (
+              <input key={ti} value={t}
+                onChange={e => setMonthlyPlans(prev => prev.map((x, j) => j === i
+                  ? { ...x, mainTasks: x.mainTasks.map((m, k) => k === ti ? e.target.value : m) } : x))}
+                placeholder={`งานหลัก ${ti + 1}`} className={INPUT} />
+            ))}
+          </div>
+        ))}
+        <button type="button"
+          onClick={() => setMonthlyPlans(prev => [...prev, { monthLabel: '', goal: '', mainTasks: ['', '', ''], keyDates: '' }])}
+          className="text-xs font-black text-sky-600">+ เพิ่มเดือน</button>
+      </Card>
+
+      <Card title="แกนที่ 3 — Content แผนรายสัปดาห์ (monthly / 1-3-6)" color="bg-sky-50 text-sky-800">
+        {weeklyPlans.map((wp, i) => (
+          <div key={i} className="rounded-lg border border-sky-100 p-3 space-y-2">
+            <div className="flex gap-2">
+              <input value={wp.weekLabel}
+                onChange={e => setWeeklyPlans(prev => prev.map((x, j) => j === i ? { ...x, weekLabel: e.target.value } : x))}
+                placeholder={`สัปดาห์ที่ ${i + 1}`} className={`${INPUT} font-bold`} />
+              {weeklyPlans.length > 1 && (
+                <button type="button" onClick={() => setWeeklyPlans(prev => prev.filter((_, j) => j !== i))}
+                  className="text-red-400 text-sm px-1">✕</button>
+              )}
+            </div>
+            <input value={wp.goal}
+              onChange={e => setWeeklyPlans(prev => prev.map((x, j) => j === i ? { ...x, goal: e.target.value } : x))}
+              placeholder="เป้าหมายสัปดาห์นี้" className={INPUT} />
+            <input value={wp.main1}
+              onChange={e => setWeeklyPlans(prev => prev.map((x, j) => j === i ? { ...x, main1: e.target.value } : x))}
+              placeholder="งานหลัก 1 (ต้องทำ)" className={`${INPUT} font-bold`} />
+            <div className="grid grid-cols-3 gap-1.5">
+              {wp.secondary.map((s, si) => (
+                <input key={si} value={s}
+                  onChange={e => setWeeklyPlans(prev => prev.map((x, j) => j === i
+                    ? { ...x, secondary: x.secondary.map((v, k) => k === si ? e.target.value : v) } : x))}
+                  placeholder={`รอง ${si + 1}`} className={INPUT} />
+              ))}
+            </div>
+            <div className="grid grid-cols-3 gap-1.5">
+              {wp.small.map((s, si) => (
+                <input key={si} value={s}
+                  onChange={e => setWeeklyPlans(prev => prev.map((x, j) => j === i
+                    ? { ...x, small: x.small.map((v, k) => k === si ? e.target.value : v) } : x))}
+                  placeholder={`เล็ก ${si + 1}`} className={INPUT} />
+              ))}
+            </div>
+          </div>
+        ))}
+        <button type="button"
+          onClick={() => setWeeklyPlans(prev => [...prev, { weekLabel: '', goal: '', main1: '', secondary: ['', '', ''], small: ['', '', '', '', '', ''] }])}
+          className="text-xs font-black text-sky-600">+ เพิ่มสัปดาห์</button>
+      </Card>
+
+      <Card title="แกนที่ 4 — แผนรายวัน (legacy blank)" color="bg-amber-50 text-amber-800">
+        <p className="text-xs text-neutral-500">ตั้งค่าฟอร์มเปล่า (สำหรับ template เก่า)</p>
         <div className="flex items-center gap-3">
           <label className={LABEL}>จำนวนหน้า</label>
           <input type="number" min={0} max={365} value={dayCount}
@@ -1140,6 +1242,65 @@ function PipelineReviseFormV4({ initial, onChange }: {
             <option value="combined">รวม (แนะนำ)</option>
           </select>
         </div>
+      </Card>
+
+      {/* s4_content — weekly tasks (yearly) */}
+      <Card title="แกนที่ 4 — Content แผนสัปดาห์ (yearly / 1-3-6)" color="bg-amber-50 text-amber-800">
+        {weeklyTasks.map((wt, i) => (
+          <div key={i} className="rounded-lg border border-amber-100 p-3 space-y-2">
+            <div className="flex gap-2">
+              <input value={wt.weekLabel}
+                onChange={e => setWeeklyTasks(prev => prev.map((x, j) => j === i ? { ...x, weekLabel: e.target.value } : x))}
+                placeholder={`สัปดาห์ที่ ${i + 1}`} className={`${INPUT} font-bold`} />
+              {weeklyTasks.length > 1 && (
+                <button type="button" onClick={() => setWeeklyTasks(prev => prev.filter((_, j) => j !== i))}
+                  className="text-red-400 text-sm px-1">✕</button>
+              )}
+            </div>
+            <input value={wt.main1}
+              onChange={e => setWeeklyTasks(prev => prev.map((x, j) => j === i ? { ...x, main1: e.target.value } : x))}
+              placeholder="งานหลัก 1 (ต้องทำ)" className={`${INPUT} font-bold`} />
+            <div className="grid grid-cols-3 gap-1.5">
+              {wt.secondary.map((s, si) => (
+                <input key={si} value={s}
+                  onChange={e => setWeeklyTasks(prev => prev.map((x, j) => j === i
+                    ? { ...x, secondary: x.secondary.map((v, k) => k === si ? e.target.value : v) } : x))}
+                  placeholder={`รอง ${si + 1}`} className={INPUT} />
+              ))}
+            </div>
+            <div className="grid grid-cols-3 gap-1.5">
+              {wt.small.map((s, si) => (
+                <input key={si} value={s}
+                  onChange={e => setWeeklyTasks(prev => prev.map((x, j) => j === i
+                    ? { ...x, small: x.small.map((v, k) => k === si ? e.target.value : v) } : x))}
+                  placeholder={`เล็ก ${si + 1}`} className={INPUT} />
+              ))}
+            </div>
+          </div>
+        ))}
+        <button type="button"
+          onClick={() => setWeeklyTasks(prev => [...prev, { weekLabel: '', goal: '', main1: '', secondary: ['', '', ''], small: ['', '', '', '', '', ''] }])}
+          className="text-xs font-black text-amber-600">+ เพิ่มแผนสัปดาห์</button>
+      </Card>
+
+      {/* s4_content — daily routines (monthly/project) */}
+      <Card title="แกนที่ 4 — Content ตารางประจำวัน (monthly/project)" color="bg-amber-50 text-amber-800">
+        {dailyRoutines.map((dr, i) => (
+          <div key={i} className="flex gap-2">
+            <input value={dr.time}
+              onChange={e => setDailyRoutines(prev => prev.map((x, j) => j === i ? { ...x, time: e.target.value } : x))}
+              placeholder="06:00" className={`${INPUT} w-24`} />
+            <input value={dr.activity}
+              onChange={e => setDailyRoutines(prev => prev.map((x, j) => j === i ? { ...x, activity: e.target.value } : x))}
+              placeholder="กิจกรรม" className={INPUT} />
+            {dailyRoutines.length > 1 && (
+              <button type="button" onClick={() => setDailyRoutines(prev => prev.filter((_, j) => j !== i))}
+                className="text-red-400 text-sm px-1">✕</button>
+            )}
+          </div>
+        ))}
+        <button type="button" onClick={() => setDailyRoutines(prev => [...prev, { time: '', activity: '' }])}
+          className="text-xs font-black text-amber-600">+ เพิ่ม routine</button>
       </Card>
 
       <Card title="แกนที่ 5 — รีวิว" color="bg-rose-50 text-rose-800">

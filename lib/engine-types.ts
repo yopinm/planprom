@@ -171,6 +171,26 @@ export type PipelineWeeklyLayout = 'simple' | '135rule' | 'timeblock'
 export type PipelineDailyLayout = 'todo' | 'timeblock' | 'combined'
 export type PipelineStartDay = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun'
 
+export type MonthlyPlanItem = {
+  monthLabel: string
+  goal: string
+  mainTasks: string[]
+  keyDates: string
+}
+
+export type WeeklyTaskItem = {
+  weekLabel: string
+  goal: string
+  main1: string
+  secondary: string[]
+  small: string[]
+}
+
+export type DailyRoutineItem = {
+  time: string
+  activity: string
+}
+
 export type PlannerPipelineDataV4 = {
   meta: {
     schemaVersion: '4.0'
@@ -196,14 +216,23 @@ export type PlannerPipelineDataV4 = {
     phases?: PipelinePhase[]
     bigRocks?: PipelineBigRock[]
   }
-  s3_weekly: {
+  s3_weekly?: {
     weekCount: number
     layout: PipelineWeeklyLayout
     startDay?: PipelineStartDay
   }
-  s4_daily: {
+  s3_content?: {
+    monthlyPlans?: MonthlyPlanItem[]
+    weeklyPlans?: WeeklyTaskItem[]
+    flexItems?: { label: string; tasks: string[] }[]
+  }
+  s4_daily?: {
     dayCount: number
     layout: PipelineDailyLayout
+  }
+  s4_content?: {
+    weeklyTasks?: WeeklyTaskItem[]
+    dailyRoutines?: DailyRoutineItem[]
   }
   s5_review: {
     reviewCycle: 'daily' | 'weekly' | 'monthly'

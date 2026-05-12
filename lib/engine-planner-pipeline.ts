@@ -224,7 +224,7 @@ export function validatePlannerPipelineV4(data: PlannerPipelineDataV4): void {
 }
 
 export function generatePlannerPipelineHtmlV4(data: PlannerPipelineDataV4, watermarkText?: string): string {
-  const { meta, s1_goal: s1, s2_timeplan: s2, s3_weekly: s3, s4_daily: s4, s5_review: s5 } = data
+  const { meta, s1_goal: s1, s2_timeplan: s2, s3_weekly: s3, s3_content: s3c, s4_daily: s4, s4_content: s4c, s5_review: s5 } = data
   const wm = (watermarkText ?? '').replace(/\\/g, '\\\\').replace(/"/g, '\\"')
 
   const COLORS: Record<string, { accent: string; light: string; text: string }> = {
@@ -273,32 +273,57 @@ export function generatePlannerPipelineHtmlV4(data: PlannerPipelineDataV4, water
     const fromM = (s2.fromMonth ?? 1) - 1
     const toM   = (s2.toMonth   ?? 12) - 1
     const monthSlice = THAI_MONTHS.slice(fromM, toM + 1)
-    s2Html = monthSlice.map((month, i) => `
-      <div class="sec" style="page-break-before:${i === 0 ? 'auto' : 'always'}">
-        <div class="sec-hdr">แผนเดือน ${month}${yearLabel ? ` ${yearLabel}` : ''}</div>
-        <div class="sub">เป้าหมายของเดือนนี้</div>
-        ${blankLines(2)}
-        <div class="sub" style="margin-top:10px">วันสำคัญ / นัดหมาย</div>
-        ${blankLines(3)}
-        <div class="sub" style="margin-top:10px">งานหลัก 3 อย่างที่ต้องทำ</div>
-        ${[1,2,3].map(n => `
-          <div style="display:flex;gap:8px;align-items:center;padding:4px 0">
-            <span style="font-weight:900;color:${c.accent};font-size:13pt;line-height:1;flex-shrink:0">${n}</span>
-            <div style="flex:1;border-bottom:1px solid #d1d5db;height:28px"></div>
-          </div>`).join('')}
-      </div>`).join('')
+
+    if (s3c?.monthlyPlans?.length) {
+      // content-first: s3 handles the monthly pages, s2 shows just a timeline summary
+      s2Html = `
+        <div class="sec">
+          <div class="sec-hdr">ภาพรวมรายปี${yearLabel ? ` ${yearLabel}` : ''}</div>
+          <div style="font-size:9pt;color:#6b7280;margin-bottom:4px">ช่วงเวลา: ${THAI_MONTHS[fromM]} – ${THAI_MONTHS[toM]}${yearLabel ? ` ${yearLabel}` : ''}</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">
+            ${monthSlice.map(m => `<span style="border:1px solid ${c.accent};border-radius:4px;padding:2px 8px;font-size:8.5pt;color:${c.text};font-weight:700">${m}</span>`).join('')}
+          </div>
+        </div>`
+    } else {
+      // fallback: blank monthly pages
+      s2Html = monthSlice.map((month, i) => `
+        <div class="sec" style="page-break-before:${i === 0 ? 'auto' : 'always'}">
+          <div class="sec-hdr">แผนเดือน ${month}${yearLabel ? ` ${yearLabel}` : ''}</div>
+          <div class="sub">เป้าหมายของเดือนนี้</div>
+          ${blankLines(2)}
+          <div class="sub" style="margin-top:10px">วันสำคัญ / นัดหมาย</div>
+          ${blankLines(3)}
+          <div class="sub" style="margin-top:10px">งานหลัก 3 อย่างที่ต้องทำ</div>
+          ${[1,2,3].map(n => `
+            <div style="display:flex;gap:8px;align-items:center;padding:4px 0">
+              <span style="font-weight:900;color:${c.accent};font-size:13pt;line-height:1;flex-shrink:0">${n}</span>
+              <div style="flex:1;border-bottom:1px solid #d1d5db;height:28px"></div>
+            </div>`).join('')}
+        </div>`).join('')
+    }
 
   } else if (s1.horizon === 'monthly') {
     const monthLabel = s1.horizonValue.trim()
     const wc = s2.monthlyWeekCount ?? 4
-    s2Html = Array.from({length: wc}, (_, i) => `
-      <div class="sec" style="page-break-before:${i === 0 ? 'auto' : 'always'}">
-        <div class="sec-hdr">แผนสัปดาห์ที่ ${i + 1}${monthLabel ? ` — ${monthLabel}` : ''}</div>
-        <div class="sub">เป้าหมายสัปดาห์นี้</div>
-        ${blankLines(2)}
-        <div class="sub" style="margin-top:10px">งานที่ต้องทำ</div>
-        ${blankLines(5)}
-      </div>`).join('')
+
+    if (s3c?.weeklyPlans?.length) {
+      // content-first: s3 handles the weekly pages, s2 shows just a summary
+      s2Html = `
+        <div class="sec">
+          <div class="sec-hdr">ภาพรวม${monthLabel ? ` — ${monthLabel}` : ''}</div>
+          <div style="font-size:9pt;color:#6b7280">${wc} สัปดาห์ · แผนละเอียดอยู่ในส่วนถัดไป</div>
+        </div>`
+    } else {
+      // fallback: blank weekly pages
+      s2Html = Array.from({length: wc}, (_, i) => `
+        <div class="sec" style="page-break-before:${i === 0 ? 'auto' : 'always'}">
+          <div class="sec-hdr">แผนสัปดาห์ที่ ${i + 1}${monthLabel ? ` — ${monthLabel}` : ''}</div>
+          <div class="sub">เป้าหมายสัปดาห์นี้</div>
+          ${blankLines(2)}
+          <div class="sub" style="margin-top:10px">งานที่ต้องทำ</div>
+          ${blankLines(5)}
+        </div>`).join('')
+    }
 
   } else {
     // project — phases + bigRocks
@@ -330,127 +355,241 @@ export function generatePlannerPipelineHtmlV4(data: PlannerPipelineDataV4, water
       </div>`
   }
 
-  // ── Section 3: แผนรายสัปดาห์ ────────────────────────────────────────────
-  const weekPages = s3.weekCount > 0 ? Array.from({length: s3.weekCount}, (_, wi) => {
-    let content = ''
-    if (s3.layout === '135rule') {
-      content = `
+  // helper: render a 1-3-6 weekly task block from WeeklyTaskItem
+  function renderWeeklyTaskBlock(wt: { weekLabel: string; goal: string; main1: string; secondary: string[]; small: string[] }, idx: number, breakBefore = true): string {
+    return `
+      <div class="sec" style="page-break-before:${breakBefore ? 'always' : 'auto'}">
+        <div class="sec-hdr">${wt.weekLabel.trim() ? esc(wt.weekLabel) : `สัปดาห์ที่ ${idx + 1}`}</div>
+        ${wt.goal.trim() ? `<div style="font-size:9pt;color:#6b7280;margin-bottom:8px;border-left:3px solid ${c.accent};padding-left:8px">เป้า: ${esc(wt.goal)}</div>` : ''}
         <div style="margin-bottom:10px">
           <div style="font-size:9pt;font-weight:700;color:${c.text};margin-bottom:4px">งานหลัก 1 อย่าง — ต้องทำให้ได้</div>
-          ${blankLines(1, '32px')}
+          <div style="border:2px solid ${c.accent};border-radius:6px;padding:8px 12px;font-size:10pt;font-weight:700;color:#1a1a1a;word-break:break-word;min-height:36px">${wt.main1.trim() ? esc(wt.main1) : '&nbsp;'}</div>
         </div>
         <div style="margin-bottom:10px">
           <div style="font-size:9pt;font-weight:700;color:#374151;margin-bottom:4px">งานรอง 3 อย่าง — พยายามทำ</div>
-          ${blankLines(3)}
+          ${wt.secondary.slice(0,3).map((s, n) => `
+            <div style="display:flex;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid #f3f4f6">
+              <span style="color:${c.text};font-weight:900;font-size:10pt;flex-shrink:0">${n+1}</span>
+              <span style="font-size:9.5pt;color:#374151;flex:1;word-break:break-word">${s.trim() ? esc(s) : '—'}</span>
+            </div>`).join('')}
         </div>
         <div>
-          <div style="font-size:9pt;font-weight:700;color:#9ca3af;margin-bottom:4px">งานเล็ก 5 อย่าง — ถ้ามีเวลา</div>
-          ${blankLines(5)}
-        </div>`
-    } else if (s3.layout === 'timeblock') {
-      const DAY_MAP: Record<string, string> = { mon:'จ.', tue:'อ.', wed:'พ.', thu:'พฤ.', fri:'ศ.', sat:'ส.', sun:'อา.' }
-      const DAY_ORDER = ['mon','tue','wed','thu','fri','sat','sun']
-      const startIdx = DAY_ORDER.indexOf(s3.startDay ?? 'mon')
-      const days = [...DAY_ORDER.slice(startIdx), ...DAY_ORDER.slice(0, startIdx)].map(d => DAY_MAP[d])
-      content = `
-        <table style="width:100%;border-collapse:collapse;font-size:8.5pt;table-layout:fixed">
-          <colgroup><col style="width:36px"><col><col><col></colgroup>
-          <tr>
-            <th style="border:1px solid #e5e7eb;padding:4px 6px;background:${c.light};color:${c.text}">วัน</th>
-            <th style="border:1px solid #e5e7eb;padding:4px 6px;background:${c.light};color:${c.text}">เช้า</th>
-            <th style="border:1px solid #e5e7eb;padding:4px 6px;background:${c.light};color:${c.text}">กลางวัน</th>
-            <th style="border:1px solid #e5e7eb;padding:4px 6px;background:${c.light};color:${c.text}">เย็น/ค่ำ</th>
-          </tr>
-          ${days.map(d => `
-            <tr>
-              <td style="border:1px solid #e5e7eb;padding:6px;font-weight:700;color:#374151;text-align:center">${d}</td>
-              <td style="border:1px solid #e5e7eb;padding:6px;height:36px"></td>
-              <td style="border:1px solid #e5e7eb;padding:6px;height:36px"></td>
-              <td style="border:1px solid #e5e7eb;padding:6px;height:36px"></td>
-            </tr>`).join('')}
-        </table>`
-    } else {
-      content = `
-        <div class="sub">เป้าหมายสัปดาห์นี้</div>
-        ${blankLines(2)}
-        <div class="sub" style="margin-top:10px">สิ่งที่จะทำสัปดาห์นี้</div>
-        ${blankLines(5)}`
-    }
-    return `
-      <div class="sec" style="page-break-before:always">
-        <div class="sec-hdr">แผนสัปดาห์ที่ ${wi + 1}</div>
-        ${content}
+          <div style="font-size:9pt;font-weight:700;color:#9ca3af;margin-bottom:4px">งานเล็ก 6 อย่าง — ถ้ามีเวลา</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px">
+            ${wt.small.slice(0,6).map((s, n) => `
+              <div style="display:flex;gap:6px;align-items:center;font-size:8.5pt;color:#6b7280;padding:3px 0;border-bottom:1px dotted #f3f4f6">
+                <span style="font-weight:700;color:#9ca3af">${n+1}.</span>
+                <span>${s.trim() ? esc(s) : '—'}</span>
+              </div>`).join('')}
+          </div>
+        </div>
       </div>`
-  }).join('') : ''
+  }
 
-  // ── Section 4: แผนรายวัน ─────────────────────────────────────────────────
+  // ── Section 3: content-first or blank fallback ───────────────────────────
+  let weekPages = ''
+
+  if (s3c?.monthlyPlans?.length) {
+    // yearly + content: filled monthly plan pages
+    weekPages = s3c.monthlyPlans.map((mp, i) => `
+      <div class="sec" style="page-break-before:always">
+        <div class="sec-hdr">แผนเดือน ${esc(mp.monthLabel)}</div>
+        ${mp.goal.trim() ? `
+          <div style="border:2px solid ${c.accent};border-radius:6px;padding:10px 14px;margin-bottom:12px;background:${c.light}">
+            <div style="font-size:7.5pt;font-weight:700;color:${c.text};text-transform:uppercase;margin-bottom:3px">เป้าหมายเดือนนี้</div>
+            <div style="font-size:11pt;font-weight:700;color:#1a1a1a;word-break:break-word">${esc(mp.goal)}</div>
+          </div>` : `
+          <div style="margin-bottom:12px">
+            <div class="sub">เป้าหมายเดือนนี้</div>
+            ${blankLines(2)}
+          </div>`}
+        ${mp.keyDates.trim() ? `<div style="font-size:9pt;color:#6b7280;margin-bottom:10px;padding:5px 10px;background:#f9fafb;border-radius:4px;border-left:3px solid ${c.accent}">📅 ${esc(mp.keyDates)}</div>` : `
+          <div style="margin-bottom:10px">
+            <div class="sub">วันสำคัญ / นัดหมาย</div>
+            ${blankLines(2)}
+          </div>`}
+        <div class="sub">งานหลัก 3 อย่าง</div>
+        ${mp.mainTasks.slice(0,3).map((t, n) => `
+          <div style="display:flex;gap:10px;align-items:center;padding:5px 0;border-bottom:1px solid #f3f4f6">
+            <span style="font-weight:900;color:${c.accent};font-size:14pt;line-height:1;flex-shrink:0">${n+1}</span>
+            <span style="font-size:10pt;color:#374151;flex:1;word-break:break-word">${t.trim() ? esc(t) : '—'}</span>
+          </div>`).join('')}
+        <div style="margin-top:10px">
+          <div class="sub">บันทึก</div>
+          ${blankLines(3)}
+        </div>
+      </div>`).join('')
+
+  } else if (s3c?.weeklyPlans?.length) {
+    // monthly + content: filled weekly plan pages (1-3-6)
+    weekPages = s3c.weeklyPlans.map((wp, i) => renderWeeklyTaskBlock(wp, i)).join('')
+
+  } else if (s3c?.flexItems?.length) {
+    // project + content: flexible task pages
+    weekPages = s3c.flexItems.filter(f => f.label.trim() || f.tasks.some(t => t.trim())).map((f, i) => `
+      <div class="sec" style="page-break-before:always">
+        <div class="sec-hdr">${f.label.trim() ? esc(f.label) : `ช่วงที่ ${i+1}`}</div>
+        ${f.tasks.filter(t => t.trim()).map(t => `
+          <div style="display:flex;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid #f3f4f6">
+            <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${c.accent};flex-shrink:0"></span>
+            <span style="font-size:9.5pt;color:#374151;flex:1;word-break:break-word">${esc(t)}</span>
+          </div>`).join('')}
+        <div style="margin-top:10px">
+          <div class="sub">บันทึก</div>
+          ${blankLines(3)}
+        </div>
+      </div>`).join('')
+
+  } else if (s3 && s3.weekCount > 0) {
+    // legacy fallback: blank weekly pages
+    weekPages = Array.from({length: s3.weekCount}, (_, wi) => {
+      let content = ''
+      if (s3.layout === '135rule') {
+        content = `
+          <div style="margin-bottom:10px">
+            <div style="font-size:9pt;font-weight:700;color:${c.text};margin-bottom:4px">งานหลัก 1 อย่าง — ต้องทำให้ได้</div>
+            ${blankLines(1, '32px')}
+          </div>
+          <div style="margin-bottom:10px">
+            <div style="font-size:9pt;font-weight:700;color:#374151;margin-bottom:4px">งานรอง 3 อย่าง — พยายามทำ</div>
+            ${blankLines(3)}
+          </div>
+          <div>
+            <div style="font-size:9pt;font-weight:700;color:#9ca3af;margin-bottom:4px">งานเล็ก 5 อย่าง — ถ้ามีเวลา</div>
+            ${blankLines(5)}
+          </div>`
+      } else if (s3.layout === 'timeblock') {
+        const DAY_MAP: Record<string, string> = { mon:'จ.', tue:'อ.', wed:'พ.', thu:'พฤ.', fri:'ศ.', sat:'ส.', sun:'อา.' }
+        const DAY_ORDER = ['mon','tue','wed','thu','fri','sat','sun']
+        const startIdx = DAY_ORDER.indexOf(s3.startDay ?? 'mon')
+        const days = [...DAY_ORDER.slice(startIdx), ...DAY_ORDER.slice(0, startIdx)].map(d => DAY_MAP[d])
+        content = `
+          <table style="width:100%;border-collapse:collapse;font-size:8.5pt;table-layout:fixed">
+            <colgroup><col style="width:36px"><col><col><col></colgroup>
+            <tr>
+              <th style="border:1px solid #e5e7eb;padding:4px 6px;background:${c.light};color:${c.text}">วัน</th>
+              <th style="border:1px solid #e5e7eb;padding:4px 6px;background:${c.light};color:${c.text}">เช้า</th>
+              <th style="border:1px solid #e5e7eb;padding:4px 6px;background:${c.light};color:${c.text}">กลางวัน</th>
+              <th style="border:1px solid #e5e7eb;padding:4px 6px;background:${c.light};color:${c.text}">เย็น/ค่ำ</th>
+            </tr>
+            ${days.map(d => `
+              <tr>
+                <td style="border:1px solid #e5e7eb;padding:6px;font-weight:700;color:#374151;text-align:center">${d}</td>
+                <td style="border:1px solid #e5e7eb;padding:6px;height:36px"></td>
+                <td style="border:1px solid #e5e7eb;padding:6px;height:36px"></td>
+                <td style="border:1px solid #e5e7eb;padding:6px;height:36px"></td>
+              </tr>`).join('')}
+          </table>`
+      } else {
+        content = `
+          <div class="sub">เป้าหมายสัปดาห์นี้</div>
+          ${blankLines(2)}
+          <div class="sub" style="margin-top:10px">สิ่งที่จะทำสัปดาห์นี้</div>
+          ${blankLines(5)}`
+      }
+      return `
+        <div class="sec" style="page-break-before:always">
+          <div class="sec-hdr">แผนสัปดาห์ที่ ${wi + 1}</div>
+          ${content}
+        </div>`
+    }).join('')
+  }
+
+  // ── Section 4: content-first or blank fallback ───────────────────────────
   const HOURS = ['06:00','07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00','22:00']
+  let dayPages = ''
 
-  const dayPages = s4.dayCount > 0 ? Array.from({length: s4.dayCount}, (_, di) => {
-    let content = ''
-    if (s4.layout === 'timeblock') {
-      content = `
-        <table style="width:100%;border-collapse:collapse;font-size:8.5pt;table-layout:fixed">
-          <colgroup><col style="width:52px"><col></colgroup>
-          ${HOURS.map(h => `
+  if (s4c?.weeklyTasks?.length) {
+    // yearly + content: filled weekly task blocks (1-3-6, admin-specified weeks)
+    dayPages = s4c.weeklyTasks.map((wt, i) => renderWeeklyTaskBlock(wt, i)).join('')
+
+  } else if (s4c?.dailyRoutines?.length) {
+    // monthly/project + content: routine table
+    const routines = s4c.dailyRoutines.filter(r => r.time.trim() || r.activity.trim())
+    if (routines.length > 0) {
+      dayPages = `
+        <div class="sec" style="page-break-before:always">
+          <div class="sec-hdr">ตารางประจำวัน</div>
+          <table style="width:100%;border-collapse:collapse;font-size:9.5pt">
             <tr>
-              <td style="border:1px solid #e5e7eb;padding:3px 8px;background:${c.light};color:${c.text};font-weight:700">${h}</td>
-              <td style="border:1px solid #e5e7eb;padding:3px 8px;height:28px"></td>
-            </tr>`).join('')}
-        </table>`
-    } else if (s4.layout === 'combined') {
-      content = `
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-          <div>
-            <div class="sub">เวลา</div>
-            <table style="width:100%;border-collapse:collapse;font-size:8pt;table-layout:fixed">
-              <colgroup><col style="width:46px"><col></colgroup>
-              ${HOURS.slice(0,16).map(h => `
-                <tr>
-                  <td style="border:1px solid #e5e7eb;padding:2px 6px;background:${c.light};color:${c.text};font-weight:700">${h}</td>
-                  <td style="border:1px solid #e5e7eb;padding:2px 6px;height:24px"></td>
-                </tr>`).join('')}
-            </table>
-          </div>
-          <div>
-            <div class="sub">งานวันนี้</div>
-            <div style="font-size:8.5pt;font-weight:700;color:${c.text};margin:6px 0 3px">ต้องทำ (1)</div>
-            ${blankLines(1, '28px')}
-            <div style="font-size:8.5pt;font-weight:700;color:#374151;margin:8px 0 3px">ควรทำ (3)</div>
-            ${blankLines(3, '24px')}
-            <div style="font-size:8.5pt;font-weight:700;color:#9ca3af;margin:8px 0 3px">ถ้ามีเวลา (5)</div>
-            ${blankLines(5, '22px')}
-            <div style="font-size:8.5pt;font-weight:700;color:#6b7280;margin:8px 0 3px">โน้ต</div>
-            ${blankLines(3, '22px')}
-          </div>
-        </div>`
-    } else {
-      // todo
-      content = `
-        <div style="margin-bottom:12px">
-          <div style="font-size:10pt;font-weight:700;color:${c.text};margin-bottom:6px">ต้องทำวันนี้ (1 อย่าง)</div>
-          <div style="border:2px solid ${c.accent};border-radius:6px;height:38px;padding:4px 8px"></div>
-        </div>
-        <div style="margin-bottom:12px">
-          <div style="font-size:9pt;font-weight:700;color:#374151;margin-bottom:6px">ควรทำ (3 อย่าง)</div>
-          ${blankLines(3, '30px')}
-        </div>
-        <div style="margin-bottom:12px">
-          <div style="font-size:9pt;font-weight:700;color:#9ca3af;margin-bottom:6px">ถ้ามีเวลา (5 อย่าง)</div>
-          ${blankLines(5)}
-        </div>
-        <div>
-          <div style="font-size:9pt;font-weight:700;color:#6b7280;margin-bottom:6px">โน้ต / ไอเดีย</div>
-          ${blankLines(3)}
+              <th style="border:1px solid #e5e7eb;padding:5px 8px;background:${c.light};color:${c.text};text-align:left;width:90px">เวลา</th>
+              <th style="border:1px solid #e5e7eb;padding:5px 8px;background:${c.light};color:${c.text};text-align:left">กิจกรรม</th>
+            </tr>
+            ${routines.map(r => `
+              <tr>
+                <td style="border:1px solid #e5e7eb;padding:5px 8px;color:${c.text};font-weight:700">${esc(r.time)}</td>
+                <td style="border:1px solid #e5e7eb;padding:5px 8px;color:#374151">${esc(r.activity)}</td>
+              </tr>`).join('')}
+          </table>
         </div>`
     }
-    const dayNum = di + 1
-    return `
-      <div class="sec" style="page-break-before:always">
-        <div class="sec-hdr">แผนวันที่ <span style="font-weight:900;color:${c.text}">___</span> / <span style="font-weight:900;color:${c.text}">___</span> / <span style="font-weight:900;color:${c.text}">_____</span><span style="font-size:8pt;font-weight:400;color:#9ca3af;margin-left:8px">(${dayNum})</span></div>
-        ${content}
-      </div>`
-  }).join('') : ''
+
+  } else if (s4 && s4.dayCount > 0) {
+    // legacy fallback: blank daily pages
+    dayPages = Array.from({length: s4.dayCount}, (_, di) => {
+      let content = ''
+      if (s4.layout === 'timeblock') {
+        content = `
+          <table style="width:100%;border-collapse:collapse;font-size:8.5pt;table-layout:fixed">
+            <colgroup><col style="width:52px"><col></colgroup>
+            ${HOURS.map(h => `
+              <tr>
+                <td style="border:1px solid #e5e7eb;padding:3px 8px;background:${c.light};color:${c.text};font-weight:700">${h}</td>
+                <td style="border:1px solid #e5e7eb;padding:3px 8px;height:28px"></td>
+              </tr>`).join('')}
+          </table>`
+      } else if (s4.layout === 'combined') {
+        content = `
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div>
+              <div class="sub">เวลา</div>
+              <table style="width:100%;border-collapse:collapse;font-size:8pt;table-layout:fixed">
+                <colgroup><col style="width:46px"><col></colgroup>
+                ${HOURS.slice(0,16).map(h => `
+                  <tr>
+                    <td style="border:1px solid #e5e7eb;padding:2px 6px;background:${c.light};color:${c.text};font-weight:700">${h}</td>
+                    <td style="border:1px solid #e5e7eb;padding:2px 6px;height:24px"></td>
+                  </tr>`).join('')}
+              </table>
+            </div>
+            <div>
+              <div class="sub">งานวันนี้</div>
+              <div style="font-size:8.5pt;font-weight:700;color:${c.text};margin:6px 0 3px">ต้องทำ (1)</div>
+              ${blankLines(1, '28px')}
+              <div style="font-size:8.5pt;font-weight:700;color:#374151;margin:8px 0 3px">ควรทำ (3)</div>
+              ${blankLines(3, '24px')}
+              <div style="font-size:8.5pt;font-weight:700;color:#9ca3af;margin:8px 0 3px">ถ้ามีเวลา (5)</div>
+              ${blankLines(5, '22px')}
+              <div style="font-size:8.5pt;font-weight:700;color:#6b7280;margin:8px 0 3px">โน้ต</div>
+              ${blankLines(3, '22px')}
+            </div>
+          </div>`
+      } else {
+        content = `
+          <div style="margin-bottom:12px">
+            <div style="font-size:10pt;font-weight:700;color:${c.text};margin-bottom:6px">ต้องทำวันนี้ (1 อย่าง)</div>
+            <div style="border:2px solid ${c.accent};border-radius:6px;height:38px;padding:4px 8px"></div>
+          </div>
+          <div style="margin-bottom:12px">
+            <div style="font-size:9pt;font-weight:700;color:#374151;margin-bottom:6px">ควรทำ (3 อย่าง)</div>
+            ${blankLines(3, '30px')}
+          </div>
+          <div style="margin-bottom:12px">
+            <div style="font-size:9pt;font-weight:700;color:#9ca3af;margin-bottom:6px">ถ้ามีเวลา (5 อย่าง)</div>
+            ${blankLines(5)}
+          </div>
+          <div>
+            <div style="font-size:9pt;font-weight:700;color:#6b7280;margin-bottom:6px">โน้ต / ไอเดีย</div>
+            ${blankLines(3)}
+          </div>`
+      }
+      return `
+        <div class="sec" style="page-break-before:always">
+          <div class="sec-hdr">แผนวันที่ <span style="font-weight:900;color:${c.text}">___</span> / <span style="font-weight:900;color:${c.text}">___</span> / <span style="font-weight:900;color:${c.text}">_____</span><span style="font-size:8pt;font-weight:400;color:#9ca3af;margin-left:8px">(${di + 1})</span></div>
+          ${content}
+        </div>`
+    }).join('')
+  }
 
   // ── Section 5: รีวิว ─────────────────────────────────────────────────────
   const reviewQsHtml = s5.reviewQuestions.filter(q => q.trim()).map((q, i) =>
