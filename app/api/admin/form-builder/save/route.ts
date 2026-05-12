@@ -79,6 +79,7 @@ export async function POST(req: NextRequest) {
   const pdfFilename = `${safeSlug}-form-${ts}.pdf`
   const pdfPath     = `/uploads/templates/${pdfFilename}`
 
+  // Step 1: PDF — sparticuz chromium
   let browser = null
   try {
     browser = await puppeteer.launch({ executablePath, args, headless: true })
@@ -96,6 +97,30 @@ export async function POST(req: NextRequest) {
     if (browser) await (browser as { close(): Promise<void> }).close().catch(() => {})
   }
 
+  // Step 2: Screenshot — system chromium (non-fatal)
+  let previewPath: string | null = null
+  let browser2 = null
+  try {
+    const sysChromium = process.env.SYSTEM_CHROMIUM_PATH ?? '/usr/bin/chromium-browser'
+    browser2 = await puppeteer.launch({
+      executablePath: sysChromium,
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu', '--font-render-hinting=none'],
+      headless: true,
+      defaultViewport: { width: 794, height: 1123 },
+    })
+    const page2 = await browser2.newPage()
+    await page2.setContent(html, { waitUntil: 'networkidle0' })
+    await page2.evaluate(() => document.fonts.ready)
+    const previewFilename = `${safeSlug}-form-preview-${ts}.jpg`
+    const shot = await page2.screenshot({ type: 'jpeg', quality: 85 })
+    await writeFile(path.join(uploadBase, previewFilename), shot as Buffer)
+    previewPath = `/api/preview/${previewFilename}`
+  } catch (screenshotErr) {
+    console.error('Form preview screenshot failed:', String(screenshotErr))
+  } finally {
+    if (browser2) await (browser2 as { close(): Promise<void> }).close().catch(() => {})
+  }
+
   // INSERT template
   const safeTier = TIER_PRICE[tier] !== undefined ? tier : 'standard'
   const priceBaht = TIER_PRICE[safeTier]
@@ -107,7 +132,7 @@ export async function POST(req: NextRequest) {
         (slug, title, tier, price_baht, pdf_path, preview_path,
          engine_type, engine_data, document_type, page_count, status)
       VALUES (
-        ${safeSlug}, ${title}, ${safeTier}, ${priceBaht}, ${pdfPath}, NULL,
+        ${safeSlug}, ${title}, ${safeTier}, ${priceBaht}, ${pdfPath}, ${previewPath},
         'form', ${JSON.stringify(engineData)}, 'form', 2, 'draft'
       )
       RETURNING id
@@ -125,5 +150,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: `DB save failed: ${String(err)}` }, { status: 500 })
   }
 
-  return NextResponse.json({ success: true, templateId, slug: safeSlug })
+  return NextResponse.json({ success: true, templateId, slug: safeSlug, pdfPath, previewPath })
 }

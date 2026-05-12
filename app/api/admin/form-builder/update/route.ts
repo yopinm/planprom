@@ -76,6 +76,7 @@ export async function PATCH(req: NextRequest) {
   const pdfFilename = `${existing.slug}-form-${ts}.pdf`
   const pdfPath     = `/uploads/templates/${pdfFilename}`
 
+  // Step 1: PDF — sparticuz chromium
   let browser = null
   try {
     browser = await puppeteer.launch({ executablePath, args, headless: true })
@@ -93,6 +94,30 @@ export async function PATCH(req: NextRequest) {
     if (browser) await (browser as { close(): Promise<void> }).close().catch(() => {})
   }
 
+  // Step 2: Screenshot — system chromium (non-fatal)
+  let previewPath: string | null = null
+  let browser2 = null
+  try {
+    const sysChromium = process.env.SYSTEM_CHROMIUM_PATH ?? '/usr/bin/chromium-browser'
+    browser2 = await puppeteer.launch({
+      executablePath: sysChromium,
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu', '--font-render-hinting=none'],
+      headless: true,
+      defaultViewport: { width: 794, height: 1123 },
+    })
+    const page2 = await browser2.newPage()
+    await page2.setContent(html, { waitUntil: 'networkidle0' })
+    await page2.evaluate(() => document.fonts.ready)
+    const previewFilename = `${existing.slug}-form-preview-${ts}.jpg`
+    const shot = await page2.screenshot({ type: 'jpeg', quality: 85 })
+    await writeFile(path.join(uploadBase, previewFilename), shot as Buffer)
+    previewPath = `/api/preview/${previewFilename}`
+  } catch (screenshotErr) {
+    console.error('Form preview screenshot failed:', String(screenshotErr))
+  } finally {
+    if (browser2) await (browser2 as { close(): Promise<void> }).close().catch(() => {})
+  }
+
   const safeTier = TIER_PRICE[tier] !== undefined ? tier : 'standard'
   const priceBaht = TIER_PRICE[safeTier]
 
@@ -103,7 +128,7 @@ export async function PATCH(req: NextRequest) {
         tier          = ${safeTier},
         price_baht    = ${priceBaht},
         pdf_path      = ${pdfPath},
-        preview_path  = NULL,
+        preview_path  = ${previewPath},
         engine_data   = ${JSON.stringify(engineData)},
         document_type = 'form',
         updated_at    = NOW()
@@ -123,5 +148,5 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: `DB update failed: ${String(err)}` }, { status: 500 })
   }
 
-  return NextResponse.json({ success: true, templateId, slug: existing.slug, pdfPath })
+  return NextResponse.json({ success: true, templateId, slug: existing.slug, pdfPath, previewPath })
 }

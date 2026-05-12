@@ -10,7 +10,7 @@ export async function GET(
   const { filename } = await params
 
   // Only allow safe image filenames — no path traversal
-  if (!/^[a-z0-9._-]+-preview-\d+\.(jpg|jpeg|png)$/i.test(filename)) {
+  if (!/^[a-z0-9._-]+-(preview|form-preview)-\d+\.(jpg|jpeg|png)$/i.test(filename)) {
     return new NextResponse('Not found', { status: 404 })
   }
 
