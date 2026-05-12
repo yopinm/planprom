@@ -483,9 +483,29 @@ Page 2: render fields แบบเปล่า (_____ แทน value)
 | **EF-3** | **Auto-gen SampleData + Preview PDF** | `SampleDataEditor.tsx` — แสดง field list พร้อม input แก้ sampleData ต่อ field · กด "สร้างตัวอย่าง" → call `autoGenSampleData(fields)` → populate state · กด "Preview PDF" → `POST /api/admin/form-builder/generate-preview` → stream PDF → แสดงใน `<iframe>` | ✅ **Done (Session 54)** |
 | **EF-4** | **Approve & Save + AdminNav** | กรอก metadata (title/slug/tier/price/category) → กด "Approve & Save" → `POST /api/admin/form-builder/save` → INSERT templates (engine_type='form', engine_data=schema) → redirect `/admin/templates` · `AdminNav.tsx` — เพิ่ม "📝 Form" ใน TEMPLATE group → link `/admin/form-builder` | ✅ **Done (Session 54)** |
 | **EF-5** | **Customer Preview Card /templates/[slug]** | `app/templates/[slug]/page.tsx` — เพิ่ม branch `engine_type === 'form'` → แสดง orange card: ชื่อฟอร์ม + field count + "ซื้อ 1 ได้ PDF 2 หน้า" badge + รายการ field label top-5 | ✅ **Done (Session 54)** |
+| **EF-6** | **Form Builder Edit Mode + UAT Bug Fixes** | `/admin/form-builder/[id]` load existing engine_data → `PATCH /api/admin/form-builder/update` regenerate PDF + UPDATE templates · Fix CSP `frame-src blob:` · Fix /revise crash for form type · Fix document_type='form' + preview_path · Fix modal security (ไม่ expose full PDF) · Fix title→button (modal only) · Preview link แสดงทุก template · Screenshot via system chromium (non-fatal) · Clip half page 1 (560×396) · thumbnail_path set on save/update · 2-file info banner ใน modal · Admin PDF viewer `/api/admin/form-builder/pdf/[filename]` | ✅ **Done · UAT ผ่าน (Session 55 · 2026-05-12)** |
 
-**ลำดับ:** EF-1 → EF-2 → EF-3 → EF-4 → EF-5
+**ลำดับ:** EF-1 → EF-2 → EF-3 → EF-4 → EF-5 → EF-6
 **FROZEN ระหว่าง EF:** `engine-checklist.ts` · `ChecklistEngineForm.tsx` · `engine-planner.ts` · `PlannerEngineForm.tsx` · Cart/Checkout/Payment/Download flow
+
+---
+
+## Session 55 Changes (2026-05-12) — Engine Form UAT + Bug Fixes
+
+| # | Change | Status |
+|---|---|---|
+| 1 | **EF-6 Edit Mode** `/admin/form-builder/[id]` load existing form, PATCH update route | ✅ Live |
+| 2 | **Fix CSP** `frame-src 'self' blob:` — PDF preview iframe ทำงานได้ | ✅ Live |
+| 3 | **Fix /revise crash** guard `engine_type='form'` ก่อน ReviseClient | ✅ Live |
+| 4 | **Fix modal security** title→button (ไม่ navigate ตรง), preview link แสดงทุก template, placeholder แทน full PDF | ✅ Live |
+| 5 | **Fix document_type + badge** save route ตั้ง `document_type='form'` ถูกต้อง | ✅ Live |
+| 6 | **Form + Report cards** หน้าโฮม — grid 4 คอลัมน์ `checklist / planner / form / report` | ✅ Live |
+| 7 | **Form preview screenshot** system chromium (non-fatal) · clip half page 1 (560×396px) | ✅ Live |
+| 8 | **thumbnail_path** ตั้งค่าทั้ง save + update — cart แสดงรูปฟอร์มแทนวงกลมว่าง | ✅ Live |
+| 9 | **Modal 2-file banner** `document_type='form'` → แสดง "รับทั้ง 2 ไฟล์: ฟอร์มตัวอย่าง + ฟอร์มเปล่า" | ✅ Live |
+| 10 | **Admin PDF viewer** `/api/admin/form-builder/pdf/[filename]` — admin ดู PDF หลัง save/update | ✅ Live |
+| 11 | **Fix pdfPath commit miss** update route ไม่ได้ commit pdfPath → fix + redeploy | ✅ Live |
+| 12 | **TemplateListWithPreview commit miss** fix title→button + preview always ถูก commit (session ก่อนไม่ได้ push) | ✅ Live |
 
 ---
 
