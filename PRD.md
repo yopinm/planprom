@@ -32,7 +32,7 @@
 | **Next task** | **PROMO-3** Admin Promo Code CRUD → **PROMO-1** API + Checkout → **PROMO-2** Banner |
 | **Pending (code)** | **6 tasks** — J13 · J14 · J17 · J19 · PROMO-1/2/3 · UI-G(defer) |
 | **Pending (UAT)** | **7 กลุ่ม** — DC-1 · DC-2 · DC-8(Planner⏳) · E9/E10 · J9(รอ live keys) · A–H(รอ owner test) · LINE ติดต่อเรา(รอทดสอบ) |
-| **Last session** | **Session 48 (2026-05-11)** — badge 2–5 ชิ้น · สัปดาห์ range · ติดต่อเรา LINE (nav+float) ⏳ UAT |
+| **Last session** | **Session 51 (2026-05-12)** — DC-16 UX polish (งานเล็ก single col + dynamic · black default · PDF single col) · Cart tier label ภาษาไทย · Admin Wizard hide Planner+Clone · rename → "Engine: Planner Pipeline" |
 | **ห้าม** | ไม่แตะ Later task ขณะที่ Now ยังค้างอยู่ · ไม่แตะ secrets โดยตรง · ไม่ทำให้ revenue channel หายไประหว่าง pivot |
 
 ---

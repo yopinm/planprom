@@ -361,7 +361,7 @@ ALTER TABLE orders ADD COLUMN discount_baht NUMERIC(10,2) NOT NULL DEFAULT 0;
 
 | DC-16 | **Planner Pipeline v4 — 5-Section Time-Cascade Planner** | **Scope confirmed (Session 50 · 2026-05-12)** — upgrade จาก v3 (3-stage) → v4 (5-section) · **Concept:** PDF = Planner พร้อมข้อมูลที่ admin กรอก ครบ 5 แกน · Admin กรอกเนื้อหาจริง + เลือก Planning Horizon → แกน 2 auto-generate ตาม horizon · **Schema v4** `PlannerPipelineDataV4` schemaVersion '4.0' · **5 แกน:** · (1) `s1_goal` — goal/why/deadline(=KPI)/horizon · (2) `s2_timeplan` — auto จาก horizon: yearly(12 monthly pages) / monthly(4 weekly pages) / project(phases+bigRocks เหมือน v3) · (3) `s3_weekly` — weekCount + layout(simple/135rule/timeblock) · (4) `s4_daily` — dayCount + layout(todo/timeblock/combined) · (5) `s5_review` — reviewCycle + reviewQuestions · **PDF label rule:** ห้ามใช้ field name จริง — ใช้ภาษาไทยเข้าใจง่าย (goal→"เป้าหมายของฉัน" / deadline→"ต้องเสร็จภายใน") · **Files to update:** `lib/engine-types.ts` (PlannerPipelineDataV4) · `lib/engine-planner-pipeline.ts` (HTML generator 5-section) · `app/admin/templates/new/PipelinePlannerForm.tsx` (5-stage form) · `app/api/admin/templates/generate-planner-pipeline/route.ts` · `app/admin/templates/[id]/revise/ReviseClient.tsx` (PipelineReviseForm) · `app/api/admin/templates/generate-revision/route.ts` (pipeline branch) · **FROZEN:** `engine-checklist.ts` · `ChecklistEngineForm.tsx` · `engine-planner.ts` · `PlannerEngineForm.tsx` · Cart/Checkout/Payment flow | ⏳ **UAT pending (Session 50) — code live, owner กำลังทดสอบ** |
 
-**ลำดับแนะนำ:** DC-3 ✅ → DC-4 ✅ → DC-5 ✅ → DC-6 ✅ → DC-7 ✅ → DC-9 ✅ → DC-10 ✅ → DC-11 ✅ → DC-13 ✅ → DC-14 ✅ · ADMIN-TMPL-DEL-1 ✅ · ADMIN-TMPL-FORCE-1 ✅ · DC-15 ✅ · DC-16 ⏳ UAT pending (Session 50) · DC-1/DC-2 🟡 UAT pending · DC-8/DC-12 🔲 planned
+**ลำดับแนะนำ:** DC-3 ✅ → DC-4 ✅ → DC-5 ✅ → DC-6 ✅ → DC-7 ✅ → DC-9 ✅ → DC-10 ✅ → DC-11 ✅ → DC-13 ✅ → DC-14 ✅ · ADMIN-TMPL-DEL-1 ✅ · ADMIN-TMPL-FORCE-1 ✅ · DC-15 ✅ · DC-16 ✅ UX Polish Done (Session 51) · DC-1/DC-2 🟡 UAT pending · DC-8/DC-12 🔲 planned
 
 ---
 
@@ -424,6 +424,21 @@ ALTER TABLE orders ADD COLUMN discount_baht NUMERIC(10,2) NOT NULL DEFAULT 0;
 | 6 | **HOME-FEAT-1** week date range "11–17 พ.ค." ต่อท้าย "แนะนำสัปดาห์นี้" — คำนวณ client-side เปลี่ยนอัตโนมัติทุกจันทร์ | ✅ Live |
 | 7 | **LINE-CONTACT** ปุ่ม "ติดต่อเรา" สีเขียวใน navbar + `FloatingLineButton.tsx` มุมขวาล่าง · URL `line.me/R/ti/p/%40216xobzv` | ✅ Live · UAT pending (รอทดสอบ add LINE จริง) |
 | 8 | **UX** `"ประหยัดจาก tier ฿XX"` → `"🎉 ซื้อหลายชิ้น ประหยัดไปอีก ฿XX"` ใน checkout summary | ✅ Live |
+
+---
+
+## Session 51 Changes (2026-05-12) — DC-16 UX Polish + Admin Wizard Cleanup
+
+| # | Change | Status |
+|---|---|---|
+| 1 | **DC-16 งานเล็ก** `PipelinePlannerForm.tsx` + `ReviseClient.tsx` — เปลี่ยน small items จาก grid 2-3 cols → single column แนวตั้ง · dynamic add/remove ปุ่ม +/✕ ไม่จำกัดจำนวน | ✅ Live |
+| 2 | **DC-16 label** — "งานเล็ก 6 อย่าง (ถ้ามีเวลา)" → "งานเล็ก 6 อย่าง (อย่างน้อยถ้ามีเวลา)" ทุกจุด (form + PDF) | ✅ Live |
+| 3 | **DC-16 PDF** `engine-planner-pipeline.ts` `renderWeeklyTaskBlock` — เปลี่ยนจาก `grid-template-columns:1fr 1fr` → `flex-direction:column` · ลบ `.slice(0,6)` limit | ✅ Live |
+| 4 | **DC-16 black theme** `engine-types.ts` + `engine-planner-pipeline.ts` + `PipelinePlannerForm.tsx` + `ReviseClient.tsx` — เพิ่มสีดำ (`black`) เป็น default colorTheme ใน Pipeline Planner · accent `#111827` | ✅ Live |
+| 5 | **Cart UX** `app/cart/page.tsx` — tier label ภาษาไทย: `standard` → "เทมเพลตมาตรฐาน" · `free` → "เทมเพลตฟรี" | ✅ Live |
+| 6 | **Admin Wizard** `WizardClient.tsx` — hidden `engine-planner` + `clone` จาก mode list (comment dead code) · เหลือ 4 modes: Checklist / Planner Pipeline / .docx / Upload PDF | ✅ Live |
+| 7 | **Admin Wizard** `WizardClient.tsx` — rename "Engine: Pipeline" → "Engine: Planner Pipeline" | ✅ Live |
+| 8 | **Pending cleanup** — ลบ deprecated `PlannerEngineForm` import + `applyClone()` + `cloneId` state ได้หลัง 2026-05-19 | ⏳ Pending |
 
 ---
 
