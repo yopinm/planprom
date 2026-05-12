@@ -41,6 +41,23 @@ export default async function RevisePage({ params }: { params: Promise<{ id: str
     )
   }
 
+  if (t.engine_type === 'form') {
+    return (
+      <main className="min-h-screen bg-neutral-50 pb-20">
+        <div className="mx-auto max-w-2xl px-4 py-8">
+          <Link href={`/admin/templates/${id}/edit`} className="text-xs font-bold text-neutral-400 hover:text-black">← แก้ไข Template</Link>
+          <h1 className="mt-2 text-2xl font-black text-black">แก้ไขเนื้อหา</h1>
+          <div className="mt-6 rounded-3xl border border-amber-200 bg-amber-50 p-6 text-center">
+            <p className="text-2xl mb-2">📋</p>
+            <p className="font-black text-neutral-800 mb-1">Form Template</p>
+            <p className="text-sm text-neutral-500">ฟอร์มนี้สร้างจาก Form Builder — ระบบแก้ไขเนื้อหาฟอร์มยังไม่รองรับใน /revise</p>
+            <p className="text-xs text-amber-700 mt-3">หากต้องการแก้ไขฟอร์ม ให้สร้างฟอร์มใหม่ใน <a href="/admin/form-builder" className="underline font-bold">Form Builder</a></p>
+          </div>
+        </div>
+      </main>
+    )
+  }
+
   const [{ max_rev }] = await db<{ max_rev: string | null }[]>`
     SELECT MAX(revision_number)::text AS max_rev FROM template_revisions WHERE template_id = ${id}
   `.catch(() => [{ max_rev: null }])

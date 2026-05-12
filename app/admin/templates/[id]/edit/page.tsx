@@ -198,26 +198,37 @@ export default async function EditTemplatePage({ params }: { params: Promise<{ i
                 <p className="text-[11px] font-black uppercase tracking-widest text-amber-600 mb-1">Engine Content</p>
                 <div className="flex items-center gap-2">
                   <span className="font-black text-neutral-900">
-                    {t.engine_type === 'checklist' ? '✅ Checklist' : '📅 Planner'}
+                    {t.engine_type === 'checklist' ? '✅ Checklist' :
+                     t.engine_type === 'form'      ? '📋 Form' : '📅 Planner'}
                   </span>
-                  <span className="rounded-full bg-white border border-amber-200 px-2 py-0.5 text-[11px] font-bold text-amber-700">
-                    {rev_count} revision{Number(rev_count) !== 1 ? 's' : ''}
-                  </span>
+                  {t.engine_type !== 'form' && (
+                    <span className="rounded-full bg-white border border-amber-200 px-2 py-0.5 text-[11px] font-bold text-amber-700">
+                      {rev_count} revision{Number(rev_count) !== 1 ? 's' : ''}
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="flex gap-2 flex-wrap">
-                <Link
-                  href={`/admin/templates/${t.id}/revisions`}
-                  className="rounded-xl border border-amber-300 bg-white px-4 py-2 text-sm font-black text-amber-700 hover:bg-amber-100 transition"
-                >
-                  ดูประวัติ →
-                </Link>
-                <Link
-                  href={`/admin/templates/${t.id}/revise`}
-                  className="rounded-xl bg-amber-600 px-4 py-2 text-sm font-black text-white hover:bg-amber-700 transition"
-                >
-                  แก้ไขเนื้อหา →
-                </Link>
+                {t.engine_type === 'form' ? (
+                  <span className="rounded-xl border border-amber-200 bg-white px-4 py-2 text-sm font-bold text-amber-500 opacity-60 cursor-not-allowed">
+                    แก้ไขผ่าน Form Builder
+                  </span>
+                ) : (
+                  <>
+                    <Link
+                      href={`/admin/templates/${t.id}/revisions`}
+                      className="rounded-xl border border-amber-300 bg-white px-4 py-2 text-sm font-black text-amber-700 hover:bg-amber-100 transition"
+                    >
+                      ดูประวัติ →
+                    </Link>
+                    <Link
+                      href={`/admin/templates/${t.id}/revise`}
+                      className="rounded-xl bg-amber-600 px-4 py-2 text-sm font-black text-white hover:bg-amber-700 transition"
+                    >
+                      แก้ไขเนื้อหา →
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>
