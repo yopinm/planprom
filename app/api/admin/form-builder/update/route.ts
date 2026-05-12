@@ -103,13 +103,13 @@ export async function PATCH(req: NextRequest) {
       executablePath: sysChromium,
       args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu', '--font-render-hinting=none'],
       headless: true,
-      defaultViewport: { width: 794, height: 1123 },
+      defaultViewport: { width: 560, height: 793 },
     })
     const page2 = await browser2.newPage()
     await page2.setContent(html, { waitUntil: 'networkidle0' })
     await page2.evaluate(() => document.fonts.ready)
     const previewFilename = `${existing.slug}-form-preview-${ts}.jpg`
-    const shot = await page2.screenshot({ type: 'jpeg', quality: 85, clip: { x: 0, y: 0, width: 794, height: 560 } })
+    const shot = await page2.screenshot({ type: 'jpeg', quality: 85, clip: { x: 0, y: 0, width: 560, height: 396 } })
     await writeFile(path.join(uploadBase, previewFilename), shot as Buffer)
     previewPath = `/api/preview/${previewFilename}`
   } catch (screenshotErr) {
