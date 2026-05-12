@@ -391,6 +391,29 @@ ALTER TABLE orders ADD COLUMN discount_baht NUMERIC(10,2) NOT NULL DEFAULT 0;
 
 ---
 
+### Market Intelligence — Analytics Upgrade Series (2026-05-12)
+
+> **เป้าหมาย:** template-analytics + predict อ่านตารางผิด (template_orders เก่า) → แก้ให้ถูก + merge เป็น Market Intelligence Dashboard เพื่อช่วย admin สร้าง template ที่ตอบสนองตลาด
+
+#### ปัญหาเดิม
+
+| หน้า | ปัญหา |
+|---|---|
+| `/admin/template-analytics` | query `template_orders` (ระบบเก่า) → ตัวเลขเป็น 0 ทั้งหมด · ซ้ำซ้อนกับ Sales |
+| `/admin/report/predict` | Bestseller + Zero-sale query `template_orders` (ผิด) · Google Suggest ส่วนยังทำงานได้ดี |
+
+#### Tasks
+
+| Task | ชื่อ | Spec | สถานะ |
+|---|---|---|---|
+| **INTEL-A** | **Fix template-analytics — migrate to cart system** | แก้ทุก query ใน `/admin/template-analytics/page.tsx` จาก `template_orders` → `orders` + `order_items` · **KPI:** total_revenue=`SUM(total_baht) FILTER paid` · paid_orders · pending_orders · total_downloads=`SUM(oi.download_count)` · unique_buyers=`COUNT(DISTINCT customer_line_id)` · **Revenue by engine_type:** ใช้ CTE item_share (ROUND total_baht/item_count) GROUP BY engine_type → แสดง 4 types (checklist/planner/form/report) ครบเสมอ · **Daily 14d:** FROM orders · **Per-template:** LEFT JOIN order_items+orders GROUP BY template · **Files:** `app/admin/template-analytics/page.tsx` | 🔲 Todo |
+| **INTEL-B** | **Market Intelligence Dashboard — merge + upgrade** | **Route:** คงที่ `/admin/template-analytics` (เปลี่ยนเนื้อหา ไม่เพิ่ม route ใหม่) · **Section 1 — Market Demand** (จาก predict): Google Suggest 4 keywords + Audience tags + Demand signal · **Section 2 — Sales Performance** (จาก analytics): KPI + Revenue by engine type + Daily 14d · **Section 3 — Market Gap Matrix**: ตาราง keyword × engine_type → Google demand + มี template แล้ว (ชื่อ+orders) หรือ "ยังไม่มี → สร้าง" · **Section 4 — Per-template ranking**: ขายดี (bar) + ยังไม่มียอด + link Edit · **Predict route:** `/admin/report/predict` redirect → `/admin/template-analytics` · **Files:** `app/admin/template-analytics/page.tsx` · `app/admin/report/predict/page.tsx` (redirect) | 🔲 Todo |
+| **INTEL-C** | **Engine Form + Engine Report — Thai Market Ideas** | **Defer** — รอดู Market Gap Matrix หลัง INTEL-B live → ใช้ข้อมูลจริง (demand สูง + ยังไม่มี template) เป็น brief ก่อนออกแบบ engine | 📊 Defer |
+
+**ลำดับ:** INTEL-A → INTEL-B → UAT → INTEL-C (brief จาก data)
+
+---
+
 ## Session 48 Changes (2026-05-11) — UI Tweaks + LINE Contact
 
 | # | Change | Status |
