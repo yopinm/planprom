@@ -71,6 +71,7 @@ export async function togglePromoCodeAction(formData: FormData) {
 export async function deletePromoCodeAction(formData: FormData): Promise<void> {
   await requireAdminSession('/admin/login')
   const id = str(formData, 'id')
+  await db`UPDATE orders SET promo_code_id = NULL, discount_baht = 0 WHERE promo_code_id = ${id}`
   await db`DELETE FROM promo_codes WHERE id = ${id}`
   revalidatePath('/admin/promo-codes')
 }
