@@ -129,10 +129,10 @@ export async function POST(req: NextRequest) {
   try {
     const [row] = await db<{ id: string }[]>`
       INSERT INTO templates
-        (slug, title, tier, price_baht, pdf_path, preview_path,
+        (slug, title, tier, price_baht, pdf_path, preview_path, thumbnail_path,
          engine_type, engine_data, document_type, page_count, status)
       VALUES (
-        ${safeSlug}, ${title}, ${safeTier}, ${priceBaht}, ${pdfPath}, ${previewPath},
+        ${safeSlug}, ${title}, ${safeTier}, ${priceBaht}, ${pdfPath}, ${previewPath}, ${previewPath},
         'form', ${JSON.stringify(engineData)}, 'form', 2, 'draft'
       )
       RETURNING id

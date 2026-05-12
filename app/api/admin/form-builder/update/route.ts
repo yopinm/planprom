@@ -124,14 +124,15 @@ export async function PATCH(req: NextRequest) {
   try {
     await db`
       UPDATE templates SET
-        title         = ${title},
-        tier          = ${safeTier},
-        price_baht    = ${priceBaht},
-        pdf_path      = ${pdfPath},
-        preview_path  = ${previewPath},
-        engine_data   = ${JSON.stringify(engineData)},
-        document_type = 'form',
-        updated_at    = NOW()
+        title          = ${title},
+        tier           = ${safeTier},
+        price_baht     = ${priceBaht},
+        pdf_path       = ${pdfPath},
+        preview_path   = ${previewPath},
+        thumbnail_path = COALESCE(${previewPath}, thumbnail_path),
+        engine_data    = ${JSON.stringify(engineData)},
+        document_type  = 'form',
+        updated_at     = NOW()
       WHERE id = ${templateId}
     `
 
