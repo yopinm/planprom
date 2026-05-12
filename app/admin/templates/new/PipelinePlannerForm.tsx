@@ -46,7 +46,7 @@ export function PipelinePlannerForm({ onChange }: Props) {
   // META
   const [displayTitle, setDisplayTitle] = useState('')
   const [description,  setDescription]  = useState('')
-  const [colorTheme,   setColorTheme]   = useState<PlannerPipelineDataV4['meta']['colorTheme']>('violet')
+  const [colorTheme,   setColorTheme]   = useState<PlannerPipelineDataV4['meta']['colorTheme']>('black')
   const [coverPage,    setCoverPage]    = useState(true)
 
   // Stage 1
@@ -158,6 +158,7 @@ export function PipelinePlannerForm({ onChange }: Props) {
   }
 
   const THEME_OPTS: { v: PlannerPipelineDataV4['meta']['colorTheme']; l: string; color: string }[] = [
+    { v: 'black',   l: 'ดำ',     color: 'bg-neutral-900' },
     { v: 'violet',  l: 'ม่วง',   color: 'bg-violet-500'  },
     { v: 'rose',    l: 'ชมพู',   color: 'bg-rose-500'    },
     { v: 'emerald', l: 'เขียว',  color: 'bg-emerald-500' },

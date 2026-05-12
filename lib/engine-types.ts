@@ -131,7 +131,7 @@ export type PlannerPipelineData = {
     mode: 'pipeline'
     title: string
     description: string
-    colorTheme: 'violet' | 'rose' | 'emerald' | 'amber' | 'sky'
+    colorTheme: 'violet' | 'rose' | 'emerald' | 'amber' | 'sky' | 'black'
     coverPage: boolean
   }
   stage1_goal: {
@@ -197,7 +197,7 @@ export type PlannerPipelineDataV4 = {
     mode: 'pipeline'
     title: string
     description: string
-    colorTheme: 'violet' | 'rose' | 'emerald' | 'amber' | 'sky'
+    colorTheme: 'violet' | 'rose' | 'emerald' | 'amber' | 'sky' | 'black'
     coverPage: boolean
   }
   s1_goal: {

@@ -28,6 +28,7 @@ export function generatePlannerPipelineHtml(data: PlannerPipelineData, watermark
     emerald: { accent: '#059669', light: '#ecfdf5', text: '#047857' },
     amber:   { accent: '#d97706', light: '#fffbeb', text: '#92400e' },
     sky:     { accent: '#0284c7', light: '#e0f2fe', text: '#0369a1' },
+    black:   { accent: '#111827', light: '#f9fafb', text: '#374151' },
   }
   const c = COLORS[meta.colorTheme] ?? COLORS.violet
 
@@ -233,6 +234,7 @@ export function generatePlannerPipelineHtmlV4(data: PlannerPipelineDataV4, water
     emerald: { accent: '#059669', light: '#ecfdf5', text: '#047857' },
     amber:   { accent: '#d97706', light: '#fffbeb', text: '#92400e' },
     sky:     { accent: '#0284c7', light: '#e0f2fe', text: '#0369a1' },
+    black:   { accent: '#111827', light: '#f9fafb', text: '#374151' },
   }
   const c = COLORS[meta.colorTheme] ?? COLORS.violet
 

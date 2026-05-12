@@ -750,6 +750,7 @@ function PipelineReviseForm({ initial, onChange }: {
         <div>
           <label className={LABEL}>สีธีม</label>
           <select value={colorTheme} onChange={e => setColorTheme(e.target.value as typeof colorTheme)} className={SELECT}>
+            <option value="black">ดำ</option>
             <option value="violet">ม่วง</option>
             <option value="rose">ชมพู</option>
             <option value="emerald">เขียว</option>
@@ -1002,6 +1003,7 @@ function PipelineReviseFormV4({ initial, onChange }: {
         <div>
           <label className={LABEL}>สีธีม</label>
           <select value={colorTheme} onChange={e => setColorTheme(e.target.value as typeof colorTheme)} className={SELECT}>
+            <option value="black">ดำ</option>
             <option value="violet">ม่วง</option>
             <option value="rose">ชมพู</option>
             <option value="emerald">เขียว</option>
