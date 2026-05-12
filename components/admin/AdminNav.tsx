@@ -30,6 +30,7 @@ const GROUPS: Record<GroupKey, NavGroup> = {
       { label: '🗂 Catalog',     path: '/admin/catalogs',           pattern: /^\/admin\/catalogs/ },
       { label: '📊 Analytics',   path: '/admin/template-analytics', pattern: /^\/admin\/template-analytics/ },
       { label: '📝 Blog SEO',    path: '/admin/seo',                pattern: /^\/admin\/seo/ },
+      { label: '📋 Form Builder', path: '/admin/form-builder',       pattern: /^\/admin\/form-builder/ },
     ],
   },
   promo: {
