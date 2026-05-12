@@ -37,6 +37,7 @@ const SECURITY_HEADERS = [
       "img-src 'self' data: https: blob:",
       "font-src 'self'",
       "connect-src 'self' https://*.sentry.io https://*.supabase.co wss://*.supabase.co",
+      "frame-src 'self' blob:",
       "frame-ancestors 'self'",
       "base-uri 'self'",
       "form-action 'self'",
