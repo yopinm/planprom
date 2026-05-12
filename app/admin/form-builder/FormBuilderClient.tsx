@@ -412,7 +412,7 @@ export function FormBuilderClient({ categories, templateId, initialData }: Props
                 <p className="text-xs text-green-700">Slug: <span className="font-mono">{saveSuccess.slug}</span></p>
                 <div className="flex flex-col gap-2">
                   <a
-                    href={saveSuccess.pdfPath}
+                    href={`/api/admin/form-builder/pdf/${saveSuccess.pdfPath.split('/').pop()}`}
                     target="_blank"
                     rel="noreferrer"
                     className="text-xs font-medium text-amber-700 underline"
