@@ -73,32 +73,15 @@ export async function PATCH(req: NextRequest) {
   }
 
   const ts = Date.now()
-  const pdfFilename     = `${existing.slug}-form-${ts}.pdf`
-  const previewFilename = `${existing.slug}-preview-${ts}.jpg`
+  const pdfFilename = `${existing.slug}-form-${ts}.pdf`
   const pdfPath     = `/uploads/templates/${pdfFilename}`
-  const previewPath = `/uploads/templates/${previewFilename}`
 
   let browser = null
-  let actualPreviewPath: string | null = null
   try {
     browser = await puppeteer.launch({ executablePath, args, headless: true })
-
-    // Screenshot page 1 — preview image (separate page, no setViewport)
-    try {
-      const ssPage = await browser.newPage()
-      await ssPage.setContent(html, { waitUntil: 'networkidle0' })
-      const screenshot = await ssPage.screenshot({ type: 'jpeg', quality: 82, fullPage: false })
-      await writeFile(path.join(uploadBase, previewFilename), Buffer.from(screenshot as Uint8Array))
-      actualPreviewPath = previewPath
-      await ssPage.close()
-    } catch {
-      // screenshot failed — update continues without preview
-    }
-
-    // Full 2-page PDF — actual product
-    const pdfPage = await browser.newPage()
-    await pdfPage.setContent(html, { waitUntil: 'networkidle0' })
-    const pdf = await pdfPage.pdf({
+    const page = await browser.newPage()
+    await page.setContent(html, { waitUntil: 'networkidle0' })
+    const pdf = await page.pdf({
       format: 'A4',
       printBackground: true,
       margin: { top: '15mm', right: '15mm', bottom: '20mm', left: '15mm' },
@@ -120,7 +103,7 @@ export async function PATCH(req: NextRequest) {
         tier          = ${safeTier},
         price_baht    = ${priceBaht},
         pdf_path      = ${pdfPath},
-        preview_path  = ${actualPreviewPath},
+        preview_path  = NULL,
         engine_data   = ${JSON.stringify(engineData)},
         document_type = 'form',
         updated_at    = NOW()
