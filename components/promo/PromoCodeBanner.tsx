@@ -6,6 +6,7 @@ export interface PromoData {
   code: string
   label: string
   expires_at: string
+  comeback_text?: string | null
 }
 
 function getDaysLeft(expiresAt: string): number {
@@ -16,6 +17,7 @@ function getDaysLeft(expiresAt: string): number {
 export function PromoCodeBanner({ promo }: { promo: PromoData }) {
   const [copied, setCopied] = useState(false)
   const [daysLeft, setDaysLeft] = useState(() => getDaysLeft(promo.expires_at))
+  const isExpired = daysLeft === 0 && new Date(promo.expires_at) < new Date()
 
   useEffect(() => {
     const t = setInterval(() => setDaysLeft(getDaysLeft(promo.expires_at)), 60_000)
@@ -27,6 +29,24 @@ export function PromoCodeBanner({ promo }: { promo: PromoData }) {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     })
+  }
+
+  // Expired + comeback_text → show comeback banner
+  if (isExpired && promo.comeback_text) {
+    return (
+      <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-5 py-4 shadow-sm">
+        <p className="text-sm font-black text-neutral-400 mb-2">
+          🏷️ โค้ดส่วนลด
+          <span className="ml-2 text-xs font-medium">· {promo.label}</span>
+        </p>
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-sm font-black text-neutral-300 line-through">{promo.code}</span>
+          <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-black text-amber-700">
+            🔜 กลับมาใหม่ {promo.comeback_text}
+          </span>
+        </div>
+      </div>
+    )
   }
 
   return (

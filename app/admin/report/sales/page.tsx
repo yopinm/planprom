@@ -54,6 +54,11 @@ const TYPE_META: Record<string, { label: string; icon: string; color: string }> 
 }
 const ALL_TYPE_KEYS = ['checklist', 'planner', 'form', 'report'] as const
 
+type PromoRow = {
+  code: string; label: string; is_secret: boolean
+  uses: string; discount_total: string; revenue: string
+}
+
 type CartOrder = {
   id: string; order_uid: string; total_baht: number; status: string; fraud_flag: string
   item_count: string; item_titles: string; created_at: string; paid_at: string | null
@@ -130,6 +135,19 @@ export default async function SalesReportPage({
     ORDER BY o.created_at DESC
     LIMIT 200
   `.catch(() => [] as CartOrder[])
+
+  const promoStats = await db<PromoRow[]>`
+    SELECT
+      p.code, p.label, p.is_secret,
+      COUNT(o.id)::text                                                       AS uses,
+      COALESCE(SUM(o.discount_baht) FILTER (WHERE o.status = 'paid'), 0)::text AS discount_total,
+      COALESCE(SUM(o.total_baht)    FILTER (WHERE o.status = 'paid'), 0)::text AS revenue
+    FROM promo_codes p
+    JOIN orders o ON o.promo_code_id = p.id
+    WHERE o.created_at >= ${start} AND o.created_at <= ${end}
+    GROUP BY p.id, p.code, p.label, p.is_secret
+    ORDER BY revenue::numeric DESC
+  `.catch(() => [] as PromoRow[])
 
   const byEngineType = await db<TypeRow[]>`
     WITH item_share AS (
@@ -280,7 +298,44 @@ export default async function SalesReportPage({
           </div>
         </section>
 
-        {/* ── S4: Daily breakdown ── */}
+        {/* ── S4: Promo Code Performance ── */}
+        {promoStats.length > 0 && (
+          <section>
+            <h2 className="mb-3 text-[11px] font-black uppercase tracking-wider text-neutral-400">Promo Code Performance</h2>
+            <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-neutral-100 bg-neutral-50 text-[10px] font-black uppercase tracking-wider text-neutral-400">
+                    <th className="px-5 py-3 text-left">Code</th>
+                    <th className="px-5 py-3 text-left">Label</th>
+                    <th className="px-5 py-3 text-left">Channel</th>
+                    <th className="px-5 py-3 text-right">ใช้</th>
+                    <th className="px-5 py-3 text-right">ส่วนลดรวม</th>
+                    <th className="px-5 py-3 text-right">Revenue</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {promoStats.map((row, i) => (
+                    <tr key={row.code} className={`border-b border-neutral-50 ${i % 2 === 1 ? 'bg-neutral-50/50' : ''}`}>
+                      <td className="px-5 py-3 font-mono font-black text-neutral-900">{row.code}</td>
+                      <td className="px-5 py-3 text-neutral-600">{row.label}</td>
+                      <td className="px-5 py-3">
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-black ${row.is_secret ? 'bg-rose-50 text-rose-500' : 'bg-sky-50 text-sky-600'}`}>
+                          {row.is_secret ? '🔒 Secret' : '🌐 Public'}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3 text-right text-neutral-500">{row.uses}</td>
+                      <td className="px-5 py-3 text-right font-bold text-rose-500">-฿{Number(row.discount_total).toLocaleString('th-TH')}</td>
+                      <td className="px-5 py-3 text-right font-black text-indigo-600">฿{Number(row.revenue).toLocaleString('th-TH')}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+
+        {/* ── S5: Daily breakdown ── */}
         <section>
           <h2 className="mb-3 text-[11px] font-black uppercase tracking-wider text-neutral-400">รายวัน</h2>
           {daily.length === 0 ? (
@@ -321,7 +376,7 @@ export default async function SalesReportPage({
           )}
         </section>
 
-        {/* ── S5: Per-template breakdown ── */}
+        {/* ── S6: Per-template breakdown ── */}
         {byTemplate.length > 0 && (
           <section>
             <h2 className="mb-3 text-[11px] font-black uppercase tracking-wider text-neutral-400">แยก Template</h2>
@@ -350,7 +405,7 @@ export default async function SalesReportPage({
           </section>
         )}
 
-        {/* ── S6: Order list ── */}
+        {/* ── S7: Order list ── */}
         <section>
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-[11px] font-black uppercase tracking-wider text-neutral-400">รายการ Orders</h2>

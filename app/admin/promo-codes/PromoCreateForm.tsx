@@ -33,6 +33,8 @@ export function PromoCreateForm({ suggested, prefill }: { suggested: string; pre
   const [minCartValue,  setMinCartValue]  = useState('0')
   const [startsAt,      setStartsAt]      = useState('')
   const [expiresAt,     setExpiresAt]     = useState('')
+  const [isSecret,      setIsSecret]      = useState(false)
+  const [comebackText,  setComebackText]  = useState('')
 
   // Sync when engine card generates a prefill
   useEffect(() => {
@@ -149,6 +151,33 @@ export function PromoCreateForm({ suggested, prefill }: { suggested: string; pre
             value={expiresAt}
             onChange={e => setExpiresAt(e.target.value)}
             className={INPUT}
+          />
+        </div>
+      </div>
+
+      {/* Secret + Comeback */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3">
+          <input
+            id="create-is-secret"
+            name="is_secret"
+            type="checkbox"
+            checked={isSecret}
+            onChange={e => setIsSecret(e.target.checked)}
+            className="h-4 w-4 rounded accent-rose-500"
+          />
+          <label htmlFor="create-is-secret" className="text-sm font-bold text-neutral-700 cursor-pointer select-none">
+            🔒 โค้ดลับ <span className="font-normal text-neutral-400">(ไม่โผล่หน้าเว็บ · สำหรับ Facebook Group)</span>
+          </label>
+        </div>
+        <div>
+          <label className={LABEL}>กลับมาใหม่ (ข้อความหลังหมดอายุ)</label>
+          <input
+            name="comeback_text"
+            value={comebackText}
+            onChange={e => setComebackText(e.target.value)}
+            className={INPUT}
+            placeholder="เช่น 6.6, 7.7 Flash Sale"
           />
         </div>
       </div>

@@ -8,6 +8,7 @@ type PromoCode = {
   discount_type: string; discount_value: number
   min_cart_value: number; max_uses: number | null; used_count: number
   starts_at: string; expires_at: string; is_active: boolean
+  is_secret: boolean; comeback_text: string | null
 }
 
 const INPUT = 'w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-1.5 text-xs outline-none focus:border-amber-400 focus:bg-white'
@@ -42,6 +43,9 @@ export function PromoCodeRow({ c }: { c: PromoCode }) {
               {statusOk ? 'ACTIVE' : expired ? 'หมดอายุ' : full ? 'ใช้ครบ' : 'ปิด'}
             </span>
             <span className="text-xs text-neutral-500">{c.label}</span>
+            <span className={`rounded-full px-2 py-0.5 text-[10px] font-black ${c.is_secret ? 'bg-rose-50 text-rose-500' : 'bg-sky-50 text-sky-600'}`}>
+              {c.is_secret ? '🔒 Secret' : '🌐 Public'}
+            </span>
           </div>
           <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-neutral-500">
             <span className="font-bold text-neutral-700">
@@ -67,14 +71,12 @@ export function PromoCodeRow({ c }: { c: PromoCode }) {
               {c.is_active ? 'ปิด' : 'เปิด'}
             </button>
           </form>
-          {c.used_count === 0 && (
-            <form action={deletePromoCodeAction}>
-              <input type="hidden" name="id" value={c.id} />
-              <button type="submit" className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-black text-red-500 transition hover:bg-red-50">
-                ลบ
-              </button>
-            </form>
-          )}
+          <form action={deletePromoCodeAction} onSubmit={e => { if (!confirm('ลบโค้ดนี้?')) e.preventDefault() }}>
+            <input type="hidden" name="id" value={c.id} />
+            <button type="submit" className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-black text-red-500 transition hover:bg-red-50">
+              ลบ
+            </button>
+          </form>
         </div>
       </div>
 
@@ -115,6 +117,16 @@ export function PromoCodeRow({ c }: { c: PromoCode }) {
           <div>
             <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-neutral-400">หมดอายุ</p>
             <input name="expires_at" type="datetime-local" required defaultValue={toDatetimeLocal(c.expires_at)} className={`${INPUT} max-w-xs`} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2">
+              <input id={`secret-${c.id}`} name="is_secret" type="checkbox" defaultChecked={c.is_secret} className="h-4 w-4 rounded accent-rose-500" />
+              <label htmlFor={`secret-${c.id}`} className="text-xs font-bold text-neutral-700 cursor-pointer select-none">🔒 โค้ดลับ (ไม่โผล่เว็บ)</label>
+            </div>
+            <div>
+              <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-neutral-400">กลับมาใหม่ (ข้อความหลังหมดอายุ)</p>
+              <input name="comeback_text" defaultValue={c.comeback_text ?? ''} placeholder="เช่น 6.6, 7.7 Flash Sale" className={INPUT} />
+            </div>
           </div>
           <button type="submit" className="rounded-xl bg-amber-500 px-5 py-2 text-xs font-black text-white hover:bg-amber-600 transition">
             บันทึก

@@ -18,6 +18,7 @@ type PromoCode = {
   discount_type: string; discount_value: number
   min_cart_value: number; max_uses: number | null; used_count: number
   starts_at: string; expires_at: string; is_active: boolean; created_at: string
+  is_secret: boolean; comeback_text: string | null
 }
 
 function generateCode(): string {

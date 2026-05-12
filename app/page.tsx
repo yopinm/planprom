@@ -40,11 +40,17 @@ type CatalogGroup = {
 
 async function fetchActivePromo(): Promise<PromoData | null> {
   const [row] = await db<PromoData[]>`
-    SELECT code, label, expires_at
+    SELECT code, label, expires_at, comeback_text
     FROM promo_codes
     WHERE is_active = true
-      AND NOW() BETWEEN starts_at AND expires_at
-    ORDER BY expires_at ASC
+      AND is_secret = false
+      AND (
+        NOW() BETWEEN starts_at AND expires_at
+        OR (expires_at < NOW() AND comeback_text IS NOT NULL)
+      )
+    ORDER BY
+      CASE WHEN NOW() BETWEEN starts_at AND expires_at THEN 0 ELSE 1 END,
+      expires_at DESC
     LIMIT 1
   `.catch(() => [])
   return row ?? null

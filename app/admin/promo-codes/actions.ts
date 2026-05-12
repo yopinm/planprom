@@ -19,12 +19,14 @@ export async function createPromoCodeAction(formData: FormData) {
   const maxUses      = maxUsesRaw ? parseInt(maxUsesRaw) : null
   const startsAt     = str(formData, 'starts_at')
   const expiresAt    = str(formData, 'expires_at')
+  const isSecret     = formData.get('is_secret') === 'on'
+  const comebackText = str(formData, 'comeback_text') || null
 
   await db`
     INSERT INTO promo_codes
-      (code, label, discount_type, discount_value, min_cart_value, max_uses, starts_at, expires_at)
+      (code, label, discount_type, discount_value, min_cart_value, max_uses, starts_at, expires_at, is_secret, comeback_text)
     VALUES
-      (${code}, ${label}, ${discountType}, ${discountVal}, ${minCart}, ${maxUses}, ${startsAt}, ${expiresAt})
+      (${code}, ${label}, ${discountType}, ${discountVal}, ${minCart}, ${maxUses}, ${startsAt}, ${expiresAt}, ${isSecret}, ${comebackText})
   `
   revalidatePath('/admin/promo-codes')
   redirect('/admin/promo-codes')
@@ -40,6 +42,8 @@ export async function updatePromoCodeAction(formData: FormData) {
   const maxUsesRaw   = str(formData, 'max_uses')
   const maxUses      = maxUsesRaw ? parseInt(maxUsesRaw) : null
   const expiresAt    = str(formData, 'expires_at')
+  const isSecret     = formData.get('is_secret') === 'on'
+  const comebackText = str(formData, 'comeback_text') || null
 
   await db`
     UPDATE promo_codes SET
@@ -48,7 +52,9 @@ export async function updatePromoCodeAction(formData: FormData) {
       discount_value = ${discountVal},
       min_cart_value = ${minCart},
       max_uses       = ${maxUses},
-      expires_at     = ${expiresAt}
+      expires_at     = ${expiresAt},
+      is_secret      = ${isSecret},
+      comeback_text  = ${comebackText}
     WHERE id = ${id}
   `
   revalidatePath('/admin/promo-codes')
@@ -65,8 +71,6 @@ export async function togglePromoCodeAction(formData: FormData) {
 export async function deletePromoCodeAction(formData: FormData): Promise<void> {
   await requireAdminSession('/admin/login')
   const id = str(formData, 'id')
-  const [row] = await db<{ used_count: number }[]>`SELECT used_count FROM promo_codes WHERE id = ${id}`
-  if (!row || row.used_count > 0) return
   await db`DELETE FROM promo_codes WHERE id = ${id}`
   revalidatePath('/admin/promo-codes')
 }
