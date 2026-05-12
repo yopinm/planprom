@@ -1,11 +1,14 @@
-// POST /api/admin/templates/generate-planner-pipeline — DC-16 Pipeline v3
+// POST /api/admin/templates/generate-planner-pipeline — DC-16 Pipeline v3/v4
 import { NextRequest, NextResponse } from 'next/server'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 import { getAdminUser } from '@/lib/admin-auth'
-import { generatePlannerPipelineHtml, validatePlannerPipeline } from '@/lib/engine-planner-pipeline'
+import {
+  generatePlannerPipelineHtml, validatePlannerPipeline,
+  generatePlannerPipelineHtmlV4, validatePlannerPipelineV4,
+} from '@/lib/engine-planner-pipeline'
 import { db } from '@/lib/db'
-import type { PlannerPipelineData } from '@/lib/engine-types'
+import type { PlannerPipelineData, PlannerPipelineDataV4 } from '@/lib/engine-types'
 
 export async function POST(req: NextRequest) {
   let adminId: string | null = null
@@ -16,7 +19,7 @@ export async function POST(req: NextRequest) {
   }
   if (!adminId) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
 
-  let body: { engine_data: PlannerPipelineData; slug: string; watermark_text?: string }
+  let body: { engine_data: PlannerPipelineData | PlannerPipelineDataV4; slug: string; watermark_text?: string }
   try { body = await req.json() } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
@@ -26,6 +29,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
   }
 
+  const isV4 = (engine_data as Record<string, unknown>).meta !== undefined &&
+    ((engine_data as PlannerPipelineDataV4).meta as Record<string, unknown>)?.schemaVersion === '4.0'
+
   let planCode = ''
   try {
     const bkkNow = new Date(Date.now() + 7 * 60 * 60 * 1000)
@@ -33,15 +39,21 @@ export async function POST(req: NextRequest) {
     const [{ count }] = await db<{ count: string }[]>`
       SELECT COUNT(*)::text AS count FROM templates WHERE engine_type = 'pipeline'
     `
-    planCode = `TP3-${dateStr}-${String(Number(count) + 1).padStart(4, '0')}`
+    const prefix = isV4 ? 'TP4' : 'TP3'
+    planCode = `${prefix}-${dateStr}-${String(Number(count) + 1).padStart(4, '0')}`
   } catch (err) {
     return NextResponse.json({ error: `PlanCode generate failed: ${String(err)}` }, { status: 500 })
   }
 
   let html: string
   try {
-    validatePlannerPipeline(engine_data)
-    html = generatePlannerPipelineHtml(engine_data, watermark_text)
+    if (isV4) {
+      validatePlannerPipelineV4(engine_data as PlannerPipelineDataV4)
+      html = generatePlannerPipelineHtmlV4(engine_data as PlannerPipelineDataV4, watermark_text)
+    } else {
+      validatePlannerPipeline(engine_data as PlannerPipelineData)
+      html = generatePlannerPipelineHtml(engine_data as PlannerPipelineData, watermark_text)
+    }
   } catch (err) {
     return NextResponse.json({ error: `HTML build failed: ${String(err)}` }, { status: 500 })
   }

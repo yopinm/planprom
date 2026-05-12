@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import type { PlannerPipelineData, PipelinePhase, PipelineBigRock, PipelineMetric } from '@/lib/engine-types'
+import type { PlannerPipelineDataV4, PipelineHorizon, PipelineWeeklyLayout, PipelineDailyLayout, PipelinePhase, PipelineBigRock } from '@/lib/engine-types'
 
 const INPUT = 'w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none focus:border-violet-400 focus:bg-white transition'
 const LABEL = 'block text-[11px] font-black uppercase tracking-widest text-neutral-600 mb-1.5'
@@ -29,84 +29,92 @@ function DynList({ items, onChange, placeholder, addLabel }: {
   )
 }
 
-interface Props { onChange: (data: PlannerPipelineData) => void }
+interface Props { onChange: (data: PlannerPipelineDataV4) => void }
+
+const STAGE_LABELS = ['เป้าหมาย', 'ภาพรวม', 'รายสัปดาห์', 'รายวัน', 'รีวิว']
+const STAGE_COLORS = [
+  { active: 'bg-violet-600 text-white', can: 'bg-violet-100 text-violet-700 hover:bg-violet-200', off: 'bg-neutral-100 text-neutral-400' },
+  { active: 'bg-emerald-600 text-white', can: 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200', off: 'bg-neutral-100 text-neutral-400' },
+  { active: 'bg-sky-600 text-white', can: 'bg-sky-100 text-sky-700 hover:bg-sky-200', off: 'bg-neutral-100 text-neutral-400' },
+  { active: 'bg-amber-600 text-white', can: 'bg-amber-100 text-amber-700 hover:bg-amber-200', off: 'bg-neutral-100 text-neutral-400' },
+  { active: 'bg-rose-600 text-white', can: 'bg-rose-100 text-rose-700 hover:bg-rose-200', off: 'bg-neutral-100 text-neutral-400' },
+]
 
 export function PipelinePlannerForm({ onChange }: Props) {
   const [stage, setStage] = useState(1)
 
   // META
   const [displayTitle, setDisplayTitle] = useState('')
-  const [description, setDescription]   = useState('')
-  const [colorTheme,  setColorTheme]    = useState<PlannerPipelineData['meta']['colorTheme']>('violet')
-  const [coverPage,   setCoverPage]     = useState(true)
+  const [description,  setDescription]  = useState('')
+  const [colorTheme,   setColorTheme]   = useState<PlannerPipelineDataV4['meta']['colorTheme']>('violet')
+  const [coverPage,    setCoverPage]    = useState(true)
 
   // Stage 1
-  const [bigGoal,          setBigGoal]          = useState('')
-  const [deadline,         setDeadline]         = useState('')
-  const [why,              setWhy]              = useState('')
-  const [successCriteria,  setSuccessCriteria]  = useState([''])
-  const [budget,           setBudget]           = useState('')
-  const [timeLimit,        setTimeLimit]        = useState('')
-  const [others,           setOthers]           = useState<string[]>([])
+  const [goal,         setGoal]         = useState('')
+  const [why,          setWhy]          = useState('')
+  const [deadline,     setDeadline]     = useState('')
+  const [horizon,      setHorizon]      = useState<PipelineHorizon>('yearly')
+  const [horizonValue, setHorizonValue] = useState('')
 
-  // Stage 2
-  const [phases,    setPhases]    = useState<PipelinePhase[]>([
-    { name: 'Phase 1', timeRange: '', tasks: [''], budget: '' },
-  ])
-  const [bigRocks,  setBigRocks]  = useState<PipelineBigRock[]>([{ task: '', deadline: '' }])
+  // Stage 2 — project mode only
+  const [phases,   setPhases]   = useState<PipelinePhase[]>([{ name: 'Phase 1', timeRange: '', tasks: [''], budget: '' }])
+  const [bigRocks, setBigRocks] = useState<PipelineBigRock[]>([{ task: '', deadline: '' }])
 
   // Stage 3
-  const [habits,           setHabits]           = useState([''])
-  const [metrics,          setMetrics]          = useState<PipelineMetric[]>([
-    { name: '', target: '', frequency: 'weekly' },
-  ])
-  const [reviewCycle,      setReviewCycle]      = useState<'daily' | 'weekly' | 'monthly'>('weekly')
-  const [reviewQuestions,  setReviewQuestions]  = useState([''])
-  const [adjustmentRules,  setAdjustmentRules]  = useState<string[]>([])
+  const [weekCount,   setWeekCount]   = useState(4)
+  const [weekLayout,  setWeekLayout]  = useState<PipelineWeeklyLayout>('135rule')
 
-  // Notes
-  const [notesStyle, setNotesStyle] = useState<'lined' | 'dotgrid' | 'blank'>('lined')
-  const [notesPages, setNotesPages] = useState(1)
-  const [diaryDays,  setDiaryDays]  = useState(0)
+  // Stage 4
+  const [dayCount,    setDayCount]    = useState(7)
+  const [dayLayout,   setDayLayout]   = useState<PipelineDailyLayout>('combined')
+
+  // Stage 5
+  const [reviewCycle, setReviewCycle] = useState<'daily' | 'weekly' | 'monthly'>('weekly')
+  const [reviewQs,    setReviewQs]    = useState(['ทำสำเร็จอะไรบ้างในรอบนี้?', 'สิ่งที่ยังติดขัดคืออะไร?', 'จะปรับแผนอย่างไรในรอบหน้า?'])
 
   useEffect(() => {
+    const s2: PlannerPipelineDataV4['s2_timeplan'] = horizon === 'yearly'
+      ? { year: horizonValue }
+      : horizon === 'monthly'
+        ? { month: horizonValue }
+        : {
+            phases: phases.filter(p => p.name.trim()).map(p => ({ ...p, tasks: p.tasks.filter(t => t.trim()) })),
+            bigRocks: bigRocks.filter(r => r.task.trim()),
+          }
+
     onChange({
-      meta: { schemaVersion: '3.0', mode: 'pipeline', title: displayTitle, description, colorTheme, coverPage },
-      stage1_goal: {
-        bigGoal, deadline, why,
-        successCriteria: successCriteria.filter(s => s.trim()),
-        constraints: {
-          ...(budget.trim()    ? { budget }    : {}),
-          ...(timeLimit.trim() ? { timeLimit } : {}),
-          ...(others.filter(o => o.trim()).length > 0 ? { others: others.filter(o => o.trim()) } : {}),
-        },
-      },
-      stage2_plan: {
-        phases: phases.filter(p => p.name.trim()).map(p => ({ ...p, tasks: p.tasks.filter(t => t.trim()) })),
-        bigRocks: bigRocks.filter(r => r.task.trim()),
-      },
-      stage3_track: {
-        habits: habits.filter(h => h.trim()),
-        metrics: metrics.filter(m => m.name.trim()),
-        reviewCycle,
-        reviewQuestions: reviewQuestions.filter(q => q.trim()),
-        ...(adjustmentRules.filter(r => r.trim()).length > 0 ? { adjustmentRules: adjustmentRules.filter(r => r.trim()) } : {}),
-      },
-      notes: (notesPages > 0 || diaryDays > 0) ? { diaryDays, notesPages, notesStyle } : undefined,
+      meta: { schemaVersion: '4.0', mode: 'pipeline', title: displayTitle, description, colorTheme, coverPage },
+      s1_goal: { goal, why, deadline, horizon, horizonValue },
+      s2_timeplan: s2,
+      s3_weekly: { weekCount, layout: weekLayout },
+      s4_daily:  { dayCount,  layout: dayLayout  },
+      s5_review: { reviewCycle, reviewQuestions: reviewQs.filter(q => q.trim()) },
     })
   }, [
     displayTitle, description, colorTheme, coverPage,
-    bigGoal, deadline, why, successCriteria, budget, timeLimit, others,
+    goal, why, deadline, horizon, horizonValue,
     phases, bigRocks,
-    habits, metrics, reviewCycle, reviewQuestions, adjustmentRules,
-    notesStyle, notesPages, diaryDays,
+    weekCount, weekLayout,
+    dayCount, dayLayout,
+    reviewCycle, reviewQs,
     onChange,
   ])
 
-  const stage1Valid = !!bigGoal.trim() && !!deadline.trim()
-  const stage2Valid = phases.some(p => p.name.trim())
+  const stage1Valid = !!goal.trim() && !!deadline.trim()
+  const stage2Valid = horizon === 'project'
+    ? phases.some(p => p.name.trim())
+    : true
 
-  const THEME_OPTS: { v: PlannerPipelineData['meta']['colorTheme']; l: string; color: string }[] = [
+  function canGoTo(n: number) {
+    if (n <= stage) return true
+    if (n === 2) return stage1Valid
+    if (n === 3) return stage1Valid && stage2Valid
+    if (n === 4) return stage1Valid && stage2Valid
+    if (n === 5) return stage1Valid && stage2Valid
+    return false
+  }
+
+  const THEME_OPTS: { v: PlannerPipelineDataV4['meta']['colorTheme']; l: string; color: string }[] = [
     { v: 'violet',  l: 'ม่วง',   color: 'bg-violet-500'  },
     { v: 'rose',    l: 'ชมพู',   color: 'bg-rose-500'    },
     { v: 'emerald', l: 'เขียว',  color: 'bg-emerald-500' },
@@ -118,39 +126,28 @@ export function PipelinePlannerForm({ onChange }: Props) {
     <div className="space-y-4">
 
       {/* Stage indicator */}
-      <div className="flex gap-1.5">
-        {([1, 2, 3] as const).map(n => {
-          const canClick = n < stage || (n === 2 && stage1Valid) || (n === 3 && stage1Valid && stage2Valid)
+      <div className="flex gap-1">
+        {STAGE_LABELS.map((label, idx) => {
+          const n = idx + 1
+          const ok = canGoTo(n)
+          const col = STAGE_COLORS[idx]
           return (
             <button key={n} type="button"
-              onClick={() => { if (canClick) setStage(n) }}
-              className={`flex-1 rounded-lg py-2 text-xs font-black transition ${
-                stage === n
-                  ? 'bg-violet-600 text-white shadow-sm'
-                  : canClick
-                    ? 'bg-violet-100 text-violet-700 hover:bg-violet-200'
-                    : 'bg-neutral-100 text-neutral-400 cursor-not-allowed'
-              }`}>
-              {n === 1 ? 'ขั้นที่ 1 — ตั้งเป้า' : n === 2 ? 'ขั้นที่ 2 — แผน' : 'ขั้นที่ 3 — ติดตาม'}
+              onClick={() => { if (ok) setStage(n) }}
+              className={`flex-1 rounded-lg py-2 text-[11px] font-black transition ${
+                stage === n ? col.active : ok ? col.can : col.off
+              } ${!ok ? 'cursor-not-allowed' : ''}`}>
+              {n}. {label}
             </button>
           )
         })}
       </div>
 
-      {/* Summary bars for completed stages */}
+      {/* Summary bars */}
       {stage > 1 && stage1Valid && (
         <div className="rounded-lg border border-violet-200 bg-violet-50 px-3 py-2 text-xs">
-          <p className="font-black text-violet-800">{bigGoal}</p>
-          <p className="text-violet-600">ถึง: {deadline}{why ? ` · ${why}` : ''}</p>
-        </div>
-      )}
-      {stage > 2 && stage2Valid && (
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs">
-          <p className="font-black text-emerald-800">
-            {phases.filter(p => p.name.trim()).length} phase
-            {' · '}
-            {bigRocks.filter(r => r.task.trim()).length} big rock
-          </p>
+          <p className="font-black text-violet-800 truncate">{goal}</p>
+          <p className="text-violet-600">ถึง: {deadline}{horizon !== 'project' && horizonValue ? ` · ${horizonValue}` : ''}</p>
         </div>
       )}
 
@@ -161,12 +158,12 @@ export function PipelinePlannerForm({ onChange }: Props) {
           <div>
             <label className={LABEL}>ชื่อที่แสดงใน PDF *</label>
             <input value={displayTitle} onChange={e => setDisplayTitle(e.target.value)}
-              placeholder="เช่น Pipeline แผนเปิดตัวสินค้า 2026" className={INPUT} />
+              placeholder="เช่น Pipeline Planner 2026" className={INPUT} />
           </div>
           <div>
             <label className={LABEL}>คำอธิบาย (ใช้ในร้านค้า)</label>
             <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2}
-              placeholder="เช่น Pipeline Planner สำหรับวางแผนโปรเจกต์ 3 ขั้นตอน ครบจบในฉบับเดียว"
+              placeholder="เช่น แพลนเนอร์ครบ 5 แกน — ตั้งเป้า ภาพรวม สัปดาห์ วัน รีวิว"
               className={INPUT} />
           </div>
           <div>
@@ -188,245 +185,282 @@ export function PipelinePlannerForm({ onChange }: Props) {
         </div>
       </div>
 
-      {/* ── STAGE 1 ── */}
+      {/* ── STAGE 1: เป้าหมาย ── */}
       {stage === 1 && (
         <div className="rounded-xl border-2 border-violet-300 overflow-hidden">
           <div className="px-4 py-3 bg-violet-50 text-violet-800 flex items-center gap-2">
-            <span className="text-xs font-black bg-violet-200 rounded-full px-2 py-0.5">ขั้นที่ 1</span>
-            <span className="font-black text-sm">ตั้งเป้าหมาย</span>
+            <span className="text-xs font-black bg-violet-200 rounded-full px-2 py-0.5">1</span>
+            <span className="font-black text-sm">เป้าหมาย</span>
           </div>
           <div className="px-4 py-4 space-y-4">
             <div>
-              <label className={LABEL}>เป้าหมายใหญ่ที่ต้องการทำให้สำเร็จ *</label>
-              <textarea value={bigGoal} onChange={e => setBigGoal(e.target.value)} rows={2}
+              <label className={LABEL}>เป้าหมายหลัก *</label>
+              <textarea value={goal} onChange={e => setGoal(e.target.value)} rows={2}
                 placeholder="เช่น เปิดตัวสินค้าใหม่และมียอดขาย ฿100,000 ภายใน 3 เดือน"
                 className={INPUT} />
             </div>
             <div>
-              <label className={LABEL}>Deadline *</label>
-              <input value={deadline} onChange={e => setDeadline(e.target.value)}
-                placeholder="เช่น 31 สิงหาคม 2026" className={INPUT} />
-            </div>
-            <div>
-              <label className={LABEL}>ทำไมเป้าหมายนี้ถึงสำคัญ?</label>
+              <label className={LABEL}>ทำไมถึงสำคัญ?</label>
               <input value={why} onChange={e => setWhy(e.target.value)}
                 placeholder="เช่น เป็น stepping stone สู่เป้าหมายการเงินระยะยาว" className={INPUT} />
             </div>
             <div>
-              <label className={LABEL}>เกณฑ์ความสำเร็จ (วัดผลอย่างไร?)</label>
-              <DynList items={successCriteria} onChange={setSuccessCriteria}
-                placeholder="เช่น ยอดขายถึง ฿100,000" addLabel="เพิ่มเกณฑ์" />
+              <label className={LABEL}>ต้องเสร็จภายใน (Deadline) *</label>
+              <input value={deadline} onChange={e => setDeadline(e.target.value)}
+                placeholder="เช่น 31 สิงหาคม 2026" className={INPUT} />
             </div>
-            <div className="space-y-2">
-              <label className={LABEL}>ข้อจำกัด (ไม่บังคับ)</label>
-              <input value={budget} onChange={e => setBudget(e.target.value)}
-                placeholder="งบ เช่น ฿50,000" className={INPUT} />
-              <input value={timeLimit} onChange={e => setTimeLimit(e.target.value)}
-                placeholder="เวลา เช่น ทำได้วันละ 2 ชั่วโมง" className={INPUT} />
-              {others.length > 0
-                ? <DynList items={others} onChange={setOthers} placeholder="อื่นๆ เช่น ต้องทำคนเดียว" addLabel="เพิ่มรายการ" />
-                : <button type="button" onClick={() => setOthers([''])}
-                    className="text-xs font-black text-neutral-500 hover:text-neutral-700">
-                    + อื่นๆ
+            <div>
+              <label className={LABEL}>รูปแบบแผน (Planning Horizon)</label>
+              <div className="grid grid-cols-3 gap-2">
+                {([
+                  { v: 'yearly',  l: 'รายปี',    desc: 'ภาพรวม 12 เดือน' },
+                  { v: 'monthly', l: 'รายเดือน',  desc: 'ภาพรวม 4 สัปดาห์' },
+                  { v: 'project', l: 'โปรเจกต์',  desc: 'กำหนด phases เอง' },
+                ] as { v: PipelineHorizon; l: string; desc: string }[]).map(({ v, l, desc }) => (
+                  <button key={v} type="button" onClick={() => setHorizon(v)}
+                    className={`rounded-xl border-2 px-3 py-3 text-left transition ${
+                      horizon === v ? 'border-violet-600 bg-violet-50' : 'border-neutral-200 hover:border-violet-300'
+                    }`}>
+                    <p className={`text-sm font-black ${horizon === v ? 'text-violet-800' : 'text-neutral-700'}`}>{l}</p>
+                    <p className="text-[11px] text-neutral-500 mt-0.5">{desc}</p>
                   </button>
-              }
+                ))}
+              </div>
             </div>
+            {horizon === 'yearly' && (
+              <div>
+                <label className={LABEL}>ปี</label>
+                <input value={horizonValue} onChange={e => setHorizonValue(e.target.value)}
+                  placeholder="เช่น 2026" className={INPUT} />
+              </div>
+            )}
+            {horizon === 'monthly' && (
+              <div>
+                <label className={LABEL}>เดือน + ปี</label>
+                <input value={horizonValue} onChange={e => setHorizonValue(e.target.value)}
+                  placeholder="เช่น พฤษภาคม 2026" className={INPUT} />
+              </div>
+            )}
           </div>
         </div>
       )}
 
-      {/* ── STAGE 2 ── */}
+      {/* ── STAGE 2: ภาพรวม ── */}
       {stage === 2 && (
         <div className="rounded-xl border-2 border-emerald-300 overflow-hidden">
           <div className="px-4 py-3 bg-emerald-50 text-emerald-800 flex items-center gap-2">
-            <span className="text-xs font-black bg-emerald-200 rounded-full px-2 py-0.5">ขั้นที่ 2</span>
-            <span className="font-black text-sm">วางแผนลงมือทำ</span>
+            <span className="text-xs font-black bg-emerald-200 rounded-full px-2 py-0.5">2</span>
+            <span className="font-black text-sm">ภาพรวม</span>
           </div>
-          <div className="px-4 py-4 space-y-5">
-            <div>
-              <label className={LABEL}>Phase / ขั้นตอน</label>
-              <div className="space-y-3">
-                {phases.map((p, pi) => (
-                  <div key={pi} className="rounded-lg border border-emerald-100 p-3 space-y-2">
-                    <div className="flex gap-2">
-                      <input value={p.name}
-                        onChange={e => setPhases(prev => prev.map((x, j) => j === pi ? { ...x, name: e.target.value } : x))}
-                        placeholder={`Phase ${pi + 1} — ชื่อ`} className={`${INPUT} font-bold`} />
-                      {phases.length > 1 && (
-                        <button type="button" onClick={() => setPhases(prev => prev.filter((_, j) => j !== pi))}
+
+          {horizon === 'yearly' && (
+            <div className="px-4 py-4">
+              <div className="rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm text-emerald-800">
+                ระบบจะสร้าง <strong>12 หน้า</strong> (ม.ค.–ธ.ค.) ให้อัตโนมัติ
+                {horizonValue ? ` สำหรับปี ${horizonValue}` : ''} แต่ละหน้ามีช่องกรอก: เป้าเดือน / วันสำคัญ / งานหลัก 3 อย่าง
+              </div>
+            </div>
+          )}
+
+          {horizon === 'monthly' && (
+            <div className="px-4 py-4">
+              <div className="rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm text-emerald-800">
+                ระบบจะสร้าง <strong>4 หน้า</strong> (สัปดาห์ที่ 1–4) ให้อัตโนมัติ
+                {horizonValue ? ` สำหรับ ${horizonValue}` : ''} แต่ละหน้ามีช่อง: เป้าสัปดาห์ / งานที่ต้องทำ
+              </div>
+            </div>
+          )}
+
+          {horizon === 'project' && (
+            <div className="px-4 py-4 space-y-5">
+              <div>
+                <label className={LABEL}>Phase / ขั้นตอน</label>
+                <div className="space-y-3">
+                  {phases.map((p, pi) => (
+                    <div key={pi} className="rounded-lg border border-emerald-100 p-3 space-y-2">
+                      <div className="flex gap-2">
+                        <input value={p.name}
+                          onChange={e => setPhases(prev => prev.map((x, j) => j === pi ? { ...x, name: e.target.value } : x))}
+                          placeholder={`Phase ${pi + 1} — ชื่อ`} className={`${INPUT} font-bold`} />
+                        {phases.length > 1 && (
+                          <button type="button" onClick={() => setPhases(prev => prev.filter((_, j) => j !== pi))}
+                            className="text-red-400 text-sm px-1">✕</button>
+                        )}
+                      </div>
+                      <input value={p.timeRange}
+                        onChange={e => setPhases(prev => prev.map((x, j) => j === pi ? { ...x, timeRange: e.target.value } : x))}
+                        placeholder="ช่วงเวลา เช่น ม.ค. – ก.พ. 2026" className={INPUT} />
+                      <DynList items={p.tasks}
+                        onChange={tasks => setPhases(prev => prev.map((x, j) => j === pi ? { ...x, tasks } : x))}
+                        placeholder="งานที่ต้องทำใน Phase นี้" addLabel="เพิ่มงาน" />
+                    </div>
+                  ))}
+                  <button type="button"
+                    onClick={() => setPhases(prev => [...prev, { name: `Phase ${prev.length + 1}`, timeRange: '', tasks: [''], budget: '' }])}
+                    className="text-xs font-black text-emerald-600 hover:text-emerald-700">
+                    + เพิ่ม Phase
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label className={LABEL}>งานสำคัญ (Big Rocks)</label>
+                <p className="text-xs text-neutral-500 mb-2">งานใหญ่ที่ถ้าไม่ทำ เป้าหมายจะไม่สำเร็จ</p>
+                <div className="space-y-2">
+                  {bigRocks.map((r, i) => (
+                    <div key={i} className="flex gap-2">
+                      <input value={r.task}
+                        onChange={e => setBigRocks(prev => prev.map((x, j) => j === i ? { ...x, task: e.target.value } : x))}
+                        placeholder="งานสำคัญ" className={INPUT} />
+                      <input value={r.deadline}
+                        onChange={e => setBigRocks(prev => prev.map((x, j) => j === i ? { ...x, deadline: e.target.value } : x))}
+                        placeholder="Deadline" className={`${INPUT} w-32`} />
+                      {bigRocks.length > 1 && (
+                        <button type="button" onClick={() => setBigRocks(prev => prev.filter((_, j) => j !== i))}
                           className="text-red-400 text-sm px-1">✕</button>
                       )}
                     </div>
-                    <input value={p.timeRange}
-                      onChange={e => setPhases(prev => prev.map((x, j) => j === pi ? { ...x, timeRange: e.target.value } : x))}
-                      placeholder="ช่วงเวลา เช่น ม.ค. – ก.พ. 2026" className={INPUT} />
-                    <DynList items={p.tasks}
-                      onChange={tasks => setPhases(prev => prev.map((x, j) => j === pi ? { ...x, tasks } : x))}
-                      placeholder="งานที่ต้องทำใน Phase นี้" addLabel="เพิ่มงาน" />
-                    <input value={p.budget ?? ''}
-                      onChange={e => setPhases(prev => prev.map((x, j) => j === pi ? { ...x, budget: e.target.value } : x))}
-                      placeholder="งบ Phase นี้ (ไม่บังคับ)" className={`${INPUT} text-xs`} />
-                  </div>
-                ))}
-                <button type="button"
-                  onClick={() => setPhases(prev => [...prev, { name: `Phase ${prev.length + 1}`, timeRange: '', tasks: [''], budget: '' }])}
-                  className="text-xs font-black text-emerald-600 hover:text-emerald-700">
-                  + เพิ่ม Phase
-                </button>
+                  ))}
+                  <button type="button" onClick={() => setBigRocks(prev => [...prev, { task: '', deadline: '' }])}
+                    className="text-xs font-black text-emerald-600 hover:text-emerald-700">
+                    + เพิ่ม Big Rock
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── STAGE 3: รายสัปดาห์ ── */}
+      {stage === 3 && (
+        <div className="rounded-xl border-2 border-sky-300 overflow-hidden">
+          <div className="px-4 py-3 bg-sky-50 text-sky-800 flex items-center gap-2">
+            <span className="text-xs font-black bg-sky-200 rounded-full px-2 py-0.5">3</span>
+            <span className="font-black text-sm">แผนรายสัปดาห์</span>
+          </div>
+          <div className="px-4 py-4 space-y-4">
+            <div>
+              <label className={LABEL}>จำนวนหน้าสัปดาห์</label>
+              <div className="flex items-center gap-3">
+                <input type="number" min={0} max={52} value={weekCount}
+                  onChange={e => setWeekCount(Math.max(0, Math.min(52, Number(e.target.value))))}
+                  className="w-24 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm" />
+                <span className="text-sm text-neutral-500">หน้า</span>
               </div>
             </div>
             <div>
-              <label className={LABEL}>Big Rocks</label>
-              <p className="text-xs text-neutral-500 mb-2">
-                งานใหญ่ที่ถ้าไม่ทำ เป้าหมายจะไม่สำเร็จ — ใส่ deadline กำกับแต่ละงานด้วย
-                <span className="block text-neutral-400 mt-0.5">เช่น "ทำ Landing Page ให้เสร็จ" deadline "15 มิ.ย."</span>
-              </p>
+              <label className={LABEL}>รูปแบบหน้าสัปดาห์</label>
               <div className="space-y-2">
-                {bigRocks.map((r, i) => (
-                  <div key={i} className="flex gap-2">
-                    <input value={r.task}
-                      onChange={e => setBigRocks(prev => prev.map((x, j) => j === i ? { ...x, task: e.target.value } : x))}
-                      placeholder="งานสำคัญ" className={INPUT} />
-                    <input value={r.deadline}
-                      onChange={e => setBigRocks(prev => prev.map((x, j) => j === i ? { ...x, deadline: e.target.value } : x))}
-                      placeholder="Deadline" className={`${INPUT} w-32`} />
-                    {bigRocks.length > 1 && (
-                      <button type="button" onClick={() => setBigRocks(prev => prev.filter((_, j) => j !== i))}
-                        className="text-red-400 text-sm px-1">✕</button>
-                    )}
-                  </div>
+                {([
+                  { v: 'simple',   l: 'แบบง่าย',        desc: 'เป้าสัปดาห์ + ช่องงาน 5 บรรทัด' },
+                  { v: '135rule',  l: 'กฎ 1-3-5',        desc: '1 งานหลัก + 3 งานรอง + 5 งานเล็ก' },
+                  { v: 'timeblock', l: 'Time Block',      desc: 'ตาราง จ.–อา. × เช้า/กลางวัน/เย็น' },
+                ] as { v: PipelineWeeklyLayout; l: string; desc: string }[]).map(({ v, l, desc }) => (
+                  <label key={v}
+                    className={`flex items-center gap-3 rounded-xl border-2 px-4 py-3 cursor-pointer transition
+                      ${weekLayout === v ? 'border-sky-500 bg-sky-50' : 'border-neutral-200 hover:border-sky-300'}`}>
+                    <input type="radio" checked={weekLayout === v} onChange={() => setWeekLayout(v)} className="hidden" />
+                    <div>
+                      <p className={`text-sm font-black ${weekLayout === v ? 'text-sky-800' : 'text-neutral-700'}`}>{weekLayout === v ? '✓ ' : ''}{l}</p>
+                      <p className="text-[11px] text-neutral-500">{desc}</p>
+                    </div>
+                  </label>
                 ))}
-                <button type="button" onClick={() => setBigRocks(prev => [...prev, { task: '', deadline: '' }])}
-                  className="text-xs font-black text-emerald-600 hover:text-emerald-700">
-                  + เพิ่ม Big Rock
-                </button>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* ── STAGE 3 ── */}
-      {stage === 3 && (
+      {/* ── STAGE 4: รายวัน ── */}
+      {stage === 4 && (
         <div className="rounded-xl border-2 border-amber-300 overflow-hidden">
           <div className="px-4 py-3 bg-amber-50 text-amber-800 flex items-center gap-2">
-            <span className="text-xs font-black bg-amber-200 rounded-full px-2 py-0.5">ขั้นที่ 3</span>
-            <span className="font-black text-sm">ติดตามผล</span>
+            <span className="text-xs font-black bg-amber-200 rounded-full px-2 py-0.5">4</span>
+            <span className="font-black text-sm">แผนรายวัน</span>
           </div>
-          <div className="px-4 py-4 space-y-5">
+          <div className="px-4 py-4 space-y-4">
             <div>
-              <label className={LABEL}>นิสัยที่ต้องติดตาม</label>
-              <DynList items={habits} onChange={setHabits}
-                placeholder="เช่น ทบทวนแผน 15 นาที / โพสต์ content รายวัน"
-                addLabel="เพิ่มนิสัย" />
-            </div>
-            <div>
-              <label className={LABEL}>ตัวชี้วัด (KPI / Metric)</label>
-              <div className="space-y-2">
-                {metrics.map((m, i) => (
-                  <div key={i} className="flex gap-2">
-                    <input value={m.name}
-                      onChange={e => setMetrics(prev => prev.map((x, j) => j === i ? { ...x, name: e.target.value } : x))}
-                      placeholder="ชื่อ KPI เช่น ยอดขาย" className={INPUT} />
-                    <input value={m.target}
-                      onChange={e => setMetrics(prev => prev.map((x, j) => j === i ? { ...x, target: e.target.value } : x))}
-                      placeholder="เป้าหมาย เช่น ฿10,000/สัปดาห์" className={INPUT} />
-                    <select value={m.frequency}
-                      onChange={e => setMetrics(prev => prev.map((x, j) => j === i ? { ...x, frequency: e.target.value as 'daily'|'weekly'|'monthly' } : x))}
-                      className="rounded-lg border border-neutral-200 bg-neutral-50 px-2 text-sm cursor-pointer">
-                      <option value="daily">ทุกวัน</option>
-                      <option value="weekly">รายสัปดาห์</option>
-                      <option value="monthly">รายเดือน</option>
-                    </select>
-                    {metrics.length > 1 && (
-                      <button type="button" onClick={() => setMetrics(prev => prev.filter((_, j) => j !== i))}
-                        className="text-red-400 text-sm px-1">✕</button>
-                    )}
-                  </div>
-                ))}
-                <button type="button" onClick={() => setMetrics(prev => [...prev, { name: '', target: '', frequency: 'weekly' }])}
-                  className="text-xs font-black text-amber-600 hover:text-amber-700">
-                  + เพิ่ม Metric
-                </button>
+              <label className={LABEL}>จำนวนหน้าวัน</label>
+              <div className="flex items-center gap-3">
+                <input type="number" min={0} max={365} value={dayCount}
+                  onChange={e => setDayCount(Math.max(0, Math.min(365, Number(e.target.value))))}
+                  className="w-24 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm" />
+                <span className="text-sm text-neutral-500">หน้า</span>
               </div>
             </div>
+            <div>
+              <label className={LABEL}>รูปแบบหน้าวัน</label>
+              <div className="space-y-2">
+                {([
+                  { v: 'todo',       l: 'To-Do 1-3-5',    desc: '1 ต้องทำ + 3 ควรทำ + 5 ถ้ามีเวลา + โน้ต' },
+                  { v: 'timeblock',  l: 'Time Block',      desc: 'ตาราง 06:00–22:00 รายชั่วโมง' },
+                  { v: 'combined',   l: 'รวม (แนะนำ)',     desc: 'Time Block ซ้าย + To-Do ขวา' },
+                ] as { v: PipelineDailyLayout; l: string; desc: string }[]).map(({ v, l, desc }) => (
+                  <label key={v}
+                    className={`flex items-center gap-3 rounded-xl border-2 px-4 py-3 cursor-pointer transition
+                      ${dayLayout === v ? 'border-amber-500 bg-amber-50' : 'border-neutral-200 hover:border-amber-300'}`}>
+                    <input type="radio" checked={dayLayout === v} onChange={() => setDayLayout(v)} className="hidden" />
+                    <div>
+                      <p className={`text-sm font-black ${dayLayout === v ? 'text-amber-800' : 'text-neutral-700'}`}>{dayLayout === v ? '✓ ' : ''}{l}</p>
+                      <p className="text-[11px] text-neutral-500">{desc}</p>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── STAGE 5: รีวิว ── */}
+      {stage === 5 && (
+        <div className="rounded-xl border-2 border-rose-300 overflow-hidden">
+          <div className="px-4 py-3 bg-rose-50 text-rose-800 flex items-center gap-2">
+            <span className="text-xs font-black bg-rose-200 rounded-full px-2 py-0.5">5</span>
+            <span className="font-black text-sm">รีวิว</span>
+          </div>
+          <div className="px-4 py-4 space-y-4">
             <div>
               <label className={LABEL}>รอบทบทวน</label>
               <div className="flex gap-3 flex-wrap">
                 {(['daily', 'weekly', 'monthly'] as const).map(v => (
                   <label key={v}
                     className={`flex items-center gap-2 rounded-lg border-2 px-3 py-2 cursor-pointer text-sm font-bold transition
-                      ${reviewCycle === v ? 'border-amber-500 bg-amber-50 text-amber-800' : 'border-neutral-200 text-neutral-500 hover:border-amber-300'}`}>
+                      ${reviewCycle === v ? 'border-rose-500 bg-rose-50 text-rose-800' : 'border-neutral-200 text-neutral-500 hover:border-rose-300'}`}>
                     <input type="radio" checked={reviewCycle === v} onChange={() => setReviewCycle(v)} className="hidden" />
-                    {reviewCycle === v ? '✓ ' : ''}{v === 'daily' ? 'ทุกวัน' : v === 'weekly' ? 'รายสัปดาห์' : 'รายเดือน'}
+                    {reviewCycle === v ? '✓ ' : ''}{v === 'daily' ? 'ทุกวัน' : v === 'weekly' ? 'ทุกสัปดาห์' : 'ทุกเดือน'}
                   </label>
                 ))}
               </div>
             </div>
             <div>
               <label className={LABEL}>คำถามทบทวน</label>
-              <DynList items={reviewQuestions} onChange={setReviewQuestions}
-                placeholder="เช่น สิ่งที่ทำได้ดีคืออะไร?" addLabel="เพิ่มคำถาม" />
+              <p className="text-xs text-neutral-500 mb-2">คำถามเหล่านี้จะพิมพ์ลงใน PDF พร้อมช่องว่างให้ลูกค้ากรอก</p>
+              <DynList items={reviewQs} onChange={setReviewQs}
+                placeholder="เช่น สิ่งที่ทำได้ดีที่สุดในรอบนี้คืออะไร?" addLabel="เพิ่มคำถาม" />
             </div>
-            <div>
-              <label className={LABEL}>กฎปรับแผน (ไม่บังคับ)</label>
-              {adjustmentRules.length > 0
-                ? <DynList items={adjustmentRules} onChange={setAdjustmentRules}
-                    placeholder="เช่น ถ้าช้ากว่าแผน 2 สัปดาห์ ให้ตัด Phase สุดท้าย"
-                    addLabel="เพิ่มกฎ" />
-                : <button type="button" onClick={() => setAdjustmentRules([''])}
-                    className="text-xs font-black text-neutral-500 hover:text-neutral-700">
-                    + เพิ่มกฎปรับแผน
-                  </button>
-              }
-            </div>
-
-            {/* Notes */}
-            <div className="border-t border-neutral-100 pt-4 space-y-3">
-              <p className="text-[11px] font-black uppercase tracking-widest text-neutral-400">หน้าบันทึกเพิ่มเติม</p>
-              <div className="flex gap-3 flex-wrap">
-                {([['lined','เส้นบรรทัด'],['dotgrid','ตารางจุด'],['blank','ว่างเปล่า']] as const).map(([v,l]) => (
-                  <label key={v}
-                    className={`flex items-center gap-2 rounded-lg border-2 px-3 py-2 cursor-pointer text-sm font-bold transition
-                      ${notesStyle === v ? 'border-violet-500 bg-violet-50 text-violet-800' : 'border-neutral-200 text-neutral-500 hover:border-violet-300'}`}>
-                    <input type="radio" checked={notesStyle === v} onChange={() => setNotesStyle(v)} className="hidden" />
-                    {notesStyle === v ? '✓ ' : ''}{l}
-                  </label>
-                ))}
-              </div>
-              <div className="flex gap-6">
-                <div className="flex items-center gap-2">
-                  <label className="text-sm font-bold text-neutral-600">หน้าจดบันทึก</label>
-                  <input type="number" min={0} max={10} value={notesPages}
-                    onChange={e => setNotesPages(Math.min(10, Math.max(0, Number(e.target.value))))}
-                    className="w-20 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm" />
-                </div>
-                <div className="flex items-center gap-2">
-                  <label className="text-sm font-bold text-neutral-600">บันทึกรายวัน (วัน)</label>
-                  <input type="number" min={0} max={31} value={diaryDays}
-                    onChange={e => setDiaryDays(Math.min(31, Math.max(0, Number(e.target.value))))}
-                    className="w-20 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm" />
-                </div>
-              </div>
+            <div className="rounded-lg bg-rose-50 border border-rose-200 px-3 py-2 text-xs text-rose-700">
+              ระบบจะเพิ่มช่อง "ทำไปแล้ว ___%" + "สิ่งที่ติดขัด" + "แผนครั้งถัดไป" ให้อัตโนมัติ
             </div>
           </div>
         </div>
       )}
 
-      {/* Stage navigation */}
+      {/* Navigation */}
       <div className="flex gap-2">
         {stage > 1 && (
           <button type="button" onClick={() => setStage(s => s - 1)}
             className="flex-1 rounded-lg border border-neutral-200 py-2.5 text-sm font-black text-neutral-600 hover:border-neutral-400">
-            ← ขั้นก่อนหน้า
+            ← ย้อนกลับ
           </button>
         )}
-        {stage < 3 && (
+        {stage < 5 && (
           <button type="button"
-            disabled={stage === 1 ? !stage1Valid : !stage2Valid}
+            disabled={stage === 1 ? !stage1Valid : stage === 2 ? !stage2Valid : false}
             onClick={() => setStage(s => s + 1)}
             className="flex-1 rounded-lg bg-violet-600 py-2.5 text-sm font-black text-white transition hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed">
-            ขั้นถัดไป →
+            ถัดไป →
           </button>
         )}
       </div>

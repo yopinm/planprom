@@ -8,6 +8,7 @@ import type {
   PlannerEngineDataV2, PlanningHorizon, PlannerSegment,
   PlannerDecisionMatrix, PlannerAxis3,
   PlannerPipelineData, PipelinePhase, PipelineBigRock, PipelineMetric,
+  PlannerPipelineDataV4, PipelineHorizon, PipelineWeeklyLayout, PipelineDailyLayout,
 } from '@/lib/engine-types'
 
 const INPUT = 'w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none focus:border-amber-400 focus:bg-white transition'
@@ -903,6 +904,219 @@ function PipelineReviseForm({ initial, onChange }: {
   )
 }
 
+// ── Pipeline Revise Form V4 ──────────────────────────────────────────────────
+function PipelineReviseFormV4({ initial, onChange }: {
+  initial: PlannerPipelineDataV4
+  onChange: (d: PlannerPipelineDataV4) => void
+}) {
+  const [displayTitle, setDisplayTitle] = useState(initial.meta.title)
+  const [description,  setDescription]  = useState(initial.meta.description)
+  const [colorTheme,   setColorTheme]   = useState(initial.meta.colorTheme)
+  const [coverPage,    setCoverPage]    = useState(initial.meta.coverPage)
+
+  const [goal,         setGoal]         = useState(initial.s1_goal.goal)
+  const [why,          setWhy]          = useState(initial.s1_goal.why)
+  const [deadline,     setDeadline]     = useState(initial.s1_goal.deadline)
+  const [horizon,      setHorizon]      = useState<PipelineHorizon>(initial.s1_goal.horizon)
+  const [horizonValue, setHorizonValue] = useState(initial.s1_goal.horizonValue)
+
+  const [phases,   setPhases]   = useState<PipelinePhase[]>(initial.s2_timeplan.phases?.length ? initial.s2_timeplan.phases : [{ name: 'Phase 1', timeRange: '', tasks: [''], budget: '' }])
+  const [bigRocks, setBigRocks] = useState<PipelineBigRock[]>(initial.s2_timeplan.bigRocks?.length ? initial.s2_timeplan.bigRocks : [{ task: '', deadline: '' }])
+
+  const [weekCount,   setWeekCount]   = useState(initial.s3_weekly.weekCount)
+  const [weekLayout,  setWeekLayout]  = useState<PipelineWeeklyLayout>(initial.s3_weekly.layout)
+  const [dayCount,    setDayCount]    = useState(initial.s4_daily.dayCount)
+  const [dayLayout,   setDayLayout]   = useState<PipelineDailyLayout>(initial.s4_daily.layout)
+  const [reviewCycle, setReviewCycle] = useState(initial.s5_review.reviewCycle)
+  const [reviewQs,    setReviewQs]    = useState<string[]>(initial.s5_review.reviewQuestions.length ? initial.s5_review.reviewQuestions : [''])
+
+  useEffect(() => {
+    const s2: PlannerPipelineDataV4['s2_timeplan'] = horizon === 'yearly'
+      ? { year: horizonValue }
+      : horizon === 'monthly'
+        ? { month: horizonValue }
+        : {
+            phases: phases.filter(p => p.name.trim()).map(p => ({ ...p, tasks: p.tasks.filter(t => t.trim()) })),
+            bigRocks: bigRocks.filter(r => r.task.trim()),
+          }
+    onChange({
+      meta: { schemaVersion: '4.0', mode: 'pipeline', title: displayTitle, description, colorTheme, coverPage },
+      s1_goal: { goal, why, deadline, horizon, horizonValue },
+      s2_timeplan: s2,
+      s3_weekly: { weekCount, layout: weekLayout },
+      s4_daily:  { dayCount,  layout: dayLayout  },
+      s5_review: { reviewCycle, reviewQuestions: reviewQs.filter(q => q.trim()) },
+    })
+  }, [
+    displayTitle, description, colorTheme, coverPage,
+    goal, why, deadline, horizon, horizonValue,
+    phases, bigRocks,
+    weekCount, weekLayout, dayCount, dayLayout,
+    reviewCycle, reviewQs, onChange,
+  ])
+
+  return (
+    <div className="space-y-3">
+      <Card title="ตั้งค่า PDF" color="bg-neutral-100 text-neutral-800">
+        <div>
+          <label className={LABEL}>ชื่อที่แสดงใน PDF *</label>
+          <input value={displayTitle} onChange={e => setDisplayTitle(e.target.value)} className={INPUT} />
+        </div>
+        <div>
+          <label className={LABEL}>คำอธิบาย</label>
+          <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} className={INPUT} />
+        </div>
+        <div>
+          <label className={LABEL}>สีธีม</label>
+          <select value={colorTheme} onChange={e => setColorTheme(e.target.value as typeof colorTheme)} className={SELECT}>
+            <option value="violet">ม่วง</option>
+            <option value="rose">ชมพู</option>
+            <option value="emerald">เขียว</option>
+            <option value="amber">เหลือง</option>
+            <option value="sky">ฟ้า</option>
+          </select>
+        </div>
+        <label className="flex items-center gap-2 text-sm font-bold text-neutral-700 cursor-pointer">
+          <input type="checkbox" checked={coverPage} onChange={e => setCoverPage(e.target.checked)} /> หน้าปก
+        </label>
+      </Card>
+
+      <Card title="แกนที่ 1 — เป้าหมาย" color="bg-violet-50 text-violet-800">
+        <div>
+          <label className={LABEL}>เป้าหมายหลัก *</label>
+          <textarea value={goal} onChange={e => setGoal(e.target.value)} rows={2} className={INPUT} />
+        </div>
+        <div>
+          <label className={LABEL}>ทำไมถึงสำคัญ</label>
+          <input value={why} onChange={e => setWhy(e.target.value)} className={INPUT} />
+        </div>
+        <div>
+          <label className={LABEL}>ต้องเสร็จภายใน *</label>
+          <input value={deadline} onChange={e => setDeadline(e.target.value)} className={INPUT} />
+        </div>
+        <div>
+          <label className={LABEL}>รูปแบบแผน</label>
+          <select value={horizon} onChange={e => setHorizon(e.target.value as PipelineHorizon)} className={SELECT}>
+            <option value="yearly">รายปี</option>
+            <option value="monthly">รายเดือน</option>
+            <option value="project">โปรเจกต์</option>
+          </select>
+        </div>
+        {(horizon === 'yearly' || horizon === 'monthly') && (
+          <div>
+            <label className={LABEL}>{horizon === 'yearly' ? 'ปี' : 'เดือน + ปี'}</label>
+            <input value={horizonValue} onChange={e => setHorizonValue(e.target.value)}
+              placeholder={horizon === 'yearly' ? 'เช่น 2026' : 'เช่น พฤษภาคม 2026'} className={INPUT} />
+          </div>
+        )}
+      </Card>
+
+      {horizon === 'project' && (
+        <Card title="แกนที่ 2 — แผนดำเนินการ" color="bg-emerald-50 text-emerald-800">
+          <div>
+            <label className={LABEL}>Phase / ขั้นตอน</label>
+            <div className="space-y-3">
+              {phases.map((p, pi) => (
+                <div key={pi} className="rounded-lg border border-emerald-100 p-3 space-y-2">
+                  <div className="flex gap-2">
+                    <input value={p.name}
+                      onChange={e => setPhases(prev => prev.map((x, j) => j === pi ? { ...x, name: e.target.value } : x))}
+                      placeholder={`Phase ${pi + 1}`} className={`${INPUT} font-bold`} />
+                    {phases.length > 1 && (
+                      <button type="button" onClick={() => setPhases(prev => prev.filter((_, j) => j !== pi))}
+                        className="text-red-400 text-sm px-1">✕</button>
+                    )}
+                  </div>
+                  <input value={p.timeRange}
+                    onChange={e => setPhases(prev => prev.map((x, j) => j === pi ? { ...x, timeRange: e.target.value } : x))}
+                    placeholder="ช่วงเวลา" className={INPUT} />
+                  <DynList items={p.tasks}
+                    onChange={tasks => setPhases(prev => prev.map((x, j) => j === pi ? { ...x, tasks } : x))}
+                    placeholder="งาน" addLabel="เพิ่มงาน" />
+                </div>
+              ))}
+              <button type="button"
+                onClick={() => setPhases(prev => [...prev, { name: `Phase ${prev.length + 1}`, timeRange: '', tasks: [''], budget: '' }])}
+                className="text-xs font-black text-emerald-600">+ เพิ่ม Phase</button>
+            </div>
+          </div>
+          <div>
+            <label className={LABEL}>งานสำคัญ (Big Rocks)</label>
+            <div className="space-y-2">
+              {bigRocks.map((r, i) => (
+                <div key={i} className="flex gap-2">
+                  <input value={r.task}
+                    onChange={e => setBigRocks(prev => prev.map((x, j) => j === i ? { ...x, task: e.target.value } : x))}
+                    placeholder="งานสำคัญ" className={INPUT} />
+                  <input value={r.deadline}
+                    onChange={e => setBigRocks(prev => prev.map((x, j) => j === i ? { ...x, deadline: e.target.value } : x))}
+                    placeholder="Deadline" className={`${INPUT} w-32`} />
+                  {bigRocks.length > 1 && (
+                    <button type="button" onClick={() => setBigRocks(prev => prev.filter((_, j) => j !== i))}
+                      className="text-red-400 text-sm px-1">✕</button>
+                  )}
+                </div>
+              ))}
+              <button type="button" onClick={() => setBigRocks(prev => [...prev, { task: '', deadline: '' }])}
+                className="text-xs font-black text-emerald-600">+ เพิ่ม Big Rock</button>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      <Card title="แกนที่ 3 — แผนรายสัปดาห์" color="bg-sky-50 text-sky-800">
+        <div className="flex items-center gap-3">
+          <label className={LABEL}>จำนวนหน้า</label>
+          <input type="number" min={0} max={52} value={weekCount}
+            onChange={e => setWeekCount(Math.max(0, Math.min(52, Number(e.target.value))))}
+            className={`${INPUT} w-24`} />
+        </div>
+        <div>
+          <label className={LABEL}>รูปแบบ</label>
+          <select value={weekLayout} onChange={e => setWeekLayout(e.target.value as PipelineWeeklyLayout)} className={SELECT}>
+            <option value="simple">แบบง่าย</option>
+            <option value="135rule">กฎ 1-3-5</option>
+            <option value="timeblock">Time Block</option>
+          </select>
+        </div>
+      </Card>
+
+      <Card title="แกนที่ 4 — แผนรายวัน" color="bg-amber-50 text-amber-800">
+        <div className="flex items-center gap-3">
+          <label className={LABEL}>จำนวนหน้า</label>
+          <input type="number" min={0} max={365} value={dayCount}
+            onChange={e => setDayCount(Math.max(0, Math.min(365, Number(e.target.value))))}
+            className={`${INPUT} w-24`} />
+        </div>
+        <div>
+          <label className={LABEL}>รูปแบบ</label>
+          <select value={dayLayout} onChange={e => setDayLayout(e.target.value as PipelineDailyLayout)} className={SELECT}>
+            <option value="todo">To-Do 1-3-5</option>
+            <option value="timeblock">Time Block</option>
+            <option value="combined">รวม (แนะนำ)</option>
+          </select>
+        </div>
+      </Card>
+
+      <Card title="แกนที่ 5 — รีวิว" color="bg-rose-50 text-rose-800">
+        <div>
+          <label className={LABEL}>รอบทบทวน</label>
+          <select value={reviewCycle} onChange={e => setReviewCycle(e.target.value as typeof reviewCycle)} className={SELECT}>
+            <option value="daily">ทุกวัน</option>
+            <option value="weekly">ทุกสัปดาห์</option>
+            <option value="monthly">ทุกเดือน</option>
+          </select>
+        </div>
+        <div>
+          <label className={LABEL}>คำถามทบทวน</label>
+          <DynList items={reviewQs} onChange={setReviewQs}
+            placeholder="เช่น สิ่งที่ทำได้ดีที่สุดคืออะไร?" addLabel="เพิ่มคำถาม" />
+        </div>
+      </Card>
+    </div>
+  )
+}
+
 function getDefaultSegV2(h: PlanningHorizon): PlannerSegment[] {
   switch (h) {
     case 'year':  return ['Q1 (ม.ค.–มี.ค.)','Q2 (เม.ย.–มิ.ย.)','Q3 (ก.ค.–ก.ย.)','Q4 (ต.ค.–ธ.ค.)'].map(l=>({label:l,theme:'',keyActions:''}))
@@ -919,7 +1133,7 @@ interface Props {
   templateId: string
   slug: string
   engineType: 'checklist' | 'planner' | 'pipeline'
-  initialData: ChecklistEngineData | PlannerEngineData | PlannerEngineDataV2 | PlannerPipelineData
+  initialData: ChecklistEngineData | PlannerEngineData | PlannerEngineDataV2 | PlannerPipelineData | PlannerPipelineDataV4
   nextRevisionNumber: number
   categoryName?: string
 }
@@ -929,7 +1143,7 @@ type ApproveState = 'idle' | 'loading' | 'done' | 'error'
 
 export function ReviseClient({ templateId, slug, engineType, initialData, nextRevisionNumber, categoryName }: Props) {
   const router = useRouter()
-  const [engineData, setEngineData] = useState<ChecklistEngineData | PlannerEngineData | PlannerEngineDataV2 | PlannerPipelineData>(initialData)
+  const [engineData, setEngineData] = useState<ChecklistEngineData | PlannerEngineData | PlannerEngineDataV2 | PlannerPipelineData | PlannerPipelineDataV4>(initialData)
   const [genState,   setGenState]   = useState<GenState>('idle')
   const [genError,   setGenError]   = useState('')
   const [pdfPath,    setPdfPath]    = useState('')
@@ -999,6 +1213,11 @@ export function ReviseClient({ templateId, slug, engineType, initialData, nextRe
         {engineType === 'checklist' ? (
           <ChecklistReviseForm
             initial={initialData as ChecklistEngineData}
+            onChange={setEngineData}
+          />
+        ) : engineType === 'pipeline' && (initialData as PlannerPipelineDataV4).meta?.schemaVersion === '4.0' ? (
+          <PipelineReviseFormV4
+            initial={initialData as PlannerPipelineDataV4}
             onChange={setEngineData}
           />
         ) : engineType === 'pipeline' ? (

@@ -404,7 +404,7 @@ export function WizardClient({ categories, cloneSources }: Props) {
             {([
               { m: 'engine-checklist' as Mode, icon: '✅', title: 'Engine: Checklist', desc: 'กรอกข้อมูล 5 Section → ระบบสร้าง PDF เช็คลิสต์มาตรฐานอัตโนมัติ' },
               { m: 'engine-planner'   as Mode, icon: '📅', title: 'Engine: Planner',   desc: 'กรอกข้อมูล 4 Pillar → ระบบสร้าง PDF Planner ครบถ้วนอัตโนมัติ' },
-              { m: 'engine-pipeline'  as Mode, icon: '🔄', title: 'Engine: Pipeline',  desc: 'กรอก 3 ขั้น (ตั้งเป้า → แผน → ติดตาม) → ระบบสร้าง PDF Pipeline Planner อัตโนมัติ' },
+              { m: 'engine-pipeline'  as Mode, icon: '🔄', title: 'Engine: Pipeline',  desc: 'กรอก 5 แกน (เป้า → ภาพรวม → สัปดาห์ → วัน → รีวิว) → ระบบสร้าง PDF Planner อัตโนมัติ' },
               { m: 'docx'             as Mode, icon: '📝', title: 'สร้างจาก .docx',    desc: 'อัพโหลด .docx → ระบบ generate PDF มาตรฐาน A4 อัตโนมัติ' },
               { m: 'upload'           as Mode, icon: '📤', title: 'Upload PDF',         desc: 'มี PDF อยู่แล้ว — อัพโหลดเข้าระบบโดยตรง' },
               { m: 'clone'            as Mode, icon: '✏️', title: 'Clone',              desc: 'Clone จาก template ที่มีอยู่ แล้วแก้ไข' },
@@ -575,7 +575,7 @@ export function WizardClient({ categories, cloneSources }: Props) {
                   {mode === 'engine-checklist'
                     ? '✅ Checklist Engine — กรอก 5 Section'
                     : mode === 'engine-pipeline'
-                      ? '🔄 Pipeline Engine — กรอก 3 ขั้น'
+                      ? '🔄 Pipeline Engine — กรอก 5 แกน'
                       : '📅 Planner Engine — กรอก 4 Pillar'}
                 </p>
                 {mode === 'engine-checklist'

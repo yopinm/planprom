@@ -163,3 +163,45 @@ export type PlannerPipelineData = {
   }
   extras?: Record<string, unknown>
 }
+
+// ── Planner Pipeline v4 ──────────────────────────────────────────────────────
+
+export type PipelineHorizon = 'yearly' | 'monthly' | 'project'
+export type PipelineWeeklyLayout = 'simple' | '135rule' | 'timeblock'
+export type PipelineDailyLayout = 'todo' | 'timeblock' | 'combined'
+
+export type PlannerPipelineDataV4 = {
+  meta: {
+    schemaVersion: '4.0'
+    mode: 'pipeline'
+    title: string
+    description: string
+    colorTheme: 'violet' | 'rose' | 'emerald' | 'amber' | 'sky'
+    coverPage: boolean
+  }
+  s1_goal: {
+    goal: string
+    why: string
+    deadline: string
+    horizon: PipelineHorizon
+    horizonValue: string
+  }
+  s2_timeplan: {
+    year?: string
+    month?: string
+    phases?: PipelinePhase[]
+    bigRocks?: PipelineBigRock[]
+  }
+  s3_weekly: {
+    weekCount: number
+    layout: PipelineWeeklyLayout
+  }
+  s4_daily: {
+    dayCount: number
+    layout: PipelineDailyLayout
+  }
+  s5_review: {
+    reviewCycle: 'daily' | 'weekly' | 'monthly'
+    reviewQuestions: string[]
+  }
+}

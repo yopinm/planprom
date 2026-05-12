@@ -6,8 +6,11 @@ import path from 'path'
 import { getAdminUser } from '@/lib/admin-auth'
 import { generateChecklistHtml } from '@/lib/engine-checklist'
 import { generatePlannerHtml, generatePlannerHtmlV2, validatePlannerV2 } from '@/lib/engine-planner'
-import { generatePlannerPipelineHtml, validatePlannerPipeline } from '@/lib/engine-planner-pipeline'
-import type { ChecklistEngineData, PlannerEngineData, PlannerEngineDataV2, PlannerPipelineData } from '@/lib/engine-types'
+import {
+  generatePlannerPipelineHtml, validatePlannerPipeline,
+  generatePlannerPipelineHtmlV4, validatePlannerPipelineV4,
+} from '@/lib/engine-planner-pipeline'
+import type { ChecklistEngineData, PlannerEngineData, PlannerEngineDataV2, PlannerPipelineData, PlannerPipelineDataV4 } from '@/lib/engine-types'
 
 export async function POST(req: NextRequest) {
   const adminId = await getAdminUser()
@@ -15,7 +18,7 @@ export async function POST(req: NextRequest) {
 
   let body: {
     engine_type: 'checklist' | 'planner' | 'pipeline'
-    engine_data: ChecklistEngineData | PlannerEngineData | PlannerEngineDataV2 | PlannerPipelineData
+    engine_data: ChecklistEngineData | PlannerEngineData | PlannerEngineDataV2 | PlannerPipelineData | PlannerPipelineDataV4
     slug: string
     watermark_text?: string
     category_name?: string
@@ -44,8 +47,14 @@ export async function POST(req: NextRequest) {
         html = generatePlannerHtml(engine_data as PlannerEngineData, watermark_text)
       }
     } else if (engine_type === 'pipeline') {
-      validatePlannerPipeline(engine_data as PlannerPipelineData)
-      html = generatePlannerPipelineHtml(engine_data as PlannerPipelineData, watermark_text)
+      const isV4 = ((engine_data as unknown as PlannerPipelineDataV4).meta as Record<string, unknown>)?.schemaVersion === '4.0'
+      if (isV4) {
+        validatePlannerPipelineV4(engine_data as unknown as PlannerPipelineDataV4)
+        html = generatePlannerPipelineHtmlV4(engine_data as unknown as PlannerPipelineDataV4, watermark_text)
+      } else {
+        validatePlannerPipeline(engine_data as PlannerPipelineData)
+        html = generatePlannerPipelineHtml(engine_data as PlannerPipelineData, watermark_text)
+      }
     } else {
       return NextResponse.json({ error: 'Unknown engine_type' }, { status: 400 })
     }

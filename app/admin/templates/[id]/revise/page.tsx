@@ -5,7 +5,7 @@ import type { Metadata } from 'next'
 import { requireAdminSession } from '@/lib/admin-auth'
 import { db } from '@/lib/db'
 import { ReviseClient } from './ReviseClient'
-import type { ChecklistEngineData, PlannerEngineData, PlannerEngineDataV2, PlannerPipelineData } from '@/lib/engine-types'
+import type { ChecklistEngineData, PlannerEngineData, PlannerEngineDataV2, PlannerPipelineData, PlannerPipelineDataV4 } from '@/lib/engine-types'
 
 export const metadata: Metadata = {
   title: 'แก้ไขเนื้อหา — Admin',
@@ -63,8 +63,12 @@ export default async function RevisePage({ params }: { params: Promise<{ id: str
     ? JSON.parse(t.engine_data)
     : t.engine_data
 
+  const isPipelineV4 = t.engine_type === 'pipeline' &&
+    (rawEngineData as PlannerPipelineDataV4)?.meta?.schemaVersion === '4.0'
+
   const engineData =
     t.engine_type === 'checklist' ? (rawEngineData as ChecklistEngineData) :
+    isPipelineV4                  ? (rawEngineData as PlannerPipelineDataV4) :
     t.engine_type === 'pipeline'  ? (rawEngineData as PlannerPipelineData) :
     (rawEngineData as PlannerEngineData | PlannerEngineDataV2)
 
