@@ -96,6 +96,7 @@ export function FormBuilderClient({ categories, templateId, initialData }: Props
   const [categoryId, setCategoryId] = useState(initialData?.categoryId ?? '')
   const [isSaving, setIsSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+  const [saveSuccess, setSaveSuccess] = useState<{ slug: string; pdfPath: string } | null>(null)
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
 
@@ -180,7 +181,7 @@ export function FormBuilderClient({ categories, templateId, initialData }: Props
         setSaveError(data.error ?? 'Save failed')
         return
       }
-      router.push('/admin/templates')
+      setSaveSuccess({ slug: data.slug, pdfPath: data.pdfPath })
     } catch (e) {
       setSaveError(String(e))
     } finally {
@@ -390,16 +391,43 @@ export function FormBuilderClient({ categories, templateId, initialData }: Props
               <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2">{saveError}</p>
             )}
 
-            <button
-              onClick={handleSave}
-              disabled={isSaving || !slug.trim()}
-              className="w-full bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white font-bold py-2.5 rounded transition-colors flex items-center justify-center gap-2"
-            >
-              {isSaving
-                ? <><span className="animate-spin">⏳</span> กำลัง Generate PDF และบันทึก...</>
-                : isEditMode ? '💾 อัปเดต Template' : '✅ Approve & Save เป็น Draft'
-              }
-            </button>
+            {!saveSuccess && (
+              <button
+                onClick={handleSave}
+                disabled={isSaving || !slug.trim()}
+                className="w-full bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white font-bold py-2.5 rounded transition-colors flex items-center justify-center gap-2"
+              >
+                {isSaving
+                  ? <><span className="animate-spin">⏳</span> กำลัง Generate PDF และบันทึก...</>
+                  : isEditMode ? '💾 อัปเดต Template' : '✅ Approve & Save เป็น Draft'
+                }
+              </button>
+            )}
+
+            {saveSuccess && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4 space-y-3">
+                <p className="text-sm font-bold text-green-800">
+                  ✅ {isEditMode ? 'อัปเดตสำเร็จ' : 'บันทึกสำเร็จ'}
+                </p>
+                <p className="text-xs text-green-700">Slug: <span className="font-mono">{saveSuccess.slug}</span></p>
+                <div className="flex flex-col gap-2">
+                  <a
+                    href={saveSuccess.pdfPath}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-xs font-medium text-amber-700 underline"
+                  >
+                    📄 ดู PDF ที่สร้างล่าสุด
+                  </a>
+                  <button
+                    onClick={() => router.push('/admin/templates')}
+                    className="w-full border border-gray-300 text-sm font-medium text-gray-700 py-2 rounded hover:bg-gray-50 transition-colors"
+                  >
+                    ไปหน้า Template Manager →
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
