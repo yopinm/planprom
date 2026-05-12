@@ -28,7 +28,6 @@ const GROUPS: Record<GroupKey, NavGroup> = {
       { label: '+ New Template', path: '/admin/templates/new',      pattern: /^\/admin\/templates\/new/ },
       { label: '📋 Templates',   path: '/admin/templates',          pattern: /^\/admin\/templates(?!\/new)/ },
       { label: '🗂 Catalog',     path: '/admin/catalogs',           pattern: /^\/admin\/catalogs/ },
-      { label: '📦 Orders',      path: '/admin/orders',             pattern: /^\/admin\/orders/ },
       { label: '📊 Analytics',   path: '/admin/template-analytics', pattern: /^\/admin\/template-analytics/ },
       { label: '📝 Blog SEO',    path: '/admin/seo',                pattern: /^\/admin\/seo/ },
     ],
