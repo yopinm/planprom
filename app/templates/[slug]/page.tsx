@@ -8,6 +8,7 @@ import { db } from '@/lib/db'
 import FreeDownloadButton from '@/components/templates/FreeDownloadButton'
 import type { TocItem } from '@/lib/pdf-types'
 import type { ChecklistEngineData, PlannerEngineData, PlannerEngineDataV2 } from '@/lib/engine-types'
+import type { FormEngineData } from '@/lib/engine-form-types'
 
 interface Props { params: Promise<{ slug: string }> }
 
@@ -38,6 +39,7 @@ const TIER_FEATURES: Record<string, string[]> = {
   premium:  ['PDF กรอกข้อมูลได้', 'ดาวน์โหลดทันที', 'ใช้ซ้ำตลอดกาล', 'ออกแบบระดับพรีเมียม', 'หน้าหลายหน้า'],
   ultra:    ['PDF กรอกข้อมูลได้', 'ดาวน์โหลดทันที', 'ใช้ซ้ำตลอดกาล', 'ออกแบบระดับพรีเมียม', 'หน้าหลายหน้า', 'คอนเทนต์ครบจบในชุดเดียว'],
 }
+const FORM_FEATURES = ['PDF 2 หน้าในไฟล์เดียว', 'หน้า 1: ตัวอย่างกรอกแล้ว', 'หน้า 2: ฟอร์มเปล่าพร้อมพิมพ์', 'ดาวน์โหลดทันทีหลังชำระ', 'ใช้ซ้ำตลอดกาล']
 
 export default async function TemplateDetailPage({ params }: Props) {
   const { slug } = await params
@@ -140,7 +142,7 @@ export default async function TemplateDetailPage({ params }: Props) {
             <div className="mt-5">
               <h2 className="font-bold text-neutral-900 mb-3">รวมอยู่ในแพ็กเกจ</h2>
               <ul className="space-y-2">
-                {(TIER_FEATURES[tmpl.tier] ?? TIER_FEATURES.standard).map(f => (
+                {(tmpl.engine_type === 'form' ? FORM_FEATURES : (TIER_FEATURES[tmpl.tier] ?? TIER_FEATURES.standard)).map(f => (
                   <li key={f} className="flex items-center gap-2 text-sm text-neutral-700">
                     <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 text-xs">✓</span>
                     {f}
@@ -268,6 +270,78 @@ export default async function TemplateDetailPage({ params }: Props) {
                       </ul>
                     </div>
                   )}
+                </div>
+              )
+            })()}
+
+            {/* Engine Preview — form (EF-5) */}
+            {tmpl.engine_type === 'form' && tmpl.engine_data && (() => {
+              const d = tmpl.engine_data as unknown as FormEngineData
+              if (!d?.fields?.length) return null
+              const visibleFields = d.fields.filter(f =>
+                !['section_header','divider','page_break','logo','running_number'].includes(f.type)
+              )
+              const topFields = visibleFields.slice(0, 5)
+              const typeGroups: Record<string, number> = {}
+              for (const f of d.fields) {
+                const group = ['text','multiline','email'].includes(f.type) ? 'ข้อความ'
+                  : ['date','date_range'].includes(f.type) ? 'วันที่'
+                  : ['checkbox','radio','dropdown'].includes(f.type) ? 'ตัวเลือก'
+                  : f.type === 'signature' ? 'ลายเซ็น'
+                  : f.type === 'table' ? 'ตาราง'
+                  : null
+                if (group) typeGroups[group] = (typeGroups[group] ?? 0) + 1
+              }
+              return (
+                <div className="mt-5 rounded-2xl bg-amber-50 p-5">
+                  <div className="flex items-center gap-2 mb-3 flex-wrap">
+                    <h2 className="font-bold text-neutral-900">ข้อมูลฟอร์ม</h2>
+                    <span className="rounded-full bg-amber-200 px-3 py-0.5 text-xs font-black text-amber-800">
+                      📋 ฟอร์มมาตรฐาน · {d.fields.length} fields
+                    </span>
+                    <span className="rounded-full bg-white border border-amber-300 px-3 py-0.5 text-xs font-bold text-amber-700">
+                      ซื้อ 1 ได้ PDF 2 หน้า
+                    </span>
+                  </div>
+
+                  {/* Type breakdown */}
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {Object.entries(typeGroups).map(([group, count]) => (
+                      <span key={group} className="rounded-full bg-white border border-amber-200 px-2.5 py-0.5 text-xs text-amber-700">
+                        {group} ×{count}
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* Top fields preview */}
+                  {topFields.length > 0 && (
+                    <div className="rounded-lg bg-white border border-amber-100 p-3">
+                      <p className="text-[10px] font-black text-neutral-400 uppercase tracking-wider mb-2">
+                        ช่องกรอกข้อมูล {visibleFields.length > 5 ? `(แสดง 5 จาก ${visibleFields.length})` : ''}
+                      </p>
+                      <ul className="space-y-1.5">
+                        {topFields.map(f => (
+                          <li key={f.id} className="flex items-center gap-2 text-sm text-neutral-700">
+                            <span className="text-amber-400 shrink-0 text-xs">▸</span>
+                            {f.label || '(ไม่มีชื่อ)'}
+                            {f.required && <span className="text-red-400 text-xs">*</span>}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* What you get */}
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    <div className="rounded-lg bg-white border border-amber-100 p-3 text-xs">
+                      <p className="font-bold text-neutral-700 mb-1">📄 หน้า 1</p>
+                      <p className="text-neutral-500">ตัวอย่างที่กรอกข้อมูลแล้ว — ดูเป็นไอเดีย</p>
+                    </div>
+                    <div className="rounded-lg bg-white border border-amber-100 p-3 text-xs">
+                      <p className="font-bold text-neutral-700 mb-1">📝 หน้า 2</p>
+                      <p className="text-neutral-500">ฟอร์มเปล่า พร้อมพิมพ์กรอกเอง</p>
+                    </div>
+                  </div>
                 </div>
               )
             })()}
