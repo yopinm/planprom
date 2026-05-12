@@ -82,15 +82,24 @@ export function TemplateListWithPreview({ templates }: { templates: PreviewTempl
               </button>
             </div>
 
-            {/* Preview image — scrollable */}
+            {/* Preview — scrollable */}
             <div className="flex-1 overflow-y-auto bg-neutral-100">
               {preview.preview_path ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={preview.preview_path}
-                  alt={`ตัวอย่าง ${preview.title}`}
-                  className="w-full h-auto"
-                />
+                preview.preview_path.endsWith('.pdf') ? (
+                  <iframe
+                    src={preview.preview_path}
+                    className="w-full border-0"
+                    style={{ height: '60vh' }}
+                    title={`ตัวอย่าง ${preview.title}`}
+                  />
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={preview.preview_path}
+                    alt={`ตัวอย่าง ${preview.title}`}
+                    className="w-full h-auto"
+                  />
+                )
               ) : (
                 <div className="flex h-48 items-center justify-center text-sm text-neutral-400">
                   ไม่มีภาพตัวอย่าง
