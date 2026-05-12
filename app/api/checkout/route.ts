@@ -10,7 +10,7 @@ import { createServerClient } from '@/lib/supabase/server'
 async function newOrderUid(): Promise<string> {
   const d = new Date().toISOString().slice(0, 10).replace(/-/g, '')
   const [{ n }] = await db<{ n: number }[]>`SELECT nextval('order_seq')::int AS n`
-  return `CK-${d}-${String(n).padStart(4, '0')}`
+  return `PP-${d}-${String(n).padStart(4, '0')}`
 }
 
 function tierPriceForItem(position: number): number {

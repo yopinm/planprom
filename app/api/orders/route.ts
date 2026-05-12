@@ -8,7 +8,7 @@ import crypto from 'crypto'
 function orderNumber(): string {
   const d   = new Date().toISOString().slice(0, 10).replace(/-/g, '')
   const seq = String(Math.floor(Math.random() * 9000) + 1000)
-  return `CK-${d}-${seq}`
+  return `PP-${d}-${seq}`
 }
 
 export async function POST(req: NextRequest) {
