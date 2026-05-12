@@ -146,7 +146,7 @@ export default async function SalesReportPage({
     JOIN orders o ON o.promo_code_id = p.id
     WHERE o.created_at >= ${start} AND o.created_at <= ${end}
     GROUP BY p.id, p.code, p.label, p.is_secret
-    ORDER BY revenue::numeric DESC
+    ORDER BY COALESCE(SUM(o.total_baht) FILTER (WHERE o.status = 'paid'), 0) DESC
   `.catch(() => [] as PromoRow[])
 
   const byEngineType = await db<TypeRow[]>`
