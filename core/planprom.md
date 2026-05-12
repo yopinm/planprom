@@ -347,7 +347,7 @@ ALTER TABLE orders ADD COLUMN discount_baht NUMERIC(10,2) NOT NULL DEFAULT 0;
 | DC-6 | **Planner Engine — Text-to-PDF** | 4 Pillar form → `generatePlannerHtml()` → puppeteer PDF · P1 Goal & Vision / P2 Execution / P3 Tracking / P4 Idea & Resource · **Files:** `lib/engine-planner.ts` · `app/admin/templates/new/PlannerEngineForm.tsx` | ✅ **Done · Live** (Session 30) |
 | DC-7 | **Customer Preview — Engine Data Display** | /templates/[slug] แสดง engine_data preview · Checklist: S1+S2 card (header + purpose) · Planner: P1 card (goals/framework) · Condition: engine_type IS NOT NULL → engine preview · IS NULL → toc_sections เดิม | ✅ **Done · Live** (Session 30) |
 
-| DC-8 | **Engine Content Edit + Revision History** | **Scope confirmed (Session 37 · 2026-05-10)** — ❌ ห้ามแตะ: `lib/engine-checklist.ts` · `lib/engine-planner.ts` · `ChecklistEngineForm.tsx` · `PlannerEngineForm.tsx` · `generate-engine/route.ts` · `generate-planner/route.ts` · Cart/Checkout/Payment/Download flow (ทั้งหมด Frozen) · **DB Migration:** `CREATE TABLE template_revisions (id UUID PK DEFAULT gen_random_uuid(), template_id UUID FK→templates ON DELETE CASCADE, revision_number INT NOT NULL, engine_data JSONB NOT NULL, pdf_path TEXT NOT NULL, change_note TEXT, created_at TIMESTAMPTZ DEFAULT now())` · **Flow (A→D):** [A] `/admin/templates/[id]/edit` — metadata form เดิมไม่แตะ → ต่อท้ายด้านล่าง: ถ้า engine_type IS NOT NULL → แสดง Engine Section (engine_type label · revision count · ปุ่ม "แก้ไขเนื้อหา" + "ดูประวัติ") · [B] `/admin/templates/[id]/revise` — ดึง engine_data ปัจจุบัน → pre-fill ChecklistEngineForm หรือ PlannerEngineForm (reuse component อ่านอย่างเดียว ไม่แก้ component) → Generate PDF Preview (เรียก generate-engine/generate-planner API เดิม) → กรอก change_note → กด "✅ Approve Revision" · [C] POST `/api/admin/templates/approve-revision` → INSERT template_revisions (revision_number = MAX+1) → UPDATE templates SET engine_data=new · pdf_path=new · preview_path=new → docCode คงเดิม (ดึงจาก engine_data.s1.docCode/p1 ไม่ re-generate) → redirect edit · [D] `/admin/templates/[id]/revisions` — ตาราง: # / วันที่ / change_note / download PDF link (PDF เก่าทุก revision ยังอยู่บน disk) · **Files (new):** `migrations/20260510_template_revisions.sql` · `app/admin/templates/[id]/revise/page.tsx` · `app/admin/templates/[id]/revisions/page.tsx` · `app/api/admin/templates/approve-revision/route.ts` · **Files (update):** `app/admin/templates/[id]/edit/page.tsx` (ต่อท้าย engine section เท่านั้น — metadata form เดิมไม่ยุ่ง) · **Bug fix:** engine_data stored as double-encoded JSON string → `typeof check + JSON.parse` ใน revise/page.tsx · **Files (new, added):** `generate-revision/route.ts` · `ReviseClient.tsx` | ⏳ **Pending (Session 40)** — Checklist UAT ✅ ครบลูป · Planner technical flow ✅ (generate→approve→revision history ผ่าน) · **Planner UX ⏳ pending** — admin ยังงงกับฟอร์มกรอกข้อมูล (4 Pillar form ซับซ้อน) → ต้องปรับ UX form ก่อน UAT pass |
+| DC-8 | **Engine Content Edit + Revision History** | **Scope confirmed (Session 37 · 2026-05-10)** — ❌ ห้ามแตะ: `lib/engine-checklist.ts` · `lib/engine-planner.ts` · `ChecklistEngineForm.tsx` · `PlannerEngineForm.tsx` · `generate-engine/route.ts` · `generate-planner/route.ts` · Cart/Checkout/Payment/Download flow (ทั้งหมด Frozen) · **DB Migration:** `CREATE TABLE template_revisions (id UUID PK DEFAULT gen_random_uuid(), template_id UUID FK→templates ON DELETE CASCADE, revision_number INT NOT NULL, engine_data JSONB NOT NULL, pdf_path TEXT NOT NULL, change_note TEXT, created_at TIMESTAMPTZ DEFAULT now())` · **Flow (A→D):** [A] `/admin/templates/[id]/edit` — metadata form เดิมไม่แตะ → ต่อท้ายด้านล่าง: ถ้า engine_type IS NOT NULL → แสดง Engine Section (engine_type label · revision count · ปุ่ม "แก้ไขเนื้อหา" + "ดูประวัติ") · [B] `/admin/templates/[id]/revise` — ดึง engine_data ปัจจุบัน → pre-fill ChecklistEngineForm หรือ PlannerEngineForm (reuse component อ่านอย่างเดียว ไม่แก้ component) → Generate PDF Preview (เรียก generate-engine/generate-planner API เดิม) → กรอก change_note → กด "✅ Approve Revision" · [C] POST `/api/admin/templates/approve-revision` → INSERT template_revisions (revision_number = MAX+1) → UPDATE templates SET engine_data=new · pdf_path=new · preview_path=new → docCode คงเดิม (ดึงจาก engine_data.s1.docCode/p1 ไม่ re-generate) → redirect edit · [D] `/admin/templates/[id]/revisions` — ตาราง: # / วันที่ / change_note / download PDF link (PDF เก่าทุก revision ยังอยู่บน disk) · **Files (new):** `migrations/20260510_template_revisions.sql` · `app/admin/templates/[id]/revise/page.tsx` · `app/admin/templates/[id]/revisions/page.tsx` · `app/api/admin/templates/approve-revision/route.ts` · **Files (update):** `app/admin/templates/[id]/edit/page.tsx` (ต่อท้าย engine section เท่านั้น — metadata form เดิมไม่ยุ่ง) · **Bug fix:** engine_data stored as double-encoded JSON string → `typeof check + JSON.parse` ใน revise/page.tsx · **Files (new, added):** `generate-revision/route.ts` · `ReviseClient.tsx` | ✅ **Closed (Session 54 · 2026-05-12)** — Checklist UAT ✅ ครบลูป · Planner UX issue ✅ แก้โดยเปลี่ยนมาใช้ **Engine Planner Pipeline (DC-16)** แทน PlannerEngineForm เดิม — ไม่ต้องแก้ UX form เดิมอีกต่อไป |
 
 | DC-9 | **Catalog Preview Button + Screenshot (S1+S2)** | ปุ่ม "🔍 ดูพรีวิวก่อนซื้อ" ใน `/catalog/[slug]` · modal แสดง preview JPG · screenshot ใช้ system chromium `/usr/bin/chromium-browser` (แทน @sparticuz ที่ crash บน AlmaLinux) · clip เฉพาะ S1+S2 (evaluate `.sec` bottom) · modal footer: ถ้า paid → `AddToCartButton` (ไม่ navigate), ถ้า free → LINE OA link · **Files:** `components/catalog/CatalogTemplateList.tsx` (NEW) · `app/catalog/[slug]/page.tsx` · `app/api/admin/templates/generate-engine/route.ts` | ✅ **Done · Live** (Session 31) |
 
@@ -412,6 +412,80 @@ ALTER TABLE orders ADD COLUMN discount_baht NUMERIC(10,2) NOT NULL DEFAULT 0;
 | **INTEL-D** | **Smart Engine Expansion — Priority Score + Wider Coverage** | **Scope (Session 53 · 2026-05-12):** (A) ALPHA_CHARS 6→15 ตัว · (B) SEED_KEYWORDS 4→8 (เพิ่ม ตาราง/ใบแจ้ง/แผนงาน/บัญชี) merged by engineType · (C) Section ใหม่ "สร้างอะไรก่อน" — Priority Score = `level × (100−coverage%)` top-20 uncovered เรียง score · (D) Drill ALL Level 1 (covered + uncovered) · **Files:** `app/admin/template-analytics/page.tsx` | ⏳ **Pending UAT (Session 53) — ใช้งานจริง ว่าขายได้** |
 
 **ลำดับ:** INTEL-A ✅ → INTEL-B ✅ → INTEL-C ⏳ → INTEL-D ⏳ → UAT real usage
+
+---
+
+### Engine Form — EF Series (2026-05-12)
+
+> **Scope Gate confirmed: 2026-05-12**
+> **Concept:** Drag-and-Drop Form Builder → บันทึก Form Schema (JSONB) → Puppeteer Generate PDF **2 หน้า** (หน้า 1 = ตัวอย่างกรอกแล้ว · หน้า 2 = ฟอร์มเปล่า) → ลูกค้าซื้อแล้วได้ไฟล์ทันที · engine_type = `'form'` ในระบบ templates เดิม
+
+#### DB Schema
+
+ไม่สร้าง table ใหม่ — ใช้ `templates` เดิม:
+
+```
+engine_type = 'form'
+engine_data JSONB = {
+  schemaVersion: '1.0',
+  title: string,
+  logoUrl?: string,
+  fields: FormField[],
+  sampleData: { [fieldId]: value }
+}
+```
+
+**FormField MVP (15 types):** `text | multiline | date | date_range | checkbox | radio | dropdown | signature | logo | section_header | divider | table | page_break | running_number | email`
+
+#### Flow Admin
+
+```
+/admin/form-builder
+  → [Left Panel] เลือก field type ลาก drop ลงพื้นที่ฟอร์ม (dnd-kit)
+  → [Canvas] เรียงลำดับ / ลบ / config label + options
+  → กด "สร้างตัวอย่าง" → auto-gen sampleData ต่อ field type
+  → admin แก้ sampleData inline แต่ละ field
+  → กด "Preview PDF" → generate 2-page PDF → iframe
+  → กรอก title / slug / tier / price / category
+  → กด "Approve & Save" → INSERT templates (engine_type='form')
+  → Publish → โผล่ใน /templates
+```
+
+#### PDF Generator Logic
+
+```
+Page 1: render fields + sampleData values (ตัวอย่างกรอกแล้ว)
+Page 2: render fields แบบเปล่า (_____ แทน value)
+→ Puppeteer → 1 ไฟล์ 2 หน้า A4
+```
+
+#### Files
+
+| ไฟล์ | งาน |
+|---|---|
+| `lib/engine-form-types.ts` (NEW) | FormField, FormSchema, FormEngineData types |
+| `lib/engine-form.ts` (NEW) | `generateFormHtml()` → HTML 2 หน้า → puppeteer PDF |
+| `app/admin/form-builder/page.tsx` (NEW) | Server shell |
+| `app/admin/form-builder/FormBuilderClient.tsx` (NEW) | DnD canvas (dnd-kit) |
+| `app/admin/form-builder/FieldPalette.tsx` (NEW) | Left panel — field type list |
+| `app/admin/form-builder/SampleDataEditor.tsx` (NEW) | Edit sample_data inline |
+| `app/api/admin/form-builder/generate-preview/route.ts` (NEW) | POST → PDF → stream |
+| `app/api/admin/form-builder/save/route.ts` (NEW) | POST → INSERT templates |
+| `components/admin/AdminNav.tsx` (UPDATE) | เพิ่ม "📝 Form" sub-menu |
+| `app/templates/[slug]/page.tsx` (UPDATE) | เพิ่ม engine_type='form' preview card |
+
+#### Tasks
+
+| Task | ชื่อ | Spec | สถานะ |
+|---|---|---|---|
+| **EF-1** | **Types + PDF Generator** | `lib/engine-form-types.ts` — FormField (15 types), FormEngineData, SampleData types · `lib/engine-form.ts` — `generateFormHtml(data)` → HTML 2 section (filled + blank) → puppeteer PDF A4 · auto-gen logic: text→"นายสมชาย ใจดี" / date→"15 พ.ค. 2568" / email→"example@company.com" / checkbox→check first option / running_number→"FM-2568-001" ฯลฯ | ✅ **Done (Session 54)** |
+| **EF-2** | **Form Builder UI — DnD canvas** | `app/admin/form-builder/page.tsx` + `FormBuilderClient.tsx` — layout 2-col (FieldPalette ซ้าย + Canvas ขวา) · `FieldPalette.tsx` — 15 field types แบ่งกลุ่ม (Text / Date / Selection / Layout / Special) · Canvas: `@dnd-kit/core` + `@dnd-kit/sortable` — drag field จาก palette ลง canvas, sort ใน canvas, click field เพื่อ config label/placeholder/options · preview render แต่ละ field type inline | 🔲 Planned |
+| **EF-3** | **Auto-gen SampleData + Preview PDF** | `SampleDataEditor.tsx` — แสดง field list พร้อม input แก้ sampleData ต่อ field · กด "สร้างตัวอย่าง" → call `autoGenSampleData(fields)` → populate state · กด "Preview PDF" → `POST /api/admin/form-builder/generate-preview` → stream PDF → แสดงใน `<iframe>` | 🔲 Planned |
+| **EF-4** | **Approve & Save + AdminNav** | กรอก metadata (title/slug/tier/price/category) → กด "Approve & Save" → `POST /api/admin/form-builder/save` → INSERT templates (engine_type='form', engine_data=schema) → redirect `/admin/templates` · `AdminNav.tsx` — เพิ่ม "📝 Form" ใน TEMPLATE group → link `/admin/form-builder` | 🔲 Planned |
+| **EF-5** | **Customer Preview Card /templates/[slug]** | `app/templates/[slug]/page.tsx` — เพิ่ม branch `engine_type === 'form'` → แสดง orange card: ชื่อฟอร์ม + field count + "ซื้อ 1 ได้ PDF 2 หน้า" badge + รายการ field label top-5 | 🔲 Planned |
+
+**ลำดับ:** EF-1 → EF-2 → EF-3 → EF-4 → EF-5
+**FROZEN ระหว่าง EF:** `engine-checklist.ts` · `ChecklistEngineForm.tsx` · `engine-planner.ts` · `PlannerEngineForm.tsx` · Cart/Checkout/Payment/Download flow
 
 ---
 

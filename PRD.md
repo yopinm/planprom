@@ -29,8 +29,8 @@
 | **Doc Sync** | task เสร็จ → อัพเดต PRD.md + `core/planprom.md` เสมอ |
 | **Scope Gate** | ก่อนเริ่ม implement ทุก task → ต้องมี scope + flow ใน `core/planprom.md` ก่อน → commit docs → รอ owner confirm → ค่อย implement |
 | **Blockers** | IA approved ✅ (Affiliate ID 1082367) · AT Datafeed ⏳ · Shopee API ⏳ · Lazada pool=49 fixed |
-| **Next task** | **INTEL UAT** (ใช้งานจริง ว่าขายได้) → **DC-16** UAT confirm → **DC-8** Planner UX fix → **J13** Customer Request Form |
-| **Pending (code)** | **4 tasks** — J13 · J14 · J17 · J19 · UI-G(defer) |
+| **Next task** | **INTEL UAT** (ใช้งานจริง ว่าขายได้) → **DC-16** UAT confirm → **E9/E10** engine preview card → **J13** Customer Request Form |
+| **Pending (code)** | **4 tasks** — J13 · J14 · J17 · J19 · UI-G(defer) · **EF-1..5** (Engine Form — scope gate confirmed 2026-05-12) |
 | **Pending (UAT)** | **7 กลุ่ม** — INTEL-C/D(Market Intelligence ⏳ ใช้งานจริง) · DC-1 · DC-2 · DC-8(Planner⏳) · DC-16(⏳) · E9/E10 · J9(รอ live keys) · LINE ติดต่อเรา(รอทดสอบ) |
 | **Last session** | **Session 53 (2026-05-12)** — INTEL-C coverage card + INTEL-D expansion (8 keywords, 15 alpha, priority score, drill all L1) + edit link fix + UAT ⏳ pending real usage |
 | **ห้าม** | ไม่แตะ Later task ขณะที่ Now ยังค้างอยู่ · ไม่แตะ secrets โดยตรง · ไม่ทำให้ revenue channel หายไประหว่าง pivot |
@@ -161,7 +161,7 @@
 
 | # | Task | Priority | สถานะ |
 |---|---|---|---|
-| 1 | **DC-8** Engine Content Edit + Revision History | 🟡 UAT | ✅ Checklist ครบลูป · ⏳ Planner pending |
+| 1 | **DC-8** Engine Content Edit + Revision History | ✅ Closed | ✅ Checklist ครบลูป · Planner UX แก้โดยใช้ Engine Planner Pipeline (DC-16) แทน |
 | 2 | **DC-12** Publish Button ไม่ revalidate หลัง click | — | ✅ Closed (no repro) |
 | 3 | **J7** preview modal CTA → AddToCartButton | — | ✅ Done (Session 45) |
 | 4 | **J10** Wallet login prompt | — | ✅ Closed (wallet removed) |
