@@ -142,8 +142,8 @@ export default async function SalesReportPage({
     )
     SELECT
       CASE
-        WHEN t.engine_type IN ('planner', 'planner-pipeline') THEN 'planner'
-        WHEN t.engine_type IN ('checklist', 'form', 'report')  THEN t.engine_type
+        WHEN t.engine_type IN ('planner', 'planner-pipeline', 'pipeline') THEN 'planner'
+        WHEN t.engine_type IN ('checklist', 'form', 'report') THEN t.engine_type
         ELSE 'other'
       END AS type_group,
       COUNT(DISTINCT s.order_id)::text                                     AS orders,
