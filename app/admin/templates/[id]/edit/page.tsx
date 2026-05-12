@@ -210,9 +210,12 @@ export default async function EditTemplatePage({ params }: { params: Promise<{ i
               </div>
               <div className="flex gap-2 flex-wrap">
                 {t.engine_type === 'form' ? (
-                  <span className="rounded-xl border border-amber-200 bg-white px-4 py-2 text-sm font-bold text-amber-500 opacity-60 cursor-not-allowed">
-                    แก้ไขผ่าน Form Builder
-                  </span>
+                  <Link
+                    href={`/admin/form-builder/${t.id}`}
+                    className="rounded-xl bg-amber-600 px-4 py-2 text-sm font-black text-white hover:bg-amber-700 transition"
+                  >
+                    แก้ไขเนื้อหา →
+                  </Link>
                 ) : (
                   <>
                     <Link

@@ -24,8 +24,19 @@ import { SampleDataEditor } from './SampleDataEditor'
 
 type Category = { id: string; name: string; emoji: string }
 
+interface InitialData {
+  title: string
+  fields: FormField[]
+  sampleData: FormEngineData['sampleData']
+  slug: string
+  tier: string
+  categoryId: string
+}
+
 interface Props {
   categories: Category[]
+  templateId?: string
+  initialData?: InitialData
 }
 
 function makeId() {
@@ -66,12 +77,13 @@ const TIERS = [
 
 const STEPS = ['1. สร้างฟอร์ม', '2. ตัวอย่างข้อมูล', '3. บันทึก']
 
-export function FormBuilderClient({ categories }: Props) {
+export function FormBuilderClient({ categories, templateId, initialData }: Props) {
   const router = useRouter()
+  const isEditMode = !!templateId
   const [step, setStep] = useState<1 | 2 | 3>(1)
-  const [fields, setFields] = useState<FormField[]>([])
-  const [formTitle, setFormTitle] = useState('')
-  const [sampleData, setSampleData] = useState<FormEngineData['sampleData']>({})
+  const [fields, setFields] = useState<FormField[]>(initialData?.fields ?? [])
+  const [formTitle, setFormTitle] = useState(initialData?.title ?? '')
+  const [sampleData, setSampleData] = useState<FormEngineData['sampleData']>(initialData?.sampleData ?? {})
 
   // Step 2 preview state
   const [isPreviewing, setIsPreviewing] = useState(false)
@@ -79,9 +91,9 @@ export function FormBuilderClient({ categories }: Props) {
   const [previewError, setPreviewError] = useState<string | null>(null)
 
   // Step 3 metadata state
-  const [slug, setSlug] = useState('')
-  const [tier, setTier] = useState('standard')
-  const [categoryId, setCategoryId] = useState('')
+  const [slug, setSlug] = useState(initialData?.slug ?? '')
+  const [tier, setTier] = useState(initialData?.tier ?? 'standard')
+  const [categoryId, setCategoryId] = useState(initialData?.categoryId ?? '')
   const [isSaving, setIsSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
 
@@ -152,11 +164,17 @@ export function FormBuilderClient({ categories }: Props) {
     setIsSaving(true)
     setSaveError(null)
     try {
-      const res = await fetch('/api/admin/form-builder/save', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fields, sampleData, title: formTitle, slug, tier, categoryId: categoryId || undefined }),
-      })
+      const res = isEditMode
+        ? await fetch('/api/admin/form-builder/update', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ templateId, fields, sampleData, title: formTitle, tier, categoryId: categoryId || undefined }),
+          })
+        : await fetch('/api/admin/form-builder/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fields, sampleData, title: formTitle, slug, tier, categoryId: categoryId || undefined }),
+          })
       const data = await res.json()
       if (!res.ok) {
         setSaveError(data.error ?? 'Save failed')
@@ -177,8 +195,12 @@ export function FormBuilderClient({ categories }: Props) {
       {/* Top bar */}
       <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3 flex-wrap">
         <div className="shrink-0">
-          <h1 className="text-base font-bold text-gray-800">📋 Form Builder</h1>
-          <p className="text-xs text-gray-500">สร้างฟอร์มแล้วขายเป็น PDF 2 หน้า</p>
+          <h1 className="text-base font-bold text-gray-800">
+            {isEditMode ? '✏️ แก้ไขฟอร์ม' : '📋 Form Builder'}
+          </h1>
+          <p className="text-xs text-gray-500">
+            {isEditMode ? `กำลังแก้ไข: ${initialData?.slug}` : 'สร้างฟอร์มแล้วขายเป็น PDF 2 หน้า'}
+          </p>
         </div>
 
         {/* Step indicator */}
@@ -308,13 +330,22 @@ export function FormBuilderClient({ categories }: Props) {
 
             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Slug (URL)</label>
-              <input
-                className="w-full text-sm border border-gray-200 rounded px-3 py-2 focus:outline-none focus:border-amber-400 font-mono"
-                value={slug}
-                onChange={e => setSlug(e.target.value)}
-                placeholder="form-leave-request"
-              />
-              <p className="text-xs text-gray-400 mt-1">ใช้ตัวอักษรภาษาอังกฤษ ตัวเลข และ - เท่านั้น</p>
+              {isEditMode ? (
+                <>
+                  <p className="text-sm font-mono bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-500">{slug}</p>
+                  <p className="text-xs text-gray-400 mt-1">Slug ไม่สามารถเปลี่ยนได้หลังสร้างแล้ว</p>
+                </>
+              ) : (
+                <>
+                  <input
+                    className="w-full text-sm border border-gray-200 rounded px-3 py-2 focus:outline-none focus:border-amber-400 font-mono"
+                    value={slug}
+                    onChange={e => setSlug(e.target.value)}
+                    placeholder="form-leave-request"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">ใช้ตัวอักษรภาษาอังกฤษ ตัวเลข และ - เท่านั้น</p>
+                </>
+              )}
             </div>
 
             <div>
@@ -364,7 +395,10 @@ export function FormBuilderClient({ categories }: Props) {
               disabled={isSaving || !slug.trim()}
               className="w-full bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white font-bold py-2.5 rounded transition-colors flex items-center justify-center gap-2"
             >
-              {isSaving ? <><span className="animate-spin">⏳</span> กำลัง Generate PDF และบันทึก...</> : '✅ Approve & Save เป็น Draft'}
+              {isSaving
+                ? <><span className="animate-spin">⏳</span> กำลัง Generate PDF และบันทึก...</>
+                : isEditMode ? '💾 อัปเดต Template' : '✅ Approve & Save เป็น Draft'
+              }
             </button>
           </div>
         )}
