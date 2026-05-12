@@ -181,7 +181,7 @@ export function FormBuilderClient({ categories, templateId, initialData }: Props
         setSaveError(data.error ?? 'Save failed')
         return
       }
-      setSaveSuccess({ slug: data.slug, pdfPath: data.pdfPath })
+      setSaveSuccess({ slug: data.slug ?? '', pdfPath: data.pdfPath ?? '' })
     } catch (e) {
       setSaveError(String(e))
     } finally {
@@ -411,14 +411,16 @@ export function FormBuilderClient({ categories, templateId, initialData }: Props
                 </p>
                 <p className="text-xs text-green-700">Slug: <span className="font-mono">{saveSuccess.slug}</span></p>
                 <div className="flex flex-col gap-2">
-                  <a
-                    href={`/api/admin/form-builder/pdf/${saveSuccess.pdfPath.split('/').pop()}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-xs font-medium text-amber-700 underline"
-                  >
-                    📄 ดู PDF ที่สร้างล่าสุด
-                  </a>
+                  {saveSuccess.pdfPath && (
+                    <a
+                      href={`/api/admin/form-builder/pdf/${saveSuccess.pdfPath.split('/').pop()}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs font-medium text-amber-700 underline"
+                    >
+                      📄 ดู PDF ที่สร้างล่าสุด
+                    </a>
+                  )}
                   <button
                     onClick={() => router.push('/admin/templates')}
                     className="w-full border border-gray-300 text-sm font-medium text-gray-700 py-2 rounded hover:bg-gray-50 transition-colors"
