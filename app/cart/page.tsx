@@ -75,7 +75,7 @@ export default function CartPage() {
             )}
             <div className="flex-1 min-w-0">
               <p className="font-medium truncate">{item.title}</p>
-              <p className="text-xs text-gray-400 uppercase">{item.tier}</p>
+              <p className="text-xs text-gray-400">{item.tier === 'free' ? 'เทมเพลตฟรี' : 'เทมเพลตมาตรฐาน'}</p>
             </div>
             <div className="text-right flex-shrink-0">
               {item.tier === 'free' ? (
