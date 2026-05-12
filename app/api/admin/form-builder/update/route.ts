@@ -123,5 +123,5 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: `DB update failed: ${String(err)}` }, { status: 500 })
   }
 
-  return NextResponse.json({ success: true, templateId, slug: existing.slug })
+  return NextResponse.json({ success: true, templateId, slug: existing.slug, pdfPath })
 }
