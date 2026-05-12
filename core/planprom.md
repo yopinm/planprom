@@ -408,9 +408,10 @@ ALTER TABLE orders ADD COLUMN discount_baht NUMERIC(10,2) NOT NULL DEFAULT 0;
 |---|---|---|---|
 | **INTEL-A** | **Fix template-analytics — migrate to cart system** | แก้ทุก query ใน `/admin/template-analytics/page.tsx` จาก `template_orders` → `orders` + `order_items` · **KPI:** total_revenue=`SUM(total_baht) FILTER paid` · paid_orders · pending_orders · total_downloads=`SUM(oi.download_count)` · unique_buyers=`COUNT(DISTINCT customer_line_id)` · **Revenue by engine_type:** ใช้ CTE item_share (ROUND total_baht/item_count) GROUP BY engine_type → แสดง 4 types (checklist/planner/form/report) ครบเสมอ · **Daily 14d:** FROM orders · **Per-template:** LEFT JOIN order_items+orders GROUP BY template · **Files:** `app/admin/template-analytics/page.tsx` | ✅ **Done · UAT ผ่าน (Session 52)** |
 | **INTEL-B** | **Market Intelligence Dashboard — merge + upgrade** | **Route:** คงที่ `/admin/template-analytics` (เปลี่ยนเนื้อหา ไม่เพิ่ม route ใหม่) · **Section 1 — KPI** · **Section 2 — Revenue by Engine Type** · **Section 3 — Market Demand** (Google Suggest 4 keywords + Audience + Demand signal) · **Section 4 — Market Gap Matrix** (demand vs template ที่มี vs orders) · **Section 5 — Daily 14d** · **Section 6 — Bestseller + Zero-sale** · **Predict route:** `/admin/report/predict` redirect → `/admin/template-analytics` · ลบ Predict link ออกจาก AdminNav · **Files:** `app/admin/template-analytics/page.tsx` · `app/admin/report/predict/page.tsx` · `components/admin/AdminNav.tsx` | ✅ **Done · UAT ผ่าน (Session 52)** |
-| **INTEL-C** | **Engine Form + Engine Report — Thai Market Ideas** | **Defer** — รอดู Market Gap Matrix หลัง INTEL-B live → ใช้ข้อมูลจริง (demand สูง + ยังไม่มี template) เป็น brief ก่อนออกแบบ engine | 📊 Defer |
+| **INTEL-C** | **ครอบคลุมแค่ไหน — 3-Level Coverage Card** | **Scope (Session 53 · 2026-05-12):** Section ใหม่ "ครอบคลุมแค่ไหน" เหนือ Google Suggest · 3-level idea matching: 🔍 Base (top-10 Google Suggest) → 🔽 Drill-down (sub-suggestions จาก covered ideas) → 🔤 ก-ฮ Alphabet expansion · per-engine coverage % badge · ✅ matched template + orders หรือ 🟠 ยังไม่มี + "+ สร้าง" · **Files:** `app/admin/template-analytics/page.tsx` | ⏳ **Pending UAT (Session 53) — ใช้งานจริง ว่าขายได้** |
+| **INTEL-D** | **Smart Engine Expansion — Priority Score + Wider Coverage** | **Scope (Session 53 · 2026-05-12):** (A) ALPHA_CHARS 6→15 ตัว · (B) SEED_KEYWORDS 4→8 (เพิ่ม ตาราง/ใบแจ้ง/แผนงาน/บัญชี) merged by engineType · (C) Section ใหม่ "สร้างอะไรก่อน" — Priority Score = `level × (100−coverage%)` top-20 uncovered เรียง score · (D) Drill ALL Level 1 (covered + uncovered) · **Files:** `app/admin/template-analytics/page.tsx` | ⏳ **Pending UAT (Session 53) — ใช้งานจริง ว่าขายได้** |
 
-**ลำดับ:** INTEL-A → INTEL-B → UAT → INTEL-C (brief จาก data)
+**ลำดับ:** INTEL-A ✅ → INTEL-B ✅ → INTEL-C ⏳ → INTEL-D ⏳ → UAT real usage
 
 ---
 
@@ -450,6 +451,20 @@ ALTER TABLE orders ADD COLUMN discount_baht NUMERIC(10,2) NOT NULL DEFAULT 0;
 | 6 | **HOME-FEAT-1** week date range "11–17 พ.ค." ต่อท้าย "แนะนำสัปดาห์นี้" — คำนวณ client-side เปลี่ยนอัตโนมัติทุกจันทร์ | ✅ Live |
 | 7 | **LINE-CONTACT** ปุ่ม "ติดต่อเรา" สีเขียวใน navbar + `FloatingLineButton.tsx` มุมขวาล่าง · URL `line.me/R/ti/p/%40216xobzv` | ✅ Live · UAT pending (รอทดสอบ add LINE จริง) |
 | 8 | **UX** `"ประหยัดจาก tier ฿XX"` → `"🎉 ซื้อหลายชิ้น ประหยัดไปอีก ฿XX"` ใน checkout summary | ✅ Live |
+
+---
+
+## Session 53 Changes (2026-05-12) — Market Intelligence Engine v2 (INTEL-C/D)
+
+| # | Change | Status |
+|---|---|---|
+| 1 | **INTEL-C** Section "ครอบคลุมแค่ไหน" — 3-level coverage map (Base/Drill/ก-ฮ) · per-engine coverage % · ✅ matched / 🟠 ยังไม่มี + "+ สร้าง" · เหนือ Google Suggest section | ⏳ Pending UAT |
+| 2 | **fix(INTEL-C)** edit links ทุกจุดเปลี่ยนจาก `/admin/templates/{id}` → `/admin/templates/{id}/edit` (3 จุด: coverage card, bestseller, zero-sale) | ✅ Live |
+| 3 | **INTEL-D A** ALPHA_CHARS 6→15 ตัว (เพิ่ม ง จ ต ท บ ป ว ห อ) | ⏳ Pending UAT |
+| 4 | **INTEL-D B** SEED_KEYWORDS 4→8 (เพิ่ม ตาราง/ใบแจ้ง→form · แผนงาน→pipeline · บัญชี→report) merged by engineType | ⏳ Pending UAT |
+| 5 | **INTEL-D C** Section ใหม่ "สร้างอะไรก่อน" — Priority Score = `level × (100−coverage%)` · top-20 uncovered เรียง score · badge 🔴ด่วนสุด/🟠ควรทำ/🟡พิจารณา | ⏳ Pending UAT |
+| 6 | **INTEL-D D** Drill ALL Level 1 ideas (covered + uncovered แทนที่จะ drill เฉพาะ covered) · DRILL_LIMIT 3→6 per engine | ⏳ Pending UAT |
+| 7 | **Header badge** อัพเดตแสดง `8 keywords · 15 alpha · cache 1h` | ✅ Live |
 
 ---
 
