@@ -221,23 +221,39 @@ export default async function HomePage(): Promise<ReactElement> {
                 }
               </div>
 
-              {/* UI-E: 2 category cards */}
-              <div className="mt-4 grid grid-cols-2 gap-3 sm:gap-4">
+              {/* UI-E: 4 type cards */}
+              <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
                 <Link
                   href="/templates?type=checklist"
-                  className="group rounded-xl border border-emerald-200 bg-white px-5 py-4 shadow-sm transition hover:border-emerald-400 hover:shadow-md"
+                  className="group rounded-xl border border-emerald-200 bg-white px-4 py-4 shadow-sm transition hover:border-emerald-400 hover:shadow-md"
                 >
-                  <p className="text-2xl font-black text-neutral-900">✅ เช็คลิสต์</p>
-                  <p className="mt-1 text-sm text-neutral-500">ทำตามขั้น ไม่พลาด</p>
+                  <p className="text-xl font-black text-neutral-900">✅ เช็คลิสต์</p>
+                  <p className="mt-1 text-xs text-neutral-500">ทำตามขั้น ไม่พลาด</p>
                   <p className="mt-3 text-xs font-semibold text-emerald-600 group-hover:underline">ดูเช็คลิสต์ →</p>
                 </Link>
                 <Link
                   href="/templates?type=planner"
-                  className="group rounded-xl border border-purple-200 bg-white px-5 py-4 shadow-sm transition hover:border-purple-400 hover:shadow-md"
+                  className="group rounded-xl border border-purple-200 bg-white px-4 py-4 shadow-sm transition hover:border-purple-400 hover:shadow-md"
                 >
-                  <p className="text-2xl font-black text-neutral-900">📅 แพลนเนอร์</p>
-                  <p className="mt-1 text-sm text-neutral-500">วางแผน บรรลุเป้า</p>
+                  <p className="text-xl font-black text-neutral-900">📅 แพลนเนอร์</p>
+                  <p className="mt-1 text-xs text-neutral-500">วางแผน บรรลุเป้า</p>
                   <p className="mt-3 text-xs font-semibold text-purple-600 group-hover:underline">ดูแพลนเนอร์ →</p>
+                </Link>
+                <Link
+                  href="/templates?type=form"
+                  className="group rounded-xl border border-amber-200 bg-white px-4 py-4 shadow-sm transition hover:border-amber-400 hover:shadow-md"
+                >
+                  <p className="text-xl font-black text-neutral-900">📋 ฟอร์ม</p>
+                  <p className="mt-1 text-xs text-neutral-500">กรอกข้อมูล พิมพ์ได้เลย</p>
+                  <p className="mt-3 text-xs font-semibold text-amber-600 group-hover:underline">ดูฟอร์ม →</p>
+                </Link>
+                <Link
+                  href="/templates?type=report"
+                  className="group rounded-xl border border-blue-200 bg-white px-4 py-4 shadow-sm transition hover:border-blue-400 hover:shadow-md"
+                >
+                  <p className="text-xl font-black text-neutral-900">📊 รายงาน</p>
+                  <p className="mt-1 text-xs text-neutral-500">สรุปผล นำเสนอได้ทันที</p>
+                  <p className="mt-3 text-xs font-semibold text-blue-600 group-hover:underline">ดูรายงาน →</p>
                 </Link>
               </div>
             </div>
