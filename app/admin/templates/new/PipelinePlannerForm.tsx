@@ -61,6 +61,8 @@ export function PipelinePlannerForm({ onChange }: Props) {
   const [toMonth,   setToMonth]   = useState(12)
   // Stage 2 — monthly week count
   const [monthlyWeekCount, setMonthlyWeekCount] = useState(4)
+  // Stage 2 — summary (แสดงใน modal preview ลูกค้า)
+  const [s2Summary, setS2Summary] = useState('')
   // Stage 2 — project mode only
   const [phases,   setPhases]   = useState<PipelinePhase[]>([{ name: 'Phase 1', timeRange: '', tasks: [''], budget: '' }])
   const [bigRocks, setBigRocks] = useState<PipelineBigRock[]>([{ task: '', deadline: '' }])
@@ -103,12 +105,13 @@ export function PipelinePlannerForm({ onChange }: Props) {
 
   useEffect(() => {
     const s2: PlannerPipelineDataV4['s2_timeplan'] = horizon === 'yearly'
-      ? { year: horizonValue, fromMonth, toMonth }
+      ? { year: horizonValue, fromMonth, toMonth, summary: s2Summary || undefined }
       : horizon === 'monthly'
-        ? { month: horizonValue, monthlyWeekCount }
+        ? { month: horizonValue, monthlyWeekCount, summary: s2Summary || undefined }
         : {
             phases: phases.filter(p => p.name.trim()).map(p => ({ ...p, tasks: p.tasks.filter(t => t.trim()) })),
             bigRocks: bigRocks.filter(r => r.task.trim()),
+            summary: s2Summary || undefined,
           }
 
     const s3_content: PlannerPipelineDataV4['s3_content'] = horizon === 'yearly'
@@ -132,7 +135,7 @@ export function PipelinePlannerForm({ onChange }: Props) {
   }, [
     displayTitle, description, colorTheme, coverPage,
     goal, why, deadline, horizon, horizonValue,
-    fromMonth, toMonth, monthlyWeekCount,
+    fromMonth, toMonth, monthlyWeekCount, s2Summary,
     phases, bigRocks,
     monthlyPlans, weeklyPlans, flexItems,
     weeklyTasks, dailyRoutines,
@@ -291,6 +294,17 @@ export function PipelinePlannerForm({ onChange }: Props) {
           <div className="px-4 py-3 bg-emerald-50 text-emerald-800 flex items-center gap-2">
             <span className="text-xs font-black bg-emerald-200 rounded-full px-2 py-0.5">2</span>
             <span className="font-black text-sm">ภาพรวม</span>
+          </div>
+
+          {/* Summary — แสดงใน PDF หน้า 1 และ modal preview */}
+          <div className="px-4 pt-4 pb-2">
+            <label className={LABEL}>สรุปเทมเพลตนี้ให้ลูกค้า *</label>
+            <textarea value={s2Summary} onChange={e => setS2Summary(e.target.value)} rows={3}
+              placeholder="เช่น แพลนเนอร์ครบ 3 เดือน (ต.ค.–ธ.ค. 2026) สำหรับเจ้าของร้านที่ต้องการวางแผนเปิดสาขาใหม่ ประกอบด้วย: แผนรายเดือน 3 หน้า + แผนสัปดาห์ 1-3-6 + ตารางทบทวน"
+              className={INPUT} />
+            <p className="mt-1.5 text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5 leading-relaxed">
+              ⚡ ข้อความนี้จะแสดงใน PDF หน้า 1 และหน้าตัวอย่างสินค้าที่ลูกค้าเห็นก่อนตัดสินใจซื้อ — กรอกให้ครบและน่าสนใจที่สุด
+            </p>
           </div>
 
           {horizon === 'yearly' && (() => {

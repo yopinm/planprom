@@ -924,6 +924,7 @@ function PipelineReviseFormV4({ initial, onChange }: {
   const [fromMonth,        setFromMonth]        = useState(initial.s2_timeplan.fromMonth ?? 1)
   const [toMonth,          setToMonth]          = useState(initial.s2_timeplan.toMonth ?? 12)
   const [monthlyWeekCount, setMonthlyWeekCount] = useState(initial.s2_timeplan.monthlyWeekCount ?? 4)
+  const [s2Summary,        setS2Summary]        = useState(initial.s2_timeplan.summary ?? '')
   const [phases,   setPhases]   = useState<PipelinePhase[]>(initial.s2_timeplan.phases?.length ? initial.s2_timeplan.phases : [{ name: 'Phase 1', timeRange: '', tasks: [''], budget: '' }])
   const [bigRocks, setBigRocks] = useState<PipelineBigRock[]>(initial.s2_timeplan.bigRocks?.length ? initial.s2_timeplan.bigRocks : [{ task: '', deadline: '' }])
 
@@ -946,12 +947,13 @@ function PipelineReviseFormV4({ initial, onChange }: {
 
   useEffect(() => {
     const s2: PlannerPipelineDataV4['s2_timeplan'] = horizon === 'yearly'
-      ? { year: horizonValue, fromMonth, toMonth }
+      ? { year: horizonValue, fromMonth, toMonth, summary: s2Summary || undefined }
       : horizon === 'monthly'
-        ? { month: horizonValue, monthlyWeekCount }
+        ? { month: horizonValue, monthlyWeekCount, summary: s2Summary || undefined }
         : {
             phases: phases.filter(p => p.name.trim()).map(p => ({ ...p, tasks: p.tasks.filter(t => t.trim()) })),
             bigRocks: bigRocks.filter(r => r.task.trim()),
+            summary: s2Summary || undefined,
           }
 
     const s3_content: PlannerPipelineDataV4['s3_content'] | undefined =
@@ -978,7 +980,7 @@ function PipelineReviseFormV4({ initial, onChange }: {
   }, [
     displayTitle, description, colorTheme, coverPage,
     goal, why, deadline, horizon, horizonValue,
-    fromMonth, toMonth, monthlyWeekCount,
+    fromMonth, toMonth, monthlyWeekCount, s2Summary,
     phases, bigRocks,
     weekCount, weekLayout, startDay, dayCount, dayLayout,
     monthlyPlans, weeklyPlans, flexItems,
@@ -1067,6 +1069,17 @@ function PipelineReviseFormV4({ initial, onChange }: {
             </select>
           </div>
         )}
+      </Card>
+
+      <Card title="สรุปเทมเพลต (แสดงใน PDF + modal ลูกค้า)" color="bg-amber-50 text-amber-800">
+        <div>
+          <label className={LABEL}>สรุปเทมเพลตนี้ให้ลูกค้า</label>
+          <textarea value={s2Summary} onChange={e => setS2Summary(e.target.value)} rows={3} className={INPUT}
+            placeholder="เช่น แพลนเนอร์ครบ 3 เดือน สำหรับเจ้าของร้านที่ต้องการวางแผนเปิดสาขาใหม่..." />
+          <p className="mt-1.5 text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5">
+            ⚡ ข้อความนี้จะแสดงใน PDF หน้า 1 และหน้าตัวอย่างสินค้าที่ลูกค้าเห็นก่อนตัดสินใจซื้อ
+          </p>
+        </div>
       </Card>
 
       {horizon === 'project' && (

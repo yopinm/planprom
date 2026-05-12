@@ -215,6 +215,7 @@ export type PlannerPipelineDataV4 = {
     monthlyWeekCount?: number
     phases?: PipelinePhase[]
     bigRocks?: PipelineBigRock[]
+    summary?: string
   }
   s3_weekly?: {
     weekCount: number
