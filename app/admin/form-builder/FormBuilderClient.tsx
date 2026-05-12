@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   DndContext,
   closestCenter,
@@ -20,6 +21,12 @@ import { autoGenSampleData } from '@/lib/engine-form-types'
 import { FieldPalette } from './FieldPalette'
 import { FieldCard } from './FieldCard'
 import { SampleDataEditor } from './SampleDataEditor'
+
+type Category = { id: string; name: string; emoji: string }
+
+interface Props {
+  categories: Category[]
+}
 
 function makeId() {
   return Math.random().toString(36).slice(2, 9)
@@ -46,16 +53,37 @@ function makeField(type: FormFieldType): FormField {
   return { id: makeId(), type, label: '', width: 'full', ...defaults[type] }
 }
 
-const STEPS = ['สร้างฟอร์ม', 'ข้อมูลตัวอย่าง']
+function toSlug(title: string): string {
+  return `form-${Date.now()}`
+}
 
-export function FormBuilderClient() {
-  const [step, setStep] = useState<1 | 2>(1)
+const TIERS = [
+  { value: 'free',     label: 'ฟรี',        price: '฿0' },
+  { value: 'standard', label: 'Standard',   price: '฿20' },
+  { value: 'premium',  label: 'Premium',    price: '฿50' },
+  { value: 'ultra',    label: 'Ultra',      price: '฿100' },
+]
+
+const STEPS = ['1. สร้างฟอร์ม', '2. ตัวอย่างข้อมูล', '3. บันทึก']
+
+export function FormBuilderClient({ categories }: Props) {
+  const router = useRouter()
+  const [step, setStep] = useState<1 | 2 | 3>(1)
   const [fields, setFields] = useState<FormField[]>([])
   const [formTitle, setFormTitle] = useState('')
   const [sampleData, setSampleData] = useState<FormEngineData['sampleData']>({})
+
+  // Step 2 preview state
   const [isPreviewing, setIsPreviewing] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [previewError, setPreviewError] = useState<string | null>(null)
+
+  // Step 3 metadata state
+  const [slug, setSlug] = useState('')
+  const [tier, setTier] = useState('standard')
+  const [categoryId, setCategoryId] = useState('')
+  const [isSaving, setIsSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
 
@@ -89,6 +117,12 @@ export function FormBuilderClient() {
     setStep(2)
   }
 
+  function goToStep3() {
+    setSlug(toSlug(formTitle))
+    setSaveError(null)
+    setStep(3)
+  }
+
   async function handlePreview() {
     setIsPreviewing(true)
     setPreviewError(null)
@@ -114,13 +148,35 @@ export function FormBuilderClient() {
     }
   }
 
+  async function handleSave() {
+    setIsSaving(true)
+    setSaveError(null)
+    try {
+      const res = await fetch('/api/admin/form-builder/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fields, sampleData, title: formTitle, slug, tier, categoryId: categoryId || undefined }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setSaveError(data.error ?? 'Save failed')
+        return
+      }
+      router.push('/admin/templates')
+    } catch (e) {
+      setSaveError(String(e))
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   const isEmpty = fields.length === 0
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Top bar */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-4">
-        <div>
+      <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3 flex-wrap">
+        <div className="shrink-0">
           <h1 className="text-base font-bold text-gray-800">📋 Form Builder</h1>
           <p className="text-xs text-gray-500">สร้างฟอร์มแล้วขายเป็น PDF 2 หน้า</p>
         </div>
@@ -129,48 +185,66 @@ export function FormBuilderClient() {
         <div className="flex items-center gap-1">
           {STEPS.map((s, i) => (
             <div key={s} className="flex items-center gap-1">
-              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${step === i + 1 ? 'bg-amber-600 text-white' : 'bg-gray-100 text-gray-400'}`}>
-                {i + 1}. {s}
+              <span className={`text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap ${
+                step === i + 1 ? 'bg-amber-600 text-white' :
+                step > i + 1 ? 'bg-green-100 text-green-700' :
+                'bg-gray-100 text-gray-400'
+              }`}>
+                {step > i + 1 ? '✓ ' : ''}{s}
               </span>
               {i < STEPS.length - 1 && <span className="text-gray-300 text-xs">›</span>}
             </div>
           ))}
         </div>
 
-        <input
-          className="flex-1 max-w-xs border border-gray-200 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-amber-400"
-          placeholder="ชื่อฟอร์ม เช่น ใบลางาน"
-          value={formTitle}
-          onChange={e => setFormTitle(e.target.value)}
-          disabled={step === 2}
-        />
+        {step === 1 && (
+          <input
+            className="flex-1 min-w-[200px] max-w-xs border border-gray-200 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-amber-400"
+            placeholder="ชื่อฟอร์ม เช่น ใบลางาน"
+            value={formTitle}
+            onChange={e => setFormTitle(e.target.value)}
+          />
+        )}
 
         <div className="ml-auto flex items-center gap-2">
-          {step === 1 ? (
+          {step === 1 && (
             <>
               <span className="text-xs text-gray-400">{fields.length} fields</span>
               <button
                 onClick={goToStep2}
                 disabled={isEmpty || !formTitle.trim()}
-                className="bg-amber-600 hover:bg-amber-700 disabled:opacity-40 text-white text-sm px-4 py-1.5 rounded font-medium transition-colors"
+                className="bg-amber-600 hover:bg-amber-700 disabled:opacity-40 text-white text-sm px-4 py-1.5 rounded font-medium transition-colors whitespace-nowrap"
               >
                 ถัดไป: ตัวอย่างข้อมูล →
               </button>
             </>
-          ) : (
-            <button
-              onClick={() => setStep(1)}
-              className="text-sm text-gray-600 hover:text-gray-800 border border-gray-200 px-3 py-1.5 rounded transition-colors"
-            >
-              ← กลับแก้ฟอร์ม
+          )}
+          {step === 2 && (
+            <>
+              <button onClick={() => setStep(1)} className="text-sm text-gray-500 hover:text-gray-700 border border-gray-200 px-3 py-1.5 rounded">
+                ← กลับแก้ฟอร์ม
+              </button>
+              <button
+                onClick={goToStep3}
+                className="bg-amber-600 hover:bg-amber-700 text-white text-sm px-4 py-1.5 rounded font-medium transition-colors whitespace-nowrap"
+              >
+                ถัดไป: บันทึก →
+              </button>
+            </>
+          )}
+          {step === 3 && (
+            <button onClick={() => setStep(2)} className="text-sm text-gray-500 hover:text-gray-700 border border-gray-200 px-3 py-1.5 rounded">
+              ← กลับแก้ตัวอย่าง
             </button>
           )}
         </div>
       </div>
 
-      {/* Main layout */}
+      {/* Main content */}
       <div className="p-4">
-        {step === 1 ? (
+
+        {/* ── STEP 1: Build form ── */}
+        {step === 1 && (
           <div className="flex gap-4">
             <FieldPalette onAdd={addField} />
             <div className="flex-1">
@@ -206,7 +280,10 @@ export function FormBuilderClient() {
               )}
             </div>
           </div>
-        ) : (
+        )}
+
+        {/* ── STEP 2: Sample data + preview ── */}
+        {step === 2 && (
           <SampleDataEditor
             fields={fields}
             sampleData={sampleData}
@@ -217,6 +294,79 @@ export function FormBuilderClient() {
             previewUrl={previewUrl}
             previewError={previewError}
           />
+        )}
+
+        {/* ── STEP 3: Metadata + save ── */}
+        {step === 3 && (
+          <div className="max-w-lg mx-auto bg-white border border-gray-200 rounded-lg p-6 space-y-4">
+            <h2 className="text-base font-bold text-gray-800">บันทึกเป็น Template</h2>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase mb-1">ชื่อฟอร์ม</label>
+              <p className="text-sm font-medium text-gray-800 bg-gray-50 border border-gray-200 rounded px-3 py-2">{formTitle}</p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Slug (URL)</label>
+              <input
+                className="w-full text-sm border border-gray-200 rounded px-3 py-2 focus:outline-none focus:border-amber-400 font-mono"
+                value={slug}
+                onChange={e => setSlug(e.target.value)}
+                placeholder="form-leave-request"
+              />
+              <p className="text-xs text-gray-400 mt-1">ใช้ตัวอักษรภาษาอังกฤษ ตัวเลข และ - เท่านั้น</p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Tier / ราคา</label>
+              <div className="grid grid-cols-4 gap-2">
+                {TIERS.map(t => (
+                  <button
+                    key={t.value}
+                    onClick={() => setTier(t.value)}
+                    className={`text-sm border rounded px-2 py-2 text-center transition-colors ${
+                      tier === t.value ? 'border-amber-500 bg-amber-50 text-amber-800 font-bold' : 'border-gray-200 text-gray-600 hover:border-amber-300'
+                    }`}
+                  >
+                    <div className="font-medium">{t.label}</div>
+                    <div className="text-xs opacity-70">{t.price}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase mb-1">หมวดหมู่</label>
+              <select
+                className="w-full text-sm border border-gray-200 rounded px-3 py-2 focus:outline-none focus:border-amber-400"
+                value={categoryId}
+                onChange={e => setCategoryId(e.target.value)}
+              >
+                <option value="">— ไม่ระบุ —</option>
+                {categories.map(c => (
+                  <option key={c.id} value={c.id}>{c.emoji} {c.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="bg-amber-50 border border-amber-200 rounded p-3 text-xs text-amber-800 space-y-1">
+              <p className="font-bold">📋 สรุป</p>
+              <p>• {fields.length} fields · PDF 2 หน้า (ตัวอย่าง + เปล่า)</p>
+              <p>• บันทึกเป็น draft — กด Publish ใน /admin/templates เมื่อพร้อม</p>
+            </div>
+
+            {saveError && (
+              <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2">{saveError}</p>
+            )}
+
+            <button
+              onClick={handleSave}
+              disabled={isSaving || !slug.trim()}
+              className="w-full bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white font-bold py-2.5 rounded transition-colors flex items-center justify-center gap-2"
+            >
+              {isSaving ? <><span className="animate-spin">⏳</span> กำลัง Generate PDF และบันทึก...</> : '✅ Approve & Save เป็น Draft'}
+            </button>
+          </div>
         )}
       </div>
     </div>
