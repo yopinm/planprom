@@ -29,10 +29,10 @@
 | **Doc Sync** | task เสร็จ → อัพเดต PRD.md + `core/planprom.md` เสมอ |
 | **Scope Gate** | ก่อนเริ่ม implement ทุก task → ต้องมี scope + flow ใน `core/planprom.md` ก่อน → commit docs → รอ owner confirm → ค่อย implement |
 | **Blockers** | IA approved ✅ (Affiliate ID 1082367) · AT Datafeed ⏳ · Shopee API ⏳ · Lazada pool=49 fixed |
-| **Next task** | **PROMO-3** Admin Promo Code CRUD → **PROMO-1** API + Checkout → **PROMO-2** Banner |
-| **Pending (code)** | **6 tasks** — J13 · J14 · J17 · J19 · PROMO-1/2/3 · UI-G(defer) |
-| **Pending (UAT)** | **7 กลุ่ม** — DC-1 · DC-2 · DC-8(Planner⏳) · E9/E10 · J9(รอ live keys) · A–H(รอ owner test) · LINE ติดต่อเรา(รอทดสอบ) |
-| **Last session** | **Session 51 (2026-05-12)** — DC-16 UX polish (งานเล็ก single col + dynamic · black default · PDF single col) · Cart tier label ภาษาไทย · Admin Wizard hide Planner+Clone · rename → "Engine: Planner Pipeline" |
+| **Next task** | **DC-16** UAT confirm → **DC-8** Planner UX fix → **J13** Customer Request Form |
+| **Pending (code)** | **4 tasks** — J13 · J14 · J17 · J19 · UI-G(defer) |
+| **Pending (UAT)** | **6 กลุ่ม** — DC-1 · DC-2 · DC-8(Planner⏳) · DC-16(⏳) · E9/E10 · J9(รอ live keys) · LINE ติดต่อเรา(รอทดสอบ) |
+| **Last session** | **Session 52 (2026-05-12)** — Sales report merge (7-section) + order prefix PP- + PROMO is_secret/comeback_text/delete fix + UAT ✅ Sales ✅ Promo |
 | **ห้าม** | ไม่แตะ Later task ขณะที่ Now ยังค้างอยู่ · ไม่แตะ secrets โดยตรง · ไม่ทำให้ revenue channel หายไประหว่าง pivot |
 
 ---
@@ -178,9 +178,9 @@
 | 15 | **J14** ระบบสมาชิก + Auto Push LINE | 🟡 Medium | 🔲 Planned |
 | 16 | **J17** Subscription รายเดือน (Standard/Pro) | 🟡 Planned | 🔲 Planned |
 | 17 | **J19** Template Log Export `/admin/templates/log-export` | 🟡 Medium | 🔲 Planned |
-| 18 | **PROMO-1** Promo Code API + Checkout Integration | 🟡 Medium | 🔲 Planned |
-| 19 | **PROMO-2** PromoCodeBanner Homepage + Countdown | 🟡 Medium | 🔲 Planned |
-| 20 | **PROMO-3** Admin Promo Code CRUD | 🟡 Medium | 🔲 Planned |
+| 18 | **PROMO-1** Promo Code API + Checkout Integration | 🟡 Medium | ✅ Done · UAT ผ่าน |
+| 19 | **PROMO-2** PromoCodeBanner Homepage + Countdown | 🟡 Medium | ✅ Done · UAT ผ่าน |
+| 20 | **PROMO-3** Admin Promo Code CRUD + is_secret + comeback_text | 🟡 Medium | ✅ Done · UAT ผ่าน |
 | 21 | **HOME-FEAT-1** Featured Template Card | 🟡 | ✅ Done · Live (Session 47) |
 
 ### Pending UAT (6 กลุ่ม — code พร้อม รอ owner test)
@@ -212,6 +212,7 @@
 | **Session 37. Orders + Checkout refactor** | ✅ Live 2026-05-10 — LINE notify buyer · /checkout/[slug] redirect cart · admin/orders KPI fee/net · ลบ Template Orders tab |
 | **DC-8. Engine Revision System** | ✅ Live 2026-05-10 — Checklist UAT ✅ครบลูป · Planner UAT ⏳ pending |
 | **Session 40. Template Delete/Archive** | ✅ Live 2026-05-10 — ADMIN-TMPL-DEL-1: ซ่อน/ลบถาวร · ADMIN-TMPL-FORCE-1: Force Delete (pre-launch) · fix router.refresh() |
+| **Session 52. Sales Merge + Promo Extended** | ✅ Live 2026-05-12 — /admin/orders → /admin/report/sales 7-section · order prefix PP- · PROMO is_secret/comeback_text/delete FK fix · UAT ✅ Sales ✅ Promo |
 
 **✅ J18 UAT ผ่านครบ (2026-05-08 Session 28)** — payment flow ถูก lock ห้ามแก้ไขจนกว่าแอดมินจะสั่ง
 **🟡 Medium (J9):** ต้องสลับเป็น live Omise keys — test mode QR อ่านไม่ได้ด้วยแอปธนาคาร

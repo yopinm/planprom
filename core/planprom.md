@@ -260,8 +260,11 @@ CREATE TABLE promo_codes (
   starts_at     TIMESTAMPTZ NOT NULL,
   expires_at    TIMESTAMPTZ NOT NULL,
   is_active     BOOLEAN NOT NULL DEFAULT true,
+  is_secret     BOOLEAN NOT NULL DEFAULT false,        -- true = ไม่โผล่ banner หน้าโฮม แต่ใช้ checkout ได้
+  comeback_text TEXT,                                  -- ข้อความหลังหมดอายุ เช่น "6.6 Flash Sale" → โผล่ banner แบบ strikethrough
   created_at    TIMESTAMPTZ DEFAULT now()
 );
+-- Migration: migrations/20260512_promo_secret_comeback.sql
 ```
 
 **`promo_code_uses`**
@@ -300,7 +303,7 @@ ALTER TABLE orders ADD COLUMN discount_baht NUMERIC(10,2) NOT NULL DEFAULT 0;
 |---|---|---|---|
 | PROMO-1 | **Promo Code Validate API + Checkout Integration** | **Scope (2026-05-11 confirmed):** · **Migration:** `migrations/20260511_promo_codes.sql` — สร้าง `promo_codes` + `promo_code_uses` + ALTER `orders` เพิ่ม `promo_code_id` + `discount_baht` · **API:** `POST /api/promo/validate` — body: `{ code, cart_total }` → response: `{ valid, discount_type, discount_value, discount_applied, label }` หรือ `{ error }` · **Edge cases:** cap discount ≥ ฿0 · ถ้า total > 0 ต้อง ≥ ฿20 (Omise min) · ส่งแค่ paidTotal (ไม่รวม free items) · **Checkout integration:** `app/checkout/page.tsx` — เพิ่ม `PromoCodeInput` component (กรอกโค้ด → validate → แสดง -฿XX · ปุ่ม Remove) · เมื่อสร้าง order → INSERT promo_code_uses + UPDATE used_count + บันทึก discount_baht ใน orders · **Files:** `migrations/20260511_promo_codes.sql` · `app/api/promo/validate/route.ts` (NEW) · `components/checkout/PromoCodeInput.tsx` (NEW) · `app/checkout/page.tsx` · `app/api/checkout/route.ts` | ✅ **Done · Live (Session 46)** |
 | PROMO-2 | **PromoCodeBanner — Homepage card** | **Scope (2026-05-11 confirmed):** · วาง card ขวามือ Section 1 (แทน placeholder "โค้ดส่วนลด เร็วๆ นี้") · query `promo_codes` WHERE `is_active = true AND NOW() BETWEEN starts_at AND expires_at` ORDER BY expires_at ASC LIMIT 1 · **UI (card เล็ก):** 🏷️ label + code (copy button) + "หมดใน X วัน" · ถ้าไม่มีโค้ด active → แสดง placeholder เดิม · **Copy:** navigator.clipboard.writeText + toast "คัดลอกแล้ว!" · **Files:** `components/promo/PromoCodeBanner.tsx` (NEW — server fetch + client copy) · `app/page.tsx` (inject แทน placeholder) | ✅ **Done · Live (Session 46)** |
-| PROMO-3 | **Admin Promo Code CRUD** | **Scope (2026-05-11 confirmed):** · **Route:** `/admin/promo-codes` · **List:** code / label / discount / valid dates / used_count/max_uses / is_active badge · **Create form:** code (กรอกเองหรือกด Generate สุ่ม 8 ตัวอักษร + 🎲 dice button) · label · discount_type (percent/fixed) · discount_value · min_cart_value · max_uses (blank=ไม่จำกัด) · starts_at / expires_at · **Live min-cart hint:** calcMinCart() แสดง ⚠️ "ลูกค้าต้องมียอดในตะกร้า ≥ ฿XX" realtime · **Inline edit row:** แก้ label/discount/expires_at ได้เลยโดยไม่ออกหน้า · **Actions:** `createPromoCodeAction` · `updatePromoCodeAction` · `togglePromoCodeAction` (active on/off) · `deletePromoCodeAction` (ลบได้เฉพาะ used_count = 0) · **Files:** `app/admin/promo-codes/page.tsx` · `app/admin/promo-codes/actions.ts` · `app/admin/promo-codes/PromoCodeRow.tsx` · `app/admin/promo-codes/PromoCreateForm.tsx` | ✅ **Done · Live (Session 46)** |
+| PROMO-3 | **Admin Promo Code CRUD** | **Scope (2026-05-11 confirmed):** · **Route:** `/admin/promo-codes` · **List:** code / label / discount / valid dates / used_count/max_uses / is_active badge + is_secret badge · **Create form:** code (กรอกเองหรือกด Generate สุ่ม 8 ตัวอักษร + 🎲 dice button) · label · discount_type (percent/fixed) · discount_value · min_cart_value · max_uses (blank=ไม่จำกัด) · starts_at / expires_at · **is_secret checkbox** (ซ่อนจาก homepage banner) · **comeback_text** (ข้อความหลังหมดอายุ) · **Live min-cart hint:** calcMinCart() แสดง ⚠️ "ลูกค้าต้องมียอดในตะกร้า ≥ ฿XX" realtime · **Inline edit row:** แก้ label/discount/expires_at/is_secret/comeback_text ได้เลยโดยไม่ออกหน้า · **Actions:** `createPromoCodeAction` · `updatePromoCodeAction` · `togglePromoCodeAction` (active on/off) · `deletePromoCodeAction` (NULL out orders FK ก่อน DELETE) · **Files:** `app/admin/promo-codes/page.tsx` · `app/admin/promo-codes/actions.ts` · `app/admin/promo-codes/PromoCodeRow.tsx` · `app/admin/promo-codes/PromoCreateForm.tsx` · `migrations/20260512_promo_secret_comeback.sql` | ✅ **Done · UAT ผ่าน (Session 52)** |
 | PROMO-4 | **Auto-Promo Engine Cards** | **Scope (2026-05-11 confirmed):** · **Position:** แถว horizontal 4 cards ใต้ title "Promo Codes" เหนือฟอร์มสร้างโค้ด · **4 Engines:** (1) Slow Week — avg=0 → always signal; avg>0 → signal ถ้า rev < 60% avg (2) Tier Uplift — % orders single-item ≥ 50% และ total ≥ 1 order (3) Cart Recovery — abandoned carts ≥ 1 อัน (4) VPS Break-Even — rev 7 วัน < ฿210 (฿900/เดือน) · **Card UI:** engine name + คำอธิบาย + badge "แนะนำสัปดาห์นี้" + ปุ่ม Generate → pre-fill PromoCreateForm + banner ยืนยัน · **API:** `GET /api/admin/promo-suggest` · **Files:** `app/api/admin/promo-suggest/route.ts` · `app/admin/promo-codes/PromoEngineCards.tsx` · `app/admin/promo-codes/PromoCodeSection.tsx` · `app/admin/promo-codes/PromoCreateForm.tsx` (prefill prop) | ✅ **Done · Live (Session 46)** |
 
 **ลำดับ implement:** PROMO-3 ✅ → PROMO-1 ✅ → PROMO-2 ✅ → PROMO-4 ✅
@@ -372,7 +375,7 @@ ALTER TABLE orders ADD COLUMN discount_baht NUMERIC(10,2) NOT NULL DEFAULT 0;
 
 | Task | Route | ข้อมูลหลัก | สถานะ |
 |---|---|---|---|
-| R-1 | `/admin/report/sales` | revenue + order count รายวัน · trend · avg order value · date filter | ✅ Live (Session 34) |
+| R-1 | `/admin/report/sales` | **7-section dashboard (Session 52):** S1 Header/Date filter · S2 KPI 6 cards (revenue/orders/avg/discount/fee/pending) · S3 Revenue by Type (checklist/planner/form/report 4 rows fixed) · S4 Promo Performance · S5 Daily breakdown · S6 Per-template · S7 Order list (Revoke/Cancel) · `/admin/orders` redirect → ที่นี่ | ✅ Live · UAT ผ่าน (Session 52) |
 | R-2 | `/admin/report/payments` | PromptPay verify log · Omise webhook log · status per order · date filter | ✅ Live (Session 34) |
 | R-3 | `/admin/report/downloads` | download events per template · unique/repeat · date filter | ✅ Live (Session 34) |
 | R-4 | `/admin/report/export` | export orders CSV · filter by date + status · download button | ✅ Live (Session 34) |
@@ -424,6 +427,24 @@ ALTER TABLE orders ADD COLUMN discount_baht NUMERIC(10,2) NOT NULL DEFAULT 0;
 | 6 | **HOME-FEAT-1** week date range "11–17 พ.ค." ต่อท้าย "แนะนำสัปดาห์นี้" — คำนวณ client-side เปลี่ยนอัตโนมัติทุกจันทร์ | ✅ Live |
 | 7 | **LINE-CONTACT** ปุ่ม "ติดต่อเรา" สีเขียวใน navbar + `FloatingLineButton.tsx` มุมขวาล่าง · URL `line.me/R/ti/p/%40216xobzv` | ✅ Live · UAT pending (รอทดสอบ add LINE จริง) |
 | 8 | **UX** `"ประหยัดจาก tier ฿XX"` → `"🎉 ซื้อหลายชิ้น ประหยัดไปอีก ฿XX"` ใน checkout summary | ✅ Live |
+
+---
+
+## Session 52 Changes (2026-05-12) — Sales Report Merge + Promo Extended Features
+
+| # | Change | Status |
+|---|---|---|
+| 1 | **AdminNav** ลบ "Order Export" + ลบ "Orders" จาก TEMPLATE group | ✅ Live |
+| 2 | **Merge /admin/orders → /admin/report/sales** — 7-section dashboard: S2 KPI · S3 Revenue by Type (4 rows) · S4 Promo Performance · S5 Daily · S6 Per-template · S7 Order list · `/admin/orders` redirect | ✅ Live · UAT ผ่าน |
+| 3 | **DB** ลบ 6 test orders ที่ไม่มี order_items ออกจาก production DB | ✅ Done |
+| 4 | **Order prefix** `CK-` → `PP-` ใน `app/api/checkout/route.ts` + `app/api/orders/route.ts` · ออเดอร์ CK- เก่ายังอยู่ใน DB ปกติ | ✅ Live |
+| 5 | **PROMO-B** `migrations/20260512_promo_secret_comeback.sql` — `is_secret BOOLEAN DEFAULT false` + `comeback_text TEXT` · is_secret = โค้ดลับไม่โผล่ banner แต่ใช้ checkout ได้ | ✅ Live |
+| 6 | **PROMO-C** PromoCodeRow — เพิ่มปุ่มลบ + 🔒 Secret / 🌐 Public badge + inline edit is_secret/comeback_text | ✅ Live |
+| 7 | **PROMO-D** `PromoCodeBanner.tsx` — expired + comeback_text → "🔜 กลับมาใหม่ [text]" แทน copy button · `fetchActivePromo` รองรับโค้ดหมดอายุที่มี comeback_text | ✅ Live |
+| 8 | **fix(promo-delete)** `deletePromoCodeAction` — NULL `orders.promo_code_id` + reset `discount_baht = 0` ก่อน DELETE (FK constraint fix) | ✅ Live |
+| 9 | **fix(sales-S4)** promoStats `ORDER BY` — แก้ alias cast bug → ใช้ full expression `COALESCE(SUM(...), 0) DESC` | ✅ Live |
+| 10 | **fix(sales-S3)** Revenue by Type — เพิ่ม `'pipeline'` ใน CASE WHEN (DB ใช้ `'pipeline'` ไม่ใช่ `'planner-pipeline'`) | ✅ Live |
+| 11 | **UAT** Sales report ✅ ผ่าน · Promo ✅ ผ่าน (DB cross-check: 14 paid orders · ฿368 revenue · ฿30 discount) | ✅ UAT ผ่าน |
 
 ---
 
