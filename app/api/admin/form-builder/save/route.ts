@@ -112,7 +112,7 @@ export async function POST(req: NextRequest) {
     await page2.setContent(html, { waitUntil: 'networkidle0' })
     await page2.evaluate(() => document.fonts.ready)
     const previewFilename = `${safeSlug}-form-preview-${ts}.jpg`
-    const shot = await page2.screenshot({ type: 'jpeg', quality: 85 })
+    const shot = await page2.screenshot({ type: 'jpeg', quality: 85, clip: { x: 0, y: 0, width: 794, height: 560 } })
     await writeFile(path.join(uploadBase, previewFilename), shot as Buffer)
     previewPath = `/api/preview/${previewFilename}`
   } catch (screenshotErr) {

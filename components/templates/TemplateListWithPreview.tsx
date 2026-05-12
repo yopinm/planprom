@@ -102,6 +102,13 @@ export function TemplateListWithPreview({ templates }: { templates: PreviewTempl
               )}
             </div>
 
+            {/* Form info banner */}
+            {preview.document_type === 'form' && (
+              <div className="shrink-0 bg-amber-50 border-t border-amber-100 px-5 py-2.5 text-xs text-amber-800">
+                📄 รับทั้ง 2 ไฟล์: <span className="font-bold">ฟอร์มตัวอย่าง</span> (กรอกข้อมูลแล้ว) + <span className="font-bold">ฟอร์มเปล่า</span> (พร้อมกรอกเอง)
+              </div>
+            )}
+
             {/* Footer */}
             <div className="flex shrink-0 items-center justify-between border-t border-neutral-100 bg-neutral-50 px-5 py-4">
               <button
