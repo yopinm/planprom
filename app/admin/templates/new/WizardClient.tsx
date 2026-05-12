@@ -409,7 +409,7 @@ export function WizardClient({ categories, cloneSources }: Props) {
               { m: 'engine-checklist' as Mode, icon: '✅', title: 'Engine: Checklist', desc: 'กรอกข้อมูล 5 Section → ระบบสร้าง PDF เช็คลิสต์มาตรฐานอัตโนมัติ' },
               // DEPRECATED 2026-05-12 — ลบได้หลัง 2026-05-19
               // { m: 'engine-planner' as Mode, icon: '📅', title: 'Engine: Planner', desc: 'กรอกข้อมูล 4 Pillar → ระบบสร้าง PDF Planner ครบถ้วนอัตโนมัติ' },
-              { m: 'engine-pipeline'  as Mode, icon: '🔄', title: 'Engine: Pipeline',  desc: 'กรอก 5 แกน (เป้า → ภาพรวม → สัปดาห์ → วัน → รีวิว) → ระบบสร้าง PDF Planner อัตโนมัติ' },
+              { m: 'engine-pipeline'  as Mode, icon: '🔄', title: 'Engine: Planner Pipeline',  desc: 'กรอก 5 แกน (เป้า → ภาพรวม → สัปดาห์ → วัน → รีวิว) → ระบบสร้าง PDF Planner อัตโนมัติ' },
               { m: 'docx'             as Mode, icon: '📝', title: 'สร้างจาก .docx',    desc: 'อัพโหลด .docx → ระบบ generate PDF มาตรฐาน A4 อัตโนมัติ' },
               { m: 'upload'           as Mode, icon: '📤', title: 'Upload PDF',         desc: 'มี PDF อยู่แล้ว — อัพโหลดเข้าระบบโดยตรง' },
               // DEPRECATED 2026-05-12 — ลบได้หลัง 2026-05-19
