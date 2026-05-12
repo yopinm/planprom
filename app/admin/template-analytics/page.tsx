@@ -370,7 +370,7 @@ export default async function AdminMarketIntelPage() {
                                 {row.match.orders > 0 && (
                                   <span className="text-[9px] text-neutral-400">{row.match.orders} orders</span>
                                 )}
-                                <Link href={`/admin/templates/${row.match.id}`} className="text-[9px] text-neutral-400 hover:text-black">แก้ไข →</Link>
+                                <Link href={`/admin/templates/${row.match.id}/edit`} className="text-[9px] text-neutral-400 hover:text-black">แก้ไข →</Link>
                               </div>
                             ) : (
                               <div className="shrink-0 flex items-center gap-2">
@@ -545,7 +545,7 @@ export default async function AdminMarketIntelPage() {
                       <p className="font-black text-sm text-indigo-600">{t.orders} orders</p>
                       <p className="text-[10px] text-neutral-400">฿{Number(t.revenue).toLocaleString()} · {t.downloads} DL</p>
                     </div>
-                    <Link href={`/admin/templates/${t.id}`} className="shrink-0 rounded-xl border border-neutral-200 px-3 py-1.5 text-[10px] font-black text-neutral-500 hover:border-indigo-400 hover:text-indigo-600 transition">แก้ไข</Link>
+                    <Link href={`/admin/templates/${t.id}/edit`} className="shrink-0 rounded-xl border border-neutral-200 px-3 py-1.5 text-[10px] font-black text-neutral-500 hover:border-indigo-400 hover:text-indigo-600 transition">แก้ไข</Link>
                   </div>
                 ))}
               </div>
@@ -567,7 +567,7 @@ export default async function AdminMarketIntelPage() {
                         <span className="text-[10px] text-neutral-400">฿{t.price_baht} · {ENGINE_LABEL[t.engine_type] ?? t.engine_type}</span>
                       </div>
                     </div>
-                    <Link href={`/admin/templates/${t.id}`} className="shrink-0 rounded-xl border border-red-200 bg-red-50 px-3 py-1.5 text-[10px] font-black text-red-600 hover:bg-red-100 transition">ปรับปรุง →</Link>
+                    <Link href={`/admin/templates/${t.id}/edit`} className="shrink-0 rounded-xl border border-red-200 bg-red-50 px-3 py-1.5 text-[10px] font-black text-red-600 hover:bg-red-100 transition">ปรับปรุง →</Link>
                   </div>
                 ))}
               </div>
