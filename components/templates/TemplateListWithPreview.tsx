@@ -1,6 +1,5 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
-import Link from 'next/link'
 import AddToCartButton from '@/components/cart/AddToCartButton'
 import FreeDownloadButton from '@/components/templates/FreeDownloadButton'
 import { TocPreview, type TocItem } from '@/components/templates/TocPreview'
@@ -85,24 +84,20 @@ export function TemplateListWithPreview({ templates }: { templates: PreviewTempl
             {/* Preview — scrollable */}
             <div className="flex-1 overflow-y-auto bg-neutral-100">
               {preview.preview_path ? (
-                preview.preview_path.endsWith('.pdf') ? (
-                  <iframe
-                    src={preview.preview_path}
-                    className="w-full border-0"
-                    style={{ height: '60vh' }}
-                    title={`ตัวอย่าง ${preview.title}`}
-                  />
-                ) : (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={preview.preview_path}
-                    alt={`ตัวอย่าง ${preview.title}`}
-                    className="w-full h-auto"
-                  />
-                )
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={preview.preview_path}
+                  alt={`ตัวอย่าง ${preview.title}`}
+                  className="w-full h-auto"
+                />
               ) : (
-                <div className="flex h-48 items-center justify-center text-sm text-neutral-400">
-                  ไม่มีภาพตัวอย่าง
+                <div className="flex flex-col items-center justify-center gap-3 py-12 text-center px-6">
+                  <p className="text-5xl">{TYPE_LABEL[preview.document_type]?.split(' ')[0] ?? '📄'}</p>
+                  <p className="font-bold text-neutral-800">{preview.title}</p>
+                  <p className="text-sm text-neutral-500">
+                    {TYPE_LABEL[preview.document_type] ?? 'เทมเพลต PDF'}
+                    {' · PDF พร้อมดาวน์โหลดทันทีหลังชำระเงิน'}
+                  </p>
                 </div>
               )}
             </div>
@@ -139,12 +134,12 @@ export function TemplateListWithPreview({ templates }: { templates: PreviewTempl
             {/* Main row */}
             <div className="flex items-center gap-3">
               <span className="shrink-0 text-base text-neutral-300">📄</span>
-              <Link
-                href={`/templates/${t.slug}`}
-                className="min-w-0 flex-1 truncate text-sm font-medium text-neutral-700 group-hover:text-emerald-800"
+              <button
+                onClick={() => setPreview(t)}
+                className="min-w-0 flex-1 truncate text-left text-sm font-medium text-neutral-700 hover:text-emerald-800 hover:underline"
               >
                 {t.title}
-              </Link>
+              </button>
               {t.sale_count > 0 && (
                 <span className="shrink-0 text-[10px] text-neutral-400">{t.sale_count} ขาย</span>
               )}
@@ -170,21 +165,17 @@ export function TemplateListWithPreview({ templates }: { templates: PreviewTempl
             </div>
 
             {/* Second row: preview link + TOC */}
-            {(t.preview_path || (t.toc_sections && t.toc_sections.length > 0)) && (
-              <div className="mt-1 flex items-center gap-3 pl-7">
-                {t.preview_path && (
-                  <button
-                    onClick={() => setPreview(t)}
-                    className="text-[11px] font-medium text-emerald-600 hover:text-emerald-800 hover:underline"
-                  >
-                    🔍 ดูพรีวิวเอกสารก่อนซื้อ
-                  </button>
-                )}
-                {t.toc_sections && t.toc_sections.length > 0 && (
-                  <TocPreview sections={t.toc_sections} />
-                )}
-              </div>
-            )}
+            <div className="mt-1 flex items-center gap-3 pl-7">
+              <button
+                onClick={() => setPreview(t)}
+                className="text-[11px] font-medium text-emerald-600 hover:text-emerald-800 hover:underline"
+              >
+                🔍 ดูพรีวิวเอกสารก่อนซื้อ
+              </button>
+              {t.toc_sections && t.toc_sections.length > 0 && (
+                <TocPreview sections={t.toc_sections} />
+              )}
+            </div>
           </div>
         ))}
       </div>
