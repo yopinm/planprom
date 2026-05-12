@@ -80,13 +80,17 @@ export function PipelinePlannerForm({ onChange }: Props) {
 
   const MONTH_ABBR = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.']
 
-  // Sync monthlyPlans length to month range (yearly)
+  // Sync monthlyPlans to month range (yearly) — keyed by label to preserve typed content
   useEffect(() => {
     if (horizon !== 'yearly') return
     const count = Math.max(1, toMonth - fromMonth + 1)
-    setMonthlyPlans(prev => Array.from({ length: count }, (_, i) =>
-      prev[i] ?? { monthLabel: MONTH_ABBR[fromMonth - 1 + i] ?? `เดือน ${i + 1}`, goal: '', mainTasks: ['', '', ''], keyDates: '' }
-    ))
+    setMonthlyPlans(prev => {
+      const byLabel = new Map(prev.map(mp => [mp.monthLabel, mp]))
+      return Array.from({ length: count }, (_, i) => {
+        const label = MONTH_ABBR[fromMonth - 1 + i] ?? `เดือน ${i + 1}`
+        return byLabel.get(label) ?? { monthLabel: label, goal: '', mainTasks: ['', '', ''], keyDates: '' }
+      })
+    })
   }, [horizon, fromMonth, toMonth]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Sync weeklyPlans length to monthlyWeekCount (monthly)
