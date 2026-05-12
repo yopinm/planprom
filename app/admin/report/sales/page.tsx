@@ -47,10 +47,12 @@ const FRAUD_COLOR: Record<string, string> = {
 }
 
 const TYPE_META: Record<string, { label: string; icon: string; color: string }> = {
-  static:   { label: 'Template (ไฟล์/PDF)', icon: '📄', color: 'text-neutral-700' },
-  checklist:{ label: 'Checklist Engine',    icon: '✅', color: 'text-emerald-700' },
-  planner:  { label: 'Planner Engine',      icon: '📋', color: 'text-indigo-700' },
+  checklist: { label: 'Checklist', icon: '✅', color: 'text-emerald-700' },
+  planner:   { label: 'Planner',   icon: '📋', color: 'text-indigo-700' },
+  form:      { label: 'Form',      icon: '📝', color: 'text-violet-700' },
+  report:    { label: 'Report',    icon: '📊', color: 'text-sky-700' },
 }
+const ALL_TYPE_KEYS = ['checklist', 'planner', 'form', 'report'] as const
 
 type CartOrder = {
   id: string; order_uid: string; total_baht: number; status: string; fraud_flag: string
@@ -130,21 +132,26 @@ export default async function SalesReportPage({
   `.catch(() => [] as CartOrder[])
 
   const byEngineType = await db<TypeRow[]>`
+    WITH item_share AS (
+      SELECT
+        oi.id, oi.template_id, oi.order_id, o.status, o.created_at,
+        ROUND(o.total_baht::numeric / COUNT(*) OVER (PARTITION BY o.id)) AS share
+      FROM order_items oi
+      JOIN orders o ON o.id = oi.order_id
+      WHERE o.created_at >= ${start} AND o.created_at <= ${end}
+    )
     SELECT
       CASE
-        WHEN t.engine_type IS NULL THEN 'static'
         WHEN t.engine_type IN ('planner', 'planner-pipeline') THEN 'planner'
-        ELSE t.engine_type
+        WHEN t.engine_type IN ('checklist', 'form', 'report')  THEN t.engine_type
+        ELSE 'other'
       END AS type_group,
-      COUNT(DISTINCT oi.order_id)::text                                            AS orders,
-      COUNT(DISTINCT oi.order_id) FILTER (WHERE o.status = 'paid')::text          AS paid,
-      COALESCE(SUM(t.price_baht) FILTER (WHERE o.status = 'paid'), 0)::text       AS revenue
-    FROM order_items oi
-    JOIN orders    o ON o.id = oi.order_id
-    JOIN templates t ON t.id = oi.template_id
-    WHERE o.created_at >= ${start} AND o.created_at <= ${end}
+      COUNT(DISTINCT s.order_id)::text                                     AS orders,
+      COUNT(DISTINCT s.order_id) FILTER (WHERE s.status = 'paid')::text   AS paid,
+      COALESCE(SUM(s.share) FILTER (WHERE s.status = 'paid'), 0)::text    AS revenue
+    FROM item_share s
+    JOIN templates t ON t.id = s.template_id
     GROUP BY type_group
-    ORDER BY revenue::numeric DESC
   `.catch(() => [] as TypeRow[])
 
   // ── Derived values ─────────────────────────────────────────────────────────
@@ -156,6 +163,7 @@ export default async function SalesReportPage({
   const pendingOrders = Number(kpi?.pending_orders ?? 0)
   const fee           = Math.round(totalRevenue * 0.015 < 5 ? 0 : totalRevenue * 0.015)
   const netRevenue    = totalRevenue - fee
+  const typeMap       = new Map(byEngineType.map(r => [r.type_group, r]))
 
   const STATUS_TABS = [
     { label: 'ทั้งหมด', key: '' },
@@ -237,7 +245,42 @@ export default async function SalesReportPage({
           </div>
         </section>
 
-        {/* ── S3: Daily breakdown ── */}
+        {/* ── S3: Revenue by Type ── */}
+        <section>
+          <h2 className="mb-3 text-[11px] font-black uppercase tracking-wider text-neutral-400">Revenue by Type</h2>
+          <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-neutral-100 bg-neutral-50 text-[10px] font-black uppercase tracking-wider text-neutral-400">
+                  <th className="px-5 py-3 text-left">ประเภท</th>
+                  <th className="px-5 py-3 text-right">Orders</th>
+                  <th className="px-5 py-3 text-right">จ่ายแล้ว</th>
+                  <th className="px-5 py-3 text-right">Revenue</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ALL_TYPE_KEYS.map((t, i) => {
+                  const row  = typeMap.get(t)
+                  const meta = TYPE_META[t]
+                  return (
+                    <tr key={t} className={`border-b border-neutral-50 ${i % 2 === 1 ? 'bg-neutral-50/50' : ''}`}>
+                      <td className="px-5 py-3">
+                        <span className={`font-bold ${meta.color}`}>{meta.icon} {meta.label}</span>
+                      </td>
+                      <td className="px-5 py-3 text-right text-neutral-500">{row?.orders ?? '0'}</td>
+                      <td className="px-5 py-3 text-right font-bold text-green-600">{row?.paid ?? '0'}</td>
+                      <td className={`px-5 py-3 text-right font-black ${row ? 'text-indigo-600' : 'text-neutral-300'}`}>
+                        ฿{Number(row?.revenue ?? 0).toLocaleString('th-TH')}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        {/* ── S4: Daily breakdown ── */}
         <section>
           <h2 className="mb-3 text-[11px] font-black uppercase tracking-wider text-neutral-400">รายวัน</h2>
           {daily.length === 0 ? (
@@ -278,7 +321,7 @@ export default async function SalesReportPage({
           )}
         </section>
 
-        {/* ── S4: Per-template breakdown ── */}
+        {/* ── S5: Per-template breakdown ── */}
         {byTemplate.length > 0 && (
           <section>
             <h2 className="mb-3 text-[11px] font-black uppercase tracking-wider text-neutral-400">แยก Template</h2>
@@ -307,7 +350,7 @@ export default async function SalesReportPage({
           </section>
         )}
 
-        {/* ── S5: Order list ── */}
+        {/* ── S6: Order list ── */}
         <section>
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-[11px] font-black uppercase tracking-wider text-neutral-400">รายการ Orders</h2>
@@ -383,54 +426,6 @@ export default async function SalesReportPage({
                 </div>
               </div>
             ))}
-          </div>
-        </section>
-
-        {/* ── S6: Revenue by Engine Type ── */}
-        <section>
-          <h2 className="mb-3 text-[11px] font-black uppercase tracking-wider text-neutral-400">Revenue by Type</h2>
-          <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-neutral-100 bg-neutral-50 text-[10px] font-black uppercase tracking-wider text-neutral-400">
-                  <th className="px-5 py-3 text-left">ประเภท</th>
-                  <th className="px-5 py-3 text-right">Orders</th>
-                  <th className="px-5 py-3 text-right">จ่ายแล้ว</th>
-                  <th className="px-5 py-3 text-right">Revenue</th>
-                </tr>
-              </thead>
-              <tbody>
-                {byEngineType.map((row, i) => {
-                  const meta = TYPE_META[row.type_group] ?? { label: row.type_group, icon: '📦', color: 'text-neutral-600' }
-                  return (
-                    <tr key={row.type_group} className={`border-b border-neutral-50 ${i % 2 === 1 ? 'bg-neutral-50/50' : ''}`}>
-                      <td className="px-5 py-3">
-                        <span className={`font-bold ${meta.color}`}>{meta.icon} {meta.label}</span>
-                      </td>
-                      <td className="px-5 py-3 text-right text-neutral-500">{row.orders}</td>
-                      <td className="px-5 py-3 text-right font-bold text-green-600">{row.paid}</td>
-                      <td className="px-5 py-3 text-right font-black text-indigo-600">฿{Number(row.revenue).toLocaleString('th-TH')}</td>
-                    </tr>
-                  )
-                })}
-                {/* Placeholder rows for future engine types */}
-                {(['form', 'report'] as const)
-                  .filter(t => !byEngineType.some(r => r.type_group === t))
-                  .map(t => (
-                    <tr key={t} className="border-b border-neutral-50 opacity-40">
-                      <td className="px-5 py-3">
-                        <span className="font-bold text-neutral-400">
-                          {t === 'form' ? '📝 Form Engine' : '📊 Report Engine'}
-                        </span>
-                        <span className="ml-2 rounded-full bg-neutral-100 px-2 py-0.5 text-[9px] font-black text-neutral-400 uppercase">Coming Soon</span>
-                      </td>
-                      <td className="px-5 py-3 text-right text-neutral-300">—</td>
-                      <td className="px-5 py-3 text-right text-neutral-300">—</td>
-                      <td className="px-5 py-3 text-right text-neutral-300">—</td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
           </div>
         </section>
 
