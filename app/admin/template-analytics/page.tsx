@@ -1,4 +1,4 @@
-// /admin/template-analytics — INTEL-A+B+C: Market Intelligence Dashboard
+// /admin/template-analytics — INTEL-A+B+C+D: Market Intelligence Dashboard v2
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { requireAdminSession } from '@/lib/admin-auth'
@@ -13,14 +13,21 @@ export const dynamic = 'force-dynamic'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const SEED_KEYWORDS = [
-  { key: 'checklist', label: 'Checklist', engineType: 'checklist', color: 'bg-indigo-50 text-indigo-700', border: 'border-indigo-200', headerBg: 'bg-indigo-50' },
+  // Core
+  { key: 'checklist', label: 'Checklist', engineType: 'checklist', color: 'bg-indigo-50 text-indigo-700',  border: 'border-indigo-200', headerBg: 'bg-indigo-50'  },
   { key: 'planner',   label: 'Planner',   engineType: 'pipeline',  color: 'bg-purple-50 text-purple-700', border: 'border-purple-200', headerBg: 'bg-purple-50' },
-  { key: 'ฟอร์ม',     label: 'Form',      engineType: 'form',      color: 'bg-teal-50 text-teal-700',     border: 'border-teal-200',   headerBg: 'bg-teal-50' },
-  { key: 'รายงาน',   label: 'Report',    engineType: 'report',    color: 'bg-amber-50 text-amber-700',   border: 'border-amber-200',  headerBg: 'bg-amber-50' },
+  { key: 'ฟอร์ม',     label: 'Form',      engineType: 'form',      color: 'bg-teal-50 text-teal-700',     border: 'border-teal-200',   headerBg: 'bg-teal-50'   },
+  { key: 'รายงาน',   label: 'Report',    engineType: 'report',    color: 'bg-amber-50 text-amber-700',   border: 'border-amber-200',  headerBg: 'bg-amber-50'  },
+  // Extended (B: new seed keywords)
+  { key: 'ตาราง',    label: 'ตาราง',    engineType: 'form',      color: 'bg-teal-50 text-teal-700',     border: 'border-teal-200',   headerBg: 'bg-teal-50'   },
+  { key: 'ใบแจ้ง',   label: 'ใบแจ้ง',   engineType: 'form',      color: 'bg-teal-50 text-teal-700',     border: 'border-teal-200',   headerBg: 'bg-teal-50'   },
+  { key: 'แผนงาน',   label: 'แผนงาน',   engineType: 'pipeline',  color: 'bg-purple-50 text-purple-700', border: 'border-purple-200', headerBg: 'bg-purple-50' },
+  { key: 'บัญชี',    label: 'บัญชี',    engineType: 'report',    color: 'bg-amber-50 text-amber-700',   border: 'border-amber-200',  headerBg: 'bg-amber-50'  },
 ] as const
 
-const ALPHA_CHARS = ['ก', 'ข', 'ค', 'น', 'ม', 'ส'] as const
-const DRILL_LIMIT = 3
+// A: expanded from 6 → 15 most-common Thai consonants
+const ALPHA_CHARS = ['ก','ข','ค','ง','จ','ต','ท','น','บ','ป','ม','ว','ส','ห','อ'] as const
+const DRILL_LIMIT = 6 // per engineType — D: drill ALL Level 1 (covered + uncovered)
 
 const AUDIENCE_RULES: { tag: string; color: string; pattern: RegExp }[] = [
   { tag: 'ส่วนตัว',    color: 'bg-sky-100 text-sky-700',       pattern: /เที่ยว|เดินทาง|งานแต่ง|ออกกำลัง|ชีวิต|สุขภาพ|ห้อง|บ้าน|เปิดเทอม|โรงเรียน|ไปเรียน/ },
@@ -42,7 +49,7 @@ type IdeaRow = {
   char?: string
   match: TemplateRef | null
 }
-type KpiRow = { total_revenue: string; paid_orders: string; pending_orders: string; total_downloads: string; unique_buyers: string }
+type KpiRow  = { total_revenue: string; paid_orders: string; pending_orders: string; total_downloads: string; unique_buyers: string }
 type TypeRow = { type_group: string; orders: string; paid: string; revenue: string }
 type DailyRow = { day: string; orders: string; revenue: string }
 type RankRow  = { id: string; title: string; slug: string; engine_type: string; price_baht: number; status: string; orders: string; revenue: string; downloads: string }
@@ -71,7 +78,7 @@ function findMatch(stripped: string, templates: TemplateRef[]): TemplateRef | nu
 }
 
 function analyzeKeyword(keyword: string, suggestions: string[]) {
-  const joined = suggestions.join(' ')
+  const joined    = suggestions.join(' ')
   const audiences = AUDIENCE_RULES.filter(r => r.pattern.test(joined))
   const ideas: string[] = []
   for (const s of suggestions) {
@@ -80,10 +87,22 @@ function analyzeKeyword(keyword: string, suggestions: string[]) {
     ideas.push(`${keyword} ${stripped}`)
     if (ideas.length >= 5) break
   }
-  const actionable = suggestions.filter(s => { const st = stripPrefix(s, keyword); return st && !NOISE.test(st) }).length
+  const actionable  = suggestions.filter(s => { const st = stripPrefix(s, keyword); return st && !NOISE.test(st) }).length
   const demand: 'สูง' | 'กลาง' | 'ต่ำ' = actionable >= 5 ? 'สูง' : actionable >= 3 ? 'กลาง' : 'ต่ำ'
   const demandColor = demand === 'สูง' ? 'bg-green-100 text-green-700' : demand === 'กลาง' ? 'bg-amber-100 text-amber-700' : 'bg-neutral-100 text-neutral-500'
   return { audiences, ideas, demand, demandColor }
+}
+
+// C: priority score = level weight × (100 − coverage%)
+function priorityScore(level: 1 | 2 | 3, pct: number): number {
+  return Math.round((level === 1 ? 3 : level === 2 ? 2 : 1) * (100 - pct))
+}
+
+function priorityBadge(score: number): { label: string; color: string } {
+  if (score >= 250) return { label: '🔴 ด่วนสุด', color: 'bg-red-100 text-red-700' }
+  if (score >= 150) return { label: '🟠 ควรทำ',   color: 'bg-orange-100 text-orange-700' }
+  if (score >= 50)  return { label: '🟡 พิจารณา', color: 'bg-amber-100 text-amber-700' }
+  return              { label: '⚪ ต่ำ',          color: 'bg-neutral-100 text-neutral-500' }
 }
 
 const ENGINE_LABEL: Record<string, string> = { checklist: 'Checklist', pipeline: 'Planner', planner: 'Planner', form: 'Form', report: 'Report' }
@@ -99,13 +118,11 @@ const ENGINE_COLOR: Record<string, string> = {
 export default async function AdminMarketIntelPage() {
   await requireAdminSession('/admin/login')
 
-  // ── Phase 1 (parallel): base suggestions + DB data + alphabet ────────────
+  // ── Phase 1 (parallel) ───────────────────────────────────────────────────
   const [baseSuggestRaw, allTemplates, kpiRow, byType, daily, ranking, gapData, alphaRaw] =
     await Promise.all([
-      // Seq 1: base keywords
       Promise.all(SEED_KEYWORDS.map(async kw => ({ kw, suggestions: await fetchSuggestions(kw.key) }))),
 
-      // Templates for matching
       db<TemplateRef[]>`
         SELECT t.id, t.title, t.slug,
           COUNT(DISTINCT oi.order_id) FILTER (WHERE o.status = 'paid') AS orders
@@ -116,7 +133,6 @@ export default async function AdminMarketIntelPage() {
         GROUP BY t.id
       `.catch(() => [] as TemplateRef[]),
 
-      // KPI
       db<KpiRow[]>`
         SELECT
           COALESCE(SUM(total_baht) FILTER (WHERE status = 'paid'), 0)::text AS total_revenue,
@@ -127,7 +143,6 @@ export default async function AdminMarketIntelPage() {
         FROM orders
       `.catch(() => [{ total_revenue: '0', paid_orders: '0', pending_orders: '0', total_downloads: '0', unique_buyers: '0' }]),
 
-      // Revenue by engine type
       db<TypeRow[]>`
         WITH item_share AS (
           SELECT oi.template_id, oi.order_id, o.status,
@@ -145,7 +160,6 @@ export default async function AdminMarketIntelPage() {
         GROUP BY type_group
       `.catch(() => [] as TypeRow[]),
 
-      // Daily 14d
       db<DailyRow[]>`
         SELECT DATE(created_at AT TIME ZONE 'Asia/Bangkok') AS day,
           COUNT(*) FILTER (WHERE status = 'paid')::text AS orders,
@@ -154,7 +168,6 @@ export default async function AdminMarketIntelPage() {
         GROUP BY day ORDER BY day DESC
       `.catch(() => [] as DailyRow[]),
 
-      // Per-template ranking
       db<RankRow[]>`
         SELECT t.id, t.title, t.slug, COALESCE(t.engine_type,'') AS engine_type, t.price_baht, t.status,
           COUNT(DISTINCT oi.order_id) FILTER (WHERE o.status = 'paid')::text AS orders,
@@ -166,7 +179,6 @@ export default async function AdminMarketIntelPage() {
         GROUP BY t.id ORDER BY orders::int DESC, t.created_at DESC
       `.catch(() => [] as RankRow[]),
 
-      // Gap data
       db<GapRow[]>`
         SELECT CASE WHEN engine_type IN ('planner','planner-pipeline','pipeline') THEN 'pipeline'
                     WHEN engine_type IN ('checklist','form','report') THEN engine_type
@@ -176,7 +188,7 @@ export default async function AdminMarketIntelPage() {
         FROM templates WHERE status = 'published' GROUP BY engine_type
       `.catch(() => [] as GapRow[]),
 
-      // Seq 3 (Alpha) — parallel, independent
+      // A: 8 keywords × 15 chars = 120 alpha calls (cached 1h)
       Promise.all(
         SEED_KEYWORDS.flatMap(kw =>
           ALPHA_CHARS.map(async char => ({
@@ -188,43 +200,41 @@ export default async function AdminMarketIntelPage() {
     ])
 
   const kpi = kpiRow[0] ?? { total_revenue: '0', paid_orders: '0', pending_orders: '0', total_downloads: '0', unique_buyers: '0' }
-
-  // ── Build keywordData for Google Suggest section ──────────────────────────
   const keywordData = baseSuggestRaw.map(({ kw, suggestions }) => ({
     ...kw, suggestions, ...analyzeKeyword(kw.key, suggestions),
   }))
 
-  // ── Build Level 1 coverage + collect covered ideas for drill ─────────────
-  const level1Map  = new Map<string, IdeaRow[]>()
-  const seenMap    = new Map<string, Set<string>>()
+  // ── Build Level 1 — merged by engineType (B+D) ───────────────────────────
+  const uniqueEngineTypes = [...new Set(SEED_KEYWORDS.map(kw => kw.engineType))]
+  const level1Map = new Map<string, IdeaRow[]>(uniqueEngineTypes.map(et => [et, []]))
+  const seenMap   = new Map<string, Set<string>>(uniqueEngineTypes.map(et => [et, new Set<string>()]))
   const drillQueue: { idea: string; engineType: string; keyword: string }[] = []
 
   for (const { kw, suggestions } of baseSuggestRaw) {
-    const rows: IdeaRow[] = []
-    const seen = new Set<string>()
+    const seen = seenMap.get(kw.engineType)!
+    const rows = level1Map.get(kw.engineType)!
     for (const s of suggestions) {
       const stripped = stripPrefix(s, kw.key)
       if (!stripped || NOISE.test(stripped) || seen.has(stripped)) continue
       seen.add(stripped)
       const match = findMatch(stripped, allTemplates)
       rows.push({ idea: s, stripped, level: 1, match })
-      if (match && drillQueue.filter(d => d.engineType === kw.engineType).length < DRILL_LIMIT) {
+      // D: drill ALL Level 1 (covered + uncovered)
+      if (drillQueue.filter(d => d.engineType === kw.engineType).length < DRILL_LIMIT) {
         drillQueue.push({ idea: s, engineType: kw.engineType, keyword: kw.key })
       }
     }
-    level1Map.set(kw.engineType, rows)
-    seenMap.set(kw.engineType, seen)
   }
 
-  // ── Phase 2 (sequential): Seq 2 drill-down ───────────────────────────────
+  // ── Phase 2 (sequential): drill-down ─────────────────────────────────────
   const drillResults = await Promise.all(
     drillQueue.map(async d => ({ ...d, suggestions: await fetchSuggestions(d.idea) }))
   )
 
   const level2Map = new Map<string, IdeaRow[]>()
   for (const dr of drillResults) {
-    const seen  = seenMap.get(dr.engineType) ?? new Set<string>()
-    const rows  = level2Map.get(dr.engineType) ?? []
+    const seen = seenMap.get(dr.engineType) ?? new Set<string>()
+    const rows = level2Map.get(dr.engineType) ?? []
     for (const s of dr.suggestions) {
       const stripped = stripPrefix(s, dr.keyword)
       if (!stripped || NOISE.test(stripped) || seen.has(stripped)) continue
@@ -252,15 +262,29 @@ export default async function AdminMarketIntelPage() {
 
   // ── Combine coverage per engine ───────────────────────────────────────────
   const coverageMap = new Map<string, IdeaRow[]>()
-  for (const kw of SEED_KEYWORDS) {
-    coverageMap.set(kw.engineType, [
-      ...(level1Map.get(kw.engineType) ?? []),
-      ...(level2Map.get(kw.engineType) ?? []),
-      ...(level3Map.get(kw.engineType) ?? []),
+  for (const et of uniqueEngineTypes) {
+    coverageMap.set(et, [
+      ...(level1Map.get(et) ?? []),
+      ...(level2Map.get(et) ?? []),
+      ...(level3Map.get(et) ?? []),
     ])
   }
 
-  // ── Sales data ────────────────────────────────────────────────────────────
+  // ── C: Priority List — uncovered ideas sorted by score ───────────────────
+  const seenPrio = new Set<string>()
+  const priorityList: Array<{ idea: string; level: 1|2|3; engineType: string; score: number }> = []
+  for (const [engineType, rows] of coverageMap) {
+    const covered = rows.filter(r => r.match !== null).length
+    const pct     = rows.length > 0 ? Math.round((covered / rows.length) * 100) : 0
+    for (const row of rows) {
+      if (row.match !== null || seenPrio.has(row.idea)) continue
+      seenPrio.add(row.idea)
+      priorityList.push({ idea: row.idea, level: row.level, engineType, score: priorityScore(row.level, pct) })
+    }
+  }
+  const topBuildNext = priorityList.sort((a, b) => b.score - a.score).slice(0, 20)
+
+  // ── Sales ─────────────────────────────────────────────────────────────────
   const ALL_TYPES   = ['checklist', 'pipeline', 'form', 'report'] as const
   const typeMap     = new Map(byType.map(r => [r.type_group, r]))
   const gapMap      = new Map(gapData.map(r => [r.engine_type, r]))
@@ -268,11 +292,16 @@ export default async function AdminMarketIntelPage() {
   const zeroSale    = ranking.filter(r => Number(r.orders) === 0 && r.status === 'published')
   const maxOrders   = Math.max(...bestsellers.map(r => Number(r.orders)), 1)
 
-  const LEVEL_BADGE: Record<1 | 2 | 3, { label: string; color: string }> = {
-    1: { label: '🔍 Base',   color: 'bg-indigo-100 text-indigo-700' },
-    2: { label: '🔽 Drill',  color: 'bg-purple-100 text-purple-700' },
-    3: { label: '🔤 ก-ฮ',   color: 'bg-teal-100 text-teal-700' },
+  const LEVEL_BADGE: Record<1|2|3, { label: string; color: string }> = {
+    1: { label: '🔍 Base',  color: 'bg-indigo-100 text-indigo-700' },
+    2: { label: '🔽 Drill', color: 'bg-purple-100 text-purple-700' },
+    3: { label: '🔤 ก-ฮ',  color: 'bg-teal-100 text-teal-700' },
   }
+
+  // one card per engineType for coverage section
+  const uniqueKwCards = SEED_KEYWORDS.filter(
+    (kw, idx, arr) => arr.findIndex(k => k.engineType === kw.engineType) === idx
+  )
 
   return (
     <main className="min-h-screen bg-neutral-50 pb-20">
@@ -285,7 +314,9 @@ export default async function AdminMarketIntelPage() {
             <h1 className="mt-1 text-2xl font-black text-black">Market Intelligence</h1>
             <p className="mt-0.5 text-sm text-neutral-500">ตลาดต้องการอะไร + เราครอบแค่ไหน → สร้าง template ที่ถูกจุด</p>
           </div>
-          <span className="mt-6 rounded-full bg-indigo-100 px-3 py-1 text-[10px] font-black text-indigo-700 uppercase">Google Suggest · cache 1h</span>
+          <span className="mt-6 rounded-full bg-indigo-100 px-3 py-1 text-[10px] font-black text-indigo-700 uppercase">
+            {SEED_KEYWORDS.length} keywords · {ALPHA_CHARS.length} alpha · cache 1h
+          </span>
         </div>
 
         {/* ── S1: KPI ─────────────────────────────────────────────────────── */}
@@ -324,23 +355,52 @@ export default async function AdminMarketIntelPage() {
           </div>
         </section>
 
-        {/* ── S3: ครอบคลุมแค่ไหน (INTEL-C) ───────────────────────────────── */}
+        {/* ── S3: สร้างอะไรก่อน (C: Priority) ─────────────────────────────── */}
+        <section>
+          <h2 className="mb-1 text-xs font-black uppercase tracking-widest text-neutral-400">สร้างอะไรก่อน</h2>
+          <p className="mb-4 text-xs text-neutral-400">
+            Idea ที่ยังไม่มี template · เรียงตาม <span className="font-bold text-neutral-600">Priority = level × (100 − coverage%)</span>
+          </p>
+          <div className="rounded-2xl border border-neutral-200 bg-white shadow-sm divide-y divide-neutral-50">
+            {topBuildNext.length === 0 ? (
+              <p className="px-5 py-6 text-sm font-bold text-emerald-600 text-center">🎉 ครอบคลุมทุก idea แล้ว!</p>
+            ) : topBuildNext.map((item, i) => {
+              const badge  = priorityBadge(item.score)
+              const lBadge = LEVEL_BADGE[item.level]
+              const engCol = ENGINE_COLOR[item.engineType] ?? 'border-neutral-200 bg-neutral-50 text-neutral-900'
+              return (
+                <div key={i} className="flex items-center gap-2 px-5 py-3">
+                  <span className="shrink-0 w-5 text-right text-[10px] font-black text-neutral-300">{i + 1}</span>
+                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-black whitespace-nowrap ${badge.color}`}>{badge.label}</span>
+                  <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[9px] font-black whitespace-nowrap ${engCol}`}>{ENGINE_LABEL[item.engineType] ?? item.engineType}</span>
+                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-black whitespace-nowrap ${lBadge.color}`}>{lBadge.label}</span>
+                  <span className="flex-1 min-w-0 text-xs font-medium text-neutral-800 truncate">{item.idea}</span>
+                  <span className="shrink-0 font-mono text-[9px] text-neutral-300">{item.score}pt</span>
+                  <Link href="/admin/templates/new" className="shrink-0 rounded-lg border border-amber-300 bg-amber-50 px-2.5 py-1 text-[9px] font-black text-amber-700 hover:bg-amber-100 transition">
+                    + สร้าง
+                  </Link>
+                </div>
+              )
+            })}
+          </div>
+        </section>
+
+        {/* ── S4: ครอบคลุมแค่ไหน ───────────────────────────────────────────── */}
         <section>
           <h2 className="mb-1 text-xs font-black uppercase tracking-widest text-neutral-400">ครอบคลุมแค่ไหน</h2>
           <p className="mb-4 text-xs text-neutral-400">
             จับคู่ Google Suggest → Template ใน DB · 3 ขั้น: <span className="font-bold text-indigo-600">🔍 Base</span> → <span className="font-bold text-purple-600">🔽 Drill-down</span> → <span className="font-bold text-teal-600">🔤 ก-ฮ Alphabet</span>
           </p>
           <div className="space-y-4">
-            {SEED_KEYWORDS.map(kw => {
-              const rows = coverageMap.get(kw.engineType) ?? []
+            {uniqueKwCards.map(kw => {
+              const rows    = coverageMap.get(kw.engineType) ?? []
               const covered = rows.filter(r => r.match !== null).length
               const total   = rows.length
               const pct     = total > 0 ? Math.round((covered / total) * 100) : 0
               return (
                 <div key={kw.engineType} className={`rounded-2xl border bg-white shadow-sm overflow-hidden ${kw.border}`}>
-                  {/* Header */}
                   <div className={`flex items-center justify-between px-5 py-3 border-b ${kw.border} ${kw.headerBg}`}>
-                    <span className={`font-mono font-black text-sm uppercase tracking-wider ${kw.color}`}>{kw.label}</span>
+                    <span className={`font-mono font-black text-sm uppercase tracking-wider ${kw.color}`}>{ENGINE_LABEL[kw.engineType] ?? kw.engineType}</span>
                     <div className="flex items-center gap-3">
                       <span className="text-xs text-neutral-500">{covered}/{total} ครอบแล้ว</span>
                       <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-black ${pct >= 60 ? 'bg-green-100 text-green-700' : pct >= 30 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-600'}`}>
@@ -348,7 +408,6 @@ export default async function AdminMarketIntelPage() {
                       </span>
                     </div>
                   </div>
-                  {/* Rows */}
                   {rows.length === 0 ? (
                     <p className="px-5 py-4 text-xs text-neutral-400 italic">— ไม่มีข้อมูล</p>
                   ) : (
@@ -357,13 +416,8 @@ export default async function AdminMarketIntelPage() {
                         const badge = LEVEL_BADGE[row.level]
                         return (
                           <div key={i} className="flex items-center gap-3 px-5 py-2.5">
-                            {/* Level badge */}
-                            <span className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-black whitespace-nowrap ${badge.color}`}>
-                              {badge.label}
-                            </span>
-                            {/* Idea */}
+                            <span className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-black whitespace-nowrap ${badge.color}`}>{badge.label}</span>
                             <span className="flex-1 min-w-0 text-xs text-neutral-700 truncate">{row.idea}</span>
-                            {/* Match */}
                             {row.match ? (
                               <div className="shrink-0 flex items-center gap-2">
                                 <span className="text-[10px] text-emerald-600 font-bold truncate max-w-[160px]">✅ {row.match.title}</span>
@@ -375,9 +429,7 @@ export default async function AdminMarketIntelPage() {
                             ) : (
                               <div className="shrink-0 flex items-center gap-2">
                                 <span className="text-[10px] text-orange-500 font-bold">🟠 ยังไม่มี</span>
-                                <Link href="/admin/templates/new" className="rounded-lg border border-amber-300 bg-amber-50 px-2 py-0.5 text-[9px] font-black text-amber-700 hover:bg-amber-100 transition">
-                                  + สร้าง
-                                </Link>
+                                <Link href="/admin/templates/new" className="rounded-lg border border-amber-300 bg-amber-50 px-2 py-0.5 text-[9px] font-black text-amber-700 hover:bg-amber-100 transition">+ สร้าง</Link>
                               </div>
                             )}
                           </div>
@@ -391,7 +443,7 @@ export default async function AdminMarketIntelPage() {
           </div>
         </section>
 
-        {/* ── S4: Market Demand (Google Suggest) ───────────────────────────── */}
+        {/* ── S5: Market Demand (Google Suggest) ───────────────────────────── */}
         <section>
           <h2 className="mb-1 text-xs font-black uppercase tracking-widest text-neutral-400">ความต้องการตลาด (Google Suggest)</h2>
           <p className="mb-4 text-xs text-neutral-400">สิ่งที่คนไทยพิมพ์ค้นหาบน Google → โอกาสที่ควรสร้าง template</p>
@@ -457,7 +509,7 @@ export default async function AdminMarketIntelPage() {
           </div>
         </section>
 
-        {/* ── S5: Market Gap Matrix ────────────────────────────────────────── */}
+        {/* ── S6: Market Gap Matrix ────────────────────────────────────────── */}
         <section>
           <h2 className="mb-1 text-xs font-black uppercase tracking-widest text-neutral-400">Market Gap Matrix</h2>
           <p className="mb-4 text-xs text-neutral-400">เทียบ demand ตลาด vs template ที่มีอยู่ → ช่องว่างที่ควรเติมก่อน</p>
@@ -473,9 +525,9 @@ export default async function AdminMarketIntelPage() {
                 </tr>
               </thead>
               <tbody>
-                {SEED_KEYWORDS.map(kw => {
-                  const kwData = keywordData.find(k => k.key === kw.key)
-                  const gap    = gapMap.get(kw.engineType)
+                {ALL_TYPES.map(type => {
+                  const kwData        = keywordData.find(k => k.engineType === type)
+                  const gap           = gapMap.get(type)
                   const templateCount = Number(gap?.template_count ?? 0)
                   const totalOrders   = Number(gap?.total_orders ?? 0)
                   const demand        = kwData?.demand ?? 'ต่ำ'
@@ -484,10 +536,11 @@ export default async function AdminMarketIntelPage() {
                   const lowSale       = templateCount > 0 && totalOrders === 0
                   const action        = noTemplate ? '🟠 สร้าง engine ใหม่' : lowSale ? '🟡 ปรับปรุงหัวข้อ' : '✅ มีอยู่แล้ว'
                   const actionColor   = noTemplate ? 'text-orange-600 font-black' : lowSale ? 'text-amber-600 font-bold' : 'text-emerald-600'
+                  const kw            = SEED_KEYWORDS.find(k => k.engineType === type)
                   return (
-                    <tr key={kw.key} className="border-b border-neutral-50 hover:bg-neutral-50">
+                    <tr key={type} className="border-b border-neutral-50 hover:bg-neutral-50">
                       <td className="px-5 py-3">
-                        <span className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-black ${kw.color}`}>{kw.label}</span>
+                        <span className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-black ${kw?.color ?? 'bg-neutral-100 text-neutral-700'}`}>{ENGINE_LABEL[type] ?? type}</span>
                       </td>
                       <td className="px-4 py-3"><span className={`rounded-full px-2.5 py-0.5 text-[10px] font-black ${demandColor}`}>{demand}</span></td>
                       <td className="px-4 py-3 text-xs font-bold text-neutral-700">{templateCount} ชิ้น</td>
@@ -501,7 +554,7 @@ export default async function AdminMarketIntelPage() {
           </div>
         </section>
 
-        {/* ── S6: Daily 14d ────────────────────────────────────────────────── */}
+        {/* ── S7: Daily 14d ────────────────────────────────────────────────── */}
         {daily.length > 0 && (
           <section>
             <h2 className="mb-3 text-xs font-black uppercase tracking-widest text-neutral-400">ยอดขาย 14 วันล่าสุด</h2>
@@ -526,7 +579,7 @@ export default async function AdminMarketIntelPage() {
           </section>
         )}
 
-        {/* ── S7: Bestseller + Zero-sale ───────────────────────────────────── */}
+        {/* ── S8: Bestseller + Zero-sale ───────────────────────────────────── */}
         <section className="space-y-6">
           {bestsellers.length > 0 && (
             <div>
