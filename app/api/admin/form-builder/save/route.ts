@@ -82,23 +82,26 @@ export async function POST(req: NextRequest) {
   const previewPath = `/uploads/templates/${previewFilename}`
 
   let browser = null
+  let actualPreviewPath: string | null = null
   try {
     browser = await puppeteer.launch({ executablePath, args, headless: true })
-    const page = await browser.newPage()
-    // A4 width at 96dpi = 794px; height = 1123px (one page)
-    await page.setViewport({ width: 794, height: 1123 })
-    await page.setContent(html, { waitUntil: 'networkidle0' })
 
-    // Screenshot page 1 only — used as preview (not downloadable)
-    const screenshot = await page.screenshot({
-      type: 'jpeg',
-      quality: 82,
-      clip: { x: 0, y: 0, width: 794, height: 1123 },
-    })
-    await writeFile(path.join(uploadBase, previewFilename), Buffer.from(screenshot as Uint8Array))
+    // Screenshot page 1 — preview image (separate page, no setViewport)
+    try {
+      const ssPage = await browser.newPage()
+      await ssPage.setContent(html, { waitUntil: 'networkidle0' })
+      const screenshot = await ssPage.screenshot({ type: 'jpeg', quality: 82, fullPage: false })
+      await writeFile(path.join(uploadBase, previewFilename), Buffer.from(screenshot as Uint8Array))
+      actualPreviewPath = previewPath
+      await ssPage.close()
+    } catch {
+      // screenshot failed — save continues without preview
+    }
 
     // Full 2-page PDF — the actual product
-    const pdf = await page.pdf({
+    const pdfPage = await browser.newPage()
+    await pdfPage.setContent(html, { waitUntil: 'networkidle0' })
+    const pdf = await pdfPage.pdf({
       format: 'A4',
       printBackground: true,
       margin: { top: '15mm', right: '15mm', bottom: '20mm', left: '15mm' },
@@ -121,7 +124,7 @@ export async function POST(req: NextRequest) {
         (slug, title, tier, price_baht, pdf_path, preview_path,
          engine_type, engine_data, document_type, page_count, status)
       VALUES (
-        ${safeSlug}, ${title}, ${safeTier}, ${priceBaht}, ${pdfPath}, ${previewPath},
+        ${safeSlug}, ${title}, ${safeTier}, ${priceBaht}, ${pdfPath}, ${actualPreviewPath},
         'form', ${JSON.stringify(engineData)}, 'form', 2, 'draft'
       )
       RETURNING id
