@@ -920,11 +920,15 @@ function PipelineReviseFormV4({ initial, onChange }: {
   const [horizon,      setHorizon]      = useState<PipelineHorizon>(initial.s1_goal.horizon)
   const [horizonValue, setHorizonValue] = useState(initial.s1_goal.horizonValue)
 
+  const [fromMonth,        setFromMonth]        = useState(initial.s2_timeplan.fromMonth ?? 1)
+  const [toMonth,          setToMonth]          = useState(initial.s2_timeplan.toMonth ?? 12)
+  const [monthlyWeekCount, setMonthlyWeekCount] = useState(initial.s2_timeplan.monthlyWeekCount ?? 4)
   const [phases,   setPhases]   = useState<PipelinePhase[]>(initial.s2_timeplan.phases?.length ? initial.s2_timeplan.phases : [{ name: 'Phase 1', timeRange: '', tasks: [''], budget: '' }])
   const [bigRocks, setBigRocks] = useState<PipelineBigRock[]>(initial.s2_timeplan.bigRocks?.length ? initial.s2_timeplan.bigRocks : [{ task: '', deadline: '' }])
 
   const [weekCount,   setWeekCount]   = useState(initial.s3_weekly.weekCount)
   const [weekLayout,  setWeekLayout]  = useState<PipelineWeeklyLayout>(initial.s3_weekly.layout)
+  const [startDay,    setStartDay]    = useState(initial.s3_weekly.startDay ?? 'mon')
   const [dayCount,    setDayCount]    = useState(initial.s4_daily.dayCount)
   const [dayLayout,   setDayLayout]   = useState<PipelineDailyLayout>(initial.s4_daily.layout)
   const [reviewCycle, setReviewCycle] = useState(initial.s5_review.reviewCycle)
@@ -932,9 +936,9 @@ function PipelineReviseFormV4({ initial, onChange }: {
 
   useEffect(() => {
     const s2: PlannerPipelineDataV4['s2_timeplan'] = horizon === 'yearly'
-      ? { year: horizonValue }
+      ? { year: horizonValue, fromMonth, toMonth }
       : horizon === 'monthly'
-        ? { month: horizonValue }
+        ? { month: horizonValue, monthlyWeekCount }
         : {
             phases: phases.filter(p => p.name.trim()).map(p => ({ ...p, tasks: p.tasks.filter(t => t.trim()) })),
             bigRocks: bigRocks.filter(r => r.task.trim()),
@@ -943,15 +947,16 @@ function PipelineReviseFormV4({ initial, onChange }: {
       meta: { schemaVersion: '4.0', mode: 'pipeline', title: displayTitle, description, colorTheme, coverPage },
       s1_goal: { goal, why, deadline, horizon, horizonValue },
       s2_timeplan: s2,
-      s3_weekly: { weekCount, layout: weekLayout },
+      s3_weekly: { weekCount, layout: weekLayout, startDay },
       s4_daily:  { dayCount,  layout: dayLayout  },
       s5_review: { reviewCycle, reviewQuestions: reviewQs.filter(q => q.trim()) },
     })
   }, [
     displayTitle, description, colorTheme, coverPage,
     goal, why, deadline, horizon, horizonValue,
+    fromMonth, toMonth, monthlyWeekCount,
     phases, bigRocks,
-    weekCount, weekLayout, dayCount, dayLayout,
+    weekCount, weekLayout, startDay, dayCount, dayLayout,
     reviewCycle, reviewQs, onChange,
   ])
 
@@ -1007,6 +1012,33 @@ function PipelineReviseFormV4({ initial, onChange }: {
             <label className={LABEL}>{horizon === 'yearly' ? 'ปี' : 'เดือน + ปี'}</label>
             <input value={horizonValue} onChange={e => setHorizonValue(e.target.value)}
               placeholder={horizon === 'yearly' ? 'เช่น 2026' : 'เช่น พฤษภาคม 2026'} className={INPUT} />
+          </div>
+        )}
+        {horizon === 'yearly' && (() => {
+          const MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม']
+          return (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={LABEL}>ตั้งแต่เดือน</label>
+                <select value={fromMonth} onChange={e => { const v = Number(e.target.value); setFromMonth(v); if (v > toMonth) setToMonth(v) }} className={SELECT}>
+                  {MONTHS.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className={LABEL}>ถึงเดือน</label>
+                <select value={toMonth} onChange={e => { const v = Number(e.target.value); setToMonth(v); if (v < fromMonth) setFromMonth(v) }} className={SELECT}>
+                  {MONTHS.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
+                </select>
+              </div>
+            </div>
+          )
+        })()}
+        {horizon === 'monthly' && (
+          <div>
+            <label className={LABEL}>จำนวนสัปดาห์</label>
+            <select value={monthlyWeekCount} onChange={e => setMonthlyWeekCount(Number(e.target.value))} className={SELECT}>
+              {[1,2,3,4,5].map(n => <option key={n} value={n}>{n} สัปดาห์</option>)}
+            </select>
           </div>
         )}
       </Card>
@@ -1077,6 +1109,18 @@ function PipelineReviseFormV4({ initial, onChange }: {
             <option value="simple">แบบง่าย</option>
             <option value="135rule">กฎ 1-3-5</option>
             <option value="timeblock">Time Block</option>
+          </select>
+        </div>
+        <div>
+          <label className={LABEL}>วันเริ่มต้นสัปดาห์</label>
+          <select value={startDay} onChange={e => setStartDay(e.target.value as typeof startDay)} className={SELECT}>
+            <option value="mon">จันทร์</option>
+            <option value="tue">อังคาร</option>
+            <option value="wed">พุธ</option>
+            <option value="thu">พฤหัส</option>
+            <option value="fri">ศุกร์</option>
+            <option value="sat">เสาร์</option>
+            <option value="sun">อาทิตย์</option>
           </select>
         </div>
       </Card>

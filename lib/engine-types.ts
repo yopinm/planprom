@@ -169,6 +169,7 @@ export type PlannerPipelineData = {
 export type PipelineHorizon = 'yearly' | 'monthly' | 'project'
 export type PipelineWeeklyLayout = 'simple' | '135rule' | 'timeblock'
 export type PipelineDailyLayout = 'todo' | 'timeblock' | 'combined'
+export type PipelineStartDay = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun'
 
 export type PlannerPipelineDataV4 = {
   meta: {
@@ -188,13 +189,17 @@ export type PlannerPipelineDataV4 = {
   }
   s2_timeplan: {
     year?: string
+    fromMonth?: number
+    toMonth?: number
     month?: string
+    monthlyWeekCount?: number
     phases?: PipelinePhase[]
     bigRocks?: PipelineBigRock[]
   }
   s3_weekly: {
     weekCount: number
     layout: PipelineWeeklyLayout
+    startDay?: PipelineStartDay
   }
   s4_daily: {
     dayCount: number

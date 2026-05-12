@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import type { PlannerPipelineDataV4, PipelineHorizon, PipelineWeeklyLayout, PipelineDailyLayout, PipelinePhase, PipelineBigRock } from '@/lib/engine-types'
+import type { PlannerPipelineDataV4, PipelineHorizon, PipelineWeeklyLayout, PipelineDailyLayout, PipelinePhase, PipelineBigRock, PipelineStartDay } from '@/lib/engine-types'
 
 const INPUT = 'w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none focus:border-violet-400 focus:bg-white transition'
 const LABEL = 'block text-[11px] font-black uppercase tracking-widest text-neutral-600 mb-1.5'
@@ -56,6 +56,11 @@ export function PipelinePlannerForm({ onChange }: Props) {
   const [horizon,      setHorizon]      = useState<PipelineHorizon>('yearly')
   const [horizonValue, setHorizonValue] = useState('')
 
+  // Stage 2 — yearly month range
+  const [fromMonth, setFromMonth] = useState(1)
+  const [toMonth,   setToMonth]   = useState(12)
+  // Stage 2 — monthly week count
+  const [monthlyWeekCount, setMonthlyWeekCount] = useState(4)
   // Stage 2 — project mode only
   const [phases,   setPhases]   = useState<PipelinePhase[]>([{ name: 'Phase 1', timeRange: '', tasks: [''], budget: '' }])
   const [bigRocks, setBigRocks] = useState<PipelineBigRock[]>([{ task: '', deadline: '' }])
@@ -63,6 +68,7 @@ export function PipelinePlannerForm({ onChange }: Props) {
   // Stage 3
   const [weekCount,   setWeekCount]   = useState(4)
   const [weekLayout,  setWeekLayout]  = useState<PipelineWeeklyLayout>('135rule')
+  const [startDay,    setStartDay]    = useState<PipelineStartDay>('mon')
 
   // Stage 4
   const [dayCount,    setDayCount]    = useState(7)
@@ -74,9 +80,9 @@ export function PipelinePlannerForm({ onChange }: Props) {
 
   useEffect(() => {
     const s2: PlannerPipelineDataV4['s2_timeplan'] = horizon === 'yearly'
-      ? { year: horizonValue }
+      ? { year: horizonValue, fromMonth, toMonth }
       : horizon === 'monthly'
-        ? { month: horizonValue }
+        ? { month: horizonValue, monthlyWeekCount }
         : {
             phases: phases.filter(p => p.name.trim()).map(p => ({ ...p, tasks: p.tasks.filter(t => t.trim()) })),
             bigRocks: bigRocks.filter(r => r.task.trim()),
@@ -86,15 +92,16 @@ export function PipelinePlannerForm({ onChange }: Props) {
       meta: { schemaVersion: '4.0', mode: 'pipeline', title: displayTitle, description, colorTheme, coverPage },
       s1_goal: { goal, why, deadline, horizon, horizonValue },
       s2_timeplan: s2,
-      s3_weekly: { weekCount, layout: weekLayout },
+      s3_weekly: { weekCount, layout: weekLayout, startDay },
       s4_daily:  { dayCount,  layout: dayLayout  },
       s5_review: { reviewCycle, reviewQuestions: reviewQs.filter(q => q.trim()) },
     })
   }, [
     displayTitle, description, colorTheme, coverPage,
     goal, why, deadline, horizon, horizonValue,
+    fromMonth, toMonth, monthlyWeekCount,
     phases, bigRocks,
-    weekCount, weekLayout,
+    weekCount, weekLayout, startDay,
     dayCount, dayLayout,
     reviewCycle, reviewQs,
     onChange,
@@ -213,8 +220,8 @@ export function PipelinePlannerForm({ onChange }: Props) {
               <label className={LABEL}>รูปแบบแผน (Planning Horizon)</label>
               <div className="grid grid-cols-3 gap-2">
                 {([
-                  { v: 'yearly',  l: 'รายปี',    desc: 'ภาพรวม 12 เดือน' },
-                  { v: 'monthly', l: 'รายเดือน',  desc: 'ภาพรวม 4 สัปดาห์' },
+                  { v: 'yearly',  l: 'รายปี',    desc: 'เลือกช่วงเดือนเอง' },
+                  { v: 'monthly', l: 'รายเดือน',  desc: 'เลือกจำนวนสัปดาห์' },
                   { v: 'project', l: 'โปรเจกต์',  desc: 'กำหนด phases เอง' },
                 ] as { v: PipelineHorizon; l: string; desc: string }[]).map(({ v, l, desc }) => (
                   <button key={v} type="button" onClick={() => setHorizon(v)}
@@ -253,20 +260,49 @@ export function PipelinePlannerForm({ onChange }: Props) {
             <span className="font-black text-sm">ภาพรวม</span>
           </div>
 
-          {horizon === 'yearly' && (
-            <div className="px-4 py-4">
-              <div className="rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm text-emerald-800">
-                ระบบจะสร้าง <strong>12 หน้า</strong> (ม.ค.–ธ.ค.) ให้อัตโนมัติ
-                {horizonValue ? ` สำหรับปี ${horizonValue}` : ''} แต่ละหน้ามีช่องกรอก: เป้าเดือน / วันสำคัญ / งานหลัก 3 อย่าง
+          {horizon === 'yearly' && (() => {
+            const MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม']
+            const count = Math.max(0, toMonth - fromMonth + 1)
+            return (
+              <div className="px-4 py-4 space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className={LABEL}>ตั้งแต่เดือน</label>
+                    <select value={fromMonth} onChange={e => { const v = Number(e.target.value); setFromMonth(v); if (v > toMonth) setToMonth(v) }}
+                      className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm">
+                      {MONTHS.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className={LABEL}>ถึงเดือน</label>
+                    <select value={toMonth} onChange={e => { const v = Number(e.target.value); setToMonth(v); if (v < fromMonth) setFromMonth(v) }}
+                      className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm">
+                      {MONTHS.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <div className="rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-2.5 text-sm text-emerald-800">
+                  จะสร้าง <strong>{count} หน้า</strong> ({MONTHS[fromMonth - 1]} – {MONTHS[toMonth - 1]}{horizonValue ? ` ${horizonValue}` : ''}) · แต่ละหน้ามีช่อง: เป้าเดือน / วันสำคัญ / งานหลัก 3 อย่าง
+                </div>
               </div>
-            </div>
-          )}
+            )
+          })()}
 
           {horizon === 'monthly' && (
-            <div className="px-4 py-4">
-              <div className="rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm text-emerald-800">
-                ระบบจะสร้าง <strong>4 หน้า</strong> (สัปดาห์ที่ 1–4) ให้อัตโนมัติ
-                {horizonValue ? ` สำหรับ ${horizonValue}` : ''} แต่ละหน้ามีช่อง: เป้าสัปดาห์ / งานที่ต้องทำ
+            <div className="px-4 py-4 space-y-3">
+              <div>
+                <label className={LABEL}>จำนวนสัปดาห์</label>
+                <div className="flex gap-2">
+                  {[1,2,3,4,5].map(n => (
+                    <button key={n} type="button" onClick={() => setMonthlyWeekCount(n)}
+                      className={`w-10 h-10 rounded-lg border-2 text-sm font-black transition ${
+                        monthlyWeekCount === n ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-neutral-200 text-neutral-600 hover:border-emerald-400'
+                      }`}>{n}</button>
+                  ))}
+                </div>
+              </div>
+              <div className="rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-2.5 text-sm text-emerald-800">
+                จะสร้าง <strong>{monthlyWeekCount} หน้า</strong>{horizonValue ? ` สำหรับ ${horizonValue}` : ''} · แต่ละหน้ามีช่อง: เป้าสัปดาห์ / งานที่ต้องทำ
               </div>
             </div>
           )}
@@ -354,7 +390,7 @@ export function PipelinePlannerForm({ onChange }: Props) {
                 {([
                   { v: 'simple',   l: 'แบบง่าย',        desc: 'เป้าสัปดาห์ + ช่องงาน 5 บรรทัด' },
                   { v: '135rule',  l: 'กฎ 1-3-5',        desc: '1 งานหลัก + 3 งานรอง + 5 งานเล็ก' },
-                  { v: 'timeblock', l: 'Time Block',      desc: 'ตาราง จ.–อา. × เช้า/กลางวัน/เย็น' },
+                  { v: 'timeblock', l: 'Time Block',      desc: 'ตาราง × เช้า/กลางวัน/เย็น (ใช้วันเริ่มต้นด้านล่าง)' },
                 ] as { v: PipelineWeeklyLayout; l: string; desc: string }[]).map(({ v, l, desc }) => (
                   <label key={v}
                     className={`flex items-center gap-3 rounded-xl border-2 px-4 py-3 cursor-pointer transition
@@ -365,6 +401,20 @@ export function PipelinePlannerForm({ onChange }: Props) {
                       <p className="text-[11px] text-neutral-500">{desc}</p>
                     </div>
                   </label>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className={LABEL}>วันเริ่มต้นสัปดาห์</label>
+              <div className="flex gap-1.5 flex-wrap">
+                {([
+                  { v: 'mon', l: 'จันทร์' }, { v: 'tue', l: 'อังคาร' }, { v: 'wed', l: 'พุธ' },
+                  { v: 'thu', l: 'พฤหัส' }, { v: 'fri', l: 'ศุกร์' }, { v: 'sat', l: 'เสาร์' }, { v: 'sun', l: 'อาทิตย์' },
+                ] as { v: PipelineStartDay; l: string }[]).map(({ v, l }) => (
+                  <button key={v} type="button" onClick={() => setStartDay(v)}
+                    className={`rounded-lg border-2 px-2.5 py-1.5 text-xs font-black transition ${
+                      startDay === v ? 'border-sky-600 bg-sky-600 text-white' : 'border-neutral-200 text-neutral-600 hover:border-sky-400'
+                    }`}>{l}</button>
                 ))}
               </div>
             </div>

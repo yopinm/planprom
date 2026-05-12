@@ -270,7 +270,10 @@ export function generatePlannerPipelineHtmlV4(data: PlannerPipelineDataV4, water
 
   if (s1.horizon === 'yearly') {
     const yearLabel = s1.horizonValue.trim()
-    s2Html = THAI_MONTHS.map((month, i) => `
+    const fromM = (s2.fromMonth ?? 1) - 1
+    const toM   = (s2.toMonth   ?? 12) - 1
+    const monthSlice = THAI_MONTHS.slice(fromM, toM + 1)
+    s2Html = monthSlice.map((month, i) => `
       <div class="sec" style="page-break-before:${i === 0 ? 'auto' : 'always'}">
         <div class="sec-hdr">แผนเดือน ${month}${yearLabel ? ` ${yearLabel}` : ''}</div>
         <div class="sub">เป้าหมายของเดือนนี้</div>
@@ -287,9 +290,10 @@ export function generatePlannerPipelineHtmlV4(data: PlannerPipelineDataV4, water
 
   } else if (s1.horizon === 'monthly') {
     const monthLabel = s1.horizonValue.trim()
-    s2Html = [1,2,3,4].map((week, i) => `
+    const wc = s2.monthlyWeekCount ?? 4
+    s2Html = Array.from({length: wc}, (_, i) => `
       <div class="sec" style="page-break-before:${i === 0 ? 'auto' : 'always'}">
-        <div class="sec-hdr">แผนสัปดาห์ที่ ${week}${monthLabel ? ` — ${monthLabel}` : ''}</div>
+        <div class="sec-hdr">แผนสัปดาห์ที่ ${i + 1}${monthLabel ? ` — ${monthLabel}` : ''}</div>
         <div class="sub">เป้าหมายสัปดาห์นี้</div>
         ${blankLines(2)}
         <div class="sub" style="margin-top:10px">งานที่ต้องทำ</div>
@@ -344,7 +348,10 @@ export function generatePlannerPipelineHtmlV4(data: PlannerPipelineDataV4, water
           ${blankLines(5)}
         </div>`
     } else if (s3.layout === 'timeblock') {
-      const days = ['จ.','อ.','พ.','พฤ.','ศ.','ส.','อา.']
+      const DAY_MAP: Record<string, string> = { mon:'จ.', tue:'อ.', wed:'พ.', thu:'พฤ.', fri:'ศ.', sat:'ส.', sun:'อา.' }
+      const DAY_ORDER = ['mon','tue','wed','thu','fri','sat','sun']
+      const startIdx = DAY_ORDER.indexOf(s3.startDay ?? 'mon')
+      const days = [...DAY_ORDER.slice(startIdx), ...DAY_ORDER.slice(0, startIdx)].map(d => DAY_MAP[d])
       content = `
         <table style="width:100%;border-collapse:collapse;font-size:8.5pt;table-layout:fixed">
           <colgroup><col style="width:36px"><col><col><col></colgroup>
