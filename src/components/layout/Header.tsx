@@ -9,8 +9,8 @@ const NAV_ITEMS = [
   { label: 'หน้าแรก', href: '/' },
   { label: 'เทมเพลตทั้งหมด', href: '/templates' },
 
-  { label: 'บทความเกี่ยวกับเทมเพลต', href: '/blog' },
-  { label: 'Planner vs Checklist ต่างกันอย่างไร?', href: '/blog/planner-กับ-checklist-ต่างกันยังไง' },
+  { label: 'บทความ', href: '/blog' },
+  { label: 'Planner vs Checklist', href: '/blog/planner-กับ-checklist-ต่างกันยังไง' },
   { label: 'คำถามที่พบบ่อย', href: '/blog/คำถามที่พบบ่อย-faq' },
 ]
 
