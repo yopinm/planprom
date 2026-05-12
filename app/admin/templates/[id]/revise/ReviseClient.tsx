@@ -1224,13 +1224,23 @@ function PipelineReviseFormV4({ initial, onChange }: {
                   placeholder={`รอง ${si + 1}`} className={INPUT} />
               ))}
             </div>
-            <div className="grid grid-cols-3 gap-1.5">
+            <div className="space-y-1.5">
               {wp.small.map((s, si) => (
-                <input key={si} value={s}
-                  onChange={e => setWeeklyPlans(prev => prev.map((x, j) => j === i
-                    ? { ...x, small: x.small.map((v, k) => k === si ? e.target.value : v) } : x))}
-                  placeholder={`เล็ก ${si + 1}`} className={INPUT} />
+                <div key={si} className="flex gap-2">
+                  <input value={s}
+                    onChange={e => setWeeklyPlans(prev => prev.map((x, j) => j === i
+                      ? { ...x, small: x.small.map((v, k) => k === si ? e.target.value : v) } : x))}
+                    placeholder={`งานเล็ก ${si + 1}`} className={INPUT} />
+                  {wp.small.length > 1 && (
+                    <button type="button" onClick={() => setWeeklyPlans(prev => prev.map((x, j) => j === i
+                      ? { ...x, small: x.small.filter((_, k) => k !== si) } : x))}
+                      className="px-2 text-red-400 hover:text-red-600 text-sm">✕</button>
+                  )}
+                </div>
               ))}
+              <button type="button" onClick={() => setWeeklyPlans(prev => prev.map((x, j) => j === i
+                ? { ...x, small: [...x.small, ''] } : x))}
+                className="text-xs font-black text-sky-600 hover:text-sky-700">+ เพิ่มงานเล็ก</button>
             </div>
           </div>
         ))}
@@ -1281,13 +1291,23 @@ function PipelineReviseFormV4({ initial, onChange }: {
                   placeholder={`รอง ${si + 1}`} className={INPUT} />
               ))}
             </div>
-            <div className="grid grid-cols-3 gap-1.5">
+            <div className="space-y-1.5">
               {wt.small.map((s, si) => (
-                <input key={si} value={s}
-                  onChange={e => setWeeklyTasks(prev => prev.map((x, j) => j === i
-                    ? { ...x, small: x.small.map((v, k) => k === si ? e.target.value : v) } : x))}
-                  placeholder={`เล็ก ${si + 1}`} className={INPUT} />
+                <div key={si} className="flex gap-2">
+                  <input value={s}
+                    onChange={e => setWeeklyTasks(prev => prev.map((x, j) => j === i
+                      ? { ...x, small: x.small.map((v, k) => k === si ? e.target.value : v) } : x))}
+                    placeholder={`งานเล็ก ${si + 1}`} className={INPUT} />
+                  {wt.small.length > 1 && (
+                    <button type="button" onClick={() => setWeeklyTasks(prev => prev.map((x, j) => j === i
+                      ? { ...x, small: x.small.filter((_, k) => k !== si) } : x))}
+                      className="px-2 text-red-400 hover:text-red-600 text-sm">✕</button>
+                  )}
+                </div>
               ))}
+              <button type="button" onClick={() => setWeeklyTasks(prev => prev.map((x, j) => j === i
+                ? { ...x, small: [...x.small, ''] } : x))}
+                className="text-xs font-black text-amber-600 hover:text-amber-700">+ เพิ่มงานเล็ก</button>
             </div>
           </div>
         ))}

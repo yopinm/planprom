@@ -493,14 +493,24 @@ export function PipelinePlannerForm({ onChange }: Props) {
                     ))}
                   </div>
                   <div>
-                    <label className={LABEL}>งานเล็ก 6 อย่าง (ถ้ามีเวลา)</label>
-                    <div className="grid grid-cols-2 gap-1.5 mt-1">
+                    <label className={LABEL}>งานเล็ก 6 อย่าง (อย่างน้อยถ้ามีเวลา)</label>
+                    <div className="space-y-1.5 mt-1">
                       {wp.small.map((s, si) => (
-                        <input key={si} value={s}
-                          onChange={e => setWeeklyPlans(prev => prev.map((x, j) => j === i
-                            ? { ...x, small: x.small.map((v, k) => k === si ? e.target.value : v) } : x))}
-                          placeholder={`งานเล็ก ${si + 1}`} className={INPUT} />
+                        <div key={si} className="flex gap-2">
+                          <input value={s}
+                            onChange={e => setWeeklyPlans(prev => prev.map((x, j) => j === i
+                              ? { ...x, small: x.small.map((v, k) => k === si ? e.target.value : v) } : x))}
+                            placeholder={`งานเล็ก ${si + 1}`} className={INPUT} />
+                          {wp.small.length > 1 && (
+                            <button type="button" onClick={() => setWeeklyPlans(prev => prev.map((x, j) => j === i
+                              ? { ...x, small: x.small.filter((_, k) => k !== si) } : x))}
+                              className="px-2 text-red-400 hover:text-red-600 text-sm">✕</button>
+                          )}
+                        </div>
                       ))}
+                      <button type="button" onClick={() => setWeeklyPlans(prev => prev.map((x, j) => j === i
+                        ? { ...x, small: [...x.small, ''] } : x))}
+                        className="text-xs font-black text-sky-600 hover:text-sky-700">+ เพิ่มงานเล็ก</button>
                     </div>
                   </div>
                 </div>
@@ -576,14 +586,24 @@ export function PipelinePlannerForm({ onChange }: Props) {
                     ))}
                   </div>
                   <div>
-                    <label className={LABEL}>งานเล็ก 6 อย่าง (ถ้ามีเวลา)</label>
-                    <div className="grid grid-cols-2 gap-1.5 mt-1">
+                    <label className={LABEL}>งานเล็ก 6 อย่าง (อย่างน้อยถ้ามีเวลา)</label>
+                    <div className="space-y-1.5 mt-1">
                       {wt.small.map((s, si) => (
-                        <input key={si} value={s}
-                          onChange={e => setWeeklyTasks(prev => prev.map((x, j) => j === i
-                            ? { ...x, small: x.small.map((v, k) => k === si ? e.target.value : v) } : x))}
-                          placeholder={`งานเล็ก ${si + 1}`} className={INPUT} />
+                        <div key={si} className="flex gap-2">
+                          <input value={s}
+                            onChange={e => setWeeklyTasks(prev => prev.map((x, j) => j === i
+                              ? { ...x, small: x.small.map((v, k) => k === si ? e.target.value : v) } : x))}
+                            placeholder={`งานเล็ก ${si + 1}`} className={INPUT} />
+                          {wt.small.length > 1 && (
+                            <button type="button" onClick={() => setWeeklyTasks(prev => prev.map((x, j) => j === i
+                              ? { ...x, small: x.small.filter((_, k) => k !== si) } : x))}
+                              className="px-2 text-red-400 hover:text-red-600 text-sm">✕</button>
+                          )}
+                        </div>
                       ))}
+                      <button type="button" onClick={() => setWeeklyTasks(prev => prev.map((x, j) => j === i
+                        ? { ...x, small: [...x.small, ''] } : x))}
+                        className="text-xs font-black text-amber-600 hover:text-amber-700">+ เพิ่มงานเล็ก</button>
                     </div>
                   </div>
                 </div>

@@ -375,9 +375,9 @@ export function generatePlannerPipelineHtmlV4(data: PlannerPipelineDataV4, water
             </div>`).join('')}
         </div>
         <div>
-          <div style="font-size:9pt;font-weight:700;color:#9ca3af;margin-bottom:4px">งานเล็ก 6 อย่าง — ถ้ามีเวลา</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px">
-            ${wt.small.slice(0,6).map((s, n) => `
+          <div style="font-size:9pt;font-weight:700;color:#9ca3af;margin-bottom:4px">งานเล็ก 6 อย่าง (อย่างน้อยถ้ามีเวลา)</div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            ${wt.small.map((s, n) => `
               <div style="display:flex;gap:6px;align-items:center;font-size:8.5pt;color:#6b7280;padding:3px 0;border-bottom:1px dotted #f3f4f6">
                 <span style="font-weight:700;color:#9ca3af">${n+1}.</span>
                 <span>${s.trim() ? esc(s) : '—'}</span>
