@@ -4,7 +4,8 @@ import { useRouter } from 'next/navigation'
 import { createTemplateWizardAction, checkSlugExists } from '../actions'
 import type { TocItem } from '@/lib/pdf-types'
 import { ChecklistEngineForm } from './ChecklistEngineForm'
-import { PlannerEngineForm } from './PlannerEngineForm'
+// DEPRECATED 2026-05-12 — engine-planner ถูก hidden แล้ว ลบได้หลัง 2026-05-19
+// import { PlannerEngineForm } from './PlannerEngineForm'
 import { PipelinePlannerForm } from './PipelinePlannerForm'
 
 type Mode = 'upload' | 'docx' | 'clone' | 'engine-checklist' | 'engine-planner' | 'engine-pipeline'
@@ -86,7 +87,8 @@ export function WizardClient({ categories, cloneSources }: Props) {
   const [tier,        setTier]       = useState('standard')
   const [docType,     setDocType]    = useState('checklist')
   const [tags,        setTags]       = useState<ValidTag[]>(['new'])
-  const [cloneId,     setCloneId]    = useState('')
+  // DEPRECATED 2026-05-12 — clone hidden แล้ว ลบได้หลัง 2026-05-19
+  // const [cloneId, setCloneId] = useState('')
   const [error,       setError]      = useState('')
 
   // engine mode state
@@ -213,16 +215,17 @@ export function WizardClient({ categories, cloneSources }: Props) {
     if (n > 0) setTier(suggestTierFromPages(n))
   }
 
-  function applyClone(id: string) {
-    setCloneId(id)
-    const src = cloneSources.find(s => s.id === id)
-    if (!src) return
-    setTitle(src.title + ' (copy)')
-    setSlug(src.slug + '-copy')
-    setSlugTouched(true)
-    setDesc(src.description ?? '')
-    setTier(src.tier)
-  }
+  // DEPRECATED 2026-05-12 — clone hidden แล้ว ลบได้หลัง 2026-05-19
+  // function applyClone(id: string) {
+  //   setCloneId(id)
+  //   const src = cloneSources.find(s => s.id === id)
+  //   if (!src) return
+  //   setTitle(src.title + ' (copy)')
+  //   setSlug(src.slug + '-copy')
+  //   setSlugTouched(true)
+  //   setDesc(src.description ?? '')
+  //   setTier(src.tier)
+  // }
 
   function goToStep(n: number) {
     setError('')
@@ -287,7 +290,8 @@ export function WizardClient({ categories, cloneSources }: Props) {
         setError('ตรวจสอบ Slug ไม่ได้ — ลองใหม่')
         return
       }
-      if (mode === 'clone' && !cloneId) { setError('เลือก template ที่จะ clone ก่อน'); return }
+      // DEPRECATED 2026-05-12 — clone hidden แล้ว ลบได้หลัง 2026-05-19
+      // if (mode === 'clone' && !cloneId) { setError('เลือก template ที่จะ clone ก่อน'); return }
       if (mode === 'docx' && docxState !== 'done') { setError('อัพโหลด .docx ก่อน'); return }
       if ((mode === 'engine-checklist' || mode === 'engine-planner' || mode === 'engine-pipeline') && engineState !== 'done') {
         setError('กด "Generate PDF Preview" ก่อนดำเนินการต่อ'); return
@@ -403,11 +407,13 @@ export function WizardClient({ categories, cloneSources }: Props) {
           <div className="grid gap-3">
             {([
               { m: 'engine-checklist' as Mode, icon: '✅', title: 'Engine: Checklist', desc: 'กรอกข้อมูล 5 Section → ระบบสร้าง PDF เช็คลิสต์มาตรฐานอัตโนมัติ' },
-              { m: 'engine-planner'   as Mode, icon: '📅', title: 'Engine: Planner',   desc: 'กรอกข้อมูล 4 Pillar → ระบบสร้าง PDF Planner ครบถ้วนอัตโนมัติ' },
+              // DEPRECATED 2026-05-12 — ลบได้หลัง 2026-05-19
+              // { m: 'engine-planner' as Mode, icon: '📅', title: 'Engine: Planner', desc: 'กรอกข้อมูล 4 Pillar → ระบบสร้าง PDF Planner ครบถ้วนอัตโนมัติ' },
               { m: 'engine-pipeline'  as Mode, icon: '🔄', title: 'Engine: Pipeline',  desc: 'กรอก 5 แกน (เป้า → ภาพรวม → สัปดาห์ → วัน → รีวิว) → ระบบสร้าง PDF Planner อัตโนมัติ' },
               { m: 'docx'             as Mode, icon: '📝', title: 'สร้างจาก .docx',    desc: 'อัพโหลด .docx → ระบบ generate PDF มาตรฐาน A4 อัตโนมัติ' },
               { m: 'upload'           as Mode, icon: '📤', title: 'Upload PDF',         desc: 'มี PDF อยู่แล้ว — อัพโหลดเข้าระบบโดยตรง' },
-              { m: 'clone'            as Mode, icon: '✏️', title: 'Clone',              desc: 'Clone จาก template ที่มีอยู่ แล้วแก้ไข' },
+              // DEPRECATED 2026-05-12 — ลบได้หลัง 2026-05-19
+              // { m: 'clone' as Mode, icon: '✏️', title: 'Clone', desc: 'Clone จาก template ที่มีอยู่ แล้วแก้ไข' },
             ] as { m: Mode; icon: string; title: string; desc: string }[]).map(({ m, icon, title: t, desc }) => (
               <button
                 key={m}
@@ -459,6 +465,7 @@ export function WizardClient({ categories, cloneSources }: Props) {
             <p className="mb-4 text-sm text-neutral-500">Mode: <strong>{mode}</strong> · Catalog: <strong>{catName}</strong></p>
           </div>
 
+          {/* DEPRECATED 2026-05-12 — clone UI hidden แล้ว ลบได้หลัง 2026-05-19
           {mode === 'clone' && (
             <div>
               <label className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-neutral-400">
@@ -482,6 +489,7 @@ export function WizardClient({ categories, cloneSources }: Props) {
               )}
             </div>
           )}
+          */}
 
           <div>
             <label className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-neutral-400">ชื่อ Template (ใช้ในระบบ) *</label>
@@ -582,7 +590,8 @@ export function WizardClient({ categories, cloneSources }: Props) {
                   ? <ChecklistEngineForm onChange={handleEngineDataChange as Parameters<typeof ChecklistEngineForm>[0]['onChange']} />
                   : mode === 'engine-pipeline'
                     ? <PipelinePlannerForm onChange={handleEngineDataChange as Parameters<typeof PipelinePlannerForm>[0]['onChange']} />
-                    : <PlannerEngineForm onChange={handleEngineDataChange as Parameters<typeof PlannerEngineForm>[0]['onChange']} />
+                    // DEPRECATED 2026-05-12 — engine-planner hidden แล้ว ลบได้หลัง 2026-05-19
+                    : null
                 }
               </div>
 
