@@ -235,8 +235,8 @@ table.data-table tr:nth-child(even) td{background:#fafafa}
 .p2-title{font-size:14pt;font-weight:700;color:#1a1a1a;text-align:center;text-decoration:underline;margin-bottom:20px}
 
 /* ── Page 2 inline fields ── */
-.if{display:flex;align-items:flex-end;gap:5px;margin-bottom:32px;break-inside:avoid}
-.if.half{display:inline-flex;width:48%;margin-right:2%;vertical-align:bottom;align-items:flex-end;margin-bottom:32px}
+.if{display:flex;align-items:flex-end;gap:5px;margin-bottom:24px;break-inside:avoid}
+.if.half{display:inline-flex;width:48%;margin-right:2%;vertical-align:bottom;align-items:flex-end;margin-bottom:24px}
 .if-lbl{font-size:10pt;color:#1a1a1a;white-space:nowrap;flex-shrink:0}
 .if-req{color:#1a1a1a;font-weight:900}
 .if-line{flex:1;border-bottom:1.5px solid #1a1a1a;min-width:40px;height:18px;align-self:flex-end}
@@ -251,7 +251,7 @@ table.data-table tr:nth-child(even) td{background:#fafafa}
 .if-logo{border:1px dashed #374151;padding:8px 14px;display:inline-block;color:#6b7280;font-size:9pt;margin-bottom:10px}
 .if-ml{margin-bottom:0}
 .if-ml-lbl{font-size:10pt;color:#1a1a1a;margin-bottom:8px}
-.if-ml .if-line{display:block;width:100%;height:18px;margin-bottom:32px;border-bottom:1.5px solid #1a1a1a}
+.if-ml .if-line{display:block;width:100%;height:18px;margin-bottom:24px;border-bottom:1.5px solid #1a1a1a}
 .if-tbl{margin-bottom:12px;break-inside:avoid}
 .if-tbl-lbl{font-size:10pt;font-weight:600;margin-bottom:4px;color:#1a1a1a}
 .if-photo{border:1px dashed #374151;padding:12px;text-align:center;color:#6b7280;font-size:9pt;margin-bottom:10px;min-height:50px;display:flex;align-items:center;justify-content:center}
