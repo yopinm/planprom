@@ -1,4 +1,4 @@
-// POST /api/admin/form-builder/save — EF-4
+﻿// POST /api/admin/form-builder/save â€” EF-4
 import { NextRequest, NextResponse } from 'next/server'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
 
   // Check slug uniqueness
   const [existing] = await db<{ id: string }[]>`SELECT id FROM templates WHERE slug = ${safeSlug} LIMIT 1`
-  if (existing) return NextResponse.json({ error: `Slug "${safeSlug}" ถูกใช้แล้ว` }, { status: 409 })
+  if (existing) return NextResponse.json({ error: `Slug "${safeSlug}" à¸–à¸¹à¸à¹ƒà¸Šà¹‰à¹à¸¥à¹‰à¸§` }, { status: 409 })
 
   // Build engine_data
   const engineData: FormEngineData = { schemaVersion: '1.0', title, fields, sampleData }
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
   const pdfFilename = `${safeSlug}-form-${ts}.pdf`
   const pdfPath     = `/uploads/templates/${pdfFilename}`
 
-  // Step 1: PDF — sparticuz chromium
+  // Step 1: PDF â€” sparticuz chromium
   let browser = null
   try {
     browser = await puppeteer.launch({ executablePath, args, headless: true })
@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
     if (browser) await (browser as { close(): Promise<void> }).close().catch(() => {})
   }
 
-  // Step 2: Multi-page screenshots — non-fatal
+  // Step 2: Multi-page screenshots â€” non-fatal
   let previewPath: string | null = null
   const previewPages: string[] = []
   let browser2 = null
@@ -107,7 +107,7 @@ export async function POST(req: NextRequest) {
       executablePath: sysChromium,
       args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu', '--font-render-hinting=none'],
       headless: true,
-      defaultViewport: { width: 560, height: 3200 },
+      defaultViewport: { width: 560, height: 792 },
     })
     const page2 = await browser2.newPage()
     await page2.setContent(html, { waitUntil: 'networkidle0' })

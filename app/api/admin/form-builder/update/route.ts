@@ -1,4 +1,4 @@
-// PATCH /api/admin/form-builder/update — EF-6 edit mode
+﻿// PATCH /api/admin/form-builder/update â€” EF-6 edit mode
 import { NextRequest, NextResponse } from 'next/server'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
@@ -76,7 +76,7 @@ export async function PATCH(req: NextRequest) {
   const pdfFilename = `${existing.slug}-form-${ts}.pdf`
   const pdfPath     = `/uploads/templates/${pdfFilename}`
 
-  // Step 1: PDF — sparticuz chromium
+  // Step 1: PDF â€” sparticuz chromium
   let browser = null
   try {
     browser = await puppeteer.launch({ executablePath, args, headless: true })
@@ -94,7 +94,7 @@ export async function PATCH(req: NextRequest) {
     if (browser) await (browser as { close(): Promise<void> }).close().catch(() => {})
   }
 
-  // Step 2: Multi-page screenshots — non-fatal
+  // Step 2: Multi-page screenshots â€” non-fatal
   let previewPath: string | null = null
   const previewPages: string[] = []
   let browser2 = null
@@ -104,7 +104,7 @@ export async function PATCH(req: NextRequest) {
       executablePath: sysChromium,
       args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu', '--font-render-hinting=none'],
       headless: true,
-      defaultViewport: { width: 560, height: 3200 },
+      defaultViewport: { width: 560, height: 792 },
     })
     const page2 = await browser2.newPage()
     await page2.setContent(html, { waitUntil: 'networkidle0' })

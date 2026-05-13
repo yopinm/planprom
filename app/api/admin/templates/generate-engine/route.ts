@@ -1,4 +1,4 @@
-// POST /api/admin/templates/generate-engine — DC-5/DC-6 text-to-PDF engine
+﻿// POST /api/admin/templates/generate-engine â€” DC-5/DC-6 text-to-PDF engine
 import { NextRequest, NextResponse } from 'next/server'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
   }
 
-  // Auto-generate document code — wrapped so DB crash returns JSON not HTML
+  // Auto-generate document code â€” wrapped so DB crash returns JSON not HTML
   let docCode = ''
   try {
     const prefix = engine_type === 'checklist' ? 'CK' : 'TP'
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: `HTML build failed: ${String(err)}` }, { status: 500 })
   }
 
-  // Setup puppeteer + paths — wrapped so import/executablePath crash returns JSON not HTML
+  // Setup puppeteer + paths â€” wrapped so import/executablePath crash returns JSON not HTML
   let puppeteer: Awaited<typeof import('puppeteer-core')>['default']
   let executablePath: string
   let args: string[]
@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
   const ts = Date.now()
   const pdfFilename = `${safeSlug}-${engine_type}-${ts}.pdf`
 
-  // ── Step 1: PDF ──────────────────────────────────────────────────────────
+  // â”€â”€ Step 1: PDF â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   let browser1 = null
   try {
     browser1 = await puppeteer.launch({ executablePath, args, headless: true })
@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
     if (browser1) await (browser1 as { close(): Promise<void> }).close().catch(() => {})
   }
 
-  // ── Step 2: Multi-page screenshots — non-fatal ───────────────────────────
+  // â”€â”€ Step 2: Multi-page screenshots â€” non-fatal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   let previewPath: string | null = null
   const previewPages: string[] = []
   let browser2 = null
@@ -114,7 +114,7 @@ export async function POST(req: NextRequest) {
       executablePath: sysChromium,
       args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu', '--font-render-hinting=none'],
       headless: true,
-      defaultViewport: { width: 560, height: 3200 },
+      defaultViewport: { width: 560, height: 792 },
     })
     const page2 = await browser2.newPage()
     await page2.setContent(html, { waitUntil: 'networkidle0' })

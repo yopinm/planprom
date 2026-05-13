@@ -1,4 +1,4 @@
-// POST /api/admin/templates/generate-planner-pipeline — DC-16 Pipeline v3/v4
+﻿// POST /api/admin/templates/generate-planner-pipeline â€” DC-16 Pipeline v3/v4
 import { NextRequest, NextResponse } from 'next/server'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
     if (browser1) await (browser1 as { close(): Promise<void> }).close().catch(() => {})
   }
 
-  // Step 2: Multi-page screenshots — non-fatal
+  // Step 2: Multi-page screenshots â€” non-fatal
   let previewPath: string | null = null
   const previewPages: string[] = []
   let browser2 = null
@@ -114,7 +114,7 @@ export async function POST(req: NextRequest) {
       executablePath: sysChromium,
       args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu', '--font-render-hinting=none'],
       headless: true,
-      defaultViewport: { width: 560, height: 3200 },
+      defaultViewport: { width: 560, height: 792 },
     })
     const page2 = await browser2.newPage()
     await page2.setContent(html, { waitUntil: 'networkidle0' })

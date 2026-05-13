@@ -1,4 +1,4 @@
-// POST /api/admin/templates/generate-report — RE-1 Report Engine
+﻿// POST /api/admin/templates/generate-report â€” RE-1 Report Engine
 import { NextRequest, NextResponse } from 'next/server'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
@@ -12,7 +12,7 @@ function bkkNow() {
 }
 
 function formatThaiDate(d: Date): string {
-  const months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.']
+  const months = ['à¸¡.à¸„.','à¸.à¸ž.','à¸¡à¸µ.à¸„.','à¹€à¸¡.à¸¢.','à¸ž.à¸„.','à¸¡à¸´.à¸¢.','à¸.à¸„.','à¸ª.à¸„.','à¸.à¸¢.','à¸•.à¸„.','à¸ž.à¸¢.','à¸˜.à¸„.']
   return `${d.getUTCDate()} ${months[d.getUTCMonth()]} ${d.getUTCFullYear() + 543}`
 }
 
@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
     if (browser1) await (browser1 as { close(): Promise<void> }).close().catch(() => {})
   }
 
-  // Step 2: Multi-page screenshots — non-fatal
+  // Step 2: Multi-page screenshots â€” non-fatal
   let previewPath: string | null = null
   const previewPages: string[] = []
   let browser2 = null
@@ -127,7 +127,7 @@ export async function POST(req: NextRequest) {
       executablePath: sysChromium,
       args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu', '--font-render-hinting=none'],
       headless: true,
-      defaultViewport: { width: 560, height: 3200 },
+      defaultViewport: { width: 560, height: 792 },
     })
     const page2 = await browser2.newPage()
     await page2.setContent(html, { waitUntil: 'networkidle0' })

@@ -1,4 +1,4 @@
-// POST /api/admin/templates/generate-revision — DC-8
+﻿// POST /api/admin/templates/generate-revision â€” DC-8
 // Same pipeline as generate-engine/generate-planner but preserves docCode (no re-generation)
 import { NextRequest, NextResponse } from 'next/server'
 import { writeFile, mkdir } from 'fs/promises'
@@ -17,7 +17,7 @@ import { db } from '@/lib/db'
 
 function bkkNow() { return new Date(Date.now() + 7 * 60 * 60 * 1000) }
 function formatThaiDate(d: Date): string {
-  const m = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.']
+  const m = ['à¸¡.à¸„.','à¸.à¸ž.','à¸¡à¸µ.à¸„.','à¹€à¸¡.à¸¢.','à¸ž.à¸„.','à¸¡à¸´.à¸¢.','à¸.à¸„.','à¸ª.à¸„.','à¸.à¸¢.','à¸•.à¸„.','à¸ž.à¸¢.','à¸˜.à¸„.']
   return `${d.getUTCDate()} ${m[d.getUTCMonth()]} ${d.getUTCFullYear() + 543}`
 }
 function addMonths(d: Date, n: number): Date { const r = new Date(d); r.setUTCMonth(r.getUTCMonth() + n); return r }
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
   let html: string
   try {
     if (engine_type === 'checklist') {
-      // docCode preserved as-is from engine_data.s1.docCode — no re-generation
+      // docCode preserved as-is from engine_data.s1.docCode â€” no re-generation
       html = generateChecklistHtml(engine_data as ChecklistEngineData, watermark_text, category_name)
     } else if (engine_type === 'planner') {
       const isV2 = (engine_data as Record<string, unknown>).meta !== undefined &&
@@ -139,7 +139,7 @@ export async function POST(req: NextRequest) {
     if (browser1) await (browser1 as { close(): Promise<void> }).close().catch(() => {})
   }
 
-  // Step 2: Multi-page screenshots — non-fatal
+  // Step 2: Multi-page screenshots â€” non-fatal
   let previewPath: string | null = null
   const previewPages: string[] = []
   let browser2 = null
@@ -149,7 +149,7 @@ export async function POST(req: NextRequest) {
       executablePath: sysChromium,
       args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu', '--font-render-hinting=none'],
       headless: true,
-      defaultViewport: { width: 560, height: 3200 },
+      defaultViewport: { width: 560, height: 792 },
     })
     const page2 = await browser2.newPage()
     await page2.setContent(html, { waitUntil: 'networkidle0' })

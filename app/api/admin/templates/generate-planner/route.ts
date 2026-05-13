@@ -1,5 +1,5 @@
-// POST /api/admin/templates/generate-planner — Planner engine only (DC-8)
-// Completely separate from generate-engine (checklist) — do not merge
+﻿// POST /api/admin/templates/generate-planner â€” Planner engine only (DC-8)
+// Completely separate from generate-engine (checklist) â€” do not merge
 import { NextRequest, NextResponse } from 'next/server'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
   const ts = Date.now()
   const pdfFilename = `${safeSlug}-planner-${ts}.pdf`
 
-  // ── Step 1: PDF ──────────────────────────────────────────────────────────
+  // â”€â”€ Step 1: PDF â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   let browser1 = null
   try {
     browser1 = await puppeteer.launch({ executablePath, args, headless: true })
@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
     if (browser1) await (browser1 as { close(): Promise<void> }).close().catch(() => {})
   }
 
-  // ── Step 2: Multi-page screenshots — non-fatal ───────────────────────────
+  // â”€â”€ Step 2: Multi-page screenshots â€” non-fatal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   let previewPath: string | null = null
   const previewPages: string[] = []
   let browser2 = null
@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
       executablePath: sysChromium,
       args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu', '--font-render-hinting=none'],
       headless: true,
-      defaultViewport: { width: 560, height: 3200 },
+      defaultViewport: { width: 560, height: 792 },
     })
     const page2 = await browser2.newPage()
     await page2.setContent(html, { waitUntil: 'networkidle0' })
