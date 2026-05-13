@@ -346,6 +346,55 @@ export default async function TemplateDetailPage({ params }: Props) {
               )
             })()}
 
+            {/* Engine Preview — report (RE-1) */}
+            {tmpl.engine_type === 'report' && tmpl.engine_data && (() => {
+              const d = tmpl.engine_data as unknown as import('@/lib/engine-report-types').ReportEngineData
+              if (!d?.s1) return null
+              const CONF_LABEL: Record<string, string> = {
+                public: '🌐 Public', internal: '🔵 Internal',
+                confidential: '🔒 Confidential', strictly_confidential: '🔴 Strictly Confidential',
+              }
+              const kpiCount = (d.s3?.kpis ?? []).filter(k => k.label?.trim()).length
+              const tableCount = (d.s5?.tables ?? []).length
+              const blockCount = (d.s5?.textBlocks ?? []).filter(b => b.body?.trim()).length
+              return (
+                <div className="mt-5 rounded-2xl bg-sky-50 p-5">
+                  <div className="flex items-center gap-2 mb-3 flex-wrap">
+                    <h2 className="font-bold text-neutral-900">ข้อมูลรายงาน</h2>
+                    <span className="rounded-full bg-sky-200 px-3 py-0.5 text-xs font-black text-sky-800">
+                      📊 Report มาตรฐาน · 8 sections
+                    </span>
+                    <span className="rounded-full bg-white border border-sky-300 px-3 py-0.5 text-xs font-bold text-sky-700">
+                      {CONF_LABEL[d.s1.confidentialLevel] ?? '🔒 Confidential'}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-sm mb-3">
+                    <div className="rounded-lg bg-white p-3 border border-sky-100">
+                      <p className="text-[10px] font-black text-neutral-400 uppercase tracking-wider mb-1">จัดทำโดย</p>
+                      <p className="font-bold text-neutral-800">{d.s1.organization || '—'}</p>
+                    </div>
+                    <div className="rounded-lg bg-white p-3 border border-sky-100">
+                      <p className="text-[10px] font-black text-neutral-400 uppercase tracking-wider mb-1">อายุเอกสาร</p>
+                      <p className="font-bold text-neutral-800">{d.s1.validityMonths ?? 12} เดือน</p>
+                    </div>
+                  </div>
+                  {d.s4?.objective && (
+                    <div className="rounded-lg bg-white p-3 border border-sky-100 text-sm mb-2">
+                      <p className="text-[10px] font-black text-neutral-400 uppercase tracking-wider mb-1">วัตถุประสงค์</p>
+                      <p className="text-neutral-700">{d.s4.objective}</p>
+                    </div>
+                  )}
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {kpiCount > 0 && <span className="rounded-full bg-white border border-sky-200 px-2.5 py-0.5 text-xs text-sky-700">KPI ×{kpiCount}</span>}
+                    {tableCount > 0 && <span className="rounded-full bg-white border border-sky-200 px-2.5 py-0.5 text-xs text-sky-700">ตาราง ×{tableCount}</span>}
+                    {blockCount > 0 && <span className="rounded-full bg-white border border-sky-200 px-2.5 py-0.5 text-xs text-sky-700">การวิเคราะห์ ×{blockCount}</span>}
+                    <span className="rounded-full bg-white border border-sky-200 px-2.5 py-0.5 text-xs text-sky-700">QR Code ยืนยัน</span>
+                    <span className="rounded-full bg-white border border-sky-200 px-2.5 py-0.5 text-xs text-sky-700">Report ID</span>
+                  </div>
+                </div>
+              )
+            })()}
+
             {/* TOC — always expanded on detail page (docx path) */}
             {!tmpl.engine_type && tmpl.toc_sections && tmpl.toc_sections.length > 0 && (
               <div className="mt-5 rounded-2xl bg-violet-50 p-5">

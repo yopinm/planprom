@@ -1,4 +1,4 @@
-// lib/engine-types.ts — shared types for Checklist + Planner engines
+// lib/engine-types.ts — shared types for Checklist + Planner + Report engines
 
 export type ChecklistEngineData = {
   s1: { title: string; docCode: string; version: string; createdDate: string; author: string }
@@ -240,3 +240,5 @@ export type PlannerPipelineDataV4 = {
     reviewQuestions: string[]
   }
 }
+
+export type { ReportEngineData, ReportKpi, ReportTableData, ReportTextBlock } from './engine-report-types'
