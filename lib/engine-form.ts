@@ -191,7 +191,7 @@ body{font-family:'Sarabun',Arial,sans-serif;font-size:11pt;line-height:1.6;color
 .hdr-title{font-size:14pt;font-weight:700;color:#1a1a1a}
 .hdr-meta{display:flex;gap:16px;margin-top:4px;font-size:8.5pt;color:#6b7280}
 .hdr-badge{background:#f3f4f6;color:#374151;font-size:8pt;font-weight:700;padding:2px 8px;border-radius:4px;border:1px solid #d1d5db}
-.footer{position:fixed;bottom:0;left:0;right:0;z-index:10;background:#fff;display:flex;justify-content:space-between;font-size:8pt;color:#9ca3af;padding:3px 0;border-top:1px solid #e5e7eb}
+.footer{display:flex;justify-content:space-between;font-size:8pt;color:#9ca3af;padding:8px 0;border-top:1px solid #e5e7eb;margin-top:20px}
 .page{padding:0 0 28px 0}
 .page-break{break-after:page;height:1px}
 
@@ -235,8 +235,8 @@ table.data-table tr:nth-child(even) td{background:#fafafa}
 .p2-title{font-size:14pt;font-weight:700;color:#1a1a1a;text-align:center;text-decoration:underline;margin-bottom:20px}
 
 /* ── Page 2 inline fields ── */
-.if{display:flex;align-items:flex-end;gap:5px;margin-bottom:9px;break-inside:avoid}
-.if.half{display:inline-flex;width:48%;margin-right:2%;vertical-align:bottom;align-items:flex-end;margin-bottom:9px}
+.if{display:flex;align-items:flex-end;gap:5px;margin-bottom:22px;break-inside:avoid}
+.if.half{display:inline-flex;width:48%;margin-right:2%;vertical-align:bottom;align-items:flex-end;margin-bottom:22px}
 .if-lbl{font-size:10pt;color:#1a1a1a;white-space:nowrap;flex-shrink:0}
 .if-req{color:#1a1a1a;font-weight:900}
 .if-line{flex:1;border-bottom:1px solid #1a1a1a;min-width:40px;height:0;align-self:flex-end}
@@ -249,9 +249,9 @@ table.data-table tr:nth-child(even) td{background:#fafafa}
 .if-shdr{font-size:10.5pt;font-weight:700;text-decoration:underline;color:#1a1a1a;margin:14px 0 7px;break-after:avoid}
 .if-div{border-top:1px solid #1a1a1a;margin:8px 0}
 .if-logo{border:1px dashed #374151;padding:8px 14px;display:inline-block;color:#6b7280;font-size:9pt;margin-bottom:10px}
-.if-ml{margin-bottom:10px}
-.if-ml-lbl{font-size:10pt;color:#1a1a1a;margin-bottom:5px}
-.if-ml .if-line{display:block;width:100%;margin-bottom:8px}
+.if-ml{margin-bottom:16px}
+.if-ml-lbl{font-size:10pt;color:#1a1a1a;margin-bottom:8px}
+.if-ml .if-line{display:block;width:100%;margin-bottom:18px}
 .if-tbl{margin-bottom:12px;break-inside:avoid}
 .if-tbl-lbl{font-size:10pt;font-weight:600;margin-bottom:4px;color:#1a1a1a}
 .if-photo{border:1px dashed #374151;padding:12px;text-align:center;color:#6b7280;font-size:9pt;margin-bottom:10px;min-height:50px;display:flex;align-items:center;justify-content:center}
@@ -275,11 +275,10 @@ table.data-table tr:nth-child(even) td{background:#fafafa}
     </div>
   </div>
   ${filledFields}
-</div>
-
-<div class="footer">
-  <span>${esc(title)}</span>
-  <span>planprom.com</span>
+  <div class="footer">
+    <span>${esc(title)}</span>
+    <span>planprom.com</span>
+  </div>
 </div>
 
 <!-- PAGE 2: ฟอร์มเปล่า พร้อมพิมพ์ใช้จริง -->
