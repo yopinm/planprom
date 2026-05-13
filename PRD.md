@@ -29,11 +29,11 @@
 | **Doc Sync** | task เสร็จ → อัพเดต PRD.md + `core/planprom.md` เสมอ |
 | **Scope Gate** | ก่อนเริ่ม implement ทุก task → ต้องมี scope + flow ใน `core/planprom.md` ก่อน → commit docs → รอ owner confirm → ค่อย implement |
 | **Blockers** | Lazada pool=49 fixed · Affiliate tasks ❌ CLOSED 2026-05-13 (owner decision) |
-| **Next task** | **INTEL UAT** (ใช้งานจริง ว่าขายได้) → **DC-16** UAT confirm → **E9/E10** engine preview card → **J14** Member Auto-Push |
-| **Pending (code)** | J14 · J17 · J19 · UI-G(defer) · EF-1..5 |
+| **Next task** | **RE-1** Report Engine (scope locked) → **ADM-FALLBACK-1** Emergency Admin Login → E9/E10 → J19 |
+| **Pending (code)** | **RE-1** 🔴 · **ADM-FALLBACK-1** 🔴 · J19 · E9/E10 · UI-G(defer) |
 | **Pending (UAT)** | INTEL-C/D · DC-1 · DC-2 · DC-8 · DC-16 · E9/E10 · J9(รอ live keys) |
 | **Pending (decision)** | Homepage UX: D (social proof bar) + B (featured badge pulse) — mock ready รอ confirm |
-| **Last session** | **Session 59 (2026-05-13)** — J13 ✅ ปิดสมบูรณ์ · affiliate tasks CLOSED · Blueprint → Planprom_Manual §19-22 · V13+Blueprint ลบ · admin delete tooltip · homepage LINE fix (~yopinm) · navbar label ใหม่ |
+| **Last session** | **Session 60 (2026-05-13)** — EF-8 ✅ ปิดสมบูรณ์ · multi-page carousel (2 pages) · fix preview_pages ::jsonb · fix preview API regex · viewport 3200→792 (blank pages แก้แล้ว) · DB migration report row |
 | **ห้าม** | ไม่แตะ Later task ขณะที่ Now ยังค้างอยู่ · ไม่แตะ secrets โดยตรง · ไม่ทำให้ revenue channel หายไประหว่าง pivot |
 
 ---
@@ -176,8 +176,8 @@
 | 12 | **ADMIN-CLEAN-1** Admin wallet dead code | 🟡 | ✅ Done (Session 45) |
 | 13 | **ADMIN-CLEAN-2** Admin cleanup ชุด 2 | 🟡 | ✅ Done (Session 46) |
 | 14 | **J13** Customer Request Form `/templates/request` | 🟡 Medium | 🔲 Planned |
-| 15 | **J14** ระบบสมาชิก + Auto Push LINE | 🟡 Medium | 🔲 Planned |
-| 16 | **J17** Subscription รายเดือน (Standard/Pro) | 🟡 Planned | 🔲 Planned |
+| 15 | **J14** ระบบสมาชิก + Auto Push LINE | ❌ CANCELLED | ❌ Cancelled (2026-05-13 owner decision) |
+| 16 | **J17** Subscription รายเดือน (Standard/Pro) | ❌ CANCELLED | ❌ Cancelled (2026-05-13 owner decision) |
 | 17 | **J19** Template Log Export `/admin/templates/log-export` | 🟡 Medium | 🔲 Planned |
 | 18 | **PROMO-1** Promo Code API + Checkout Integration | 🟡 Medium | ✅ Done · UAT ผ่าน |
 | 19 | **PROMO-2** PromoCodeBanner Homepage + Countdown | 🟡 Medium | ✅ Done · UAT ผ่าน |
