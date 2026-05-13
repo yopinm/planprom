@@ -117,5 +117,5 @@ next task
 | Ref | Source |
 |---|---|
 | [1] | CANONICAL V15 spec: `core/planprom.md` |
-| [2] | Architecture / Infra / Engines / Admin / Roadmap / Break-Even ROI / Archive: `core/Couponkum_Blueprint.md` |
+| [2] | Technical Reference (DB, API, Engine, Infra, Nginx, Cloudflare): `core/Planprom_Manual.md` §19-22 · Legacy full Blueprint: `core/Couponkum_Blueprint.md` (pending delete) |
 | [3] | User Manual (Thai): `core/Planprom_Manual.md` |

@@ -1,6 +1,6 @@
 # Planprom_Manual.md — คู่มือการใช้งาน แพลนพร้อม (planprom.com)
 
-> อัพเดตล่าสุด: 2026-05-13 · Session 58 · ครอบคลุมทุกฟีเจอร์ที่ Live แล้ว
+> อัพเดตล่าสุด: 2026-05-13 · Session 59 · ครอบคลุมทุกฟีเจอร์ที่ Live + Technical Reference (DB, API, Engine, Infra) จาก Blueprint
 > ภาษา: ไทย · เขียนสำหรับ admin และ owner ของระบบ
 
 ---
@@ -25,6 +25,10 @@
 16. [Admin — Catalog Manager](#16-admin--catalog-manager)
 17. [ราคาและการคิดเงิน](#17-ราคาและการคิดเงิน)
 18. [ระบบโค้ดส่วนลด (Promo Code)](#18-ระบบโค้ดส่วนลด-promo-code)
+19. [DB Schema Reference](#19-db-schema-reference)
+20. [Routes & API Reference](#20-routes--api-reference)
+21. [Engine System Reference](#21-engine-system-reference)
+22. [Infra & Deploy Reference](#22-infra--deploy-reference)
 
 ---
 
@@ -599,6 +603,202 @@ URL: `/admin/catalogs`
 
 ---
 
+## 19. DB Schema Reference
+
+> ตาราง PostgreSQL (self-hosted บน VPS) — ใช้สำหรับ template store โดยตรง
+
+| Table | บทบาท |
+|---|---|
+| `templates` | slug, title, tier, price_baht, pdf_path, thumbnail_path, toc_sections JSONB, engine_type ('checklist'\|'planner'\|NULL), engine_data JSONB, document_type, status (draft\|draft_preview\|published), is_request_only |
+| `template_categories` | slug, name, emoji |
+| `template_category_links` | many-to-many (template ↔ category) |
+| `template_tags` | auto-tags: bestseller / new / trending / premium / free / staple |
+| `orders` | order_number (CK-YYYYMMDD-NNNN), order_type ('cart'\|'single'\|'pack'), customer_line_id, amount_baht, status, download_token, download_expires_at, download_count |
+| `order_items` | order_id → template_id (สำหรับ cart order) |
+| `carts` / `cart_items` | session-based cart (J18) |
+| `pack_credits` | ฿20=2cr / ฿50=10cr / ฿100=25cr · FIFO · expire 90 วัน |
+| `promo_codes` | code, discount_type, discount_value, max_uses, used_count, template_id (NULL=public, NOT NULL=unlock code) |
+| `template_revisions` | [DC-8 planned] revision_number, engine_data JSONB, pdf_path, change_note |
+| `free_template_grants` | LINE add friend → free template (pending) |
+| `template_searches` | search analytics |
+
+### กฎ DB
+- `order_number` ใช้ sequence `order_seq` (ไม่ใช่ random)
+- `download_token` = signed UUID · expire 24h · max 3 downloads
+- `promo_codes.template_id IS NULL` = public promo · `IS NOT NULL` = unlock code (J13)
+- `templates.is_request_only = true` → ราคา ฿50 เสมอ (override tier price)
+
+---
+
+## 20. Routes & API Reference
+
+### Routes ที่ Live
+
+| Route | บทบาท |
+|---|---|
+| `/` | Homepage — catalog sections, promo banner |
+| `/templates` | Template list + pricing callout (marginal ฿20→฿10→฿7) |
+| `/templates/[slug]` | Template detail + engine preview |
+| `/catalog/[slug]` | หมวดหมู่ template |
+| `/cart` | ตะกร้าสินค้า (session-based) |
+| `/checkout/[slug]` | ชำระเงินรายชิ้น — LINE auth → PromptPay QR |
+| `/checkout` | ชำระเงิน cart — LINE auth → PromptPay QR |
+| `/d/[token]` | Download page (validate token 24h / max 3x) |
+| `/orders` | ประวัติ order + ปุ่ม download |
+| `/analysis` | วิเคราะห์การซื้อส่วนตัว |
+| `/admin/templates` | รายการ template + badge หมวดหมู่ + engine |
+| `/admin/templates/new` | wizard สร้าง template (6 steps) |
+| `/admin/templates/[id]/edit` | แก้ metadata + approve draft_preview |
+| `/admin/templates/[id]/revise` | แก้ engine content + re-generate PDF (DC-8) |
+| `/admin/catalogs` | จัดการหมวดหมู่ |
+| `/admin/orders` | รายการ order + verify + revoke + LINE notify |
+| `/admin/template-analytics` | KPI + 14-day daily sales + per-template revenue |
+| `/admin/form-builder` | Form Builder สร้าง interactive form |
+
+### API Endpoints
+
+| Method | Route | บทบาท |
+|---|---|---|
+| POST | `/api/orders` | สร้าง order + gen PromptPay QR |
+| POST | `/api/orders/[id]/claim-paid` | trust-based claim → token → LINE push |
+| GET | `/api/checkout/[uid]/status` | Omise polling → mark paid → issue tokens |
+| POST | `/api/checkout/[uid]/refresh-qr` | QR หมดอายุ → สร้าง charge ใหม่ |
+| GET/POST | `/api/cart` | ดู / อัพเดต cart |
+| DELETE | `/api/cart/remove` | ลบ item จาก cart |
+| POST | `/api/admin/templates/upload-pdf` | อัพโหลด PDF ขึ้น VPS |
+| POST | `/api/admin/templates/upload-docx` | .docx → mammoth → puppeteer PDF + extractToc |
+| POST | `/api/admin/templates/generate-engine` | engine_type + engine_data → auto PDF |
+| GET/POST | `/api/admin/templates/[id]/unlock-code` | ดู / สร้าง unlock code (J13) |
+| POST | `/api/admin/orders/[id]/verify` | verify + issue download token |
+| POST | `/api/admin/orders/[id]/revoke` | revoke download token |
+
+---
+
+## 21. Engine System Reference
+
+> Text-to-PDF engine สร้างเอกสาร PDF สมบูรณ์จากข้อมูลที่ admin กรอก (ไม่ต้องผ่าน .docx)
+
+### Engine Types
+
+| Type | Form Component | Generator |
+|---|---|---|
+| `checklist` | `ChecklistEngineForm` — 5 sections (Header / Purpose / Items / Remarks / Sign-off) | `lib/engine-checklist.ts` |
+| `planner` | `PlannerEngineForm` — 4 pillars (Goal / Execution / Tracking / Idea) | `lib/engine-planner.ts` |
+| `pipeline` | `PlannerPipelineForm` — 5 sections, time-cascade, horizon-driven | `lib/engine-planner-pipeline.ts` |
+
+### DocCode Format
+
+| Engine | Format | ตัวอย่าง |
+|---|---|---|
+| checklist | `CK-YYYYMMDD-XXXX` | CK-20260509-0001 |
+| planner | `TP-YYYYMMDD-XXXX` | TP-20260513-0003 |
+
+- XXXX = COUNT(*) ของ engine_type นั้นใน DB + 1 (query ณ ตอน generate)
+- **คงเดิมทุก revision** — ไม่ re-generate เมื่อแก้ไขเนื้อหา
+- ไม่แสดง docCode ในตัวเอกสาร — เก็บใน DB เท่านั้น
+
+### PDF Design Rules
+
+- หมวดหมู่ (catalog) แสดงแทนรหัสเอกสารใน header
+- ผู้จัดทำ = เส้นว่างสำหรับลูกค้ากรอกเอง
+- Footer: `ชื่อเทมเพลต · หมวดหมู่ · planprom.com`
+- Watermark: CSS diagonal `::before` (optional, ตั้งใน admin)
+- Viewport: 560px · clip half-page 1 สำหรับ thumbnail preview
+
+### Anti-fraud (Payment)
+
+- Rate limit: claims ≥5/24h → `fraud_flag=suspicious` (ไม่ส่งลิงก์)
+- Revoke: admin กด → `download_token=NULL` + LINE notify ลูกค้า
+- Owner notify: ทุก claim → LINE push ไปที่ `OWNER_LINE_USER_ID`
+
+---
+
+## 22. Infra & Deploy Reference
+
+### VPS Specification
+
+| Item | Value |
+|---|---|
+| Provider | Ruk-Com Cloud |
+| IP | `103.52.109.85` |
+| OS | AlmaLinux 9.7 |
+| CPU | 2 Cores |
+| RAM | 4 GB |
+| Storage | 40 GB SSD |
+| Cost | ~800 บาท/เดือน |
+| SSH | `root@103.52.109.85` (SSH Key only) |
+| App path | `/var/www/planprom` |
+| PM2 process | `planprom` · port 3001 · fork mode |
+| Uploads | `/var/www/planprom/uploads/templates/` (persistent) |
+
+### Infra Stack
+
+```
+User → Cloudflare (DNS / CDN / WAF / SSL Full Strict)
+     → VPS AlmaLinux
+         Nginx (reverse proxy :443 → :3001)
+         → Next.js (PM2 fork mode)
+              ↓
+         PostgreSQL (local, self-hosted)
+         Supabase (Auth เท่านั้น — LINE OAuth)
+```
+
+### Deploy Sequence (ทุกครั้งหลัง push)
+
+```bash
+git push origin main
+ssh root@103.52.109.85 "cd /var/www/planprom && git pull origin main"
+ssh root@103.52.109.85 "cd /var/www/planprom && npm run build"
+ssh root@103.52.109.85 "cd /var/www/planprom && cp -r .next/static .next/standalone/.next/static && cp -r public .next/standalone/public && cp .env.local .next/standalone/.env.local"
+ssh root@103.52.109.85 "pm2 restart planprom"
+curl -s -o /dev/null -w '%{http_code}' https://planprom.com/  # ต้องได้ 200
+```
+
+> ถ้ามี static manifest mismatch: ใช้ `rm -rf .next && npm run build` (clean rebuild)
+
+### Nginx (planprom.com)
+
+```nginx
+server {
+    listen 443 ssl http2;
+    server_name planprom.com www.planprom.com;
+    ssl_certificate /etc/letsencrypt/live/planprom.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/planprom.com/privkey.pem;
+    add_header X-Frame-Options "SAMEORIGIN";
+    add_header X-Content-Type-Options "nosniff";
+    add_header Referrer-Policy "strict-origin-when-cross-origin";
+    location / {
+        proxy_pass http://localhost:3001;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+    server_tokens off;
+}
+```
+
+### Cloudflare
+
+- SSL/TLS: **Full (Strict)** ✅
+- Bot Fight Mode / DDoS Protection / Block AI Bots / Email Obfuscation ✅
+- WAF: `/admin/*` restrict · bad UA block · rate limit API routes
+- Let's Encrypt cert: `certbot-renew.timer` enabled (auto-renew)
+
+### Infra Risk
+
+| Risk | มาตรการ |
+|---|---|
+| PM2 crash loop | `pm2 watch` + UptimeRobot alert |
+| DB bloat | retention policy + weekly cleanup cron |
+| Static manifest mismatch | clean rebuild (`rm -rf .next`) |
+| Cloudflare WAF block | whitelist IP ที่รู้จัก |
+| Upload disk full | `df -h` ตรวจทุกเดือน (40GB SSD) |
+
+---
+
 ## หมายเหตุเพิ่มเติม
 
 ### Admin Authentication
@@ -607,24 +807,19 @@ URL: `/admin/catalogs`
 - Session-based (cookie HttpOnly)
 - ทุก admin route มี `requireAdminSession()` guard
 
-### Deployment
-
-```bash
-# Deploy ทุกครั้งหลัง push
-git push origin main
-ssh root@103.52.109.85 "cd /var/www/planprom && git pull && npm run build"
-ssh root@103.52.109.85 "cd /var/www/planprom && cp -r .next/static .next/standalone/.next/static && cp -r public .next/standalone/public && cp .env.local .next/standalone/.env.local && pm2 restart planprom"
-curl -s -o /dev/null -w '%{http_code}' https://planprom.com/  # ต้องได้ 200
-```
-
 ### Environment Variables สำคัญ
 
 | Variable | ใช้สำหรับ |
 |---|---|
 | `DATABASE_URL` | PostgreSQL connection |
-| `OMISE_SECRET_KEY` | Omise payment |
+| `OMISE_SECRET_KEY` | Omise payment (server) |
 | `OMISE_PUBLIC_KEY` | Omise frontend |
 | `LINE_CHANNEL_ACCESS_TOKEN` | LINE OA push message |
+| `LINE_CHANNEL_SECRET` | LINE webhook verify |
 | `OWNER_LINE_USER_ID` | notify owner เมื่อมี order |
+| `OWNER_PROMPTPAY` | เบอร์ PromptPay (0948859962) |
 | `ADMIN_PASSWORD` | admin login |
 | `NEXT_PUBLIC_BASE_URL` | base URL สำหรับ QR + links |
+| `UPLOAD_DIR` | path สำหรับ PDF บน VPS (`/var/www/planprom/uploads/templates/`) |
+
+> Deploy commands → ดู [Section 22](#22-infra--deploy-reference)
