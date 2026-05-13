@@ -4,6 +4,7 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useState } from 'react'
 import type { FormField } from '@/lib/engine-form-types'
+import { FIELD_SHORT_LABEL } from '@/lib/field-registry'
 
 interface Props {
   field: FormField
@@ -39,16 +40,7 @@ export function FieldCard({ field, onChange, onDelete }: Props) {
     onChange({ ...field, options: (field.options ?? []).filter((_, j) => j !== i) })
   }
 
-  const typeLabel: Record<string, string> = {
-    text: 'ข้อความ', multiline: 'หลายบรรทัด', email: 'อีเมล',
-    number: 'ตัวเลข', currency: 'จำนวนเงิน',
-    date: 'วันที่', date_range: 'ช่วงวันที่',
-    checkbox: 'Checkbox', radio: 'Radio', dropdown: 'Dropdown', inspection: 'ผ่าน/ไม่ผ่าน',
-    signature: 'ลายเซ็น', logo: 'โลโก้', running_number: 'เลขที่เอกสาร',
-    id_card: 'บัตรประชาชน', photo_upload: 'รูปภาพ', barcode: 'Barcode/QR',
-    gps: 'พิกัด GPS', dimension: 'ขนาด W×L×H', weight_height: 'น้ำหนัก/สูง',
-    table: 'ตาราง', section_header: 'หัวข้อส่วน', divider: 'เส้นคั่น', row_break: 'ขึ้นบรรทัดใหม่', page_break: 'ขึ้นหน้าใหม่',
-  }
+  const typeLabel = FIELD_SHORT_LABEL
 
   return (
     <div ref={setNodeRef} style={style} className="bg-white border border-gray-200 rounded-lg shadow-sm mb-2">

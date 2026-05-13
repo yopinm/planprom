@@ -18,6 +18,7 @@ import {
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers'
 import type { FormField, FormFieldType, FormEngineData } from '@/lib/engine-form-types'
 import { autoGenSampleData } from '@/lib/engine-form-types'
+import { getFieldDefaults } from '@/lib/field-registry'
 import { FieldPalette } from './FieldPalette'
 import { FieldCard } from './FieldCard'
 import { SampleDataEditor } from './SampleDataEditor'
@@ -44,33 +45,7 @@ function makeId() {
 }
 
 function makeField(type: FormFieldType): FormField {
-  const defaults: Partial<Record<FormFieldType, Partial<FormField>>> = {
-    checkbox:       { label: 'เลือกรายการ', options: ['ตัวเลือก 1', 'ตัวเลือก 2'] },
-    radio:          { label: 'เลือกหนึ่งรายการ', options: ['ตัวเลือก 1', 'ตัวเลือก 2'] },
-    dropdown:       { label: 'เลือกจากรายการ', options: ['ตัวเลือก 1', 'ตัวเลือก 2'] },
-    inspection:     { label: 'ผลการตรวจสอบ', options: ['ผ่าน', 'ไม่ผ่าน', 'แก้ไข'] },
-    table:          { label: 'ตาราง', tableColumns: ['รายการ', 'จำนวน', 'หมายเหตุ'], tableRows: 3 },
-    section_header: { label: 'หัวข้อส่วน' },
-    signature:      { label: 'ลายเซ็นผู้ขอ' },
-    running_number: { label: 'เลขที่เอกสาร' },
-    logo:           { label: 'โลโก้ / ตราองค์กร' },
-    divider:        { label: 'เส้นคั่น' },
-    page_break:     { label: 'ขึ้นหน้าใหม่' },
-    text:           { label: 'ชื่อ-นามสกุล' },
-    multiline:      { label: 'รายละเอียด' },
-    email:          { label: 'อีเมล' },
-    number:         { label: 'จำนวน' },
-    currency:       { label: 'จำนวนเงิน', placeholder: '0.00' },
-    date:           { label: 'วันที่' },
-    date_range:     { label: 'ช่วงวันที่' },
-    id_card:        { label: 'เลขบัตรประชาชน' },
-    photo_upload:   { label: 'รูปภาพ / หลักฐาน' },
-    barcode:        { label: 'Barcode / QR Code' },
-    gps:            { label: 'พิกัด GPS' },
-    dimension:      { label: 'ขนาด (กว้าง × ยาว × สูง)' },
-    weight_height:  { label: 'น้ำหนัก / ส่วนสูง' },
-  }
-  return { id: makeId(), type, label: '', width: 100, ...defaults[type] }
+  return { id: makeId(), type, label: '', width: 100, ...getFieldDefaults(type) }
 }
 
 function toSlug(title: string): string {
