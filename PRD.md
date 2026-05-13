@@ -30,9 +30,10 @@
 | **Scope Gate** | ก่อนเริ่ม implement ทุก task → ต้องมี scope + flow ใน `core/planprom.md` ก่อน → commit docs → รอ owner confirm → ค่อย implement |
 | **Blockers** | Lazada pool=49 fixed · Affiliate tasks ❌ CLOSED 2026-05-13 (owner decision) |
 | **Next task** | **INTEL UAT** (ใช้งานจริง ว่าขายได้) → **DC-16** UAT confirm → **E9/E10** engine preview card → **J14** Member Auto-Push |
-| **Pending (code)** | **3 tasks** — J14 · J17 · J19 · UI-G(defer) · **EF-1..5** (Engine Form — scope gate confirmed 2026-05-12) |
-| **Pending (UAT)** | **7 กลุ่ม** — INTEL-C/D(Market Intelligence ⏳ ใช้งานจริง) · DC-1 · DC-2 · DC-8(Planner⏳) · DC-16(⏳) · E9/E10 · J9(รอ live keys) |
-| **Last session** | **Session 59 (2026-05-13)** — J13 ปิดสมบูรณ์: floating+amber card → LINE ส่วนตัว ~yopinm · navbar label ใหม่ · affiliate tasks CLOSED · Blueprint migrated → Planprom_Manual §19-22 |
+| **Pending (code)** | J14 · J17 · J19 · UI-G(defer) · EF-1..5 |
+| **Pending (UAT)** | INTEL-C/D · DC-1 · DC-2 · DC-8 · DC-16 · E9/E10 · J9(รอ live keys) |
+| **Pending (decision)** | Homepage UX: D (social proof bar) + B (featured badge pulse) — mock ready รอ confirm |
+| **Last session** | **Session 59 (2026-05-13)** — J13 ✅ ปิดสมบูรณ์ · affiliate tasks CLOSED · Blueprint → Planprom_Manual §19-22 · V13+Blueprint ลบ · admin delete tooltip · homepage LINE fix (~yopinm) · navbar label ใหม่ |
 | **ห้าม** | ไม่แตะ Later task ขณะที่ Now ยังค้างอยู่ · ไม่แตะ secrets โดยตรง · ไม่ทำให้ revenue channel หายไประหว่าง pivot |
 
 ---
