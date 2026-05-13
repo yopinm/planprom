@@ -484,9 +484,33 @@ Page 2: render fields แบบเปล่า (_____ แทน value)
 | **EF-4** | **Approve & Save + AdminNav** | กรอก metadata (title/slug/tier/price/category) → กด "Approve & Save" → `POST /api/admin/form-builder/save` → INSERT templates (engine_type='form', engine_data=schema) → redirect `/admin/templates` · `AdminNav.tsx` — เพิ่ม "📝 Form" ใน TEMPLATE group → link `/admin/form-builder` | ✅ **Done (Session 54)** |
 | **EF-5** | **Customer Preview Card /templates/[slug]** | `app/templates/[slug]/page.tsx` — เพิ่ม branch `engine_type === 'form'` → แสดง orange card: ชื่อฟอร์ม + field count + "ซื้อ 1 ได้ PDF 2 หน้า" badge + รายการ field label top-5 | ✅ **Done (Session 54)** |
 | **EF-6** | **Form Builder Edit Mode + UAT Bug Fixes** | `/admin/form-builder/[id]` load existing engine_data → `PATCH /api/admin/form-builder/update` regenerate PDF + UPDATE templates · Fix CSP `frame-src blob:` · Fix /revise crash for form type · Fix document_type='form' + preview_path · Fix modal security (ไม่ expose full PDF) · Fix title→button (modal only) · Preview link แสดงทุก template · Screenshot via system chromium (non-fatal) · Clip half page 1 (560×396) · thumbnail_path set on save/update · 2-file info banner ใน modal · Admin PDF viewer `/api/admin/form-builder/pdf/[filename]` | ✅ **Done · UAT ผ่าน (Session 55 · 2026-05-12)** |
+| **EF-7** | **Field UX Upgrades + Field Registry** | Multi-col layout (flex-wrap + % width: 25/33/50/67/75/100) · row_break invisible spacer · field alignment (left/center/right) · logo configurable width/align · page 2 line height 16px + margin 22px · footer ใน page 1 เท่านั้น · Field Registry `lib/field-registry.ts` (single source of truth 80+ field defs) · FieldPalette: search (A) + collapsible groups (B) + registry (C) · Custom Field Templates: DB `field_templates` + `/admin/field-templates` admin UI + API CRUD · Admin nav: 🧩 Field Templates ใน Form Builder group · Fix page 2 title ไม่มีขีดเส้นใต้ · Fix tiers เหลือแค่ ฟรี + Standard · Fix alwaysFull: signature/multiline/table/photo_upload ตาม width/align จริง | ✅ **Done · Live (Session 57 · 2026-05-13)** |
 
-**ลำดับ:** EF-1 → EF-2 → EF-3 → EF-4 → EF-5 → EF-6
+**ลำดับ:** EF-1 → EF-2 → EF-3 → EF-4 → EF-5 → EF-6 → EF-7
 **FROZEN ระหว่าง EF:** `engine-checklist.ts` · `ChecklistEngineForm.tsx` · `engine-planner.ts` · `PlannerEngineForm.tsx` · Cart/Checkout/Payment/Download flow
+
+**⏳ Pending EF-8:**
+- Modal preview ขยายจาก `max-w-md` (448px ≈ 31%) → ~40% viewport (ทำ 3 ไฟล์: `CatalogTemplateList.tsx`, `TemplateListWithPreview.tsx`, `FeaturedTemplateCard.tsx`)
+
+---
+
+## Session 57 Changes (2026-05-13) — Engine Form EF-7: Field UX + Registry
+
+| # | Change | Status |
+|---|---|---|
+| 1 | **Multi-col layout** flex-wrap + % width presets (25/33/50/67/75/100) ใน page 1 + page 2 | ✅ Live |
+| 2 | **row_break** element — ขึ้นบรรทัดใหม่แบบ invisible (ไม่มีเส้น) | ✅ Live |
+| 3 | **Field alignment** left/center/right ทุก field รวมถึง logo | ✅ Live |
+| 4 | **Page 2 line height** if-line=16px + margin-bottom=22px — เส้นเท่ากันทุก field | ✅ Live |
+| 5 | **Field Registry** `lib/field-registry.ts` — FieldDef, FIELD_REGISTRY (80+ defs), FIELD_SHORT_LABEL, PALETTE_GROUPS_FROM_REGISTRY, getFieldDefaults() | ✅ Live |
+| 6 | **FieldPalette A+B+C** search input (A) · collapsible groups (B) · registry-driven (C) | ✅ Live |
+| 7 | **Custom Field Templates** DB `field_templates` + GET/POST/PATCH/DELETE API + `/admin/field-templates` UI · palette โหลด custom fields ทันที | ✅ Live |
+| 8 | **Admin nav** 🧩 Field Templates ใน Form Builder group | ✅ Live |
+| 9 | **Fix page 2 title** ลบ `text-decoration:underline` ออกจาก `.p2-title` | ✅ Live |
+| 10 | **Fix tiers** เหลือแค่ ฟรี (฿0) + Standard (฿20) — ลบ Premium/Ultra ออก | ✅ Live |
+| 11 | **Fix alwaysFull** `renderFieldInline()` — signature/multiline/table/photo_upload ไม่ถูกบังคับ 100% แล้ว ตาม width/align จริง | ✅ Live |
+
+**⏳ Pending (EF-8):** Modal preview ขยาย max-w-md → ~40% viewport
 
 ---
 
