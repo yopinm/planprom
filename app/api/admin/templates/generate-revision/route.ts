@@ -10,15 +10,25 @@ import {
   generatePlannerPipelineHtml, validatePlannerPipeline,
   generatePlannerPipelineHtmlV4, validatePlannerPipelineV4,
 } from '@/lib/engine-planner-pipeline'
+import { generateReportHtml } from '@/lib/engine-report'
 import type { ChecklistEngineData, PlannerEngineData, PlannerEngineDataV2, PlannerPipelineData, PlannerPipelineDataV4 } from '@/lib/engine-types'
+import type { ReportEngineData } from '@/lib/engine-report-types'
+import { db } from '@/lib/db'
+
+function bkkNow() { return new Date(Date.now() + 7 * 60 * 60 * 1000) }
+function formatThaiDate(d: Date): string {
+  const m = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.']
+  return `${d.getUTCDate()} ${m[d.getUTCMonth()]} ${d.getUTCFullYear() + 543}`
+}
+function addMonths(d: Date, n: number): Date { const r = new Date(d); r.setUTCMonth(r.getUTCMonth() + n); return r }
 
 export async function POST(req: NextRequest) {
   const adminId = await getAdminUser()
   if (!adminId) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
 
   let body: {
-    engine_type: 'checklist' | 'planner' | 'pipeline'
-    engine_data: ChecklistEngineData | PlannerEngineData | PlannerEngineDataV2 | PlannerPipelineData | PlannerPipelineDataV4
+    engine_type: 'checklist' | 'planner' | 'pipeline' | 'report'
+    engine_data: ChecklistEngineData | PlannerEngineData | PlannerEngineDataV2 | PlannerPipelineData | PlannerPipelineDataV4 | ReportEngineData
     slug: string
     watermark_text?: string
     category_name?: string
@@ -55,6 +65,19 @@ export async function POST(req: NextRequest) {
         validatePlannerPipeline(engine_data as PlannerPipelineData)
         html = generatePlannerPipelineHtml(engine_data as PlannerPipelineData, watermark_text)
       }
+    } else if (engine_type === 'report') {
+      const now = bkkNow()
+      const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '')
+      const [{ count }] = await db<{ count: string }[]>`
+        SELECT COUNT(*)::text AS count FROM templates WHERE engine_type = 'report'
+      `
+      const reportCode = `RPT-${dateStr}-${String(Number(count) + 1).padStart(4, '0')}`
+      const validMonths = (engine_data as ReportEngineData).s1?.validityMonths ?? 12
+      html = generateReportHtml(
+        engine_data as ReportEngineData, reportCode,
+        formatThaiDate(now), formatThaiDate(addMonths(now, validMonths)),
+        watermark_text,
+      )
     } else {
       return NextResponse.json({ error: 'Unknown engine_type' }, { status: 400 })
     }
@@ -96,10 +119,18 @@ export async function POST(req: NextRequest) {
     browser1 = await puppeteer.launch({ executablePath, args, headless: true })
     const page = await browser1.newPage()
     await page.setContent(html, { waitUntil: 'networkidle0' })
+    const isReport = engine_type === 'report'
     const pdf = await page.pdf({
       format: 'A4',
       printBackground: true,
-      margin: { top: '20mm', right: '20mm', bottom: '28mm', left: '20mm' },
+      ...(isReport ? {
+        displayHeaderFooter: true,
+        headerTemplate: `<div></div>`,
+        footerTemplate: `<div style="font-family:Arial,sans-serif;font-size:8px;padding:0 20mm;width:100%;display:flex;justify-content:space-between;color:#94a3b8"><span>[Buyer] · www.planprom.com</span><span>Page <span class="pageNumber"></span>/<span class="totalPages"></span></span></div>`,
+        margin: { top: '16mm', right: '20mm', bottom: '14mm', left: '20mm' },
+      } : {
+        margin: { top: '20mm', right: '20mm', bottom: '28mm', left: '20mm' },
+      }),
     })
     await writeFile(path.join(uploadBase, pdfFilename), pdf)
   } catch (err) {

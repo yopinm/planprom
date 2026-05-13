@@ -6,6 +6,7 @@ import { requireAdminSession } from '@/lib/admin-auth'
 import { db } from '@/lib/db'
 import { ReviseClient } from './ReviseClient'
 import type { ChecklistEngineData, PlannerEngineData, PlannerEngineDataV2, PlannerPipelineData, PlannerPipelineDataV4 } from '@/lib/engine-types'
+import type { ReportEngineData } from '@/lib/engine-report-types'
 
 export const metadata: Metadata = {
   title: 'แก้ไขเนื้อหา — Admin',
@@ -87,6 +88,7 @@ export default async function RevisePage({ params }: { params: Promise<{ id: str
     t.engine_type === 'checklist' ? (rawEngineData as ChecklistEngineData) :
     isPipelineV4                  ? (rawEngineData as PlannerPipelineDataV4) :
     t.engine_type === 'pipeline'  ? (rawEngineData as PlannerPipelineData) :
+    t.engine_type === 'report'    ? (rawEngineData as ReportEngineData) :
     (rawEngineData as PlannerEngineData | PlannerEngineDataV2)
 
   return (
@@ -108,7 +110,7 @@ export default async function RevisePage({ params }: { params: Promise<{ id: str
           <ReviseClient
             templateId={id}
             slug={t.slug}
-            engineType={t.engine_type as 'checklist' | 'planner' | 'pipeline'}
+            engineType={t.engine_type as 'checklist' | 'planner' | 'pipeline' | 'report'}
             initialData={engineData}
             nextRevisionNumber={nextRevisionNumber}
             categoryName={categoryName}

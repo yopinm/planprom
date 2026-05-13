@@ -225,7 +225,8 @@ export default async function EditTemplatePage({ params }: { params: Promise<{ i
                 <div className="flex items-center gap-2">
                   <span className="font-black text-neutral-900">
                     {t.engine_type === 'checklist' ? '✅ Checklist' :
-                     t.engine_type === 'form'      ? '📋 Form' : '📅 Planner'}
+                     t.engine_type === 'form'      ? '📋 Form' :
+                     t.engine_type === 'report'    ? '📊 Report' : '📅 Planner'}
                   </span>
                   {t.engine_type !== 'form' && (
                     <span className="rounded-full bg-white border border-amber-200 px-2 py-0.5 text-[11px] font-bold text-amber-700">

@@ -11,6 +11,7 @@ import type {
   PlannerPipelineDataV4, PipelineHorizon, PipelineWeeklyLayout, PipelineDailyLayout,
   MonthlyPlanItem, WeeklyTaskItem, DailyRoutineItem,
 } from '@/lib/engine-types'
+import type { ReportEngineData, ReportTableData, ReportTextBlock } from '@/lib/engine-report-types'
 
 const INPUT = 'w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none focus:border-amber-400 focus:bg-white transition'
 const LABEL = 'block text-[11px] font-black uppercase tracking-widest text-neutral-400 mb-1.5'
@@ -1369,11 +1370,216 @@ function getHabitDaysV2(h: PlanningHorizon): number { return h === 'year' || h =
 function getReviewCycleV2(h: PlanningHorizon): PlannerAxis3['reviewCycle'] { return h === 'year' ? 'monthly' : h === 'month' ? 'weekly' : 'daily' }
 
 // ── Main ReviseClient ────────────────────────────────────────────────────────
+// ── Report Revise Form ──────────────────────────────────────────────────────
+function ReportReviseForm({ initial, onChange }: {
+  initial: ReportEngineData
+  onChange: (d: ReportEngineData) => void
+}) {
+  const [s1Title,   setS1Title]   = useState(initial.s1.reportTitle ?? '')
+  const [s1Sub,     setS1Sub]     = useState(initial.s1.subtitle ?? '')
+  const [s1Org,     setS1Org]     = useState(initial.s1.organization ?? '')
+  const [s3Summary, setS3Summary] = useState(initial.s3.summaryText ?? '')
+  const [s3Find,    setS3Find]    = useState<string[]>(initial.s3.keyFindings?.length ? initial.s3.keyFindings : [''])
+  const [s3Urgent,  setS3Urgent]  = useState(initial.s3.urgentRecommendations ?? '')
+  const [s4Obj,     setS4Obj]     = useState(initial.s4.objective ?? '')
+  const [s4Scope,   setS4Scope]   = useState(initial.s4.scope ?? '')
+  const [s4Src,     setS4Src]     = useState(initial.s4.dataSource ?? '')
+  const [s4Per,     setS4Per]     = useState(initial.s4.dataPeriod ?? '')
+  const [s4Meth,    setS4Meth]    = useState(initial.s4.methodology ?? '')
+  const [s4Lim,     setS4Lim]     = useState(initial.s4.limitations ?? '')
+  const [tables,    setTables]    = useState<ReportTableData[]>(initial.s5.tables ?? [])
+  const [textBlks,  setTextBlks]  = useState<ReportTextBlock[]>(initial.s5.textBlocks?.length ? initial.s5.textBlocks : [{ title: '', body: '' }])
+  const [s6Concl,   setS6Concl]   = useState(initial.s6.conclusion ?? '')
+  const [s6Find,    setS6Find]    = useState<string[]>(initial.s6.findings?.length ? initial.s6.findings : [''])
+  const [s6Reco,    setS6Reco]    = useState(initial.s6.recommendations ?? '')
+  const [s6Risk,    setS6Risk]    = useState(initial.s6.risks ?? '')
+  const [s6Fore,    setS6Fore]    = useState(initial.s6.forecast ?? '')
+  const [s6Score,   setS6Score]   = useState(initial.s6.scoreRating ?? '')
+  const [s7Raw,     setS7Raw]     = useState(initial.s7.rawData ?? '')
+  const [s7Ref,     setS7Ref]     = useState(initial.s7.references ?? '')
+  const [s7Glos,    setS7Glos]    = useState(initial.s7.glossary ?? '')
+  const [s7Prof,    setS7Prof]    = useState(initial.s7.analystProfile ?? '')
+  const [s8Name,    setS8Name]    = useState(initial.s8.analystName ?? '')
+  const [s8TitleF,  setS8TitleF]  = useState(initial.s8.analystTitle ?? '')
+  const [s8Discl,   setS8Discl]   = useState(initial.s8.disclaimer ?? '')
+  const [s8Comp,    setS8Comp]    = useState(initial.s8.companyName ?? '')
+  const [s8Email,   setS8Email]   = useState(initial.s8.contactEmail ?? '')
+  const [s8Phone,   setS8Phone]   = useState(initial.s8.contactPhone ?? '')
+  const [s8Web,     setS8Web]     = useState(initial.s8.contactWebsite ?? '')
+
+  useEffect(() => {
+    onChange({
+      s1: { reportTitle: s1Title, subtitle: s1Sub, organization: s1Org, confidentialLevel: 'confidential', validityMonths: 12 },
+      s3: { kpis: [], summaryText: s3Summary, keyFindings: s3Find.filter(f => f.trim()), urgentRecommendations: s3Urgent },
+      s4: { objective: s4Obj, scope: s4Scope, dataSource: s4Src, dataPeriod: s4Per, methodology: s4Meth, limitations: s4Lim },
+      s5: { tables, textBlocks: textBlks },
+      s6: { conclusion: s6Concl, findings: s6Find.filter(f => f.trim()), recommendations: s6Reco, risks: s6Risk, forecast: s6Fore, scoreRating: s6Score },
+      s7: { rawData: s7Raw, references: s7Ref, glossary: s7Glos, analystProfile: s7Prof },
+      s8: { analystName: s8Name, analystTitle: s8TitleF, disclaimer: s8Discl, companyName: s8Comp, contactEmail: s8Email, contactPhone: s8Phone, contactWebsite: s8Web },
+    })
+  }, [s1Title, s1Sub, s1Org, s3Summary, s3Find, s3Urgent,
+      s4Obj, s4Scope, s4Src, s4Per, s4Meth, s4Lim, tables, textBlks,
+      s6Concl, s6Find, s6Reco, s6Risk, s6Fore, s6Score,
+      s7Raw, s7Ref, s7Glos, s7Prof,
+      s8Name, s8TitleF, s8Discl, s8Comp, s8Email, s8Phone, s8Web, onChange])
+
+  return (
+    <div className="space-y-3">
+      <Card title="ส่วนที่ 1 — Cover Page" color="bg-sky-50 text-sky-800">
+        {([
+          { label: 'ชื่อ Report *', val: s1Title, set: setS1Title, ph: 'รายงานวิเคราะห์...' },
+          { label: 'Subtitle', val: s1Sub, set: setS1Sub, ph: 'หัวข้อย่อย' },
+          { label: 'จัดทำโดย', val: s1Org, set: setS1Org, ph: 'ชื่อองค์กร / บริษัท' },
+        ] as { label: string; val: string; set: (v: string) => void; ph: string }[]).map(f => (
+          <div key={f.label}>
+            <label className={LABEL}>{f.label}</label>
+            <input value={f.val} onChange={e => f.set(e.target.value)} placeholder={f.ph} className={INPUT} />
+          </div>
+        ))}
+      </Card>
+
+      <Card title="ส่วนที่ 3 — สรุปภาพรวมรีพอร์ต" color="bg-blue-50 text-blue-800">
+        <div>
+          <label className={LABEL}>สรุปย่อ</label>
+          <textarea value={s3Summary} onChange={e => setS3Summary(e.target.value)} rows={4} className={INPUT} />
+        </div>
+        <div>
+          <label className={LABEL}>ข้อค้นพบสำคัญ</label>
+          <DynList items={s3Find} onChange={setS3Find} placeholder="เช่น ตลาดเติบโต 12% YoY" addLabel="เพิ่มข้อค้นพบ" />
+        </div>
+        <div>
+          <label className={LABEL}>ข้อเสนอแนะเร่งด่วน</label>
+          <textarea value={s3Urgent} onChange={e => setS3Urgent(e.target.value)} rows={2} className={INPUT} />
+        </div>
+      </Card>
+
+      <Card title="ส่วนที่ 4 — บทนำและขอบเขต" color="bg-indigo-50 text-indigo-800">
+        {([
+          { label: 'วัตถุประสงค์ *', val: s4Obj, set: setS4Obj, ph: 'เป้าหมายของรายงาน' },
+          { label: 'ขอบเขตข้อมูล', val: s4Scope, set: setS4Scope, ph: 'ครอบคลุมอะไรบ้าง' },
+          { label: 'แหล่งข้อมูล', val: s4Src, set: setS4Src, ph: 'ข้อมูลมาจากแหล่งใด' },
+          { label: 'ช่วงเวลาข้อมูล', val: s4Per, set: setS4Per, ph: 'ม.ค. 2568 — มี.ค. 2568' },
+          { label: 'วิธีการวิเคราะห์', val: s4Meth, set: setS4Meth, ph: 'Quantitative, Survey...' },
+          { label: 'ข้อจำกัด', val: s4Lim, set: setS4Lim, ph: 'สิ่งที่ไม่ครอบคลุม' },
+        ] as { label: string; val: string; set: (v: string) => void; ph: string }[]).map(f => (
+          <div key={f.label}>
+            <label className={LABEL}>{f.label}</label>
+            <textarea value={f.val} onChange={e => f.set(e.target.value)} rows={2} className={INPUT} />
+          </div>
+        ))}
+      </Card>
+
+      <Card title="ส่วนที่ 5 — เนื้อหาหลัก" color="bg-violet-50 text-violet-800">
+        <div>
+          <label className={LABEL}>ตารางข้อมูล (Module C)</label>
+          <div className="space-y-3">
+            {tables.map((t, i) => (
+              <div key={i} className="rounded-lg border border-neutral-200 p-3 space-y-2">
+                <div className="flex justify-between items-center">
+                  <p className="text-xs font-black text-violet-600">ตาราง {i + 1}</p>
+                  <button type="button" onClick={() => setTables(tables.filter((_, j) => j !== i))} className="text-xs text-red-400 hover:text-red-600">ลบ</button>
+                </div>
+                <input value={t.title} onChange={e => { const n = [...tables]; n[i] = { ...n[i], title: e.target.value }; setTables(n) }} placeholder="ชื่อตาราง" className={INPUT} />
+                <textarea value={t.headers.join('\n')} onChange={e => { const n = [...tables]; n[i] = { ...n[i], headers: e.target.value.split('\n') }; setTables(n) }} rows={3} placeholder={'คอลัมน์ 1\nคอลัมน์ 2'} className={INPUT} />
+                <textarea value={t.rows.map((r: string[]) => r.join(' | ')).join('\n')} onChange={e => { const n = [...tables]; n[i] = { ...n[i], rows: e.target.value.split('\n').map((row: string) => row.split(' | ').map((c: string) => c.trim())) }; setTables(n) }} rows={5} placeholder={'ข้อมูล A | ข้อมูล B'} className={INPUT} />
+              </div>
+            ))}
+            <button type="button" onClick={() => setTables([...tables, { title: '', headers: ['', ''], rows: [['', '']] }])} className="text-xs font-black text-violet-600 hover:text-violet-700">+ เพิ่มตาราง</button>
+          </div>
+        </div>
+        <div>
+          <label className={LABEL}>บล็อกข้อความ (Module F)</label>
+          <div className="space-y-3">
+            {textBlks.map((b, i) => (
+              <div key={i} className="rounded-lg border border-neutral-200 p-3 space-y-2">
+                <div className="flex justify-between items-center">
+                  <p className="text-xs font-black text-violet-600">บล็อก {i + 1}</p>
+                  {textBlks.length > 1 && <button type="button" onClick={() => setTextBlks(textBlks.filter((_, j) => j !== i))} className="text-xs text-red-400 hover:text-red-600">ลบ</button>}
+                </div>
+                <input value={b.title} onChange={e => { const n = [...textBlks]; n[i] = { ...n[i], title: e.target.value }; setTextBlks(n) }} placeholder="หัวข้อ (ถ้ามี)" className={INPUT} />
+                <textarea value={b.body} onChange={e => { const n = [...textBlks]; n[i] = { ...n[i], body: e.target.value }; setTextBlks(n) }} rows={4} placeholder="เนื้อหา..." className={INPUT} />
+              </div>
+            ))}
+            <button type="button" onClick={() => setTextBlks([...textBlks, { title: '', body: '' }])} className="text-xs font-black text-violet-600 hover:text-violet-700">+ เพิ่มบล็อก</button>
+          </div>
+        </div>
+      </Card>
+
+      <Card title="ส่วนที่ 6 — บทสรุปและข้อเสนอแนะ" color="bg-emerald-50 text-emerald-800">
+        {([
+          { label: 'บทสรุป', val: s6Concl, set: setS6Concl, ph: 'ผลลัพธ์จากการวิเคราะห์' },
+          { label: 'ข้อเสนอแนะ (Next Steps)', val: s6Reco, set: setS6Reco, ph: 'Next Steps' },
+          { label: 'ความเสี่ยง', val: s6Risk, set: setS6Risk, ph: 'Risk factors' },
+          { label: 'การคาดการณ์แนวโน้ม', val: s6Fore, set: setS6Fore, ph: 'Forecast / Outlook' },
+          { label: 'คะแนนสรุป / Rating', val: s6Score, set: setS6Score, ph: 'เช่น 8.5/10' },
+        ] as { label: string; val: string; set: (v: string) => void; ph: string }[]).map(f => (
+          <div key={f.label}>
+            <label className={LABEL}>{f.label}</label>
+            <textarea value={f.val} onChange={e => f.set(e.target.value)} rows={2} className={INPUT} />
+          </div>
+        ))}
+        <div>
+          <label className={LABEL}>ข้อค้นพบ</label>
+          <DynList items={s6Find} onChange={setS6Find} placeholder="เช่น ต้นทุนสูงกว่าเป้า 15%" addLabel="เพิ่มข้อค้นพบ" />
+        </div>
+      </Card>
+
+      <Card title="ส่วนที่ 7 — ภาคผนวกและอ้างอิง" color="bg-amber-50 text-amber-800">
+        {([
+          { label: 'ข้อมูลดิบ / Raw Data', val: s7Raw, set: setS7Raw, ph: 'ข้อมูลดิบ...' },
+          { label: 'แหล่งอ้างอิง', val: s7Ref, set: setS7Ref, ph: 'References...' },
+          { label: 'คำนิยาม (Glossary)', val: s7Glos, set: setS7Glos, ph: 'Glossary...' },
+          { label: 'ประวัติผู้จัดทำ', val: s7Prof, set: setS7Prof, ph: 'Profile...' },
+        ] as { label: string; val: string; set: (v: string) => void; ph: string }[]).map(f => (
+          <div key={f.label}>
+            <label className={LABEL}>{f.label}</label>
+            <textarea value={f.val} onChange={e => f.set(e.target.value)} rows={2} className={INPUT} />
+          </div>
+        ))}
+      </Card>
+
+      <Card title="ส่วนที่ 8 — ข้อมูลผู้จัดทำ" color="bg-slate-50 text-slate-800">
+        <div className="grid grid-cols-2 gap-3">
+          {([
+            { label: 'ชื่อนักวิเคราะห์', val: s8Name, set: setS8Name, ph: 'ชื่อ-นามสกุล' },
+            { label: 'ตำแหน่ง', val: s8TitleF, set: setS8TitleF, ph: 'Senior Analyst' },
+          ] as { label: string; val: string; set: (v: string) => void; ph: string }[]).map(f => (
+            <div key={f.label}>
+              <label className={LABEL}>{f.label}</label>
+              <input value={f.val} onChange={e => f.set(e.target.value)} placeholder={f.ph} className={INPUT} />
+            </div>
+          ))}
+        </div>
+        <div>
+          <label className={LABEL}>ชื่อบริษัท / Copyright</label>
+          <input value={s8Comp} onChange={e => setS8Comp(e.target.value)} placeholder="บริษัท..." className={INPUT} />
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          {([
+            { label: 'Email', val: s8Email, set: setS8Email, ph: 'contact@...' },
+            { label: 'โทรศัพท์', val: s8Phone, set: setS8Phone, ph: '02-XXX' },
+            { label: 'เว็บไซต์', val: s8Web, set: setS8Web, ph: 'www...' },
+          ] as { label: string; val: string; set: (v: string) => void; ph: string }[]).map(f => (
+            <div key={f.label}>
+              <label className={LABEL}>{f.label}</label>
+              <input value={f.val} onChange={e => f.set(e.target.value)} placeholder={f.ph} className={INPUT} />
+            </div>
+          ))}
+        </div>
+        <div>
+          <label className={LABEL}>Disclaimer</label>
+          <textarea value={s8Discl} onChange={e => setS8Discl(e.target.value)} rows={2} placeholder="ข้อจำกัดความรับผิดชอบ..." className={INPUT} />
+        </div>
+      </Card>
+    </div>
+  )
+}
+
 interface Props {
   templateId: string
   slug: string
-  engineType: 'checklist' | 'planner' | 'pipeline'
-  initialData: ChecklistEngineData | PlannerEngineData | PlannerEngineDataV2 | PlannerPipelineData | PlannerPipelineDataV4
+  engineType: 'checklist' | 'planner' | 'pipeline' | 'report'
+  initialData: ChecklistEngineData | PlannerEngineData | PlannerEngineDataV2 | PlannerPipelineData | PlannerPipelineDataV4 | ReportEngineData
   nextRevisionNumber: number
   categoryName?: string
 }
@@ -1383,7 +1589,7 @@ type ApproveState = 'idle' | 'loading' | 'done' | 'error'
 
 export function ReviseClient({ templateId, slug, engineType, initialData, nextRevisionNumber, categoryName }: Props) {
   const router = useRouter()
-  const [engineData, setEngineData] = useState<ChecklistEngineData | PlannerEngineData | PlannerEngineDataV2 | PlannerPipelineData | PlannerPipelineDataV4>(initialData)
+  const [engineData, setEngineData] = useState<ChecklistEngineData | PlannerEngineData | PlannerEngineDataV2 | PlannerPipelineData | PlannerPipelineDataV4 | ReportEngineData>(initialData)
   const [genState,   setGenState]   = useState<GenState>('idle')
   const [genError,   setGenError]   = useState('')
   const [pdfPath,    setPdfPath]    = useState('')
@@ -1463,6 +1669,11 @@ export function ReviseClient({ templateId, slug, engineType, initialData, nextRe
         ) : engineType === 'pipeline' ? (
           <PipelineReviseForm
             initial={initialData as PlannerPipelineData}
+            onChange={setEngineData}
+          />
+        ) : engineType === 'report' ? (
+          <ReportReviseForm
+            initial={initialData as ReportEngineData}
             onChange={setEngineData}
           />
         ) : (initialData as PlannerEngineDataV2).meta?.schemaVersion === '2.0' ? (
