@@ -315,27 +315,23 @@ export default async function HomePage(): Promise<ReactElement> {
               </div>
             )}
 
-            {/* LINE Request CTA */}
-            <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-5">
-              <p className="text-base font-black text-neutral-800">รีบใช้ฟอร์ม แต่หาไม่เจอ?</p>
-              <p className="mt-0.5 text-sm font-bold text-emerald-700">บอกเราได้เลย! 📲</p>
-              <ul className="mt-3 space-y-1.5 text-sm text-neutral-700">
-                <li>➕ เพิ่มเพื่อนทาง LINE</li>
-                <li>แจ้ง Request ฟอร์มที่ต้องการ</li>
-                <li>เราทำให้ภายใน 24 ชั่วโมง ✅</li>
-                <li>💬 แค่บอกชื่อฟอร์ม → รับไฟล์พร้อมใช้ทันที</li>
-                <li className="font-bold text-neutral-800">📌 ค่าบริการ Request ด่วน 50 บาท</li>
-              </ul>
+            {/* LINE Request CTA — single row */}
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3">
+              <p className="text-sm text-neutral-700 leading-snug">
+                <span className="font-bold text-neutral-800">หาฟอร์มไม่เจอ?</span>
+                {' '}➕ LINE → 💬 บอกฟอร์ม → ✅ ใน 24ชม.
+                <span className="font-bold text-neutral-800"> · 50฿</span>
+              </p>
               <a
                 href="https://line.me/R/ti/p/%40216xobzv"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#06C755] px-5 py-2 text-sm font-bold text-white shadow transition hover:bg-[#05a847]"
+                className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[#06C755] px-4 py-1.5 text-sm font-bold text-white shadow transition hover:bg-[#05a847]"
               >
                 <svg viewBox="0 0 24 24" className="h-4 w-4 fill-white" aria-hidden="true">
                   <path d="M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314" />
                 </svg>
-                เพิ่มเพื่อน LINE
+                เพิ่มเพื่อน
               </a>
             </div>
 
