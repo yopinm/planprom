@@ -51,7 +51,7 @@ export default async function RevisePage({ params }: { params: Promise<{ id: str
             <p className="text-2xl mb-2">📋</p>
             <p className="font-black text-neutral-800 mb-1">Form Template</p>
             <p className="text-sm text-neutral-500">ฟอร์มนี้สร้างจาก Form Builder — ระบบแก้ไขเนื้อหาฟอร์มยังไม่รองรับใน /revise</p>
-            <p className="text-xs text-amber-700 mt-3">หากต้องการแก้ไขฟอร์ม ให้สร้างฟอร์มใหม่ใน <a href="/admin/form-builder" className="underline font-bold">Form Builder</a></p>
+            <p className="text-xs text-amber-700 mt-3">หากต้องการแก้ไขฟอร์ม ให้สร้างฟอร์มใหม่ใน <Link href="/admin/form-builder" className="underline font-bold">Form Builder</Link></p>
           </div>
         </div>
       </main>

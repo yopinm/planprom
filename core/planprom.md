@@ -1341,6 +1341,8 @@ Google/FB → /templates (Section 1)
 
 ## 3. Section 2 — Coupon Affiliate (Lead Magnet + Secondary)
 
+> ❌ **CLOSED 2026-05-13** — Affiliate/couponkum tasks ทั้งหมดปิดโดย owner · ไม่ implement งานใหม่ใดๆ ในส่วนนี้
+
 ### 3.1 บทบาทใหม่
 - **ไม่ใช่ revenue หลักอีกต่อไป** (V14 demote → V15 secondary)
 - **เป็น lead magnet** — ดึง user มา → เพิ่มเพื่อน LINE → ได้ free template
@@ -1713,8 +1715,8 @@ CREATE TABLE template_searches (
 | Task | Status |
 |---|---|
 | Smart form fill (PDF AcroForm browser-side) | 🔲 |
-| LINE OA daily digest (template ใหม่ + คูปอง) | 🔲 |
-| Coupon section (Section 2) re-position as lead magnet | 🔲 |
+| LINE OA daily digest (template ใหม่ + คูปอง) | ❌ CANCELLED |
+| Coupon section (Section 2) re-position as lead magnet | ❌ CANCELLED |
 | OWNER_LINE_USER_ID set + UAT full flow | 🔲 pending |
 | Fraud fix long-term solution | 🔲 pending |
 
@@ -1742,9 +1744,10 @@ CREATE TABLE template_searches (
 - ✅ /admin/analytics dashboard top-line metrics
 
 ### Section 2 — Coupon Integration (must)
-- ✅ Homepage แสดง 2 sections ชัด
-- ✅ LINE add friend → free template grant flow
-- ✅ Coupon section (V14 เดิม) ยังทำงาน
+> ❌ CANCELLED 2026-05-13 — affiliate tasks ทั้งหมดปิดโดย owner
+- ~~✅ Homepage แสดง 2 sections ชัด~~
+- ~~✅ LINE add friend → free template grant flow~~
+- ~~✅ Coupon section (V14 เดิม) ยังทำงาน~~
 
 ### Revenue (must)
 - ✅ ≥ 1 sale จริงในเดือน W4 (proof of concept)
@@ -1865,14 +1868,16 @@ Next priorities:
 
 ### Coupon Affiliate — แผนแยก Repo
 
+> ❌ **CANCELLED 2026-05-13** — owner ตัดสินใจปิด affiliate tasks ทั้งหมด
+
 | Step | สถานะ |
 |---|---|
-| `archive/couponkum-v1` branch — snapshot ก่อนลบ coupon code | 🔲 ยังไม่ทำ (รอ owner confirm) |
-| ลบ coupon routes จาก planprom app | 🔲 รอ |
-| สร้าง couponkum repo ใหม่ จาก archive branch | 🔲 อนาคต |
-| couponkum.com → 301 redirect → planprom.com | 🔲 รอ |
+| `archive/couponkum-v1` branch — snapshot ก่อนลบ coupon code | ❌ CANCELLED |
+| ลบ coupon routes จาก planprom app | ❌ CANCELLED |
+| สร้าง couponkum repo ใหม่ จาก archive branch | ❌ CANCELLED |
+| couponkum.com → 301 redirect → planprom.com | ❌ CANCELLED |
 
 ---
 
-_Last updated: 2026-05-11 (Session 42) · Domain: planprom.com live · SSL + Email routing ✅ · App: VPS port 3001 fork mode · Next: DC-15 Planner Engine v2 (Time-Aware Dynamic Form) — รอ owner confirm → implement T0-1 ก่อน_
+_Last updated: 2026-05-13 (Session 59) · Domain: planprom.com live · SSL + Email routing ✅ · App: VPS port 3001 fork mode · Affiliate tasks CLOSED 2026-05-13 · Next: INTEL UAT → DC-16 UAT → E9/E10 → J14_
 _Owner: yopinm@gmail.com · LINE: yopinm · PromptPay: 0948859962_
