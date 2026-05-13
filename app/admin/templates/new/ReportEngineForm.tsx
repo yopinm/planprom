@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import type { ReportEngineData, ReportKpi, ReportTableData, ReportTextBlock } from '@/lib/engine-report-types'
+import type { ReportEngineData, ReportTableData, ReportTextBlock } from '@/lib/engine-report-types'
 
 const INPUT = 'w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none focus:border-sky-400 focus:bg-white transition'
 const LABEL = 'block text-[11px] font-black uppercase tracking-widest text-neutral-400 mb-1.5'
@@ -23,28 +23,6 @@ function SectionCard({ num, title, color, children, defaultOpen = false }: {
   )
 }
 
-function KpiEditor({ kpis, onChange }: { kpis: ReportKpi[]; onChange: (v: ReportKpi[]) => void }) {
-  const update = (i: number, field: keyof ReportKpi, val: string) => {
-    const n = [...kpis]
-    n[i] = { ...n[i], [field]: val }
-    onChange(n)
-  }
-  return (
-    <div className="grid grid-cols-2 gap-3">
-      {kpis.map((k, i) => (
-        <div key={i} className="rounded-lg border border-sky-200 bg-sky-50 p-3 space-y-2">
-          <p className="text-[10px] font-black text-sky-600 uppercase">KPI {i + 1}</p>
-          <input value={k.label} onChange={e => update(i, 'label', e.target.value)}
-            placeholder="ชื่อตัวชี้วัด เช่น รายได้รวม" className={INPUT} />
-          <input value={k.value} onChange={e => update(i, 'value', e.target.value)}
-            placeholder="ตัวเลข เช่น 1,250,000" className={INPUT} />
-          <input value={k.unit} onChange={e => update(i, 'unit', e.target.value)}
-            placeholder="หน่วย เช่น บาท / %" className={INPUT} />
-        </div>
-      ))}
-    </div>
-  )
-}
 
 function BulletEditor({ items, onChange, placeholder }: {
   items: string[]; onChange: (v: string[]) => void; placeholder?: string
@@ -138,15 +116,7 @@ export function ReportEngineForm({ onChange }: Props) {
   const [s1Title,   setS1Title]   = useState('')
   const [s1Sub,     setS1Sub]     = useState('')
   const [s1Org,     setS1Org]     = useState('')
-  const [s1Conf,    setS1Conf]    = useState<ReportEngineData['s1']['confidentialLevel']>('confidential')
-  const [s1Valid,   setS1Valid]   = useState(12)
   // S3
-  const [kpis,      setKpis]      = useState<ReportKpi[]>([
-    { label: '', value: '', unit: '' },
-    { label: '', value: '', unit: '' },
-    { label: '', value: '', unit: '' },
-    { label: '', value: '', unit: '' },
-  ])
   const [s3Summary, setS3Summary] = useState('')
   const [s3Findings, setS3Findings] = useState(['', '', ''])
   const [s3Urgent,  setS3Urgent]  = useState('')
@@ -183,15 +153,15 @@ export function ReportEngineForm({ onChange }: Props) {
 
   useEffect(() => {
     onChange({
-      s1: { reportTitle: s1Title, subtitle: s1Sub, organization: s1Org, confidentialLevel: s1Conf, validityMonths: s1Valid },
-      s3: { kpis, summaryText: s3Summary, keyFindings: s3Findings.filter(f => f.trim()), urgentRecommendations: s3Urgent },
+      s1: { reportTitle: s1Title, subtitle: s1Sub, organization: s1Org, confidentialLevel: 'confidential', validityMonths: 12 },
+      s3: { kpis: [], summaryText: s3Summary, keyFindings: s3Findings.filter(f => f.trim()), urgentRecommendations: s3Urgent },
       s4: { objective: s4Obj, scope: s4Scope, dataSource: s4Source, dataPeriod: s4Period, methodology: s4Method, limitations: s4Limit },
       s5: { tables, textBlocks },
       s6: { conclusion: s6Concl, findings: s6Find.filter(f => f.trim()), recommendations: s6Reco, risks: s6Risk, forecast: s6Fore, scoreRating: s6Score },
       s7: { rawData: s7Raw, references: s7Ref, glossary: s7Glos, analystProfile: s7Profile },
       s8: { analystName: s8Name, analystTitle: s8Title, disclaimer: s8Discl, companyName: s8Company, contactEmail: s8Email, contactPhone: s8Phone, contactWebsite: s8Web },
     })
-  }, [s1Title,s1Sub,s1Org,s1Conf,s1Valid,kpis,s3Summary,s3Findings,s3Urgent,s4Obj,s4Scope,s4Source,s4Period,s4Method,s4Limit,tables,textBlocks,s6Concl,s6Find,s6Reco,s6Risk,s6Fore,s6Score,s7Raw,s7Ref,s7Glos,s7Profile,s8Name,s8Title,s8Discl,s8Company,s8Email,s8Phone,s8Web,onChange])
+  }, [s1Title,s1Sub,s1Org,s3Summary,s3Findings,s3Urgent,s4Obj,s4Scope,s4Source,s4Period,s4Method,s4Limit,tables,textBlocks,s6Concl,s6Find,s6Reco,s6Risk,s6Fore,s6Score,s7Raw,s7Ref,s7Glos,s7Profile,s8Name,s8Title,s8Discl,s8Company,s8Email,s8Phone,s8Web,onChange])
 
   return (
     <div className="space-y-3">
@@ -213,25 +183,6 @@ export function ReportEngineForm({ onChange }: Props) {
           <input value={s1Org} onChange={e => setS1Org(e.target.value)}
             placeholder="เช่น บริษัท วิเคราะห์ดี จำกัด" className={INPUT} />
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className={LABEL}>ระดับความลับ</label>
-            <select value={s1Conf} onChange={e => setS1Conf(e.target.value as ReportEngineData['s1']['confidentialLevel'])} className={INPUT}>
-              <option value="public">🌐 Public</option>
-              <option value="internal">🔵 Internal</option>
-              <option value="confidential">🔒 Confidential</option>
-              <option value="strictly_confidential">🔴 Strictly Confidential</option>
-            </select>
-          </div>
-          <div>
-            <label className={LABEL}>อายุการใช้งาน (เดือน)</label>
-            <input type="number" min={1} max={60} value={s1Valid} onChange={e => setS1Valid(Number(e.target.value))} className={INPUT} />
-            <p className="mt-1 text-[10px] text-neutral-400">แสดงบน cover เท่านั้น (ไม่ block download)</p>
-          </div>
-        </div>
-        <div className="rounded-lg bg-sky-50 border border-sky-200 px-3 py-2 text-xs text-sky-700">
-          <strong>Auto:</strong> Report ID (RPT-YYYYMMDD-XXXX) · วันที่จัดทำ · ใช้ได้ถึง · ชื่อผู้ซื้อ (placeholder)
-        </div>
       </SectionCard>
 
       {/* S2 — TOC: auto-gen, no input */}
@@ -242,10 +193,6 @@ export function ReportEngineForm({ onChange }: Props) {
 
       {/* S3 — Executive Summary */}
       <SectionCard num="3" title="Executive Summary — สรุปผู้บริหาร" color="bg-blue-50 text-blue-800">
-        <div>
-          <label className={LABEL}>KPI Highlight 4 ช่อง</label>
-          <KpiEditor kpis={kpis} onChange={setKpis} />
-        </div>
         <div>
           <label className={LABEL}>สรุปย่อ (3-5 บรรทัด)</label>
           <textarea value={s3Summary} onChange={e => setS3Summary(e.target.value)} rows={4}
