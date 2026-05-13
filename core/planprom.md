@@ -502,7 +502,7 @@ Page 2: render fields แบบเปล่า (_____ แทน value)
 | 2 | **Homepage amber card** "หาฟอร์มไม่เจอ? ➕ LINE → 💬 บอกฟอร์ม → ✅ ใน 24ชม. · 50฿" — text only, max-w-lg centered | ✅ Live |
 | 3 | **J13 scope เปลี่ยน** web form → LINE-based + unlock code system — spec อัพเดตใน Known Pending | ✅ Docs |
 
-**⏳ Pending (J13 implement):** `is_request_only` flag + promo_codes `template_id` + CheckoutClient unlock input + Admin edit UI
+**✅ J13 สมบูรณ์ (Session 59 · 2026-05-13):** Floating bubble + amber card → ชี้ LINE ส่วนตัว admin (~yopinm) · navbar "ติดต่อเรา" → "🎁 แอด LINE รับโปรโมชัน" · LINE OA @216xobzv คงไว้ที่ checkout/orders/header
 **⏳ Pending (EF-8):** Modal preview ขยาย max-w-md → ~40% viewport
 
 ---
