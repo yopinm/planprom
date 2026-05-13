@@ -13,6 +13,7 @@ export type PreviewTemplate = {
   sale_count: number
   toc_sections: TocItem[] | null
   preview_path: string | null
+  preview_pages: string[] | null
   is_request_only?: boolean
 }
 
@@ -40,13 +41,18 @@ const TIER_COLOR: Record<string, string> = {
 
 export function TemplateListWithPreview({ templates }: { templates: PreviewTemplate[] }) {
   const [preview, setPreview] = useState<PreviewTemplate | null>(null)
+  const [pageIdx, setPageIdx] = useState(0)
 
   const close = useCallback(() => setPreview(null), [])
 
   useEffect(() => {
     if (!preview) return
     document.body.style.overflow = 'hidden'
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') close()
+      if (e.key === 'ArrowRight') setPageIdx(i => Math.min(i + 1, (preview.preview_pages?.length ?? 1) - 1))
+      if (e.key === 'ArrowLeft')  setPageIdx(i => Math.max(i - 1, 0))
+    }
     window.addEventListener('keydown', onKey)
     return () => {
       document.body.style.overflow = ''
@@ -82,25 +88,51 @@ export function TemplateListWithPreview({ templates }: { templates: PreviewTempl
               </button>
             </div>
 
-            {/* Preview — scrollable */}
-            <div className="flex-1 overflow-y-auto bg-neutral-100">
-              {preview.preview_path ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={preview.preview_path}
-                  alt={`ตัวอย่าง ${preview.title}`}
-                  className="w-full h-auto"
-                />
-              ) : (
-                <div className="flex flex-col items-center justify-center gap-3 py-12 text-center px-6">
-                  <p className="text-5xl">{TYPE_LABEL[preview.document_type]?.split(' ')[0] ?? '📄'}</p>
-                  <p className="font-bold text-neutral-800">{preview.title}</p>
-                  <p className="text-sm text-neutral-500">
-                    {TYPE_LABEL[preview.document_type] ?? 'เทมเพลต PDF'}
-                    {' · PDF พร้อมดาวน์โหลดทันทีหลังชำระเงิน'}
-                  </p>
-                </div>
-              )}
+            {/* Preview — carousel */}
+            <div className="flex-1 overflow-hidden bg-neutral-100">
+              {(() => {
+                const pages = (preview.preview_pages && preview.preview_pages.length > 0)
+                  ? preview.preview_pages
+                  : (preview.preview_path ? [preview.preview_path] : [])
+                if (pages.length === 0) return (
+                  <div className="flex flex-col items-center justify-center gap-3 py-12 text-center px-6">
+                    <p className="text-5xl">{TYPE_LABEL[preview.document_type]?.split(' ')[0] ?? '📄'}</p>
+                    <p className="font-bold text-neutral-800">{preview.title}</p>
+                    <p className="text-sm text-neutral-500">{TYPE_LABEL[preview.document_type] ?? 'เทมเพลต PDF'}{' · PDF พร้อมดาวน์โหลดทันทีหลังชำระเงิน'}</p>
+                  </div>
+                )
+                const cur = Math.min(pageIdx, pages.length - 1)
+                return (
+                  <div className="relative">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={pages[cur]} alt={`ตัวอย่าง ${preview.title} หน้า ${cur + 1}`} className="w-full h-auto block" />
+                    {pages.length > 1 && (
+                      <>
+                        {cur > 0 && (
+                          <button onClick={() => setPageIdx(i => i - 1)}
+                            className="absolute left-2 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white hover:bg-black/60 text-sm font-bold"
+                          >‹</button>
+                        )}
+                        {cur < pages.length - 1 && (
+                          <button onClick={() => setPageIdx(i => i + 1)}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white hover:bg-black/60 text-sm font-bold"
+                          >›</button>
+                        )}
+                        <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1.5">
+                          {pages.map((_, i) => (
+                            <button key={i} onClick={() => setPageIdx(i)}
+                              className={`h-1.5 w-1.5 rounded-full transition ${i === cur ? 'bg-white' : 'bg-white/40'}`}
+                            />
+                          ))}
+                        </div>
+                        <div className="absolute top-2 right-2 rounded-full bg-black/40 px-2 py-0.5 text-[10px] font-medium text-white">
+                          {cur + 1} / {pages.length}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )
+              })()}
             </div>
 
             {/* Form info banner */}
@@ -144,7 +176,7 @@ export function TemplateListWithPreview({ templates }: { templates: PreviewTempl
             <div className="flex items-center gap-3">
               <span className="shrink-0 text-base text-neutral-300">📄</span>
               <button
-                onClick={() => setPreview(t)}
+                onClick={() => { setPreview(t); setPageIdx(0) }}
                 className="min-w-0 flex-1 truncate text-left text-sm font-medium text-neutral-700 hover:text-emerald-800 hover:underline"
               >
                 {t.title}
@@ -177,7 +209,7 @@ export function TemplateListWithPreview({ templates }: { templates: PreviewTempl
             {/* Second row: preview link + TOC */}
             <div className="mt-1 flex items-center gap-3 pl-7">
               <button
-                onClick={() => setPreview(t)}
+                onClick={() => { setPreview(t); setPageIdx(0) }}
                 className="text-[11px] font-medium text-emerald-600 hover:text-emerald-800 hover:underline"
               >
                 🔍 ดูพรีวิวเอกสารก่อนซื้อ

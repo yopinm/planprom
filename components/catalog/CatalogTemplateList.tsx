@@ -6,7 +6,7 @@ import FreeDownloadButton from '@/components/templates/FreeDownloadButton'
 export type CatalogTemplate = {
   id: string; slug: string; title: string
   price_baht: number; tier: string; sale_count: number
-  document_type: string; preview_path: string | null
+  document_type: string; preview_path: string | null; preview_pages: string[] | null
   is_request_only?: boolean
 }
 
@@ -35,12 +35,17 @@ const TYPE_HEADER: Record<string, { bg: string; border: string; text: string; su
 
 export function CatalogTemplateList({ templates }: { templates: CatalogTemplate[] }) {
   const [preview, setPreview] = useState<CatalogTemplate | null>(null)
+  const [pageIdx, setPageIdx] = useState(0)
   const close = useCallback(() => setPreview(null), [])
 
   useEffect(() => {
     if (!preview) return
     document.body.style.overflow = 'hidden'
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') close()
+      if (e.key === 'ArrowRight') setPageIdx(i => Math.min(i + 1, (preview.preview_pages?.length ?? 1) - 1))
+      if (e.key === 'ArrowLeft')  setPageIdx(i => Math.max(i - 1, 0))
+    }
     window.addEventListener('keydown', onKey)
     return () => {
       document.body.style.overflow = ''
@@ -81,19 +86,46 @@ export function CatalogTemplateList({ templates }: { templates: CatalogTemplate[
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto bg-neutral-100">
-              {preview.preview_path ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={preview.preview_path}
-                  alt={`ตัวอย่าง ${preview.title}`}
-                  className="w-full h-auto"
-                />
-              ) : (
-                <div className="flex h-48 items-center justify-center text-sm text-neutral-400">
-                  ไม่มีภาพตัวอย่าง
-                </div>
-              )}
+            <div className="flex-1 overflow-hidden bg-neutral-100">
+              {(() => {
+                const pages = (preview.preview_pages && preview.preview_pages.length > 0)
+                  ? preview.preview_pages
+                  : (preview.preview_path ? [preview.preview_path] : [])
+                if (pages.length === 0) return (
+                  <div className="flex h-48 items-center justify-center text-sm text-neutral-400">ไม่มีภาพตัวอย่าง</div>
+                )
+                const cur = Math.min(pageIdx, pages.length - 1)
+                return (
+                  <div className="relative">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={pages[cur]} alt={`ตัวอย่าง ${preview.title} หน้า ${cur + 1}`} className="w-full h-auto block" />
+                    {pages.length > 1 && (
+                      <>
+                        {cur > 0 && (
+                          <button onClick={() => setPageIdx(i => i - 1)}
+                            className="absolute left-2 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white hover:bg-black/60 text-sm font-bold"
+                          >‹</button>
+                        )}
+                        {cur < pages.length - 1 && (
+                          <button onClick={() => setPageIdx(i => i + 1)}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white hover:bg-black/60 text-sm font-bold"
+                          >›</button>
+                        )}
+                        <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1.5">
+                          {pages.map((_, i) => (
+                            <button key={i} onClick={() => setPageIdx(i)}
+                              className={`h-1.5 w-1.5 rounded-full transition ${i === cur ? 'bg-white' : 'bg-white/40'}`}
+                            />
+                          ))}
+                        </div>
+                        <div className="absolute top-2 right-2 rounded-full bg-black/40 px-2 py-0.5 text-[10px] font-medium text-white">
+                          {cur + 1} / {pages.length}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )
+              })()}
             </div>
 
             <div className="flex shrink-0 items-center justify-between border-t border-neutral-100 bg-neutral-50 px-5 py-4">
@@ -172,7 +204,7 @@ export function CatalogTemplateList({ templates }: { templates: CatalogTemplate[
                     {t.preview_path && (
                       <div className="mt-1 pl-7">
                         <button
-                          onClick={() => setPreview(t)}
+                          onClick={() => { setPreview(t); setPageIdx(0) }}
                           className="text-[11px] font-medium text-emerald-600 hover:text-emerald-800 hover:underline"
                         >
                           🔍 ดูพรีวิวก่อนซื้อ

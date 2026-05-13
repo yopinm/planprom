@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 function getThisWeekRange(): string {
   const now = new Date()
@@ -24,6 +24,7 @@ export interface FeaturedTemplate {
   title: string
   tier: string
   preview_path: string | null
+  preview_pages: string[] | null
   category_name: string | null
   category_emoji: string | null
   is_request_only?: boolean
@@ -31,6 +32,20 @@ export interface FeaturedTemplate {
 
 export default function FeaturedTemplateCard({ template }: { template: FeaturedTemplate }) {
   const [open, setOpen] = useState(false)
+  const [pageIdx, setPageIdx] = useState(0)
+
+  useEffect(() => {
+    if (!open) return
+    setPageIdx(0)
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false)
+      const total = (template.preview_pages?.length ?? 1)
+      if (e.key === 'ArrowRight') setPageIdx(i => Math.min(i + 1, total - 1))
+      if (e.key === 'ArrowLeft')  setPageIdx(i => Math.max(i - 1, 0))
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open, template.preview_pages])
 
   return (
     <>
@@ -98,19 +113,46 @@ export default function FeaturedTemplateCard({ template }: { template: FeaturedT
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto bg-neutral-100">
-              {template.preview_path ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={template.preview_path}
-                  alt={`ตัวอย่าง ${template.title}`}
-                  className="w-full h-auto"
-                />
-              ) : (
-                <div className="flex h-48 items-center justify-center text-sm text-neutral-400">
-                  ไม่มีภาพตัวอย่าง
-                </div>
-              )}
+            <div className="flex-1 overflow-hidden bg-neutral-100">
+              {(() => {
+                const pages = (template.preview_pages && template.preview_pages.length > 0)
+                  ? template.preview_pages
+                  : (template.preview_path ? [template.preview_path] : [])
+                if (pages.length === 0) return (
+                  <div className="flex h-48 items-center justify-center text-sm text-neutral-400">ไม่มีภาพตัวอย่าง</div>
+                )
+                const cur = Math.min(pageIdx, pages.length - 1)
+                return (
+                  <div className="relative">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={pages[cur]} alt={`ตัวอย่าง ${template.title} หน้า ${cur + 1}`} className="w-full h-auto block" />
+                    {pages.length > 1 && (
+                      <>
+                        {cur > 0 && (
+                          <button onClick={() => setPageIdx(i => i - 1)}
+                            className="absolute left-2 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white hover:bg-black/60 text-sm font-bold"
+                          >‹</button>
+                        )}
+                        {cur < pages.length - 1 && (
+                          <button onClick={() => setPageIdx(i => i + 1)}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white hover:bg-black/60 text-sm font-bold"
+                          >›</button>
+                        )}
+                        <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1.5">
+                          {pages.map((_, i) => (
+                            <button key={i} onClick={() => setPageIdx(i)}
+                              className={`h-1.5 w-1.5 rounded-full transition ${i === cur ? 'bg-white' : 'bg-white/40'}`}
+                            />
+                          ))}
+                        </div>
+                        <div className="absolute top-2 right-2 rounded-full bg-black/40 px-2 py-0.5 text-[10px] font-medium text-white">
+                          {cur + 1} / {pages.length}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )
+              })()}
             </div>
 
             <div className="flex shrink-0 items-center justify-between border-t border-neutral-100 bg-neutral-50 px-5 py-4">

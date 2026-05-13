@@ -186,6 +186,7 @@ export async function createTemplateWizardAction(data: {
   tocSections?: TocItem[]
   watermarkText?: string
   previewPath?: string
+  previewPages?: string[]
   engineType?: string
   engineData?: Record<string, unknown>
 }): Promise<{ error?: string; id?: string }> {
@@ -198,13 +199,14 @@ export async function createTemplateWizardAction(data: {
     const [row] = await db<{ id: string }[]>`
       INSERT INTO templates
         (slug, title, description, tier, price_baht, pdf_path, preview_path,
-         thumbnail_path, page_count, has_form_fields, status, published_at, document_type,
+         thumbnail_path, preview_pages, page_count, has_form_fields, status, published_at, document_type,
          toc_sections, watermark_text, engine_type, engine_data)
       VALUES (
         ${data.slug}, ${data.title}, ${data.description || null},
         ${data.tier}, ${price}, ${data.pdfPath || '/uploads/templates/placeholder.pdf'},
         ${data.previewPath ?? null},
         ${data.previewPath ?? null},
+        ${JSON.stringify(data.previewPages ?? [])},
         ${data.pageCount}, ${data.hasFormFields}, ${data.status}, ${now}, ${docType},
         ${data.tocSections ? JSON.stringify(data.tocSections) : null},
         ${data.watermarkText ?? null},

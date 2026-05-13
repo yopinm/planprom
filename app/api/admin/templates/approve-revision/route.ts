@@ -13,13 +13,14 @@ export async function POST(req: NextRequest) {
     engine_data: unknown
     pdf_path: string
     preview_path: string | null
+    preview_pages?: string[]
     change_note: string
   }
   try { body = await req.json() } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  const { template_id, engine_data, pdf_path, preview_path, change_note } = body
+  const { template_id, engine_data, pdf_path, preview_path, preview_pages, change_note } = body
   if (!template_id || !engine_data || !pdf_path) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
   }
@@ -47,6 +48,7 @@ export async function POST(req: NextRequest) {
       SET engine_data    = ${engine_data as unknown as string},
           pdf_path       = ${pdf_path},
           preview_path   = ${preview_path ?? null},
+          preview_pages  = ${JSON.stringify(preview_pages ?? [])},
           thumbnail_path = COALESCE(thumbnail_path, ${preview_path ?? null})
       WHERE id = ${template_id}
     `

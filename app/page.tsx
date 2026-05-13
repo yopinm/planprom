@@ -60,7 +60,7 @@ async function fetchActivePromo(): Promise<PromoData | null> {
 async function fetchFeaturedTemplate(): Promise<FeaturedTemplate | null> {
   try {
     const [row] = await db<FeaturedTemplate[]>`
-      SELECT t.id, t.slug, t.title, t.tier, t.preview_path, t.is_request_only,
+      SELECT t.id, t.slug, t.title, t.tier, t.preview_path, t.preview_pages, t.is_request_only,
              c.name AS category_name, c.emoji AS category_emoji
       FROM templates t
       LEFT JOIN template_category_links l ON l.template_id = t.id

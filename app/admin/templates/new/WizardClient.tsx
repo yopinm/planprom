@@ -97,7 +97,8 @@ export function WizardClient({ categories, cloneSources }: Props) {
   const [engineState,       setEngineState]       = useState<'idle'|'generating'|'done'|'error'>('idle')
   const [engineError,       setEngineError]       = useState('')
   const [engineDocCode,     setEngineDocCode]     = useState('')
-  const [enginePreviewPath, setEnginePreviewPath] = useState('')
+  const [enginePreviewPath,  setEnginePreviewPath]  = useState('')
+  const [enginePreviewPages, setEnginePreviewPages] = useState<string[]>([])
   const [engineProgress,    setEngineProgress]    = useState(0)
 
   const ENGINE_STEPS = [
@@ -256,7 +257,7 @@ export function WizardClient({ categories, cloneSources }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(bodyPayload),
       })
-      const json = await res.json() as { path?: string; preview_path?: string; doc_code?: string; plan_code?: string; error?: string }
+      const json = await res.json() as { path?: string; preview_path?: string; preview_pages?: string[]; doc_code?: string; plan_code?: string; error?: string }
       if (!res.ok || json.error) {
         setEngineError(json.error ?? 'Generate failed')
         setEngineState('error')
@@ -264,6 +265,7 @@ export function WizardClient({ categories, cloneSources }: Props) {
         setPdfPath(json.path ?? '')
         setEngineDocCode(json.doc_code ?? json.plan_code ?? '')
         setEnginePreviewPath(json.preview_path ?? '')
+        setEnginePreviewPages(json.preview_pages ?? [])
         setEngineState('done')
       }
     } catch (err) {
@@ -344,7 +346,8 @@ export function WizardClient({ categories, cloneSources }: Props) {
         documentType: finalDocType,
         tocSections: tocSections.length > 0 ? tocSections : undefined,
         watermarkText: (mode === 'docx' || isEngine) && watermarkOn ? watermarkText : undefined,
-        previewPath: isEngine && enginePreviewPath ? enginePreviewPath : undefined,
+        previewPath:  isEngine && enginePreviewPath  ? enginePreviewPath  : undefined,
+        previewPages: isEngine && enginePreviewPages.length > 0 ? enginePreviewPages : undefined,
         engineType: finalEngineType,
         engineData: isEngine && engineData
           ? (engineDocCode && (engineData as Record<string, Record<string,unknown>>).s1

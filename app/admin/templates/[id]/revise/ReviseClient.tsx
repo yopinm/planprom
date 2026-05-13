@@ -1603,7 +1603,8 @@ export function ReviseClient({ templateId, slug, engineType, initialData, nextRe
   const [genState,   setGenState]   = useState<GenState>('idle')
   const [genError,   setGenError]   = useState('')
   const [pdfPath,    setPdfPath]    = useState('')
-  const [previewPath, setPreviewPath] = useState<string | null>(null)
+  const [previewPath,  setPreviewPath]  = useState<string | null>(null)
+  const [previewPages, setPreviewPages] = useState<string[]>([])
   const [changeNote, setChangeNote] = useState('')
   const [approveState, setApproveState] = useState<ApproveState>('idle')
   const [approveError, setApproveError] = useState('')
@@ -1622,13 +1623,14 @@ export function ReviseClient({ templateId, slug, engineType, initialData, nextRe
           category_name: categoryName || undefined,
         }),
       })
-      const json = await res.json() as { path?: string; preview_path?: string; error?: string }
+      const json = await res.json() as { path?: string; preview_path?: string; preview_pages?: string[]; error?: string }
       if (!res.ok || json.error) {
         setGenError(json.error ?? 'Generate failed')
         setGenState('error')
       } else {
         setPdfPath(json.path ?? '')
         setPreviewPath(json.preview_path ?? null)
+        setPreviewPages(json.preview_pages ?? [])
         setGenState('done')
       }
     } catch (err) {
@@ -1645,7 +1647,7 @@ export function ReviseClient({ templateId, slug, engineType, initialData, nextRe
       const res = await fetch('/api/admin/templates/approve-revision', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ template_id: templateId, engine_data: engineData, pdf_path: pdfPath, preview_path: previewPath, change_note: changeNote }),
+        body: JSON.stringify({ template_id: templateId, engine_data: engineData, pdf_path: pdfPath, preview_path: previewPath, preview_pages: previewPages, change_note: changeNote }),
       })
       const json = await res.json() as { ok?: boolean; revision_number?: number; error?: string }
       if (!res.ok || json.error) {

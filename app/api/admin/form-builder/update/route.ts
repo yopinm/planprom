@@ -94,8 +94,9 @@ export async function PATCH(req: NextRequest) {
     if (browser) await (browser as { close(): Promise<void> }).close().catch(() => {})
   }
 
-  // Step 2: Screenshot — system chromium (non-fatal)
+  // Step 2: Multi-page screenshots — non-fatal
   let previewPath: string | null = null
+  const previewPages: string[] = []
   let browser2 = null
   try {
     const sysChromium = process.env.SYSTEM_CHROMIUM_PATH ?? '/usr/bin/chromium-browser'
@@ -103,15 +104,25 @@ export async function PATCH(req: NextRequest) {
       executablePath: sysChromium,
       args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu', '--font-render-hinting=none'],
       headless: true,
-      defaultViewport: { width: 560, height: 793 },
+      defaultViewport: { width: 560, height: 3200 },
     })
     const page2 = await browser2.newPage()
     await page2.setContent(html, { waitUntil: 'networkidle0' })
     await page2.evaluate(() => document.fonts.ready)
-    const previewFilename = `${existing.slug}-form-preview-${ts}.jpg`
-    const shot = await page2.screenshot({ type: 'jpeg', quality: 85, clip: { x: 0, y: 0, width: 560, height: 396 } })
-    await writeFile(path.join(uploadBase, previewFilename), shot as Buffer)
-    previewPath = `/api/preview/${previewFilename}`
+    const totalH = await page2.evaluate(() => Math.ceil(document.body.scrollHeight))
+    const pageH = 792
+    const nPages = Math.min(4, Math.ceil(totalH / pageH))
+    for (let i = 0; i < nPages; i++) {
+      const y = i * pageH
+      const h = Math.min(pageH, totalH - y)
+      if (h < 20) break
+      const fname = `${existing.slug}-form-p${i + 1}-${ts}.jpg`
+      const shot = await page2.screenshot({ type: 'jpeg', quality: 85, clip: { x: 0, y, width: 560, height: h } })
+      await writeFile(path.join(uploadBase, fname), shot as Buffer)
+      const imgPath = `/api/preview/${fname}`
+      previewPages.push(imgPath)
+      if (i === 0) previewPath = imgPath
+    }
   } catch (screenshotErr) {
     console.error('Form preview screenshot failed:', String(screenshotErr))
   } finally {
@@ -130,6 +141,7 @@ export async function PATCH(req: NextRequest) {
         pdf_path       = ${pdfPath},
         preview_path   = ${previewPath},
         thumbnail_path = COALESCE(${previewPath}, thumbnail_path),
+        preview_pages  = ${JSON.stringify(previewPages)},
         engine_data    = ${JSON.stringify(engineData)},
         document_type  = 'form',
         updated_at     = NOW()
