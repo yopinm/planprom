@@ -214,7 +214,7 @@
 | J10 | Wallet แสดง login prompt หลัง download ใน tab เดิม | ~~ระบบ Wallet ถูกตัดออกแล้ว — task นี้ไม่มีผล~~ | ✅ **Closed (N/A — wallet removed)** |
 | J11 | Free tier ยังไม่โหลดได้เลย | `POST /api/free-download` → INSERT template_orders (amount=0, status='paid', payment_method='free') → return token · `FreeDownloadButton` client component → router.push('/d/[token]') · แทน href="#line-cta" ทั้ง 3 จุด (CatalogTemplateList modal+row, TemplateListWithPreview modal+row, /templates/[slug]) · ลบปุ่ม "แชร์ให้เพื่อนทาง LINE" จาก DownloadClient | ✅ **Done · Live (Session 46)** |
 | J12 | LINE OAuth ล้มเหลว — "Error getting user profile from external provider" | ~~ตัดระบบ LINE Login ออกแล้ว — ใช้ Cart flow แทน (ไม่ต้อง LINE)~~ | ✅ **Closed (N/A — LINE login removed)** |
-| J13 | ระบบ Customer Request ขอเทมเพลตด่วน | **Spec (2026-05-10):** · **UI** `/templates/request` — หัวข้อ "อยากได้เทมเพลตหมวดไหน? → บอกเรา" · input ช่องเดียว placeholder "เช่น แพลนเนอร์ออกกำลังกาย" · ปุ่ม "ส่ง" · ไม่ต้อง login (guest ส่งได้) · **Incentive:** แจ้งใต้ช่อง "เมื่อเราทำเทมเพลตนี้เสร็จ คุณได้รับไฟล์ฟรี 1 ใบ!" → เก็บ contact_line (optional) เพื่อให้ owner แจ้งกลับ · **DB:** `template_requests` (id UUID PK, topic TEXT NOT NULL, contact_line TEXT, session_id TEXT, fulfilled BOOLEAN DEFAULT false, free_token_issued BOOLEAN DEFAULT false, created_at TIMESTAMPTZ) · **Flow:** submit → INSERT → แสดง toast "ส่งคำขอแล้ว! เราจะแจ้งเมื่อพร้อม" · **Admin** `/admin/requests` — ตาราง: topic / contact / วันที่ / fulfilled toggle / ปุ่ม "ออก free token" (สร้าง download_token แล้วส่ง LINE หรือ copy link) · **Files:** `app/templates/request/page.tsx` (NEW) · `app/api/templates/request/route.ts` (NEW) · `app/admin/requests/page.tsx` (NEW) · `app/admin/requests/actions.ts` (NEW) · `migrations/YYYYMMDD_template_requests.sql` | 🟡 Medium |
+| J13 | ระบบ Request ฟอร์มด่วน — LINE-based + Unlock Code | **Concept เปลี่ยน 2026-05-13 (Session 58):** ไม่มี web form — ลูกค้าแอด LINE แล้วแจ้งชื่อฟอร์มโดยตรง · **Marketing (Done ✅):** floating bubble "หาฟอร์มไม่เจอ? 📌 Request ด่วน 50฿ ✅" กระพริบ 7s cycle · amber card บน homepage "หาฟอร์มไม่เจอ? ➕ LINE → 💬 บอกฟอร์ม → ✅ ใน 24ชม. · 50฿" · **Flow หลัก:** ลูกค้า LINE มาขอ → admin สร้างฟอร์มใน Form Builder → publish as `is_request_only=true`, price=50฿ → admin กด "สร้าง Unlock Code" → ส่ง code ให้ลูกค้าทาง LINE → ลูกค้ากรอก code ที่ checkout → unlock → จ่าย 50฿ ผ่าน cart ปกติ → download · **2 Cases:** (1) `is_request_only=true` = template visible ใน catalog แต่ AddToCart ซ่อน → แสดง "🔒 เฉพาะผู้ Request" (2) Admin สร้าง 1-time unlock code linked to template → reuse `promo_codes` table + `template_id UUID` column · **Frozen engines:** ห้ามแตะ engine-form.ts, engine-checklist.ts, engine-planner.ts, engine-report.ts, pricing.ts, cart.ts · **Files (pending implement):** `migrations/20260513_request_unlock.sql` (ADD COLUMN `is_request_only` to templates + ADD COLUMN `template_id` to promo_codes) · `components/catalog/AddToCartButton.tsx` (hide if is_request_only) · `app/checkout/[slug]/CheckoutClient.tsx` (unlock code input + validate) · `app/admin/templates/[id]/edit/page.tsx` (Request Only checkbox + Generate Unlock Code button) · ราคา 50฿ = 20฿ standard + 30฿ request surcharge (set manually ตอน create template) | 🔵 Scope Confirmed — รอ implement |
 | J14 | ระบบสมาชิก + Auto Push download link | ลูกค้าที่ซื้อแล้ว = "สมาชิก" → เมื่อ owner เพิ่ม template ใหม่ในหมวดที่เคยซื้อ → LINE push แจ้งลิงก์ดาวน์โหลดอัตโนมัติ · **Plan**: `member_subscriptions` table (line_id, category_slug) + cron/webhook ตอน publish template ใหม่ → LINE push เฉพาะกลุ่มที่ subscribe หมวดนั้น | 🟡 Medium |
 | J15 | Generate Template PDF จาก .docx — Preview ก่อน Publish | **Concept ชัดแล้ว (2026-05-08):** admin อัพ `.docx` → ระบบ convert → PDF มาตรฐาน A4 → admin preview → approve/reject → publish · แทน "Starter" mode ใน wizard · watermark เลือกได้ (ไม่ใส่ / ใส่ + แก้ข้อความได้) · **Stack**: `mammoth` (docx→HTML, มีอยู่แล้ว) + `@sparticuz/chromium` + `puppeteer-core` (HTML→PDF, pure npm ไม่ต้องติดตั้ง OS-level) · **Flow**: docx upload → mammoth HTML → inject CSS A4 + optional watermark (CSS diagonal overlay) → puppeteer PDF → เก็บเป็น draft → admin preview iframe → approve → move to `/uploads/templates/` → publish ปกติ · **Watermark UI**: radio ไม่ใส่ / ใส่ → text input (default "couponkum.com") · **VPS**: AlmaLinux 9.7 ไม่มี LibreOffice/Chromium → ใช้ `@sparticuz/chromium` แทน (npm ~40MB) · **Draft state**: เพิ่ม `status = 'draft_preview'` ใน templates table | 🟡 Medium / Planned |
 | J16 | ~~Alert admin LINE เมื่อ LINE login fail~~ | ✅ **RESOLVED (Session 25)** — set `_auth_provider=line` cookie ตอน OAuth start · callback detect fail → `pushLine(OWNER_LINE_USER_ID, ...)` พร้อม error + Thai timestamp | ✅ Done |
@@ -491,6 +491,19 @@ Page 2: render fields แบบเปล่า (_____ แทน value)
 
 **⏳ Pending EF-8:**
 - Modal preview ขยายจาก `max-w-md` (448px ≈ 31%) → ~40% viewport (ทำ 3 ไฟล์: `CatalogTemplateList.tsx`, `TemplateListWithPreview.tsx`, `FeaturedTemplateCard.tsx`)
+
+---
+
+## Session 58 Changes (2026-05-13) — J13 LINE Request CTA + Scope
+
+| # | Change | Status |
+|---|---|---|
+| 1 | **FloatingLineButton** speech bubble "หาฟอร์มไม่เจอ? 📌 / Request ด่วน 50฿ ✅" กระพริบ 7s CSS keyframe | ✅ Live |
+| 2 | **Homepage amber card** "หาฟอร์มไม่เจอ? ➕ LINE → 💬 บอกฟอร์ม → ✅ ใน 24ชม. · 50฿" — text only, max-w-lg centered | ✅ Live |
+| 3 | **J13 scope เปลี่ยน** web form → LINE-based + unlock code system — spec อัพเดตใน Known Pending | ✅ Docs |
+
+**⏳ Pending (J13 implement):** `is_request_only` flag + promo_codes `template_id` + CheckoutClient unlock input + Admin edit UI
+**⏳ Pending (EF-8):** Modal preview ขยาย max-w-md → ~40% viewport
 
 ---
 
