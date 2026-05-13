@@ -25,7 +25,7 @@ export function FieldCard({ field, onChange, onDelete }: Props) {
 
   const hasOptions = ['checkbox', 'radio', 'dropdown', 'inspection'].includes(field.type)
   const hasTableConfig = field.type === 'table'
-  const isLayout = ['section_header', 'divider', 'row_break', 'page_break', 'logo'].includes(field.type)
+  const isLayout = ['section_header', 'divider', 'row_break', 'page_break'].includes(field.type)
 
   function addOption() {
     onChange({ ...field, options: [...(field.options ?? []), `ตัวเลือก ${(field.options?.length ?? 0) + 1}`] })
@@ -66,7 +66,7 @@ export function FieldCard({ field, onChange, onDelete }: Props) {
 
         {/* Label */}
         <div className="flex-1 min-w-0">
-          {isLayout && field.type !== 'section_header' ? (
+          {(isLayout && field.type !== 'section_header') || field.type === 'logo' ? (
             <span className="text-sm text-gray-500 italic">{typeLabel[field.type]}</span>
           ) : (
             <input
@@ -84,7 +84,7 @@ export function FieldCard({ field, onChange, onDelete }: Props) {
         </span>
 
         {/* Required toggle */}
-        {!isLayout && (
+        {!isLayout && field.type !== 'logo' && (
           <button
             onClick={() => onChange({ ...field, required: !field.required })}
             className={`text-xs px-1.5 py-0.5 rounded shrink-0 ${field.required ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-400'}`}
@@ -138,6 +138,30 @@ export function FieldCard({ field, onChange, onDelete }: Props) {
                   {w.label}
                 </button>
               ))}
+            </div>
+          )}
+
+          {/* Align picker */}
+          {!['section_header', 'divider', 'row_break', 'page_break'].includes(field.type) && (
+            <div className="flex items-center gap-1 flex-wrap">
+              <span className="text-xs text-gray-500 w-16 shrink-0">จัดวาง</span>
+              {([
+                { label: '←', value: 'left',   title: 'ชิดซ้าย' },
+                { label: '⊝', value: 'center', title: 'กึ่งกลาง' },
+                { label: '→', value: 'right',  title: 'ชิดขวา' },
+              ] as const).map(a => (
+                <button
+                  key={a.value}
+                  onClick={() => onChange({ ...field, align: a.value })}
+                  title={a.title}
+                  className={`text-xs px-2 py-0.5 rounded border ${(field.align ?? 'left') === a.value ? 'border-amber-500 text-amber-700 bg-amber-50' : 'border-gray-200 text-gray-500'}`}
+                >
+                  {a.label}
+                </button>
+              ))}
+              <span className="text-xs text-gray-400 ml-1">
+                {(field.align ?? 'left') === 'left' ? 'ชิดซ้าย' : (field.align ?? 'left') === 'center' ? 'กึ่งกลาง' : 'ชิดขวา'}
+              </span>
             </div>
           )}
 

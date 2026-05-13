@@ -86,18 +86,22 @@ function renderFieldFilled(f: FormField, value: string | string[]): string {
 
 function fieldWrap(f: FormField, inner: string): string {
   const w = f.width ?? 100
-  const pr = w < 100 ? `padding-right:10px;` : ''
-  return `<div class="field" style="width:${w}%;${pr}"><div class="field-label">${esc(f.label)}${f.required ? ' <span class="req">*</span>' : ''}</div>${inner}</div>`
+  const pr = w < 100 ? 'padding-right:10px;' : ''
+  const a = f.align ?? 'left'
+  const ml = a === 'right' ? 'margin-left:auto;' : a === 'center' ? 'margin-left:auto;margin-right:auto;' : ''
+  return `<div class="field" style="width:${w}%;${pr}${ml}"><div class="field-label">${esc(f.label)}${f.required ? ' <span class="req">*</span>' : ''}</div>${inner}</div>`
 }
 
 // ── Page 2: inline document-style renderer (พร้อมพิมพ์ใช้จริง) ──────────
 
 function renderFieldInline(f: FormField): string {
   // structural types always full width
-  const alwaysFull = ['section_header', 'divider', 'page_break', 'logo', 'signature', 'multiline', 'table', 'photo_upload']
+  const alwaysFull = ['section_header', 'divider', 'page_break', 'signature', 'multiline', 'table', 'photo_upload']
   const w   = alwaysFull.includes(f.type) ? 100 : (f.width ?? 100)
   const pr  = w < 100 ? 'padding-right:14px;' : ''
-  const ws  = `width:${w}%;box-sizing:border-box;${pr}`
+  const a   = f.align ?? 'left'
+  const ml  = a === 'right' ? 'margin-left:auto;' : a === 'center' ? 'margin-left:auto;margin-right:auto;' : ''
+  const ws  = `width:${w}%;box-sizing:border-box;${pr}${ml}`
   const req = f.required ? '<span class="if-req">*</span>' : ''
   const lbl = `<span class="if-lbl">${esc(f.label)}${req}</span>`
 
