@@ -117,6 +117,21 @@ export default async function EditTemplatePage({ params }: { params: Promise<{ i
             <span>🔒 Request Only — ลูกค้าต้องมี Unlock Code ถึงจะซื้อได้</span>
           </label>
 
+          {t.is_request_only && (
+            <div>
+              <label className={LABEL}>ราคา Request (฿) — ใช้เมื่อ Request Only เปิดอยู่</label>
+              <input
+                name="price_baht"
+                type="number"
+                min="1"
+                step="1"
+                defaultValue={t.price_baht}
+                className={INPUT}
+              />
+              <p className="mt-1 text-[11px] text-neutral-400">ราคานี้จะแทนที่ราคา tier — ตั้งเป็น 50 สำหรับ ฿20 template + ฿30 ค่า custom</p>
+            </div>
+          )}
+
           {/* Draft Preview — approve block */}
           {t.status === 'draft_preview' && (
             <div className="rounded-xl border-2 border-violet-300 bg-violet-50 px-4 py-4">

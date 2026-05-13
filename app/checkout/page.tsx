@@ -155,7 +155,9 @@ export default function CheckoutPage() {
     let idx = 0
     return cart.items.map(item => ({
       ...item,
-      unitPrice: item.tier === 'free' ? 0 : tierPrice(++idx),
+      unitPrice: item.tier === 'free' ? 0
+        : item.isRequestOnly ? item.priceBaht
+        : tierPrice(++idx),
     }))
   })()
 

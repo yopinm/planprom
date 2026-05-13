@@ -50,19 +50,24 @@ export async function updateTemplateAction(formData: FormData) {
   const pdfPath = str(formData, 'pdf_path') || '/uploads/templates/placeholder.pdf'
   const pageCount = str(formData, 'page_count')
   const documentType = str(formData, 'document_type') || 'checklist'
+  const isRequestOnly = formData.get('is_request_only') === 'true'
+  const manualPrice = str(formData, 'price_baht')
+  const pricebaht = isRequestOnly && manualPrice
+    ? Number(manualPrice)
+    : (TIER_PRICE[tier] ?? 20)
 
   await db`
     UPDATE templates SET
       title           = ${str(formData, 'title')},
       description     = ${str(formData, 'description') || null},
       tier            = ${tier},
-      price_baht      = ${TIER_PRICE[tier] ?? 20},
+      price_baht      = ${pricebaht},
       pdf_path        = ${pdfPath},
       preview_path    = ${str(formData, 'preview_path') || null},
       thumbnail_path  = ${str(formData, 'thumbnail_path') || null},
       page_count      = ${pageCount ? Number(pageCount) : null},
       has_form_fields  = ${formData.get('has_form_fields') === 'true'},
-      is_request_only  = ${formData.get('is_request_only') === 'true'},
+      is_request_only  = ${isRequestOnly},
       document_type    = ${documentType},
       updated_at       = NOW()
     WHERE id = ${id}
