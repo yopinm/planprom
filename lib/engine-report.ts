@@ -5,10 +5,10 @@ const esc = (s: string) =>
   String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>')
 
 const CONF_LABEL: Record<string, string> = {
-  public: 'Public',
-  internal: 'Internal',
-  confidential: 'Confidential',
-  strictly_confidential: 'Strictly Confidential',
+  public: 'ทั่วไป',
+  internal: 'ภายใน',
+  confidential: 'ลับ',
+  strictly_confidential: 'ลับสุดยอด',
 }
 
 export function generateReportHtml(
@@ -89,7 +89,6 @@ ${wm ? `body::before{content:"${wm}";position:fixed;top:50%;left:50%;transform:t
 .cover-tag{display:inline-flex;align-items:center;gap:6px;background:#1e293b;color:#fff;font-size:9pt;font-weight:700;padding:4px 14px;border-radius:20px;margin-bottom:18px}
 .cover-title{font-size:22pt;font-weight:900;color:#1e293b;line-height:1.25;margin-bottom:10px}
 .cover-subtitle{font-size:12pt;font-weight:500;color:#334155;margin-bottom:28px}
-.cover-divider{width:56px;height:4px;background:#1e293b;border-radius:2px;margin-bottom:24px}
 .cover-meta-table{width:100%;border-collapse:collapse;max-width:420px}
 .cover-meta-table td{padding:7px 0;font-size:10pt;border-bottom:1px solid #e2e8f0}
 .cover-meta-table td:first-child{font-weight:700;color:#475569;width:130px}
@@ -152,12 +151,11 @@ tr:nth-child(even) td{background:#f8fafc}
     <div class="cover-tag">รายงาน · Report</div>
     <h1 class="cover-title">${esc(s1.reportTitle)}</h1>
     ${s1.subtitle?.trim() ? `<p class="cover-subtitle">${esc(s1.subtitle)}</p>` : ''}
-    <div class="cover-divider"></div>
     <table class="cover-meta-table">
       <tr><td>จัดทำโดย</td><td>${esc(s1.organization || '-')}</td></tr>
       <tr><td>จัดทำให้</td><td>[ชื่อผู้ซื้อ]</td></tr>
-      <tr><td>วันที่จัดทำ</td><td>${esc(createdDate)}</td></tr>
-      <tr><td>ใช้ได้ถึง</td><td>${esc(validUntil)}</td></tr>
+      <tr><td>วันที่จัดทำ</td><td><span style="display:inline-block;width:180px;border-bottom:1px solid #94a3b8">&nbsp;</span></td></tr>
+      <tr><td>ใช้ได้ถึง</td><td><span style="display:inline-block;width:180px;border-bottom:1px solid #94a3b8">&nbsp;</span></td></tr>
       <tr><td>ระดับ</td><td>${confLabel}</td></tr>
     </table>
   </div>

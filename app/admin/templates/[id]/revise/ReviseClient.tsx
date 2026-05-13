@@ -1378,6 +1378,7 @@ function ReportReviseForm({ initial, onChange }: {
   const [s1Title,   setS1Title]   = useState(initial.s1.reportTitle ?? '')
   const [s1Sub,     setS1Sub]     = useState(initial.s1.subtitle ?? '')
   const [s1Org,     setS1Org]     = useState(initial.s1.organization ?? '')
+  const [s1Conf,    setS1Conf]    = useState<ReportEngineData['s1']['confidentialLevel']>(initial.s1.confidentialLevel ?? 'confidential')
   const [s3Summary, setS3Summary] = useState(initial.s3.summaryText ?? '')
   const [s3Find,    setS3Find]    = useState<string[]>(initial.s3.keyFindings?.length ? initial.s3.keyFindings : [''])
   const [s3Urgent,  setS3Urgent]  = useState(initial.s3.urgentRecommendations ?? '')
@@ -1409,7 +1410,7 @@ function ReportReviseForm({ initial, onChange }: {
 
   useEffect(() => {
     onChange({
-      s1: { reportTitle: s1Title, subtitle: s1Sub, organization: s1Org, confidentialLevel: 'confidential', validityMonths: 12 },
+      s1: { reportTitle: s1Title, subtitle: s1Sub, organization: s1Org, confidentialLevel: s1Conf, validityMonths: 12 },
       s3: { kpis: [], summaryText: s3Summary, keyFindings: s3Find.filter(f => f.trim()), urgentRecommendations: s3Urgent },
       s4: { objective: s4Obj, scope: s4Scope, dataSource: s4Src, dataPeriod: s4Per, methodology: s4Meth, limitations: s4Lim },
       s5: { tables, textBlocks: textBlks },
@@ -1417,7 +1418,7 @@ function ReportReviseForm({ initial, onChange }: {
       s7: { rawData: s7Raw, references: s7Ref, glossary: s7Glos, analystProfile: s7Prof },
       s8: { analystName: s8Name, analystTitle: s8TitleF, disclaimer: s8Discl, companyName: s8Comp, contactEmail: s8Email, contactPhone: s8Phone, contactWebsite: s8Web },
     })
-  }, [s1Title, s1Sub, s1Org, s3Summary, s3Find, s3Urgent,
+  }, [s1Title, s1Sub, s1Org, s1Conf, s3Summary, s3Find, s3Urgent,
       s4Obj, s4Scope, s4Src, s4Per, s4Meth, s4Lim, tables, textBlks,
       s6Concl, s6Find, s6Reco, s6Risk, s6Fore, s6Score,
       s7Raw, s7Ref, s7Glos, s7Prof,
@@ -1436,6 +1437,15 @@ function ReportReviseForm({ initial, onChange }: {
             <input value={f.val} onChange={e => f.set(e.target.value)} placeholder={f.ph} className={INPUT} />
           </div>
         ))}
+        <div>
+          <label className={LABEL}>ระดับความลับ</label>
+          <select value={s1Conf} onChange={e => setS1Conf(e.target.value as ReportEngineData['s1']['confidentialLevel'])} className={INPUT}>
+            <option value="public">🌐 ทั่วไป — เปิดเผยได้</option>
+            <option value="internal">🏢 ภายใน — ใช้ภายในองค์กร</option>
+            <option value="confidential">🔒 ลับ — เฉพาะผู้รับที่ระบุ</option>
+            <option value="strictly_confidential">🔴 ลับสุดยอด — ผู้บริหารเท่านั้น</option>
+          </select>
+        </div>
       </Card>
 
       <Card title="ส่วนที่ 3 — สรุปภาพรวมรีพอร์ต" color="bg-blue-50 text-blue-800">

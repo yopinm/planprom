@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react'
 import type { ReportEngineData, ReportTableData, ReportTextBlock } from '@/lib/engine-report-types'
 
+type ConfLevel = ReportEngineData['s1']['confidentialLevel']
+
 const INPUT = 'w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none focus:border-sky-400 focus:bg-white transition'
 const LABEL = 'block text-[11px] font-black uppercase tracking-widest text-neutral-400 mb-1.5'
 const TA = `${INPUT} resize-none`
@@ -116,6 +118,7 @@ export function ReportEngineForm({ onChange }: Props) {
   const [s1Title,   setS1Title]   = useState('')
   const [s1Sub,     setS1Sub]     = useState('')
   const [s1Org,     setS1Org]     = useState('')
+  const [s1Conf,    setS1Conf]    = useState<ConfLevel>('confidential')
   // S3
   const [s3Summary, setS3Summary] = useState('')
   const [s3Findings, setS3Findings] = useState(['', '', ''])
@@ -153,7 +156,7 @@ export function ReportEngineForm({ onChange }: Props) {
 
   useEffect(() => {
     onChange({
-      s1: { reportTitle: s1Title, subtitle: s1Sub, organization: s1Org, confidentialLevel: 'confidential', validityMonths: 12 },
+      s1: { reportTitle: s1Title, subtitle: s1Sub, organization: s1Org, confidentialLevel: s1Conf, validityMonths: 12 },
       s3: { kpis: [], summaryText: s3Summary, keyFindings: s3Findings.filter(f => f.trim()), urgentRecommendations: s3Urgent },
       s4: { objective: s4Obj, scope: s4Scope, dataSource: s4Source, dataPeriod: s4Period, methodology: s4Method, limitations: s4Limit },
       s5: { tables, textBlocks },
@@ -161,7 +164,7 @@ export function ReportEngineForm({ onChange }: Props) {
       s7: { rawData: s7Raw, references: s7Ref, glossary: s7Glos, analystProfile: s7Profile },
       s8: { analystName: s8Name, analystTitle: s8Title, disclaimer: s8Discl, companyName: s8Company, contactEmail: s8Email, contactPhone: s8Phone, contactWebsite: s8Web },
     })
-  }, [s1Title,s1Sub,s1Org,s3Summary,s3Findings,s3Urgent,s4Obj,s4Scope,s4Source,s4Period,s4Method,s4Limit,tables,textBlocks,s6Concl,s6Find,s6Reco,s6Risk,s6Fore,s6Score,s7Raw,s7Ref,s7Glos,s7Profile,s8Name,s8Title,s8Discl,s8Company,s8Email,s8Phone,s8Web,onChange])
+  }, [s1Title,s1Sub,s1Org,s1Conf,s3Summary,s3Findings,s3Urgent,s4Obj,s4Scope,s4Source,s4Period,s4Method,s4Limit,tables,textBlocks,s6Concl,s6Find,s6Reco,s6Risk,s6Fore,s6Score,s7Raw,s7Ref,s7Glos,s7Profile,s8Name,s8Title,s8Discl,s8Company,s8Email,s8Phone,s8Web,onChange])
 
   return (
     <div className="space-y-3">
@@ -182,6 +185,15 @@ export function ReportEngineForm({ onChange }: Props) {
           <label className={LABEL}>จัดทำโดย (ชื่อองค์กร / บริษัท)</label>
           <input value={s1Org} onChange={e => setS1Org(e.target.value)}
             placeholder="เช่น บริษัท วิเคราะห์ดี จำกัด" className={INPUT} />
+        </div>
+        <div>
+          <label className={LABEL}>ระดับความลับ</label>
+          <select value={s1Conf} onChange={e => setS1Conf(e.target.value as ConfLevel)} className={INPUT}>
+            <option value="public">🌐 ทั่วไป — เปิดเผยได้</option>
+            <option value="internal">🏢 ภายใน — ใช้ภายในองค์กร</option>
+            <option value="confidential">🔒 ลับ — เฉพาะผู้รับที่ระบุ</option>
+            <option value="strictly_confidential">🔴 ลับสุดยอด — ผู้บริหารเท่านั้น</option>
+          </select>
         </div>
       </SectionCard>
 
