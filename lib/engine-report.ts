@@ -172,7 +172,6 @@ tr:nth-child(even) td{background:#f8fafc}
   </div>
   <div class="cover-footer">
     <span class="cover-footer-brand">www.planprom.com</span>
-    <span class="cover-footer-id">${esc(reportCode)}</span>
   </div>
 </div>
 
@@ -180,7 +179,7 @@ tr:nth-child(even) td{background:#f8fafc}
 <div id="toc" class="section">
   <div class="sec-hdr">สารบัญ (Table of Contents)</div>
   <ol class="toc-list">
-    <li><span class="toc-num">1.</span><a href="#s3">สรุปภาพรวมรีพอต</a></li>
+    <li><span class="toc-num">1.</span><a href="#s3">สรุปภาพรวมรีพอร์ต</a></li>
     <li><span class="toc-num">2.</span><a href="#s4">บทนำและขอบเขต (Introduction &amp; Scope)</a></li>
     <li><span class="toc-num">3.</span><a href="#s5">เนื้อหาและการวิเคราะห์ (Core Content &amp; Analysis)</a></li>
     <li><span class="toc-num">4.</span><a href="#s6">บทสรุปและข้อเสนอแนะ (Conclusion &amp; Recommendations)</a></li>
@@ -191,7 +190,7 @@ tr:nth-child(even) td{background:#f8fafc}
 
 <!-- ── S3 Executive Summary ──────────────────────────────────────────────── -->
 <div id="s3" class="section">
-  <div class="sec-hdr">ส่วนที่ 1 — สรุปภาพรวมรีพอต</div>
+  <div class="sec-hdr">ส่วนที่ 1 — สรุปภาพรวมรีพอร์ต</div>
   ${kpiBoxes ? `<div class="kpi-grid">${kpiBoxes}</div>` : ''}
   ${s3.summaryText?.trim() ? `<div class="pf"><div class="pl">สรุปย่อ</div><div class="pv">${esc(s3.summaryText)}</div></div>` : ''}
   ${findingsBullets ? `<div class="pf"><div class="pl">ข้อค้นพบสำคัญ</div><ul class="bullet-list">${findingsBullets}</ul></div>` : ''}
@@ -239,13 +238,7 @@ tr:nth-child(even) td{background:#f8fafc}
       <div class="sig-line"></div>
       <div class="sig-label">ลายเซ็น · วันที่ _______________</div>
     </div>
-    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px">
-      <div class="qr-box">
-        <div style="font-size:28pt;color:#94a3b8">▣</div>
-        <div class="qr-code-text">${esc(reportCode)}</div>
-        <div class="qr-label">สแกนยืนยันความถูกต้อง</div>
-      </div>
-    </div>
+    <div></div>
   </div>
 
   ${s8.disclaimer?.trim() ? `<div class="disclaimer-box"><strong>Disclaimer:</strong> ${esc(s8.disclaimer)}</div>` : `
