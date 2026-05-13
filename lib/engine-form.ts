@@ -249,9 +249,9 @@ table.data-table tr:nth-child(even) td{background:#fafafa}
 .if-shdr{font-size:10.5pt;font-weight:700;text-decoration:underline;color:#1a1a1a;margin:14px 0 7px;break-after:avoid}
 .if-div{border-top:1px solid #1a1a1a;margin:8px 0}
 .if-logo{border:1px dashed #374151;padding:8px 14px;display:inline-block;color:#6b7280;font-size:9pt;margin-bottom:10px}
-.if-ml{margin-bottom:16px}
+.if-ml{margin-bottom:0}
 .if-ml-lbl{font-size:10pt;color:#1a1a1a;margin-bottom:8px}
-.if-ml .if-line{display:block;width:100%;height:26px;margin-bottom:0px;border-bottom:1.5px solid #1a1a1a}
+.if-ml .if-line{display:block;width:100%;height:22px;margin-bottom:32px;border-bottom:1.5px solid #1a1a1a}
 .if-tbl{margin-bottom:12px;break-inside:avoid}
 .if-tbl-lbl{font-size:10pt;font-weight:600;margin-bottom:4px;color:#1a1a1a}
 .if-photo{border:1px dashed #374151;padding:12px;text-align:center;color:#6b7280;font-size:9pt;margin-bottom:10px;min-height:50px;display:flex;align-items:center;justify-content:center}
