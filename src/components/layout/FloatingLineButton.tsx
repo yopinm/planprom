@@ -1,6 +1,6 @@
 'use client'
 
-const LINE_OA_URL = 'https://line.me/R/ti/p/%40216xobzv'
+const LINE_OA_URL = 'https://line.me/ti/p/~yopinm'
 
 export function FloatingLineButton() {
   return (

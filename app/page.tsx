@@ -316,12 +316,17 @@ export default async function HomePage(): Promise<ReactElement> {
               </div>
             )}
 
-            {/* LINE Request CTA — text only, no button */}
-            <div className="mx-auto max-w-lg rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-center text-sm text-neutral-700">
+            {/* LINE Request CTA */}
+            <a
+              href="https://line.me/ti/p/~yopinm"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mx-auto block max-w-lg rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-center text-sm text-neutral-700 transition hover:border-amber-400 hover:bg-amber-100"
+            >
               <span className="font-bold text-neutral-800">หาฟอร์มไม่เจอ?</span>
               {' '}➕ LINE → 💬 บอกฟอร์ม → ✅ ใน 24ชม.
               <span className="font-bold text-neutral-800"> · 50฿</span>
-            </div>
+            </a>
 
           </div>
         </div>
