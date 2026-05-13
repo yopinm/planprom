@@ -33,7 +33,7 @@ export type FormField = {
   placeholder?: string
   required?: boolean
   options?: string[]       // checkbox / radio / dropdown
-  width?: 'full' | 'half'  // layout hint
+  width?: number            // % of row width: 25 | 33 | 50 | 67 | 75 | 100
   sampleValue?: string     // auto-gen hint — overrides type-based default
   // table-specific
   tableColumns?: string[]

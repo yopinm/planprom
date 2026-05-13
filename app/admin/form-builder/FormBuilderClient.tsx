@@ -70,7 +70,7 @@ function makeField(type: FormFieldType): FormField {
     dimension:      { label: 'ขนาด (กว้าง × ยาว × สูง)' },
     weight_height:  { label: 'น้ำหนัก / ส่วนสูง' },
   }
-  return { id: makeId(), type, label: '', width: 'full', ...defaults[type] }
+  return { id: makeId(), type, label: '', width: 100, ...defaults[type] }
 }
 
 function toSlug(title: string): string {

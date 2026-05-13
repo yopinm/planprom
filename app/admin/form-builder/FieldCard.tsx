@@ -120,15 +120,22 @@ export function FieldCard({ field, onChange, onDelete }: Props) {
         <div className="px-3 pb-3 border-t border-gray-100 pt-2 space-y-2">
           {/* Width toggle (non-layout) */}
           {!isLayout && (
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500 w-16">ความกว้าง</span>
-              {(['full', 'half'] as const).map(w => (
+            <div className="flex items-center gap-1 flex-wrap">
+              <span className="text-xs text-gray-500 w-16 shrink-0">ความกว้าง</span>
+              {([
+                { label: '1/4', value: 25 },
+                { label: '1/3', value: 33 },
+                { label: '1/2', value: 50 },
+                { label: '2/3', value: 67 },
+                { label: '3/4', value: 75 },
+                { label: 'เต็ม', value: 100 },
+              ] as const).map(w => (
                 <button
-                  key={w}
-                  onClick={() => onChange({ ...field, width: w })}
-                  className={`text-xs px-2 py-0.5 rounded border ${field.width === w || (!field.width && w === 'full') ? 'border-amber-500 text-amber-700 bg-amber-50' : 'border-gray-200 text-gray-500'}`}
+                  key={w.value}
+                  onClick={() => onChange({ ...field, width: w.value })}
+                  className={`text-xs px-2 py-0.5 rounded border ${(field.width ?? 100) === w.value ? 'border-amber-500 text-amber-700 bg-amber-50' : 'border-gray-200 text-gray-500'}`}
                 >
-                  {w === 'full' ? 'เต็มแถว' : 'ครึ่งแถว'}
+                  {w.label}
                 </button>
               ))}
             </div>

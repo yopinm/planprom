@@ -12,13 +12,13 @@ function renderFieldFilled(f: FormField, value: string | string[]): string {
 
   switch (f.type) {
     case 'section_header':
-      return `<div class="sec-hdr">${esc(f.label)}</div>`
+      return `<div class="sec-hdr" style="width:100%">${esc(f.label)}</div>`
     case 'divider':
-      return `<div class="divider"></div>`
+      return `<div class="divider" style="width:100%"></div>`
     case 'page_break':
-      return `<div class="page-break"></div>`
+      return `<div class="page-break" style="width:100%"></div>`
     case 'logo':
-      return `<div class="logo-box"><div class="logo-placeholder">[ โลโก้ / ตราองค์กร ]</div></div>`
+      return `<div class="logo-box" style="width:100%"><div class="logo-placeholder">[ โลโก้ / ตราองค์กร ]</div></div>`
     case 'multiline':
       return fieldWrap(f, `<div class="field-value multiline">${esc(v) || '—'}</div>`)
     case 'checkbox': {
@@ -83,58 +83,63 @@ function renderFieldFilled(f: FormField, value: string | string[]): string {
 }
 
 function fieldWrap(f: FormField, inner: string): string {
-  const half = f.width === 'half' ? ' half' : ''
-  return `<div class="field${half}"><div class="field-label">${esc(f.label)}${f.required ? ' <span class="req">*</span>' : ''}</div>${inner}</div>`
+  const w = f.width ?? 100
+  const pr = w < 100 ? `padding-right:10px;` : ''
+  return `<div class="field" style="width:${w}%;${pr}"><div class="field-label">${esc(f.label)}${f.required ? ' <span class="req">*</span>' : ''}</div>${inner}</div>`
 }
 
 // ── Page 2: inline document-style renderer (พร้อมพิมพ์ใช้จริง) ──────────
 
 function renderFieldInline(f: FormField): string {
-  const cls  = f.width === 'half' ? 'if half' : 'if'
-  const req  = f.required ? '<span class="if-req">*</span>' : ''
-  const lbl  = `<span class="if-lbl">${esc(f.label)}${req}</span>`
+  // structural types always full width
+  const alwaysFull = ['section_header', 'divider', 'page_break', 'logo', 'signature', 'multiline', 'table', 'photo_upload']
+  const w   = alwaysFull.includes(f.type) ? 100 : (f.width ?? 100)
+  const pr  = w < 100 ? 'padding-right:14px;' : ''
+  const ws  = `width:${w}%;box-sizing:border-box;${pr}`
+  const req = f.required ? '<span class="if-req">*</span>' : ''
+  const lbl = `<span class="if-lbl">${esc(f.label)}${req}</span>`
 
   switch (f.type) {
     case 'section_header':
-      return `<div class="if-shdr">${esc(f.label)}</div>`
+      return `<div class="if-shdr" style="${ws}">${esc(f.label)}</div>`
 
     case 'divider':
-      return `<div class="if-div"></div>`
+      return `<div class="if-div" style="${ws}"></div>`
 
     case 'page_break':
-      return `<div class="page-break"></div>`
+      return `<div class="page-break" style="width:100%"></div>`
 
     case 'logo':
-      return `<div class="if-logo">[ โลโก้ / ตราองค์กร ]</div>`
+      return `<div class="if-logo" style="${ws}">[ โลโก้ / ตราองค์กร ]</div>`
 
     case 'signature':
-      return `<div class="if-sig-block">
+      return `<div class="if-sig-block" style="${ws}">
   <div class="if-sig-row"><span class="if-lbl">ลงชื่อ</span><div class="if-line"></div></div>
   <div class="if-sig-row if-sig-indent"><span class="if-lbl">(</span><div class="if-line"></div><span class="if-lbl">)</span></div>
   <div class="if-sig-name">${esc(f.label)}</div>
 </div>`
 
     case 'multiline':
-      return `<div class="if-ml">
+      return `<div class="if-ml" style="${ws}">
   <div class="if-ml-lbl">${esc(f.label)}${req}</div>
   <div class="if-line"></div><div class="if-line"></div><div class="if-line"></div>
 </div>`
 
     case 'checkbox': {
       const opts = (f.options ?? []).map(o => `<span class="if-opt">□ ${esc(o)}</span>`).join('')
-      return `<div class="${cls}">${lbl}<div class="if-opts">${opts}</div></div>`
+      return `<div class="if" style="${ws}">${lbl}<div class="if-opts">${opts}</div></div>`
     }
 
     case 'radio':
     case 'dropdown': {
       const opts = (f.options ?? []).map(o => `<span class="if-opt">○ ${esc(o)}</span>`).join('')
-      return `<div class="${cls}">${lbl}<div class="if-opts">${opts}</div></div>`
+      return `<div class="if" style="${ws}">${lbl}<div class="if-opts">${opts}</div></div>`
     }
 
     case 'inspection': {
       const opts = (f.options ?? ['ผ่าน', 'ไม่ผ่าน', 'แก้ไข'])
         .map(o => `<span class="if-opt">□ ${esc(o)}</span>`).join('')
-      return `<div class="${cls}">${lbl}<div class="if-opts">${opts}</div></div>`
+      return `<div class="if" style="${ws}">${lbl}<div class="if-opts">${opts}</div></div>`
     }
 
     case 'table': {
@@ -144,33 +149,32 @@ function renderFieldInline(f: FormField): string {
       const body = Array.from({ length: rows }, () =>
         `<tr>${cols.map(() => '<td>&nbsp;</td>').join('')}</tr>`
       ).join('')
-      return `<div class="if-tbl"><div class="if-tbl-lbl">${esc(f.label)}</div><table class="data-table"><thead><tr>${header}</tr></thead><tbody>${body}</tbody></table></div>`
+      return `<div class="if-tbl" style="${ws}"><div class="if-tbl-lbl">${esc(f.label)}</div><table class="data-table"><thead><tr>${header}</tr></thead><tbody>${body}</tbody></table></div>`
     }
 
     case 'photo_upload':
-      return `<div class="if-photo">📷 ${esc(f.label)}</div>`
+      return `<div class="if-photo" style="${ws}">📷 ${esc(f.label)}</div>`
 
     case 'currency':
-      return `<div class="${cls}"><span class="if-lbl">${esc(f.label)}${req}&nbsp;฿</span><div class="if-line"></div></div>`
+      return `<div class="if" style="${ws}"><span class="if-lbl">${esc(f.label)}${req}&nbsp;฿</span><div class="if-line"></div></div>`
 
     case 'id_card':
-      return `<div class="${cls}">${lbl}<div class="if-line"></div><span class="if-sub">(13 หลัก)</span></div>`
+      return `<div class="if" style="${ws}">${lbl}<div class="if-line"></div><span class="if-sub">(13 หลัก)</span></div>`
 
     case 'weight_height':
-      return `<div class="${cls}">${lbl}<span class="if-sub">น.ห.</span><div class="if-fixed w55"></div><span class="if-sub">กก. / ส่วนสูง</span><div class="if-fixed w55"></div><span class="if-sub">ซม.</span></div>`
+      return `<div class="if" style="${ws}">${lbl}<span class="if-sub">น.ห.</span><div class="if-fixed w55"></div><span class="if-sub">กก. / ส่วนสูง</span><div class="if-fixed w55"></div><span class="if-sub">ซม.</span></div>`
 
     case 'gps':
-      return `<div class="${cls}">${lbl}<span class="if-sub">Lat</span><div class="if-fixed w80"></div><span class="if-sub">Lng</span><div class="if-fixed w80"></div></div>`
+      return `<div class="if" style="${ws}">${lbl}<span class="if-sub">Lat</span><div class="if-fixed w80"></div><span class="if-sub">Lng</span><div class="if-fixed w80"></div></div>`
 
     case 'dimension':
-      return `<div class="${cls}">${lbl}<div class="if-fixed w55"></div><span class="if-sep">×</span><div class="if-fixed w55"></div><span class="if-sep">×</span><div class="if-fixed w55"></div></div>`
+      return `<div class="if" style="${ws}">${lbl}<div class="if-fixed w55"></div><span class="if-sep">×</span><div class="if-fixed w55"></div><span class="if-sep">×</span><div class="if-fixed w55"></div></div>`
 
     case 'barcode':
-      return `<div class="${cls}">${lbl}<div class="if-line"></div></div>`
+      return `<div class="if" style="${ws}">${lbl}<div class="if-line"></div></div>`
 
     default:
-      // text, number, email, date, date_range, running_number, etc.
-      return `<div class="${cls}">${lbl}<div class="if-line"></div></div>`
+      return `<div class="if" style="${ws}">${lbl}<div class="if-line"></div></div>`
   }
 }
 
@@ -196,10 +200,10 @@ body{font-family:'Sarabun',Arial,sans-serif;font-size:11pt;line-height:1.6;color
 .page-break{break-after:page;height:1px}
 
 /* ── Page 1 card fields ── */
+.row-wrap{display:flex;flex-wrap:wrap;align-items:flex-start}
 .sec-hdr{background:#f3f4f6;border-left:4px solid #1a1a1a;padding:5px 10px;font-weight:700;font-size:10pt;color:#1a1a1a;margin:12px 0 8px}
 .divider{border-top:1px solid #1a1a1a;margin:10px 0}
-.field{margin-bottom:10px}
-.field.half{display:inline-block;width:48%;margin-right:2%;vertical-align:top}
+.field{margin-bottom:10px;box-sizing:border-box;vertical-align:top}
 .field-label{font-size:8pt;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
 .req{color:#1a1a1a;font-weight:900}
 .field-value{font-size:10pt;color:#111827;background:#fafafa;border:1px solid #d1d5db;border-radius:4px;padding:5px 8px;min-height:28px}
@@ -235,8 +239,7 @@ table.data-table tr:nth-child(even) td{background:#fafafa}
 .p2-title{font-size:14pt;font-weight:700;color:#1a1a1a;text-align:center;text-decoration:underline;margin-bottom:20px}
 
 /* ── Page 2 inline fields ── */
-.if{display:flex;align-items:flex-end;gap:5px;margin-bottom:22px;break-inside:avoid}
-.if.half{display:inline-flex;width:48%;margin-right:2%;vertical-align:bottom;align-items:flex-end;margin-bottom:22px}
+.if{display:flex;align-items:flex-end;gap:5px;margin-bottom:22px;break-inside:avoid;box-sizing:border-box;vertical-align:bottom}
 .if-lbl{font-size:10pt;color:#1a1a1a;white-space:nowrap;flex-shrink:0}
 .if-req{color:#1a1a1a;font-weight:900}
 .if-line{flex:1;border-bottom:1.5px solid #1a1a1a;min-width:40px;height:16px;align-self:flex-end}
@@ -274,7 +277,7 @@ table.data-table tr:nth-child(even) td{background:#fafafa}
       <span style="margin-left:auto">www.planprom.com</span>
     </div>
   </div>
-  ${filledFields}
+  <div class="row-wrap">${filledFields}</div>
   <div class="footer">
     <span>${esc(title)}</span>
     <span>planprom.com</span>
@@ -285,7 +288,7 @@ table.data-table tr:nth-child(even) td{background:#fafafa}
 <div class="page-break"></div>
 <div class="page">
   <div class="p2-title">${esc(title)}</div>
-  ${inlineFields}
+  <div class="row-wrap">${inlineFields}</div>
 </div>
 
 </body></html>`
