@@ -34,6 +34,7 @@ export type FormField = {
   required?: boolean
   options?: string[]       // checkbox / radio / dropdown
   width?: 'full' | 'half'  // layout hint
+  sampleValue?: string     // auto-gen hint — overrides type-based default
   // table-specific
   tableColumns?: string[]
   tableRows?: number
@@ -51,6 +52,10 @@ export type FormEngineData = {
 export function autoGenSampleData(fields: FormField[]): Record<string, string | string[]> {
   const out: Record<string, string | string[]> = {}
   for (const f of fields) {
+    if (f.sampleValue !== undefined) {
+      out[f.id] = f.type === 'checkbox' ? [f.sampleValue] : f.sampleValue
+      continue
+    }
     switch (f.type) {
       case 'text':          out[f.id] = 'นายสมชาย ใจดี'; break
       case 'multiline':     out[f.id] = 'รายละเอียดเพิ่มเติม'; break
