@@ -23,7 +23,7 @@ async function fetchCategory(slug: string): Promise<CategoryRow | null> {
 
 async function fetchTemplates(categoryId: string): Promise<Template[]> {
   return db<Template[]>`
-    SELECT t.id, t.slug, t.title, t.price_baht, t.tier, t.sale_count, t.document_type, t.preview_path
+    SELECT t.id, t.slug, t.title, t.price_baht, t.tier, t.sale_count, t.document_type, t.preview_path, t.is_request_only
     FROM templates t
     JOIN template_category_links l ON l.template_id = t.id
     WHERE l.category_id = ${categoryId} AND t.status = 'published'

@@ -29,7 +29,7 @@ async function fetchAllTemplates(category?: string, price?: string, q?: string, 
     if (category) {
       return db<Template[]>`
         SELECT t.id, t.slug, t.title, t.price_baht, t.tier, t.description,
-               t.thumbnail_path, t.sale_count, t.document_type, t.toc_sections, t.preview_path
+               t.thumbnail_path, t.sale_count, t.document_type, t.toc_sections, t.preview_path, t.is_request_only
         FROM templates t
         JOIN template_category_links l ON l.template_id = t.id
         JOIN template_categories c ON c.id = l.category_id
@@ -41,7 +41,7 @@ async function fetchAllTemplates(category?: string, price?: string, q?: string, 
       `
     }
     return db<Template[]>`
-      SELECT id, slug, title, price_baht, tier, description, thumbnail_path, sale_count, document_type, toc_sections, preview_path
+      SELECT id, slug, title, price_baht, tier, description, thumbnail_path, sale_count, document_type, toc_sections, preview_path, is_request_only
       FROM templates
       WHERE status = 'published'
         ${priceNum !== null ? db` AND price_baht = ${priceNum}` : db``}
