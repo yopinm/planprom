@@ -48,6 +48,7 @@ function makeField(type: FormFieldType): FormField {
     checkbox:       { label: 'เลือกรายการ', options: ['ตัวเลือก 1', 'ตัวเลือก 2'] },
     radio:          { label: 'เลือกหนึ่งรายการ', options: ['ตัวเลือก 1', 'ตัวเลือก 2'] },
     dropdown:       { label: 'เลือกจากรายการ', options: ['ตัวเลือก 1', 'ตัวเลือก 2'] },
+    inspection:     { label: 'ผลการตรวจสอบ', options: ['ผ่าน', 'ไม่ผ่าน', 'แก้ไข'] },
     table:          { label: 'ตาราง', tableColumns: ['รายการ', 'จำนวน', 'หมายเหตุ'], tableRows: 3 },
     section_header: { label: 'หัวข้อส่วน' },
     signature:      { label: 'ลายเซ็นผู้ขอ' },
@@ -58,8 +59,16 @@ function makeField(type: FormFieldType): FormField {
     text:           { label: 'ชื่อ-นามสกุล' },
     multiline:      { label: 'รายละเอียด' },
     email:          { label: 'อีเมล' },
+    number:         { label: 'จำนวน' },
+    currency:       { label: 'จำนวนเงิน', placeholder: '0.00' },
     date:           { label: 'วันที่' },
     date_range:     { label: 'ช่วงวันที่' },
+    id_card:        { label: 'เลขบัตรประชาชน' },
+    photo_upload:   { label: 'รูปภาพ / หลักฐาน' },
+    barcode:        { label: 'Barcode / QR Code' },
+    gps:            { label: 'พิกัด GPS' },
+    dimension:      { label: 'ขนาด (กว้าง × ยาว × สูง)' },
+    weight_height:  { label: 'น้ำหนัก / ส่วนสูง' },
   }
   return { id: makeId(), type, label: '', width: 'full', ...defaults[type] }
 }
@@ -100,8 +109,8 @@ export function FormBuilderClient({ categories, templateId, initialData }: Props
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
 
-  const addField = useCallback((type: FormFieldType) => {
-    setFields(prev => [...prev, makeField(type)])
+  const addField = useCallback((type: FormFieldType, preset?: Partial<FormField>) => {
+    setFields(prev => [...prev, { ...makeField(type), ...preset }])
   }, [])
 
   const updateField = useCallback((id: string, updated: FormField) => {

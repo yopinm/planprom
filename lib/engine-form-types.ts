@@ -4,18 +4,27 @@ export type FormFieldType =
   | 'text'
   | 'multiline'
   | 'email'
+  | 'number'
+  | 'currency'
   | 'date'
   | 'date_range'
   | 'checkbox'
   | 'radio'
   | 'dropdown'
+  | 'inspection'
   | 'signature'
   | 'logo'
+  | 'running_number'
+  | 'id_card'
+  | 'photo_upload'
+  | 'barcode'
+  | 'gps'
+  | 'dimension'
+  | 'weight_height'
+  | 'table'
   | 'section_header'
   | 'divider'
-  | 'table'
   | 'page_break'
-  | 'running_number'
 
 export type FormField = {
   id: string
@@ -43,16 +52,25 @@ export function autoGenSampleData(fields: FormField[]): Record<string, string | 
   const out: Record<string, string | string[]> = {}
   for (const f of fields) {
     switch (f.type) {
-      case 'text':         out[f.id] = 'นายสมชาย ใจดี'; break
-      case 'multiline':    out[f.id] = 'รายละเอียดเพิ่มเติม'; break
-      case 'email':        out[f.id] = 'example@company.com'; break
-      case 'date':         out[f.id] = '15 พ.ค. 2568'; break
-      case 'date_range':   out[f.id] = '15–17 พ.ค. 2568'; break
-      case 'checkbox':     out[f.id] = f.options?.slice(0, 1) ?? []; break
-      case 'radio':        out[f.id] = f.options?.[0] ?? ''; break
-      case 'dropdown':     out[f.id] = f.options?.[0] ?? ''; break
-      case 'running_number': out[f.id] = 'FM-2568-001'; break
-      default:             out[f.id] = ''; break
+      case 'text':          out[f.id] = 'นายสมชาย ใจดี'; break
+      case 'multiline':     out[f.id] = 'รายละเอียดเพิ่มเติม'; break
+      case 'email':         out[f.id] = 'example@company.com'; break
+      case 'number':        out[f.id] = '10'; break
+      case 'currency':      out[f.id] = '1,500.00'; break
+      case 'date':          out[f.id] = '15 พ.ค. 2568'; break
+      case 'date_range':    out[f.id] = '15–17 พ.ค. 2568'; break
+      case 'checkbox':      out[f.id] = f.options?.slice(0, 1) ?? []; break
+      case 'radio':         out[f.id] = f.options?.[0] ?? ''; break
+      case 'dropdown':      out[f.id] = f.options?.[0] ?? ''; break
+      case 'inspection':    out[f.id] = f.options?.[0] ?? 'ผ่าน'; break
+      case 'running_number':out[f.id] = 'FM-2568-001'; break
+      case 'id_card':       out[f.id] = '1 2345 67890 12 3'; break
+      case 'barcode':       out[f.id] = 'TH-1234567890'; break
+      case 'gps':           out[f.id] = '13.7563, 100.5018'; break
+      case 'dimension':     out[f.id] = '2.50 × 1.80 × 3.00 ม.'; break
+      case 'weight_height': out[f.id] = '65 กก. / 170 ซม.'; break
+      case 'photo_upload':  out[f.id] = ''; break
+      default:              out[f.id] = ''; break
     }
   }
   return out

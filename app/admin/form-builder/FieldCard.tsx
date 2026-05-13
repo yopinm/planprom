@@ -23,7 +23,7 @@ export function FieldCard({ field, onChange, onDelete }: Props) {
     opacity: isDragging ? 0.4 : 1,
   }
 
-  const hasOptions = ['checkbox', 'radio', 'dropdown'].includes(field.type)
+  const hasOptions = ['checkbox', 'radio', 'dropdown', 'inspection'].includes(field.type)
   const hasTableConfig = field.type === 'table'
   const isLayout = ['section_header', 'divider', 'page_break', 'logo'].includes(field.type)
 
@@ -41,9 +41,12 @@ export function FieldCard({ field, onChange, onDelete }: Props) {
 
   const typeLabel: Record<string, string> = {
     text: 'ข้อความ', multiline: 'หลายบรรทัด', email: 'อีเมล',
+    number: 'ตัวเลข', currency: 'จำนวนเงิน',
     date: 'วันที่', date_range: 'ช่วงวันที่',
-    checkbox: 'Checkbox', radio: 'Radio', dropdown: 'Dropdown',
+    checkbox: 'Checkbox', radio: 'Radio', dropdown: 'Dropdown', inspection: 'ผ่าน/ไม่ผ่าน',
     signature: 'ลายเซ็น', logo: 'โลโก้', running_number: 'เลขที่เอกสาร',
+    id_card: 'บัตรประชาชน', photo_upload: 'รูปภาพ', barcode: 'Barcode/QR',
+    gps: 'พิกัด GPS', dimension: 'ขนาด W×L×H', weight_height: 'น้ำหนัก/สูง',
     table: 'ตาราง', section_header: 'หัวข้อส่วน', divider: 'เส้นคั่น', page_break: 'ขึ้นหน้าใหม่',
   }
 
@@ -132,7 +135,7 @@ export function FieldCard({ field, onChange, onDelete }: Props) {
           )}
 
           {/* Placeholder */}
-          {['text', 'multiline', 'email'].includes(field.type) && (
+          {['text', 'multiline', 'email', 'number', 'currency'].includes(field.type) && (
             <div className="flex items-center gap-2">
               <span className="text-xs text-gray-500 w-16">Placeholder</span>
               <input

@@ -55,6 +55,46 @@ function renderFieldFilled(f: FormField, value: string | string[]): string {
       return fieldWrap(f, `<table class="data-table"><thead><tr>${header}</tr></thead><tbody>${body}</tbody></table>`)
     }
 
+    case 'number':
+      return fieldWrap(f, `<div class="field-value mono">${esc(v) || '0'}</div>`)
+
+    case 'currency':
+      return fieldWrap(f, `<div class="field-value mono">฿ ${esc(v) || '0.00'}</div>`)
+
+    case 'id_card':
+      return fieldWrap(f, `<div class="field-value mono">${esc(v) || '- - - - - - - - - - - - -'}</div>`)
+
+    case 'barcode':
+      return fieldWrap(f, `<div class="barcode-box">▐▌▌▐▌▐▐▌▌▐ &nbsp; ${esc(v) || 'BARCODE'}</div>`)
+
+    case 'photo_upload':
+      return fieldWrap(f, `<div class="photo-box">📷 [ รูปภาพ / หลักฐาน ]</div>`)
+
+    case 'gps': {
+      const [lat, lng] = String(v).split(',').map(s => s.trim())
+      return fieldWrap(f, `<div class="gps-row"><span class="gps-item">📍 Lat: ${esc(lat ?? '—')}</span><span class="gps-item">Lng: ${esc(lng ?? '—')}</span></div>`)
+    }
+
+    case 'dimension':
+      return fieldWrap(f, `<div class="field-value mono">${esc(v) || '— × — × —'}</div>`)
+
+    case 'weight_height': {
+      const [wt, ht] = String(v).split('/').map(s => s.trim())
+      return fieldWrap(f, `<div class="wh-row"><div class="wh-item"><div class="wh-label">น้ำหนัก</div><div class="wh-val">${esc(wt ?? '—')}</div></div><div class="wh-item"><div class="wh-label">ส่วนสูง</div><div class="wh-val">${esc(ht ?? '—')}</div></div></div>`)
+    }
+
+    case 'inspection': {
+      const opts = f.options ?? ['ผ่าน', 'ไม่ผ่าน', 'แก้ไข']
+      const symbols = ['✅', '❌', '⚠️']
+      const cls = ['insp-pass', 'insp-fail', 'insp-fix']
+      const items = opts.map((o, i) =>
+        o === v
+          ? `<span class="insp-opt ${cls[i] ?? 'insp-pass'}">${symbols[i] ?? '✅'} ${esc(o)}</span>`
+          : `<span class="insp-opt-off">○ ${esc(o)}</span>`
+      ).join('')
+      return fieldWrap(f, `<div class="insp-row">${items}</div>`)
+    }
+
     default:
       return fieldWrap(f, `<div class="field-value">${esc(v) || '—'}</div>`)
   }
@@ -103,6 +143,39 @@ function renderFieldBlank(f: FormField): string {
         `<tr>${cols.map(() => '<td>&nbsp;</td>').join('')}</tr>`
       ).join('')
       return fieldWrap(f, `<table class="data-table"><thead><tr>${header}</tr></thead><tbody>${body}</tbody></table>`)
+    }
+
+    case 'number':
+      return fieldWrap(f, `<div class="blank-line"></div>`)
+
+    case 'currency':
+      return fieldWrap(f, `<div class="currency-blank"><span class="currency-prefix">฿</span><div class="blank-line currency-line"></div></div>`)
+
+    case 'id_card':
+      return fieldWrap(f, `<div><div class="blank-line"></div><div class="hint-text">กรอกตัวเลข 13 หลัก ไม่มีขีด</div></div>`)
+
+    case 'barcode':
+      return fieldWrap(f, `<div class="barcode-box">📊 Barcode / QR Code</div>`)
+
+    case 'photo_upload':
+      return fieldWrap(f, `<div class="photo-box">📷 แนบรูปภาพที่นี่</div>`)
+
+    case 'gps':
+      return fieldWrap(f, `<div class="gps-blank-row"><div class="gps-blank-item"><div class="hint-text">Latitude</div><div class="blank-line"></div></div><div class="gps-blank-item"><div class="hint-text">Longitude</div><div class="blank-line"></div></div></div>`)
+
+    case 'dimension':
+      return fieldWrap(f, `<div class="dim-blank-row"><div class="hint-text">กว้าง</div><div class="dim-blank-box"></div><span class="dim-sep">×</span><div class="hint-text">ยาว</div><div class="dim-blank-box"></div><span class="dim-sep">×</span><div class="hint-text">สูง</div><div class="dim-blank-box"></div><span class="dim-unit">หน่วย:&nbsp;____</span></div>`)
+
+    case 'weight_height':
+      return fieldWrap(f, `<div class="wh-blank-row"><div class="wh-blank-item"><div class="hint-text">น้ำหนัก (กก.)</div><div class="blank-line"></div></div><div class="wh-blank-item"><div class="hint-text">ส่วนสูง (ซม.)</div><div class="blank-line"></div></div></div>`)
+
+    case 'inspection': {
+      const opts = f.options ?? ['ผ่าน', 'ไม่ผ่าน', 'แก้ไข']
+      const symbols = ['✅', '❌', '⚠️']
+      const items = opts.map((o, i) =>
+        `<span class="insp-blank-opt">${symbols[i] ?? '○'} ${esc(o)}</span>`
+      ).join('')
+      return fieldWrap(f, `<div class="insp-blank">${items}</div>`)
     }
 
     default:
@@ -156,6 +229,23 @@ table.data-table th{background:#d97706;color:#fff;padding:5px 8px;text-align:lef
 table.data-table td{padding:5px 8px;border-bottom:1px solid #f3f4f6;min-height:24px}
 table.data-table tr:nth-child(even) td{background:#fafafa}
 .page2-banner{background:#fef3c7;border:1.5px solid #fcd34d;border-radius:6px;padding:8px 14px;margin-bottom:14px;font-size:9pt;color:#92400e;font-weight:700}
+.mono{font-family:'Courier New',monospace;letter-spacing:.06em}
+.currency-blank{display:flex;align-items:flex-end;gap:6px}.currency-prefix{font-weight:700;font-size:11pt;padding-bottom:2px}.currency-line{flex:1;margin-bottom:0}
+.photo-box{border:1.5px dashed #9ca3af;border-radius:4px;padding:14px;text-align:center;color:#9ca3af;font-size:9pt;min-height:64px;display:flex;align-items:center;justify-content:center;background:#fafafa}
+.barcode-box{border:1.5px dashed #9ca3af;border-radius:4px;padding:8px 12px;text-align:center;color:#374151;font-size:9pt;font-family:monospace;background:#fafafa;letter-spacing:.05em}
+.hint-text{font-size:7.5pt;color:#9ca3af;margin-bottom:2px}
+.gps-row{display:flex;gap:10px}.gps-item{flex:1;font-size:9.5pt;font-family:monospace;background:#fafafa;border:1px solid #e5e7eb;border-radius:4px;padding:4px 8px}
+.gps-blank-row{display:flex;gap:12px}.gps-blank-item{flex:1}
+.dim-blank-row{display:flex;align-items:center;gap:4px;flex-wrap:wrap}.dim-blank-box{border-bottom:1.5px solid #374151;width:56px;height:26px;display:inline-block}.dim-sep{color:#374151;font-weight:700;padding:0 2px}.dim-unit{font-size:8pt;color:#6b7280;margin-left:6px}
+.wh-row{display:flex;gap:12px}.wh-item{flex:1}.wh-label{font-size:8pt;color:#6b7280;margin-bottom:2px}.wh-val{background:#fafafa;border:1px solid #e5e7eb;border-radius:4px;padding:4px 8px;font-size:10pt}
+.wh-blank-row{display:flex;gap:12px}.wh-blank-item{flex:1}
+.insp-row{display:flex;gap:12px;padding:4px 0;flex-wrap:wrap}
+.insp-opt{font-size:10pt;font-weight:600;padding:3px 10px;border-radius:4px}
+.insp-opt-off{font-size:10pt;color:#6b7280;padding:3px 10px}
+.insp-pass{color:#16a34a;background:#f0fdf4;border:1px solid #bbf7d0}
+.insp-fail{color:#dc2626;background:#fef2f2;border:1px solid #fecaca}
+.insp-fix{color:#d97706;background:#fffbeb;border:1px solid #fde68a}
+.insp-blank{display:flex;gap:16px;padding:4px 0;flex-wrap:wrap}.insp-blank-opt{font-size:10pt;color:#374151}
 `
 
   return `<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8">
