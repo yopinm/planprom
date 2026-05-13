@@ -315,25 +315,6 @@ export default async function HomePage(): Promise<ReactElement> {
               </div>
             )}
 
-            {/* LINE Request CTA — amber centered */}
-            <div className="mx-auto flex max-w-lg flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3">
-              <p className="text-sm text-neutral-700 leading-snug">
-                <span className="font-bold text-neutral-800">หาฟอร์มไม่เจอ?</span>
-                {' '}➕ LINE → 💬 บอกฟอร์ม → ✅ ใน 24ชม.
-                <span className="font-bold text-neutral-800"> · 50฿</span>
-              </p>
-              <a
-                href="https://line.me/R/ti/p/%40216xobzv"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[#06C755] px-4 py-1.5 text-sm font-bold text-white shadow transition hover:bg-[#05a847]"
-              >
-                <svg viewBox="0 0 24 24" className="h-4 w-4 fill-white" aria-hidden="true">
-                  <path d="M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314" />
-                </svg>
-                เพิ่มเพื่อน
-              </a>
-            </div>
 
           </div>
         </div>
