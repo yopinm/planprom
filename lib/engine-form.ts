@@ -203,7 +203,7 @@ body{font-family:'Sarabun',Arial,sans-serif;font-size:11pt;line-height:1.6;color
 .footer{display:flex;justify-content:space-between;font-size:8pt;color:#9ca3af;padding:8px 0;border-top:1px solid #e5e7eb;margin-top:20px}
 .page{padding:0 0 28px 0}
 .page-break{break-after:page;height:1px}
-.row-break{width:100%;height:0;margin-bottom:22px}
+.row-break{width:100%;height:0}
 
 /* ── Page 1 card fields ── */
 .row-wrap{display:flex;flex-wrap:wrap;align-items:flex-start}
