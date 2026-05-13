@@ -26,6 +26,7 @@ export interface FeaturedTemplate {
   preview_path: string | null
   category_name: string | null
   category_emoji: string | null
+  is_request_only?: boolean
 }
 
 export default function FeaturedTemplateCard({ template }: { template: FeaturedTemplate }) {
@@ -65,6 +66,7 @@ export default function FeaturedTemplateCard({ template }: { template: FeaturedT
           ) : (
             <AddToCartButton
               templateId={template.id}
+              isRequestOnly={template.is_request_only}
               className="shrink-0 rounded-lg bg-amber-500 px-3 py-1 text-xs font-black text-white hover:bg-amber-600 disabled:opacity-60 transition"
             />
           )}
@@ -121,6 +123,7 @@ export default function FeaturedTemplateCard({ template }: { template: FeaturedT
               {template.tier !== 'free' ? (
                 <AddToCartButton
                   templateId={template.id}
+                  isRequestOnly={template.is_request_only}
                   className="rounded-xl bg-indigo-600 px-5 py-2 text-sm font-black text-white transition hover:bg-indigo-700 disabled:opacity-60"
                 />
               ) : (

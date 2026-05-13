@@ -61,9 +61,10 @@ export async function updateTemplateAction(formData: FormData) {
       preview_path    = ${str(formData, 'preview_path') || null},
       thumbnail_path  = ${str(formData, 'thumbnail_path') || null},
       page_count      = ${pageCount ? Number(pageCount) : null},
-      has_form_fields = ${formData.get('has_form_fields') === 'true'},
-      document_type   = ${documentType},
-      updated_at      = NOW()
+      has_form_fields  = ${formData.get('has_form_fields') === 'true'},
+      is_request_only  = ${formData.get('is_request_only') === 'true'},
+      document_type    = ${documentType},
+      updated_at       = NOW()
     WHERE id = ${id}
   `
   revalidatePath('/admin/templates')

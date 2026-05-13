@@ -7,6 +7,7 @@ export type CatalogTemplate = {
   id: string; slug: string; title: string
   price_baht: number; tier: string; sale_count: number
   document_type: string; preview_path: string | null
+  is_request_only?: boolean
 }
 
 const TYPE_LABEL: Record<string, string> = {
@@ -105,6 +106,7 @@ export function CatalogTemplateList({ templates }: { templates: CatalogTemplate[
               {preview.tier !== 'free' ? (
                 <AddToCartButton
                   templateId={preview.id}
+                  isRequestOnly={preview.is_request_only}
                   className="rounded-xl bg-indigo-600 px-5 py-2 text-sm font-black text-white transition hover:bg-indigo-700 disabled:opacity-60"
                 />
               ) : (
@@ -160,6 +162,7 @@ export function CatalogTemplateList({ templates }: { templates: CatalogTemplate[
                       ) : (
                         <AddToCartButton
                           templateId={t.id}
+                          isRequestOnly={t.is_request_only}
                           className="shrink-0 rounded px-2 py-1 text-xs font-medium text-white transition-colors bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60"
                         />
                       )}

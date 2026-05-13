@@ -5,6 +5,7 @@ import type { Metadata } from 'next'
 import { requireAdminSession } from '@/lib/admin-auth'
 import { db } from '@/lib/db'
 import { updateTemplateAction, approveTemplateAction, setFeaturedWeeklyAction, clearFeaturedWeeklyAction } from '../../actions'
+import { GenerateUnlockCodeSection } from './GenerateUnlockCodeSection'
 
 export const metadata: Metadata = {
   title: 'แก้ไข Template — Admin',
@@ -22,7 +23,7 @@ type Template = {
   pdf_path: string; preview_path: string | null; thumbnail_path: string | null
   page_count: number | null; has_form_fields: boolean; document_type: string
   published_at: string | null; created_at: string
-  engine_type: string | null; is_featured_weekly: boolean
+  engine_type: string | null; is_featured_weekly: boolean; is_request_only: boolean
 }
 
 export default async function EditTemplatePage({ params }: { params: Promise<{ id: string }> }) {
@@ -111,6 +112,11 @@ export default async function EditTemplatePage({ params }: { params: Promise<{ i
             <span>มี Form Fields (กรอกชื่อ/วันที่ได้ใน PDF)</span>
           </label>
 
+          <label className="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-800">
+            <input name="is_request_only" type="checkbox" value="true" defaultChecked={t.is_request_only} />
+            <span>🔒 Request Only — ลูกค้าต้องมี Unlock Code ถึงจะซื้อได้</span>
+          </label>
+
           {/* Draft Preview — approve block */}
           {t.status === 'draft_preview' && (
             <div className="rounded-xl border-2 border-violet-300 bg-violet-50 px-4 py-4">
@@ -189,6 +195,11 @@ export default async function EditTemplatePage({ params }: { params: Promise<{ i
             )}
           </div>
         </div>
+
+        {/* Unlock Code — J13 */}
+        {t.is_request_only && t.status === 'published' && (
+          <GenerateUnlockCodeSection templateId={t.id} />
+        )}
 
         {/* Engine Section — DC-8 */}
         {t.engine_type && (
