@@ -24,6 +24,7 @@ export type FormFieldType =
   | 'table'
   | 'section_header'
   | 'divider'
+  | 'row_break'
   | 'page_break'
 
 export type FormField = {

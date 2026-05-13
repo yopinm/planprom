@@ -56,6 +56,7 @@ const PALETTE_GROUPS: { name: string; items: PaletteItem[] }[] = [
     items: [
       { type: 'section_header', icon: '📌', label: 'หัวข้อส่วน' },
       { type: 'divider',        icon: '➖', label: 'เส้นคั่น' },
+      { type: 'row_break',      icon: '↵',  label: 'ขึ้นบรรทัดใหม่' },
       { type: 'page_break',     icon: '📃', label: 'ขึ้นหน้าใหม่' },
     ],
   },

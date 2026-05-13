@@ -15,6 +15,8 @@ function renderFieldFilled(f: FormField, value: string | string[]): string {
       return `<div class="sec-hdr" style="width:100%">${esc(f.label)}</div>`
     case 'divider':
       return `<div class="divider" style="width:100%"></div>`
+    case 'row_break':
+      return `<div class="row-break"></div>`
     case 'page_break':
       return `<div class="page-break" style="width:100%"></div>`
     case 'logo':
@@ -105,6 +107,9 @@ function renderFieldInline(f: FormField): string {
 
     case 'divider':
       return `<div class="if-div" style="${ws}"></div>`
+
+    case 'row_break':
+      return `<div class="row-break"></div>`
 
     case 'page_break':
       return `<div class="page-break" style="width:100%"></div>`
@@ -198,6 +203,7 @@ body{font-family:'Sarabun',Arial,sans-serif;font-size:11pt;line-height:1.6;color
 .footer{display:flex;justify-content:space-between;font-size:8pt;color:#9ca3af;padding:8px 0;border-top:1px solid #e5e7eb;margin-top:20px}
 .page{padding:0 0 28px 0}
 .page-break{break-after:page;height:1px}
+.row-break{width:100%;height:0;margin-bottom:22px}
 
 /* ── Page 1 card fields ── */
 .row-wrap{display:flex;flex-wrap:wrap;align-items:flex-start}

@@ -25,7 +25,7 @@ export function FieldCard({ field, onChange, onDelete }: Props) {
 
   const hasOptions = ['checkbox', 'radio', 'dropdown', 'inspection'].includes(field.type)
   const hasTableConfig = field.type === 'table'
-  const isLayout = ['section_header', 'divider', 'page_break', 'logo'].includes(field.type)
+  const isLayout = ['section_header', 'divider', 'row_break', 'page_break', 'logo'].includes(field.type)
 
   function addOption() {
     onChange({ ...field, options: [...(field.options ?? []), `ตัวเลือก ${(field.options?.length ?? 0) + 1}`] })
@@ -47,7 +47,7 @@ export function FieldCard({ field, onChange, onDelete }: Props) {
     signature: 'ลายเซ็น', logo: 'โลโก้', running_number: 'เลขที่เอกสาร',
     id_card: 'บัตรประชาชน', photo_upload: 'รูปภาพ', barcode: 'Barcode/QR',
     gps: 'พิกัด GPS', dimension: 'ขนาด W×L×H', weight_height: 'น้ำหนัก/สูง',
-    table: 'ตาราง', section_header: 'หัวข้อส่วน', divider: 'เส้นคั่น', page_break: 'ขึ้นหน้าใหม่',
+    table: 'ตาราง', section_header: 'หัวข้อส่วน', divider: 'เส้นคั่น', row_break: 'ขึ้นบรรทัดใหม่', page_break: 'ขึ้นหน้าใหม่',
   }
 
   return (
