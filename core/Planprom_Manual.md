@@ -175,12 +175,6 @@ URL: `https://planprom.com/checkout`
 6. ระบบ polling `/api/checkout/[uid]/status` ทุก 3 วินาที
 7. ตรวจพบจ่ายแล้ว → auto-redirect `/order/[uid]`
 
-### 6.2 QR หมดอายุ
-
-- QR มีอายุ 120 วินาที
-- ถ้าหมดอายุ: ปุ่ม **"QR หมดอายุ — สร้าง QR ใหม่"** โผล่
-- กดสร้าง QR ใหม่ → สร้าง Omise charge ใหม่ → QR ใหม่
-
 ### 6.3 สินค้าฟรีทั้งหมด
 
 - ถ้าทุกชิ้นเป็น free tier → ปุ่ม **"รับเทมเพลตฟรี"** (ไม่มี QR)

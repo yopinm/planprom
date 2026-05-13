@@ -1,7 +1,7 @@
 # PRD.md
 
-> **Read order:** `core/Coupon_TP.MD` (อ่านก่อน) → **ไฟล์นี้ (PRD.md)** → Reference `core/Couponkum_Project_Driven_V13.md` if needed
-> Legacy: `core/Project_Driven_V14_Couponfirst.md, core/Couponkum_New_Roadmap.md` FROZEN 2026-05-07
+> **Read order:** `core/planprom.md` (อ่านก่อน) → **ไฟล์นี้ (PRD.md)** → `core/Couponkum_Blueprint.md` (เฉพาะ A2 DB / Part E ROI ถ้าจำเป็น)
+> Legacy FROZEN: `core/Couponkum_Project_Driven_V13.md` · `core/Project_Driven_V14_Couponfirst.md` · `core/Couponkum_New_Roadmap.md`
 
 ---
 

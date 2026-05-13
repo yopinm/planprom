@@ -1,7 +1,7 @@
 # CLAUDE.md
 
-> **Read order:** `core/planprom.md` (ก่อน) → `PRD.md` → `core/Couponkum_Project_Driven_V13.md` (reference if needed)
-> Legacy `core/Project_Driven_V14_Couponfirst.md, core/Couponkum_New_Roadmap.md ทั้งหมด FROZEN 2026-05-07
+> **Read order:** `core/planprom.md` (ก่อน) → `PRD.md` → `core/Couponkum_Blueprint.md` (เฉพาะ A2 DB / Part E ROI ถ้าจำเป็น)
+> Legacy FROZEN: `core/Couponkum_Project_Driven_V13.md` · `core/Project_Driven_V14_Couponfirst.md` · `core/Couponkum_New_Roadmap.md`
 
 ## Brand & Slogan (V15 Template + Coupon)
 
@@ -31,7 +31,7 @@
 
 | Bucket | Tasks |
 |---|---|
-| **Now (V15 W1) — Foundation** | Template Store: DB schema + admin CRUD + payment flow (PromptPay QR + manual verify) — see Coupon_TP.MD Section 7 |
+| **Now (V15 W1) — Foundation** | Template Store: DB schema + admin CRUD + payment flow (PromptPay QR + manual verify) |
 | **Now (V15 W1-W2)** | Template catalog public + LINE add friend free template + first 10 templates published |
 | **Defer post-deadline** | All coupon work (AT-CPN, calculator, stacking, vertical, networks) |
 | **Defer post-deadline** | Defer all V14 expansion to Q3+ |
@@ -48,7 +48,7 @@
 | One task = one commit | Continuity |
 | Push + deploy VPS after every task | Fix stays live |
 | Task เกี่ยวกับ architecture / infra / admin / roadmap → update `core/Couponkum_Blueprint.md` | Blueprint stays as reference source-of-truth |
-| Task ใน V15 sprint → update `core/Coupon_TP.MD` Task Backlog | V15 stays in sync |
+| Task ใน V15 sprint → update `core/planprom.md` Task Backlog | V15 stays in sync |
 | ห้าม break revenue channel ใดๆ ระหว่าง pivot | Cashflow ต้องไม่หาย |
 | Slogan canonical = "คุ้มทุกการใช้จ่าย · ง่ายทุกการวางแผน" — ห้ามใช้ slogan เก่า "คิดแทนทุกโค้ดดีล" | Brand consistency |
 
@@ -118,4 +118,4 @@ next task
 |---|---|
 | [1] | CANONICAL V15 spec: `core/planprom.md` |
 | [2] | Architecture / Infra / Engines / Admin / Roadmap / Break-Even ROI / Archive: `core/Couponkum_Blueprint.md` |
-| [3] | Legacy V13 (frozen): `core/Couponkum_Project_Driven_V13.md` |
+| [3] | User Manual (Thai): `core/Planprom_Manual.md` |
