@@ -95,8 +95,8 @@ function fieldWrap(f: FormField, inner: string): string {
 // ── Page 2: inline document-style renderer (พร้อมพิมพ์ใช้จริง) ──────────
 
 function renderFieldInline(f: FormField): string {
-  // structural types always full width
-  const alwaysFull = ['section_header', 'divider', 'page_break', 'signature', 'multiline', 'table', 'photo_upload']
+  // only purely structural elements are forced full-width; all others respect f.width
+  const alwaysFull = ['section_header', 'divider', 'page_break']
   const w   = alwaysFull.includes(f.type) ? 100 : (f.width ?? 100)
   const pr  = w < 100 ? 'padding-right:14px;' : ''
   const a   = f.align ?? 'left'
