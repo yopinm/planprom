@@ -328,8 +328,10 @@ ALTER TABLE orders ADD COLUMN discount_baht NUMERIC(10,2) NOT NULL DEFAULT 0;
 | UI-E | **Section 2 H2 Split — 2 Category Cards** | 2 cards (✅ เช็คลิสต์ / 📅 แพลนเนอร์) แทน H2 ยาว · ลบ chips ซ้ำออก | ✅ **Done · Live (Session 45)** |
 | UI-F | **Hide Empty Categories** | `fetchCategories` ใน /templates JOIN published templates เท่านั้น · homepage ใช้ JOIN อยู่แล้ว | ✅ **Done · Live (Session 45)** |
 | UI-G | **Coming Soon Roadmap Section** | **Defer** — รอ template count ≥ 5 หมวด · section ใต้ categories + "🔔 แจ้งเตือนผ่าน LINE เมื่อเปิด" | 📊 Defer |
+| UI-H | **Analytics Page — Match Catalog Design** | ปรับ `/admin/template-analytics` ให้ design/layout match catalog style ปัจจุบัน · scope gate ก่อน: ดู component ปัจจุบัน + catalog reference → ระบุ diff → implement | 🔲 **Queued (Session 61)** |
+| UI-I | **Pricing Restructure — Volume Tiers** | เปลี่ยน pricing logic เป็น per-template volume tier: ฿30 (1 ชิ้น) · ฿20 (2–5 ชิ้น) · ฿10 (6+ ชิ้น) · **Files ที่ต้องแตะ:** `lib/pricing.ts` + tests · cart summary · checkout · homepage pack cards · `TIER_PRICE` constants ทุกที่ · **scope gate ก่อน:** trace ทุก hardcode price ก่อน implement | 🔲 **Queued (Session 61)** |
 
-**ลำดับแนะนำ:** UI-A → UI-B + UI-C (รวม commit) → UI-F → UI-E → HOME-FEAT-1
+**ลำดับแนะนำ:** UI-A → UI-B + UI-C (รวม commit) → UI-F → UI-E → HOME-FEAT-1 → **UI-I → UI-H**
 **Frozen during UI work:** engine forms · Cart/Checkout/Payment/Download core logic · Omise webhook
 
 ---
