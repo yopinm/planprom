@@ -44,21 +44,22 @@ export default function CartPage() {
   )
 
   const { items, totals } = cart
-  const paidItems = items.filter(i => i.tier !== 'free')
-  const freeItems  = items.filter(i => i.tier === 'free')
-  const until = itemsUntilNextTier(totals.paidItemCount)
+  const hasRequest   = items.some(i => i.isRequestOnly)
+  const normalPaid   = items.filter(i => !i.isRequestOnly && i.tier !== 'free')
+  const freeItems    = items.filter(i => i.tier === 'free')
+  const until = hasRequest ? null : itemsUntilNextTier(totals.paidItemCount)
 
   return (
     <main className="max-w-2xl mx-auto px-4 py-8 space-y-6">
       <h1 className="text-2xl font-bold">ตะกร้าสินค้า</h1>
 
-      {/* Tier progress bar */}
-      {until !== null && (
+      {/* Tier progress bar — ซ่อนเมื่อมี request-only item */}
+      {!hasRequest && until !== null && (
         <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3 text-sm text-indigo-700">
           เพิ่มอีก <strong>{until} ชิ้น</strong> ลดเหลือ <strong>฿{totals.nextItemPrice}/ชิ้น</strong>
         </div>
       )}
-      {until === null && (
+      {!hasRequest && until === null && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-700">
           คุ้มสุด! ราคา <strong>฿7/ชิ้น</strong> สำหรับทุกชิ้นถัดไป
         </div>
@@ -66,7 +67,12 @@ export default function CartPage() {
 
       {/* Item list */}
       <ul className="divide-y divide-gray-100">
-        {items.map(item => (
+        {items.map(item => {
+          const normalIdx = normalPaid.indexOf(item)
+          const unitPrice = item.tier === 'free' ? 0
+            : item.isRequestOnly ? item.priceBaht
+            : calculateCartTotal(normalIdx + 1).total - calculateCartTotal(normalIdx).total
+          return (
           <li key={item.cartItemId} className="flex items-center gap-3 py-3">
             {item.thumbnailPath ? (
               <Image src={item.thumbnailPath} alt={item.title} width={56} height={56} className="rounded object-cover" />
@@ -75,15 +81,17 @@ export default function CartPage() {
             )}
             <div className="flex-1 min-w-0">
               <p className="font-medium truncate">{item.title}</p>
-              <p className="text-xs text-gray-400">{item.tier === 'free' ? 'เทมเพลตฟรี' : 'เทมเพลตมาตรฐาน'}</p>
+              <p className="text-xs text-gray-400">
+                {item.tier === 'free' ? 'เทมเพลตฟรี'
+                  : item.isRequestOnly ? '🔒 Request พิเศษ'
+                  : 'เทมเพลตมาตรฐาน'}
+              </p>
             </div>
             <div className="text-right flex-shrink-0">
               {item.tier === 'free' ? (
                 <span className="text-green-600 text-sm font-semibold">ฟรี</span>
               ) : (
-                <span className="text-gray-700 text-sm font-semibold">
-                  ฿{calculateCartTotal(paidItems.indexOf(item) + 1).total - calculateCartTotal(paidItems.indexOf(item)).total}
-                </span>
+                <span className="text-gray-700 text-sm font-semibold">฿{unitPrice}</span>
               )}
             </div>
             <button
@@ -95,7 +103,8 @@ export default function CartPage() {
               ×
             </button>
           </li>
-        ))}
+          )
+        })}
       </ul>
 
       {/* Totals */}
