@@ -126,7 +126,7 @@ export async function POST(req: NextRequest) {
       ...(isReport ? {
         displayHeaderFooter: true,
         headerTemplate: `<div></div>`,
-        footerTemplate: `<div style="font-family:Arial,sans-serif;font-size:8px;padding:0 20mm;width:100%;display:flex;justify-content:space-between;color:#94a3b8"><span>[Buyer] · www.planprom.com</span><span>Page <span class="pageNumber"></span>/<span class="totalPages"></span></span></div>`,
+        footerTemplate: `<div style="font-family:Arial,sans-serif;font-size:8px;padding:0 20mm;width:100%;display:flex;justify-content:flex-end;color:#94a3b8"><span>Page <span class="pageNumber"></span>/<span class="totalPages"></span></span></div>`,
         margin: { top: '16mm', right: '20mm', bottom: '14mm', left: '20mm' },
       } : {
         margin: { top: '20mm', right: '20mm', bottom: '28mm', left: '20mm' },

@@ -99,8 +99,7 @@ export async function POST(req: NextRequest) {
     await page.evaluate(() => document.fonts.ready)
     const headerHtml = `<div></div>`
     const footerHtml = `
-      <div style="font-family:Arial,sans-serif;font-size:8px;padding:0 20mm;width:100%;display:flex;justify-content:space-between;color:#94a3b8">
-        <span>[Buyer] · www.planprom.com</span>
+      <div style="font-family:Arial,sans-serif;font-size:8px;padding:0 20mm;width:100%;display:flex;justify-content:flex-end;color:#94a3b8">
         <span>Page <span class="pageNumber"></span>/<span class="totalPages"></span></span>
       </div>`
     const pdf = await page.pdf({

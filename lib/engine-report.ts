@@ -85,9 +85,6 @@ ${wm ? `body::before{content:"${wm}";position:fixed;top:50%;left:50%;transform:t
 
 /* ── Cover ─────────────────────────────────────────────── */
 .cover{min-height:100vh;display:flex;flex-direction:column;page-break-after:always;background:#ffffff}
-.cover-brand{padding:18px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #e2e8f0}
-.cover-brand-name{font-size:13pt;font-weight:900;color:#1e293b}
-.cover-conf{font-size:9pt;font-weight:700;color:#dc2626;background:#fef2f2;padding:3px 10px;border-radius:20px;border:1px solid #fca5a5}
 .cover-body{flex:1;display:flex;flex-direction:column;justify-content:flex-start;padding:20px 36px 32px 36px}
 .cover-tag{display:inline-flex;align-items:center;gap:6px;background:#1e293b;color:#fff;font-size:9pt;font-weight:700;padding:4px 14px;border-radius:20px;margin-bottom:18px}
 .cover-title{font-size:22pt;font-weight:900;color:#1e293b;line-height:1.25;margin-bottom:10px}
@@ -154,9 +151,6 @@ tr:nth-child(even) td{background:#f8fafc}
 
 <!-- ── S1 Cover Page ─────────────────────────────────────────────────────── -->
 <div class="cover">
-  <div class="cover-brand">
-    <span class="cover-brand-name">แพลนพร้อม</span>
-  </div>
   <div class="cover-body">
     <div class="cover-tag">รายงาน · Report</div>
     <h1 class="cover-title">${esc(s1.reportTitle)}</h1>
