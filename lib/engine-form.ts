@@ -246,7 +246,7 @@ table.data-table tr:nth-child(even) td{background:#fafafa}
 .insp-fix{color:#d97706;background:#fffbeb;border:1px solid #fde68a}
 
 /* ── Page 2 title ── */
-.p2-title{font-size:14pt;font-weight:700;color:#1a1a1a;text-align:center;text-decoration:underline;margin-bottom:20px}
+.p2-title{font-size:14pt;font-weight:700;color:#1a1a1a;text-align:center;margin-bottom:20px}
 
 /* ── Page 2 inline fields ── */
 .if{display:flex;align-items:flex-end;gap:5px;margin-bottom:22px;break-inside:avoid;box-sizing:border-box;vertical-align:bottom}
