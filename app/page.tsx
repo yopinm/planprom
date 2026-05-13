@@ -315,8 +315,8 @@ export default async function HomePage(): Promise<ReactElement> {
               </div>
             )}
 
-            {/* LINE Request CTA — single row */}
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3">
+            {/* LINE Request CTA — amber centered */}
+            <div className="mx-auto flex max-w-lg flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3">
               <p className="text-sm text-neutral-700 leading-snug">
                 <span className="font-bold text-neutral-800">หาฟอร์มไม่เจอ?</span>
                 {' '}➕ LINE → 💬 บอกฟอร์ม → ✅ ใน 24ชม.
