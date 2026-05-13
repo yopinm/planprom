@@ -29,10 +29,10 @@
 | **Doc Sync** | task เสร็จ → อัพเดต PRD.md + `core/planprom.md` เสมอ |
 | **Scope Gate** | ก่อนเริ่ม implement ทุก task → ต้องมี scope + flow ใน `core/planprom.md` ก่อน → commit docs → รอ owner confirm → ค่อย implement |
 | **Blockers** | IA approved ✅ (Affiliate ID 1082367) · AT Datafeed ⏳ · Shopee API ⏳ · Lazada pool=49 fixed |
-| **Next task** | **INTEL UAT** (ใช้งานจริง ว่าขายได้) → **DC-16** UAT confirm → **E9/E10** engine preview card → **J13** Customer Request Form |
-| **Pending (code)** | **4 tasks** — J13 · J14 · J17 · J19 · UI-G(defer) · **EF-1..5** (Engine Form — scope gate confirmed 2026-05-12) |
+| **Next task** | **INTEL UAT** (ใช้งานจริง ว่าขายได้) → **DC-16** UAT confirm → **E9/E10** engine preview card → **J14** Member Auto-Push |
+| **Pending (code)** | **3 tasks** — J14 · J17 · J19 · UI-G(defer) · **EF-1..5** (Engine Form — scope gate confirmed 2026-05-12) |
 | **Pending (UAT)** | **7 กลุ่ม** — INTEL-C/D(Market Intelligence ⏳ ใช้งานจริง) · DC-1 · DC-2 · DC-8(Planner⏳) · DC-16(⏳) · E9/E10 · J9(รอ live keys) · LINE ติดต่อเรา(รอทดสอบ) |
-| **Last session** | **Session 53 (2026-05-12)** — INTEL-C coverage card + INTEL-D expansion (8 keywords, 15 alpha, priority score, drill all L1) + edit link fix + UAT ⏳ pending real usage |
+| **Last session** | **Session 58 (2026-05-13)** — J13 Request System UAT ผ่าน: unlock code flow · cart ฿50 · label "🔒 Request พิเศษ" · ซ่อน upsell banner · promo banner filter fix · docs + Planprom_Manual.md |
 | **ห้าม** | ไม่แตะ Later task ขณะที่ Now ยังค้างอยู่ · ไม่แตะ secrets โดยตรง · ไม่ทำให้ revenue channel หายไประหว่าง pivot |
 
 ---
