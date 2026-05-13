@@ -206,7 +206,7 @@ export async function createTemplateWizardAction(data: {
         ${data.tier}, ${price}, ${data.pdfPath || '/uploads/templates/placeholder.pdf'},
         ${data.previewPath ?? null},
         ${data.previewPath ?? null},
-        ${JSON.stringify(data.previewPages ?? [])},
+        ${JSON.stringify(data.previewPages ?? [])}::jsonb,
         ${data.pageCount}, ${data.hasFormFields}, ${data.status}, ${now}, ${docType},
         ${data.tocSections ? JSON.stringify(data.tocSections) : null},
         ${data.watermarkText ?? null},

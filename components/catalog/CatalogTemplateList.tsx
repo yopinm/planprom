@@ -88,9 +88,9 @@ export function CatalogTemplateList({ templates }: { templates: CatalogTemplate[
 
             <div className="flex-1 overflow-hidden bg-neutral-100">
               {(() => {
-                const pages = (preview.preview_pages && preview.preview_pages.length > 0)
-                  ? preview.preview_pages
-                  : (preview.preview_path ? [preview.preview_path] : [])
+                const raw = preview.preview_pages
+                const arr: string[] = Array.isArray(raw) ? raw : (() => { try { const p = JSON.parse(raw as unknown as string); return Array.isArray(p) ? p : [] } catch { return [] } })()
+                const pages = arr.length > 0 ? arr : (preview.preview_path ? [preview.preview_path] : [])
                 if (pages.length === 0) return (
                   <div className="flex h-48 items-center justify-center text-sm text-neutral-400">ไม่มีภาพตัวอย่าง</div>
                 )

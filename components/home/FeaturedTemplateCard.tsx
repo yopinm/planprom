@@ -115,9 +115,9 @@ export default function FeaturedTemplateCard({ template }: { template: FeaturedT
 
             <div className="flex-1 overflow-hidden bg-neutral-100">
               {(() => {
-                const pages = (template.preview_pages && template.preview_pages.length > 0)
-                  ? template.preview_pages
-                  : (template.preview_path ? [template.preview_path] : [])
+                const raw = template.preview_pages
+                const arr: string[] = Array.isArray(raw) ? raw : (() => { try { const p = JSON.parse(raw as unknown as string); return Array.isArray(p) ? p : [] } catch { return [] } })()
+                const pages = arr.length > 0 ? arr : (template.preview_path ? [template.preview_path] : [])
                 if (pages.length === 0) return (
                   <div className="flex h-48 items-center justify-center text-sm text-neutral-400">ไม่มีภาพตัวอย่าง</div>
                 )

@@ -141,7 +141,7 @@ export async function PATCH(req: NextRequest) {
         pdf_path       = ${pdfPath},
         preview_path   = ${previewPath},
         thumbnail_path = COALESCE(${previewPath}, thumbnail_path),
-        preview_pages  = ${JSON.stringify(previewPages)},
+        preview_pages  = ${JSON.stringify(previewPages)}::jsonb,
         engine_data    = ${JSON.stringify(engineData)},
         document_type  = 'form',
         updated_at     = NOW()

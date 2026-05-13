@@ -91,9 +91,9 @@ export function TemplateListWithPreview({ templates }: { templates: PreviewTempl
             {/* Preview — carousel */}
             <div className="flex-1 overflow-hidden bg-neutral-100">
               {(() => {
-                const pages = (preview.preview_pages && preview.preview_pages.length > 0)
-                  ? preview.preview_pages
-                  : (preview.preview_path ? [preview.preview_path] : [])
+                const raw = preview.preview_pages
+                const arr: string[] = Array.isArray(raw) ? raw : (() => { try { const p = JSON.parse(raw as unknown as string); return Array.isArray(p) ? p : [] } catch { return [] } })()
+                const pages = arr.length > 0 ? arr : (preview.preview_path ? [preview.preview_path] : [])
                 if (pages.length === 0) return (
                   <div className="flex flex-col items-center justify-center gap-3 py-12 text-center px-6">
                     <p className="text-5xl">{TYPE_LABEL[preview.document_type]?.split(' ')[0] ?? '📄'}</p>

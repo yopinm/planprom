@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
       SET engine_data    = ${engine_data as unknown as string},
           pdf_path       = ${pdf_path},
           preview_path   = ${preview_path ?? null},
-          preview_pages  = ${JSON.stringify(preview_pages ?? [])},
+          preview_pages  = ${JSON.stringify(preview_pages ?? [])}::jsonb,
           thumbnail_path = COALESCE(thumbnail_path, ${preview_path ?? null})
       WHERE id = ${template_id}
     `

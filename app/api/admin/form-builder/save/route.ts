@@ -144,7 +144,7 @@ export async function POST(req: NextRequest) {
          preview_pages, engine_type, engine_data, document_type, page_count, status)
       VALUES (
         ${safeSlug}, ${title}, ${safeTier}, ${priceBaht}, ${pdfPath}, ${previewPath}, ${previewPath},
-        ${JSON.stringify(previewPages)}, 'form', ${JSON.stringify(engineData)}, 'form', 2, 'draft'
+        ${JSON.stringify(previewPages)}::jsonb, 'form', ${JSON.stringify(engineData)}, 'form', 2, 'draft'
       )
       RETURNING id
     `
