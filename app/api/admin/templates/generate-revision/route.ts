@@ -157,7 +157,7 @@ export async function POST(req: NextRequest) {
     if (page2.isClosed()) throw new Error('page closed before screenshot')
     const totalH = await page2.evaluate(() => Math.ceil(document.body.scrollHeight))
     const pageH = 792
-    const nPages = Math.min(4, Math.ceil(totalH / pageH))
+    const nPages = Math.min(2, Math.ceil(totalH / pageH))
     for (let i = 0; i < nPages; i++) {
       const y = i * pageH
       const h = Math.min(pageH, totalH - y)
