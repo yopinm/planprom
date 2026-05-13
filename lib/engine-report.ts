@@ -94,9 +94,6 @@ ${wm ? `body::before{content:"${wm}";position:fixed;top:50%;left:50%;transform:t
 .cover-meta-table td{padding:7px 0;font-size:10pt;border-bottom:1px solid #e2e8f0}
 .cover-meta-table td:first-child{font-weight:700;color:#475569;width:130px}
 .cover-meta-table td:last-child{color:#1e293b;font-weight:600}
-.cover-footer{padding:16px 36px;border-top:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between}
-.cover-footer-brand{font-size:8.5pt;color:#64748b}
-.cover-footer-id{font-family:monospace;font-size:9pt;font-weight:700;color:#1e293b;background:#f1f5f9;padding:3px 10px;border-radius:6px}
 
 /* ── Sections ──────────────────────────────────────────── */
 .section{page-break-before:always;padding-bottom:8px}
@@ -163,9 +160,6 @@ tr:nth-child(even) td{background:#f8fafc}
       <tr><td>ใช้ได้ถึง</td><td>${esc(validUntil)}</td></tr>
       <tr><td>ระดับ</td><td>${confLabel}</td></tr>
     </table>
-  </div>
-  <div class="cover-footer">
-    <span class="cover-footer-brand">www.planprom.com</span>
   </div>
 </div>
 
