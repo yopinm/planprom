@@ -97,11 +97,7 @@ export async function POST(req: NextRequest) {
     const page = await browser1.newPage()
     await page.setContent(html, { waitUntil: 'networkidle0' })
     await page.evaluate(() => document.fonts.ready)
-    const headerHtml = `
-      <div style="font-family:'Sarabun',Arial,sans-serif;font-size:8px;padding:0 20mm;width:100%;display:flex;justify-content:space-between;color:#64748b">
-        <span class="title"></span>
-        <span style="font-family:monospace;color:#0284c7;font-weight:700">${reportCode}</span>
-      </div>`
+    const headerHtml = `<div></div>`
     const footerHtml = `
       <div style="font-family:'Sarabun',Arial,sans-serif;font-size:8px;padding:0 20mm;width:100%;display:flex;justify-content:space-between;color:#94a3b8">
         <span>[ชื่อผู้ซื้อ] · www.planprom.com</span>

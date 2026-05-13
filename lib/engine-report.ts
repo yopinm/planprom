@@ -5,10 +5,10 @@ const esc = (s: string) =>
   String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>')
 
 const CONF_LABEL: Record<string, string> = {
-  public: '🌐 Public',
-  internal: '🔵 Internal',
-  confidential: '🔒 Confidential',
-  strictly_confidential: '🔴 Strictly Confidential',
+  public: 'Public',
+  internal: 'Internal',
+  confidential: 'Confidential',
+  strictly_confidential: 'Strictly Confidential',
 }
 
 export function generateReportHtml(
@@ -45,14 +45,14 @@ export function generateReportHtml(
     ).join('')
     return `
       <div class="content-block">
-        ${t.title ? `<div class="block-title">📊 ${esc(t.title)}</div>` : ''}
+        ${t.title ? `<div class="block-title">${esc(t.title)}</div>` : ''}
         <table><thead><tr>${headerRow}</tr></thead><tbody>${bodyRows}</tbody></table>
       </div>`
   }).join('')
 
   const textBlocks = (s5.textBlocks ?? []).filter(b => b.body.trim()).map(b => `
     <div class="content-block">
-      ${b.title ? `<div class="block-title">📝 ${esc(b.title)}</div>` : ''}
+      ${b.title ? `<div class="block-title">${esc(b.title)}</div>` : ''}
       <div class="text-body">${esc(b.body)}</div>
     </div>`).join('')
 
@@ -88,7 +88,7 @@ ${wm ? `body::before{content:"${wm}";position:fixed;top:50%;left:50%;transform:t
 .cover-brand{padding:18px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #e2e8f0}
 .cover-brand-name{font-size:13pt;font-weight:900;color:#1e293b}
 .cover-conf{font-size:9pt;font-weight:700;color:#dc2626;background:#fef2f2;padding:3px 10px;border-radius:20px;border:1px solid #fca5a5}
-.cover-body{flex:1;display:flex;flex-direction:column;justify-content:center;padding:32px 36px}
+.cover-body{flex:1;display:flex;flex-direction:column;justify-content:flex-start;padding:20px 36px 32px 36px}
 .cover-tag{display:inline-flex;align-items:center;gap:6px;background:#1e293b;color:#fff;font-size:9pt;font-weight:700;padding:4px 14px;border-radius:20px;margin-bottom:18px}
 .cover-title{font-size:22pt;font-weight:900;color:#1e293b;line-height:1.25;margin-bottom:10px}
 .cover-subtitle{font-size:12pt;font-weight:500;color:#334155;margin-bottom:28px}
@@ -155,18 +155,16 @@ tr:nth-child(even) td{background:#f8fafc}
 <!-- ── S1 Cover Page ─────────────────────────────────────────────────────── -->
 <div class="cover">
   <div class="cover-brand">
-    <span class="cover-brand-name">📊 แพลนพร้อม</span>
-    <span class="cover-conf">${confLabel}</span>
+    <span class="cover-brand-name">แพลนพร้อม</span>
   </div>
   <div class="cover-body">
-    <div class="cover-tag">📄 รายงาน · Report</div>
+    <div class="cover-tag">รายงาน · Report</div>
     <h1 class="cover-title">${esc(s1.reportTitle)}</h1>
     ${s1.subtitle?.trim() ? `<p class="cover-subtitle">${esc(s1.subtitle)}</p>` : ''}
     <div class="cover-divider"></div>
     <table class="cover-meta-table">
       <tr><td>จัดทำโดย</td><td>${esc(s1.organization || '-')}</td></tr>
       <tr><td>จัดทำให้</td><td>[ชื่อผู้ซื้อ]</td></tr>
-      <tr><td>Report ID</td><td style="font-family:monospace;font-weight:900;color:#1e293b">${esc(reportCode)}</td></tr>
       <tr><td>วันที่จัดทำ</td><td>${esc(createdDate)}</td></tr>
       <tr><td>ใช้ได้ถึง</td><td>${esc(validUntil)}</td></tr>
       <tr><td>ระดับ</td><td>${confLabel}</td></tr>
