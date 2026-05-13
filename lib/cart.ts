@@ -1,5 +1,5 @@
 import { db } from '@/lib/db'
-import { calculateCartTotal, type CartTotals } from './pricing'
+import { calculateCartTotal, REQUEST_ONLY_PRICE, type CartTotals } from './pricing'
 
 export interface CartItem {
   cartItemId:      string
@@ -46,7 +46,7 @@ export async function getCartBySession(sessionId: string): Promise<CartData> {
     slug:          r.slug,
     tier:          r.tier,
     thumbnailPath: r.thumbnail_path,
-    priceBaht:     r.price_baht,
+    priceBaht:     r.is_request_only ? REQUEST_ONLY_PRICE : r.price_baht,
     isRequestOnly: r.is_request_only,
   }))
   // Request-only items use fixed price_baht; normal paid items use volume pricing

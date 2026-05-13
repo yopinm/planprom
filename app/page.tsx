@@ -44,6 +44,7 @@ async function fetchActivePromo(): Promise<PromoData | null> {
     FROM promo_codes
     WHERE is_active = true
       AND is_secret = false
+      AND template_id IS NULL
       AND (
         NOW() BETWEEN starts_at AND expires_at
         OR (expires_at < NOW() AND comeback_text IS NOT NULL)

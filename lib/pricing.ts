@@ -1,3 +1,5 @@
+export const REQUEST_ONLY_PRICE = 50
+
 export const PRICE_TIERS = {
   TIER_1: 20, // ชิ้นที่ 1 (= Omise PromptPay minimum)
   TIER_2: 10, // ชิ้นที่ 2-5
