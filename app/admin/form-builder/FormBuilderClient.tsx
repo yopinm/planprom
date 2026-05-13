@@ -53,10 +53,8 @@ function toSlug(title: string): string {
 }
 
 const TIERS = [
-  { value: 'free',     label: 'ฟรี',        price: '฿0' },
-  { value: 'standard', label: 'Standard',   price: '฿20' },
-  { value: 'premium',  label: 'Premium',    price: '฿50' },
-  { value: 'ultra',    label: 'Ultra',      price: '฿100' },
+  { value: 'free',     label: 'ฟรี',      price: '฿0' },
+  { value: 'standard', label: 'Standard', price: '฿20' },
 ]
 
 const STEPS = ['1. สร้างฟอร์ม', '2. ตัวอย่างข้อมูล', '3. บันทึก']
