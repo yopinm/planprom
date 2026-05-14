@@ -67,9 +67,15 @@ export function PromoCodeBanner({ promo }: { promo: PromoData }) {
         </div>
       </div>
 
-      {/* Code + copy */}
-      <div className="flex items-center gap-2">
-        <span className="font-mono text-sm font-black text-neutral-900 flex-1 min-w-0 truncate tracking-widest">
+      {/* Countdown — อยู่ใต้ label */}
+      <p className={`text-center text-xs font-bold mb-3 ${isUrgent ? 'text-rose-600' : 'text-neutral-400'}`}>
+        {isUrgent ? '⏰' : '🗓️'} หมดใน {countdown.value} {countdown.unit === 'hours' ? 'ชั่วโมง' : 'วัน'}
+        {isUrgent && <span className="ml-1 animate-pulse">⚠️</span>}
+      </p>
+
+      {/* Code centered + copy */}
+      <div className="flex items-center justify-center gap-2">
+        <span className="font-mono text-sm font-black text-neutral-900 tracking-widest">
           {promo.code}
         </span>
         <button
@@ -83,12 +89,6 @@ export function PromoCodeBanner({ promo }: { promo: PromoData }) {
           {copied ? '✓ คัดลอกแล้ว' : 'คัดลอก'}
         </button>
       </div>
-
-      {/* Countdown */}
-      <p className={`mt-2 text-xs font-bold ${isUrgent ? 'text-rose-600' : 'text-neutral-400'}`}>
-        {isUrgent ? '⏰' : '🗓️'} หมดใน {countdown.value} {countdown.unit === 'hours' ? 'ชั่วโมง' : 'วัน'}
-        {isUrgent && <span className="ml-1 animate-pulse">⚠️</span>}
-      </p>
 
     </div>
   )
