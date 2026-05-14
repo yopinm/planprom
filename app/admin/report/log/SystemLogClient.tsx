@@ -115,6 +115,83 @@ export function SystemLogClient({ data }: { data: SystemLogData }) {
     ...data.ngxErr.filter(isError),
   ]
 
+  // Build alert cards
+  type AlertLevel = 'error' | 'warning' | 'info' | 'ok'
+  interface Alert {
+    level: AlertLevel
+    icon: string
+    title: string
+    desc: string
+    action?: { label: string; onClick?: () => void; href?: string }
+  }
+  const alerts: Alert[] = []
+
+  if (data.ngxAccSummary.status_5xx > 0) {
+    alerts.push({
+      level: 'error',
+      icon: '🔴',
+      title: 'พบ 5xx Error',
+      desc: `Nginx มี ${data.ngxAccSummary.status_5xx} รายการ — อาจมีปัญหา upstream`,
+      action: { label: 'ดู Nginx Error', onClick: () => setTab('nginx-error') },
+    })
+  }
+  if (errorDigest.length > 0) {
+    alerts.push({
+      level: 'warning',
+      icon: '⚠️',
+      title: 'พบ Error ใน Log',
+      desc: `Error Digest มี ${errorDigest.length} บรรทัด จาก PM2 + Nginx`,
+      action: { label: 'ดู Error Digest', onClick: () => setTab('error-digest') },
+    })
+  }
+  if (data.ngxAccSummary.status_4xx > 10) {
+    alerts.push({
+      level: 'warning',
+      icon: '🟠',
+      title: '4xx สูงผิดปกติ',
+      desc: `Nginx มี ${data.ngxAccSummary.status_4xx} รายการ — มี broken link หรือ path ผิด`,
+      action: { label: 'ดู Nginx Access', onClick: () => setTab('nginx-access') },
+    })
+  }
+  if (data.summary.published === 0) {
+    alerts.push({
+      level: 'info',
+      icon: '📋',
+      title: 'ยังไม่มีเทมเพลต',
+      desc: 'ยังไม่มี template ที่ publish — ลูกค้ายังซื้อไม่ได้',
+      action: { label: '+ เพิ่มเทมเพลต', href: '/admin/templates/new' },
+    })
+  }
+  if (data.cartStats.active_carts > 0) {
+    alerts.push({
+      level: 'info',
+      icon: '🛒',
+      title: 'มีตะกร้าค้างอยู่',
+      desc: `${data.cartStats.active_carts} ตะกร้า · ${data.cartStats.total_cart_items} รายการ — ลูกค้ากำลังเรียกดู`,
+    })
+  }
+  if (alerts.length === 0) {
+    alerts.push({
+      level: 'ok',
+      icon: '✅',
+      title: 'ระบบทำงานปกติ',
+      desc: 'ไม่พบ 5xx · ไม่มี error ใน log · มี template live แล้ว',
+    })
+  }
+
+  const alertStyle: Record<AlertLevel, string> = {
+    error:   'border-red-200 bg-red-50',
+    warning: 'border-amber-200 bg-amber-50',
+    info:    'border-blue-200 bg-blue-50',
+    ok:      'border-emerald-200 bg-emerald-50',
+  }
+  const alertBtn: Record<AlertLevel, string> = {
+    error:   'bg-red-600 text-white hover:bg-red-700',
+    warning: 'bg-amber-600 text-white hover:bg-amber-700',
+    info:    'bg-blue-600 text-white hover:bg-blue-700',
+    ok:      'bg-emerald-600 text-white hover:bg-emerald-700',
+  }
+
   return (
     <main className="min-h-screen bg-neutral-50 pb-20">
       <div className="mx-auto max-w-5xl px-4 py-8">
@@ -144,6 +221,33 @@ export function SystemLogClient({ data }: { data: SystemLogData }) {
           </div>
         </div>
 
+        {/* Alert cards */}
+        <div className="mb-5">
+          <p className="text-[10px] font-black uppercase tracking-wider text-neutral-400 mb-2">สถานะระบบ</p>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {alerts.map(a => (
+              <div key={a.title} className={`rounded-2xl border p-4 ${alertStyle[a.level]}`}>
+                <div className="flex items-start gap-2 mb-2">
+                  <span className="text-base leading-none mt-0.5">{a.icon}</span>
+                  <p className="text-sm font-black text-neutral-900 leading-snug">{a.title}</p>
+                </div>
+                <p className="text-xs text-neutral-600 leading-relaxed mb-3">{a.desc}</p>
+                {a.action && (
+                  a.action.href
+                    ? <Link href={a.action.href}
+                        className={`inline-block rounded-xl px-3 py-1.5 text-[11px] font-black transition ${alertBtn[a.level]}`}>
+                        {a.action.label}
+                      </Link>
+                    : <button onClick={a.action.onClick}
+                        className={`rounded-xl px-3 py-1.5 text-[11px] font-black transition ${alertBtn[a.level]}`}>
+                        {a.action.label}
+                      </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Usage hint */}
         <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4">
           <p className="text-xs font-black text-amber-800 mb-2">วิธีส่ง log ให้ Claude Code วิเคราะห์</p>
@@ -160,10 +264,10 @@ export function SystemLogClient({ data }: { data: SystemLogData }) {
         {/* DB snapshot summary */}
         <div className="mb-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
           {[
-            { label: 'Templates', value: `${data.summary.total_templates} (${data.summary.published} live)` },
-            { label: 'Categories', value: data.summary.categories },
-            { label: 'Orders 30d (paid)', value: data.orders30d.paid_orders },
-            { label: 'Revenue 30d', value: `฿${data.orders30d.total_revenue_baht.toLocaleString()}` },
+            { label: 'เทมเพลต', value: `${data.summary.total_templates} (${data.summary.published} live)` },
+            { label: 'หมวดหมู่', value: data.summary.categories },
+            { label: 'ออเดอร์ 30 วัน', value: data.orders30d.paid_orders },
+            { label: 'รายได้ 30 วัน', value: `฿${data.orders30d.total_revenue_baht.toLocaleString()}` },
           ].map(c => (
             <div key={c.label} className="rounded-xl border border-neutral-200 bg-white px-4 py-3 shadow-sm">
               <p className="text-[10px] font-black uppercase tracking-wider text-neutral-400">{c.label}</p>
