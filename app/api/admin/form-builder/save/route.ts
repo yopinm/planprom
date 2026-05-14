@@ -8,7 +8,7 @@ import type { FormEngineData } from '@/lib/engine-form-types'
 import { db } from '@/lib/db'
 
 const TIER_PRICE: Record<string, number> = {
-  free: 0, standard: 20, premium: 50, ultra: 100,
+  free: 0, standard: 30, premium: 50, ultra: 100,
 }
 
 export async function POST(req: NextRequest) {

@@ -101,7 +101,7 @@ export default async function BlogPostPage(
         {/* CTA */}
         <div className="mt-10 rounded-3xl border border-amber-200 bg-amber-50 px-6 py-6 text-center">
           <p className="text-sm font-black text-amber-800">พร้อมใช้งานเทมเพลตแล้ว?</p>
-          <p className="mt-1 text-xs text-amber-700">ดาวน์โหลด PDF พร้อมใช้ ราคาเริ่มต้น ฿20</p>
+          <p className="mt-1 text-xs text-amber-700">ดาวน์โหลด PDF พร้อมใช้ ราคาเริ่มต้น ฿30</p>
           <div className="mt-4 flex justify-center gap-3">
             <Link
               href="/templates"

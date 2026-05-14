@@ -54,7 +54,7 @@ function toSlug(title: string): string {
 
 const TIERS = [
   { value: 'free',     label: 'ฟรี',      price: '฿0' },
-  { value: 'standard', label: 'Standard', price: '฿20' },
+  { value: 'standard', label: 'Standard', price: '฿30' },
 ]
 
 const STEPS = ['1. สร้างฟอร์ม', '2. ตัวอย่างข้อมูล', '3. บันทึก']

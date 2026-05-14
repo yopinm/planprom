@@ -7,7 +7,7 @@ import { redirect } from 'next/navigation'
 import type { TocItem } from '@/lib/pdf-types'
 
 const TIER_PRICE: Record<string, number> = {
-  free: 0, standard: 20, premium: 50, ultra: 100,
+  free: 0, standard: 30, premium: 50, ultra: 100,
 }
 
 function str(fd: FormData, key: string): string {
@@ -109,6 +109,7 @@ export async function forceDeleteTemplateAction(formData: FormData): Promise<{ e
   await requireAdminSession('/admin/login')
   const id = str(formData, 'id')
   try {
+    await db`UPDATE promo_codes SET template_id = NULL WHERE template_id = ${id}`
     await db`DELETE FROM template_revisions      WHERE template_id = ${id}`
     await db`DELETE FROM order_items             WHERE template_id = ${id}`
     await db`DELETE FROM template_orders         WHERE template_id = ${id}`

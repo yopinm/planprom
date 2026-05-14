@@ -78,7 +78,7 @@ export default async function EditTemplatePage({ params }: { params: Promise<{ i
               <label className={LABEL}>Tier *</label>
               <select name="tier" required defaultValue={t.tier} className={INPUT}>
                 <option value="free">Free — ฿0</option>
-                <option value="standard">Standard — ฿20</option>
+                <option value="standard">Standard — ฿30</option>
               </select>
             </div>
             <div>

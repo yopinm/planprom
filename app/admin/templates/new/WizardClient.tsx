@@ -15,7 +15,7 @@ type ValidTag = 'bestseller' | 'trending' | 'staple' | 'new' | 'premium' | 'free
 export type Category = { slug: string; name: string; emoji: string }
 export type CloneSource = { id: string; slug: string; title: string; tier: string; description: string | null }
 
-const TIER_PRICE: Record<string, number> = { free: 0, standard: 20, premium: 20, ultra: 20 }
+const TIER_PRICE: Record<string, number> = { free: 0, standard: 30, premium: 30, ultra: 30 }
 const ALL_TAGS: { tag: ValidTag; label: string }[] = [
   { tag: 'new',        label: 'ใหม่' },
   { tag: 'trending',   label: 'ร้อนแรง' },
@@ -537,7 +537,7 @@ export function WizardClient({ categories, cloneSources, initialTitle, initialCa
               <label className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-neutral-400">Tier / ราคา</label>
               <select value={tier} onChange={e => setTier(e.target.value)} className={INPUT}>
                 <option value="free">Free — ฿0</option>
-                <option value="standard">Standard — ฿20</option>
+                <option value="standard">Standard — ฿30</option>
               </select>
             </div>
           ) : (
@@ -556,7 +556,7 @@ export function WizardClient({ categories, cloneSources, initialTitle, initialCa
                 <label className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-neutral-400">Tier / ราคา</label>
                 <select value={tier} onChange={e => setTier(e.target.value)} className={INPUT}>
                   <option value="free">Free — ฿0</option>
-                  <option value="standard">Standard — ฿20</option>
+                  <option value="standard">Standard — ฿30</option>
                 </select>
               </div>
             </div>

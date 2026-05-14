@@ -74,7 +74,7 @@ export default async function BlogPage() {
 
         <div className="mt-12 rounded-3xl border border-amber-200 bg-amber-50 px-6 py-6 text-center">
           <p className="text-sm font-black text-amber-800">พร้อมใช้งานเทมเพลตแล้ว?</p>
-          <p className="mt-1 text-xs text-amber-700">ดูเทมเพลต PDF พร้อมดาวน์โหลด ราคาเริ่มต้น ฿20</p>
+          <p className="mt-1 text-xs text-amber-700">ดูเทมเพลต PDF พร้อมดาวน์โหลด ราคาเริ่มต้น ฿30</p>
           <Link
             href="/templates"
             className="mt-4 inline-block rounded-2xl bg-amber-600 px-6 py-2.5 text-sm font-black text-white transition hover:bg-amber-700"

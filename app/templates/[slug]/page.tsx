@@ -434,7 +434,7 @@ export default async function TemplateDetailPage({ params }: Props) {
             <div className="sticky top-20 rounded-2xl border border-neutral-200 bg-white p-6 shadow-lg">
               <div className="mb-4">
                 <p className="text-3xl font-black text-neutral-900">
-                  {isFree ? 'ฟรี' : '฿20'}
+                  {isFree ? 'ฟรี' : '฿30'}
                 </p>
                 {!isFree && <p className="text-xs text-neutral-400 mt-0.5">จ่ายครั้งเดียว · ใช้ซ้ำตลอดกาล</p>}
               </div>
@@ -450,7 +450,7 @@ export default async function TemplateDetailPage({ params }: Props) {
                   href={`/checkout/${slug}`}
                   className="block w-full rounded-2xl bg-amber-500 py-3.5 text-center text-base font-black text-white transition hover:bg-amber-600"
                 >
-                  ซื้อเลย ฿20
+                  ซื้อเลย ฿30
                 </Link>
               )}
 
@@ -484,7 +484,7 @@ export default async function TemplateDetailPage({ params }: Props) {
                   <div className="p-2.5">
                     <p className="text-[10px] text-neutral-400">เทมเพลต PDF</p>
                     <p className="text-xs font-semibold leading-snug text-neutral-800 line-clamp-2">{r.title}</p>
-                    <p className="mt-1 text-sm font-black text-emerald-700">{r.tier === 'free' ? 'ฟรี' : '฿20'}</p>
+                    <p className="mt-1 text-sm font-black text-emerald-700">{r.tier === 'free' ? 'ฟรี' : '฿30'}</p>
                   </div>
                 </Link>
               ))}

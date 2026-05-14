@@ -188,7 +188,7 @@ export default async function AdminTemplatesPage({
                 </div>
                 <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-neutral-400">
                   <span className="font-mono">{t.slug}</span>
-                  <span className="font-bold text-emerald-600">฿{t.price_baht}</span>
+                  {!t.is_request_only && <span className="font-bold text-emerald-600">฿{t.price_baht}</span>}
                   {t.category_name && (
                     <span className="rounded-full bg-amber-50 px-2 py-0.5 text-amber-700 font-medium">
                       {t.category_emoji} {t.category_name}
