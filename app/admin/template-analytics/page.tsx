@@ -1075,8 +1075,7 @@ export default async function AdminMarketIntelPage() {
         </section>
 
         {/* ── S9: INTEL-SCORE Template Health Check ────────────────────────── */}
-        {scoredTemplates.length > 0 && (
-          <section>
+        <section>
             <div className="flex items-center justify-between mb-1">
               <h2 className="text-xs font-black uppercase tracking-widest text-neutral-400">Template Health Check</h2>
               <div className="flex items-center gap-1.5">
@@ -1144,8 +1143,12 @@ export default async function AdminMarketIntelPage() {
                 )
               })}
             </div>
+            {scoredTemplates.length === 0 && (
+              <div className="rounded-2xl border border-neutral-200 bg-white px-5 py-8 text-center text-sm text-neutral-400">
+                — ยังไม่มี published template · เพิ่ม template แล้ว publish ก่อน
+              </div>
+            )}
           </section>
-        )}
 
       </div>
     </main>
