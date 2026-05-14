@@ -166,6 +166,34 @@ export async function importStaticPostAction(formData: FormData) {
   redirect(`/admin/seo/${id}/edit`)
 }
 
+export async function createPostAction(formData: FormData) {
+  await requireAdminSession('/admin/seo')
+  const title = (formData.get('title') as string).trim()
+  const description = (formData.get('description') as string).trim()
+  const content = (formData.get('content') as string)
+  const submitType = formData.get('submit_type') as string
+
+  const readingTimeMin = estimateReadingTime(content || title)
+  let slug = titleToSlug(title)
+  if (!slug) slug = `post-${Date.now()}`
+
+  const existing = await db<{ slug: string }[]>`SELECT slug FROM blog_posts WHERE slug LIKE ${slug + '%'}`
+  if (existing.length > 0) slug = `${slug}-${Date.now()}`
+
+  const status = submitType === 'publish' ? 'published' : 'draft'
+  const publishedAt = status === 'published' ? new Date() : null
+
+  const [{ id }] = await db<{ id: string }[]>`
+    INSERT INTO blog_posts (slug, title, description, content, reading_time_min, status, published_at)
+    VALUES (${slug}, ${title}, ${description}, ${content}, ${readingTimeMin}, ${status}, ${publishedAt})
+    RETURNING id
+  `
+
+  revalidatePath('/admin/seo')
+  revalidatePath('/blog')
+  redirect(`/admin/seo/${id}/edit`)
+}
+
 export async function updatePostAction(formData: FormData) {
   await requireAdminSession('/admin/seo')
   const id = formData.get('id') as string

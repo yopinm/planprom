@@ -43,6 +43,12 @@ export default async function AdminSeoPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <Link
+              href="/admin/seo/new"
+              className="rounded-xl bg-black px-4 py-2 text-xs font-black text-white shadow-sm hover:bg-neutral-800 transition"
+            >
+              ✏️ เขียนใหม่
+            </Link>
             <GenerateDraftButton />
             <Link
               href="/blog"
