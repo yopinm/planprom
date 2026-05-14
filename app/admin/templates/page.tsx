@@ -28,6 +28,7 @@ type Template = {
   sale_count: number
   category_emoji: string | null
   category_name: string | null
+  is_request_only: boolean
 }
 
 const TYPE_COLOR: Record<string, string> = {
@@ -62,6 +63,7 @@ const TYPE_TABS = [
   { label: '✅ เช็คลิสต์',         value: 'checklist' },
   { label: '📝 ฟอร์ม',             value: 'form' },
   { label: '📊 รายงาน',            value: 'report' },
+  { label: '🔒 ลูกค้ารีเควส',      value: 'request' },
 ]
 
 export default async function AdminTemplatesPage({
@@ -73,26 +75,41 @@ export default async function AdminTemplatesPage({
   const { type } = await searchParams
   const activeType = type ?? ''
 
-  const templates = await (activeType
-    ? db<Template[]>`
-        SELECT t.id, t.slug, t.title, t.tier, t.price_baht, t.status,
-               t.document_type, t.published_at, t.created_at, t.sale_count,
-               c.emoji AS category_emoji, c.name AS category_name
-        FROM templates t
-        LEFT JOIN template_category_links l ON l.template_id = t.id
-        LEFT JOIN template_categories c ON c.id = l.category_id
-        WHERE t.document_type = ${activeType}
-        ORDER BY t.created_at DESC
-      `
-    : db<Template[]>`
-        SELECT t.id, t.slug, t.title, t.tier, t.price_baht, t.status,
-               t.document_type, t.published_at, t.created_at, t.sale_count,
-               c.emoji AS category_emoji, c.name AS category_name
-        FROM templates t
-        LEFT JOIN template_category_links l ON l.template_id = t.id
-        LEFT JOIN template_categories c ON c.id = l.category_id
-        ORDER BY t.created_at DESC
-      `
+  const templates = await (
+    activeType === 'request'
+      ? db<Template[]>`
+          SELECT t.id, t.slug, t.title, t.tier, t.price_baht, t.status,
+                 t.document_type, t.published_at, t.created_at, t.sale_count,
+                 t.is_request_only,
+                 c.emoji AS category_emoji, c.name AS category_name
+          FROM templates t
+          LEFT JOIN template_category_links l ON l.template_id = t.id
+          LEFT JOIN template_categories c ON c.id = l.category_id
+          WHERE t.is_request_only = true
+          ORDER BY t.created_at DESC
+        `
+      : activeType
+      ? db<Template[]>`
+          SELECT t.id, t.slug, t.title, t.tier, t.price_baht, t.status,
+                 t.document_type, t.published_at, t.created_at, t.sale_count,
+                 t.is_request_only,
+                 c.emoji AS category_emoji, c.name AS category_name
+          FROM templates t
+          LEFT JOIN template_category_links l ON l.template_id = t.id
+          LEFT JOIN template_categories c ON c.id = l.category_id
+          WHERE t.document_type = ${activeType}
+          ORDER BY t.created_at DESC
+        `
+      : db<Template[]>`
+          SELECT t.id, t.slug, t.title, t.tier, t.price_baht, t.status,
+                 t.document_type, t.published_at, t.created_at, t.sale_count,
+                 t.is_request_only,
+                 c.emoji AS category_emoji, c.name AS category_name
+          FROM templates t
+          LEFT JOIN template_category_links l ON l.template_id = t.id
+          LEFT JOIN template_categories c ON c.id = l.category_id
+          ORDER BY t.created_at DESC
+        `
   ).catch(() => [] as Template[])
 
   const published = templates.filter(t => t.status === 'published').length
@@ -163,6 +180,11 @@ export default async function AdminTemplatesPage({
                   <span className={`rounded-full px-2 py-0.5 text-[10px] font-black tracking-wider ${TYPE_COLOR[t.document_type] ?? 'bg-neutral-100 text-neutral-500'}`}>
                     {TYPE_LABEL[t.document_type] ?? t.document_type}
                   </span>
+                  {t.is_request_only && (
+                    <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-black text-rose-700">
+                      🔒 ลูกค้ารีเควส
+                    </span>
+                  )}
                 </div>
                 <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-neutral-400">
                   <span className="font-mono">{t.slug}</span>
