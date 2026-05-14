@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server'
 import { requireAdminSession } from '@/lib/admin-auth'
 import { db } from '@/lib/db'
-import Anthropic from '@anthropic-ai/sdk'
-
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+import { GoogleGenAI } from '@google/genai'
 
 function slugify(text: string): string {
   return text.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^ก-๿a-z0-9-]/g, '').replace(/-+/g, '-').slice(0, 80)
@@ -12,11 +10,10 @@ function slugify(text: string): string {
 export async function POST() {
   await requireAdminSession('/admin/seo')
 
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return NextResponse.json({ error: 'ANTHROPIC_API_KEY ยังไม่ได้ตั้งค่าใน .env.local' }, { status: 503 })
+  if (!process.env.GEMINI_API_KEY) {
+    return NextResponse.json({ error: 'GEMINI_API_KEY ยังไม่ได้ตั้งค่าใน .env.local' }, { status: 503 })
   }
 
-  // ดึง template สุ่ม 1 รายการ (published, มี title+description)
   const [template] = await db<{ id: string; title: string; description: string; category_name: string | null }[]>`
     SELECT t.id, t.title, t.description,
            tc.name AS category_name
@@ -31,7 +28,6 @@ export async function POST() {
     return NextResponse.json({ error: 'ไม่มี template ใน DB — เพิ่ม template ก่อน' }, { status: 400 })
   }
 
-  // ตรวจว่า draft สำหรับ template นี้มีอยู่แล้ว (ยัง pending_review)
   const [existing] = await db<{ id: string }[]>`
     SELECT id FROM blog_posts
     WHERE source_template_id = ${template.id} AND status = 'pending_review'
@@ -61,25 +57,23 @@ export async function POST() {
 
 ตอบเฉพาะเนื้อหาบทความในรูปแบบ Markdown เท่านั้น ไม่ต้องมีคำอธิบายเพิ่มเติม`
 
-  const message = await client.messages.create({
-    model: 'claude-haiku-4-5-20251001',
-    max_tokens: 2048,
-    messages: [{ role: 'user', content: prompt }],
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
+  const result = await ai.models.generateContent({
+    model: 'gemini-2.0-flash',
+    contents: prompt,
   })
 
-  const content = message.content[0].type === 'text' ? message.content[0].text : ''
+  const content = result.text ?? ''
   if (!content.trim()) {
     return NextResponse.json({ error: 'AI ไม่ได้ส่งเนื้อหากลับมา' }, { status: 500 })
   }
 
-  // ดึง title จากบรรทัดแรก (## ...) หรือใช้ชื่อ template
   const firstHeading = content.match(/^#{1,3}\s+(.+)/m)
   const articleTitle = firstHeading ? firstHeading[1].trim() : `คู่มือ ${template.title}`
 
   let slug = slugify(articleTitle)
   if (!slug) slug = `draft-${Date.now()}`
 
-  // ตรวจ slug ซ้ำ
   const [slugConflict] = await db<{ slug: string }[]>`SELECT slug FROM blog_posts WHERE slug = ${slug} LIMIT 1`
   if (slugConflict) slug = `${slug}-${Date.now()}`
 
