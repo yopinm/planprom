@@ -29,12 +29,11 @@
 | **Doc Sync** | task เสร็จ → อัพเดต PRD.md + `core/planprom.md` เสมอ |
 | **Scope Gate** | ก่อนเริ่ม implement ทุก task → ต้องมี scope + flow ใน `core/planprom.md` ก่อน → commit docs → รอ owner confirm → ค่อย implement |
 | **Blockers** | Lazada pool=49 fixed · Affiliate tasks ❌ CLOSED 2026-05-13 (owner decision) |
-| **Next task** | **UI-I** Pricing Restructure ฿30/฿20/฿10 → **PROMO-5** Promo UI Refresh → **UI-H** Analytics match catalog → **INTEL-E** Catalog-Matched Analytics → RE-1 → ADM-FALLBACK-1 → E9/E10 → J19 |
-| **Pending (code)** | **PROMO-5** 🔴 (หลัง UI-I UAT) · **UI-H** 🔴 · **INTEL-E** 🔲 4-feature catalog intelligence (หลัง INTEL-C/D UAT) · **RE-1** · **ADM-FALLBACK-1** · J19 · E9/E10 · UI-G(defer) |
-| **Pending (UAT)** added | **UI-I** 🟡 Pricing ฿30/฿20/฿10 — deploy live รอ owner test |
-| **Pending (UAT)** | INTEL-C/D · DC-1 · DC-2 · DC-8 · DC-16 · E9/E10 · J9(รอ live keys) |
+| **Next task** | **PROMO-5** Promo UI Refresh (หลัง UI-I UAT) → **UI-H** Analytics match catalog → **RE-1** → **ADM-FALLBACK-1** → E9/E10 → J19 |
+| **Pending (code)** | **PROMO-5** 🔴 (หลัง UI-I UAT) · **UI-H** 🔴 · **RE-1** · **ADM-FALLBACK-1** · J19 · E9/E10 · UI-G(defer) |
+| **Pending (UAT)** | **UI-I** 🟡 ฿30/฿20/฿10 · **INTEL-E** 🟡 Catalog intelligence · INTEL-C/D · DC-1 · DC-2 · DC-8 · DC-16 · E9/E10 · J9(รอ live keys) |
 | **Pending (decision)** | Homepage UX: D (social proof bar) + B (featured badge pulse) — mock ready รอ confirm |
-| **Last session** | **Session 60 (2026-05-13)** — EF-8 ✅ ปิดสมบูรณ์ · multi-page carousel (2 pages) · fix preview_pages ::jsonb · fix preview API regex · viewport 3200→792 (blank pages แก้แล้ว) · DB migration report row |
+| **Last session** | **Session 61 (2026-05-14)** — UI-I ✅ Pricing ฿30/฿20/฿10 (3 files, 2 bugs fixed) · INTEL-E ✅ Catalog intelligence 5 features (S2a perf cards · S2b demand heatmap · S3 catalog badge+pre-fill · S4 gap chips · WizardClient pre-fill) |
 | **ห้าม** | ไม่แตะ Later task ขณะที่ Now ยังค้างอยู่ · ไม่แตะ secrets โดยตรง · ไม่ทำให้ revenue channel หายไประหว่าง pivot |
 
 ---
@@ -185,21 +184,24 @@
 | 20 | **PROMO-3** Admin Promo Code CRUD + is_secret + comeback_text | 🟡 Medium | ✅ Done · UAT ผ่าน |
 | 21 | **HOME-FEAT-1** Featured Template Card | 🟡 | ✅ Done · Live (Session 47) |
 
-### Pending UAT (6 กลุ่ม — code พร้อม รอ owner test)
+### Pending UAT (code พร้อม รอ owner test)
 
 | กลุ่ม | รายการ | สถานะ |
 |---|---|---|
+| **UI-I** | Pricing ฿30/฿20/฿10 ทั้ง 10 ไฟล์ — fix 2 bugs (stale TIER_2 ฿8, request-only unit_price) | 🟡 **UAT Pending (Session 61)** |
+| **INTEL-E** | Catalog intelligence — S2a perf cards · S2b heatmap · S3 badge+pre-fill · S4 gap chips | 🟡 **UAT Pending (Session 61)** |
+| **INTEL-C/D** | 3-Level Coverage Card + Smart Engine Expansion | 🟡 **UAT Pending (Session 53)** |
 | **DC-1** | Standard PDF Generator (.docx → A4) — checklist/planner UAT | 🟡 **Code Done · UAT Pending** |
 | **DC-2** | TOC Preview สารบัญ — toggle /templates · always-expanded /templates/[slug] | 🟡 **Code Done · UAT Pending** |
-| **DC-14** | Planner Engine end-to-end (4 Pillar → Generate → Approve → Download) | ✅ **UAT ผ่าน (Session 36)** |
+| **DC-16** | Planner Pipeline v4 — 5-section time-cascade | 🟡 **UAT Pending** |
 | **E9/E10** | Engine preview card บน /templates/[slug] (checklist/planner green/violet) | 🟡 **UAT Pending** |
 | **J9** | Live Omise keys → real QR scan test (G4 pending) | 🟡 **รอ owner ตั้ง live keys** |
-| **A–H** | Homepage Hero · Catalog · Admin CRUD · Orders · Analytics · Payment E2E · Customer pages | ⏳ **รอ owner test ใน browser** |
 
 ### Session Log
 
 | Session | สถานะ |
 |---|---|
+| **Session 61 (2026-05-14) — UI-I + INTEL-E** | ✅ Live — UI-I: ฿20→฿30 / ฿10→฿20 / ฿7→฿10 ครบ 10 ไฟล์ + fix stale TIER_2 bug + fix request-only unit_price bug · INTEL-E: 5 features catalog analytics + WizardClient pre-fill |
 | **J18. Cart + Volume Pricing** | ✅ UAT ผ่าน 2026-05-08 (Session 28) |
 | **DC-3. DB Sequence Order ID** | ✅ Done · Live (Session 29) |
 | **Session 27. /affiliate page** | ✅ Live |
