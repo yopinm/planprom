@@ -500,7 +500,7 @@ Page 2: render fields แบบเปล่า (_____ แทน value)
 
 ---
 
-## Session 63 Changes (2026-05-14) — Fee Fix + Banner Redesign + Featured 3-Template
+## Session 63 Changes (2026-05-14) — Fee Fix + Banner Redesign + Featured 3-Template + Blog Pinned
 
 | # | Change | Status |
 |---|---|---|
@@ -510,6 +510,7 @@ Page 2: render fields แบบเปล่า (_____ แทน value)
 | 4 | **DAY1-UAT task** — สร้าง task ใหม่ในซีรีส์ J: SQL cleanup commands (delete test orders/resets/intel tables) + UAT checklist pre-go-live | ✅ Docs |
 | 5 | **PromoCodeBanner redesign** — label ตรงกลาง + promo-blink animation (CSS keyframe) · countdown แสดงเป็น "ชั่วโมง" เมื่อ <24h (red + ⚠️) · countdown ขยับขึ้นมาเหนือโค้ด · โค้ดอยู่กลางการ์ด | ✅ Live |
 | 6 | **FeaturedTemplateCard 3-template** — รองรับ 1–3 template พร้อมกัน (compact row list) · Admin ตั้ง featured ได้สูงสุด 3 ตัว (เดิม 1) · category inline ต่อท้ายชื่อ template เพื่อลดระยะห่าง | ✅ Live |
+| 7 | **บทความแนะนำ บน Homepage** — section "📌 บทความแนะนำ" ใต้ LINE CTA · แสดง pinned+published posts (max 6) · grid 1/2/3 col · Admin ควบคุมจาก `/admin/seo` → ปักหมุด · ถ้าไม่มี pinned post → ไม่แสดง section | ✅ Live |
 
 ---
 

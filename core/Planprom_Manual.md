@@ -83,6 +83,14 @@ URL: `https://planprom.com/`
 - **Category chips** — ทางลัดไปหมวดหมู่ต่างๆ
 - **LINE Request CTA** — การ์ด amber "หาฟอร์มไม่เจอ? ➕ LINE → 💬 บอกฟอร์ม → ✅ ใน 24ชม. · 50฿"
 
+- **บทความแนะนำ** — section "📌 บทความแนะนำ" ใต้ LINE CTA
+  - แสดงเฉพาะเมื่อมี blog post ที่ `status = published` + `pinned = true` อย่างน้อย 1 รายการ
+  - แสดงสูงสุด 6 บทความ เรียงตาม `pinned_order ASC`
+  - Layout: grid 1 col (mobile) / 2 col (tablet) / 3 col (desktop)
+  - แต่ละ card: ชื่อบทความ · คำอธิบาย · เวลาอ่าน (นาที) · link ไป `/blog/[slug]`
+  - มีปุ่ม "ดูทั้งหมด →" ลิ้งค์ไป `/blog`
+  - Admin ควบคุมจาก `/admin/seo` → กด **ปักหมุด** (ต้อง Publish ด้วย ถึงจะแสดง)
+
 ### 2.3 Floating LINE Button
 
 - ปุ่มเขียว LINE มุมล่างขวา
