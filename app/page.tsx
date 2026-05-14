@@ -20,11 +20,11 @@ export const dynamic = 'force-dynamic'
 export const metadata: Metadata = {
   title: 'แพลนพร้อม — Template PDF เช็คลิสต์ · แพลนเนอร์',
   description:
-    'ชีวิตง่ายขึ้นด้วยเช็คลิสต์และแพลนเนอร์ · ชิ้นแรก ฿20 · ชิ้นถัดไป ฿10 · ตั้งแต่ชิ้นที่ 6 ฿7/ชิ้น · ดาวน์โหลดทันที · ใช้ซ้ำตลอดกาล',
+    'ชีวิตง่ายขึ้นด้วยเช็คลิสต์และแพลนเนอร์ · ชิ้นแรก ฿30 · ชิ้นถัดไป ฿20 · ตั้งแต่ชิ้นที่ 6 ฿10/ชิ้น · ดาวน์โหลดทันที · ใช้ซ้ำตลอดกาล',
   keywords: ['template pdf', 'planner', 'checklist', 'เช็คลิสต์', 'แพลนเนอร์', 'คูปอง'],
   openGraph: {
     title: 'แพลนพร้อม — เช็คลิสต์ + แพลนเนอร์ PDF พร้อมใช้',
-    description: 'ชีวิตง่ายขึ้นด้วยเช็คลิสต์และแพลนเนอร์ · ชิ้นแรก ฿20 · ยิ่งซื้อยิ่งคุ้ม',
+    description: 'ชีวิตง่ายขึ้นด้วยเช็คลิสต์และแพลนเนอร์ · ชิ้นแรก ฿30 · ยิ่งซื้อยิ่งคุ้ม',
     url: 'https://planprom.com',
     siteName: 'แพลนพร้อม',
     locale: 'th_TH',
@@ -100,14 +100,14 @@ async function fetchCatalogGroups(): Promise<CatalogGroup[]> {
 // ── Static data ───────────────────────────────────────────────────────────────
 
 const MOCK_TEMPLATE_CARDS = [
-  { Icon: Wallet,         bg: 'from-amber-50 to-orange-100',  iconCls: 'text-amber-600',   title: 'แพลนเนอร์งบประมาณ',    price: '฿20', badge: '#1',      badgeCls: 'bg-red-600' },
-  { Icon: ListChecks,     bg: 'from-blue-50 to-indigo-100',   iconCls: 'text-blue-600',    title: 'ติดตามนิสัย',           price: '฿20', badge: '#2',      badgeCls: 'bg-red-600' },
-  { Icon: HeartHandshake, bg: 'from-pink-50 to-rose-100',     iconCls: 'text-pink-600',    title: 'แพลนเนอร์งานแต่ง',     price: '฿20', badge: 'ใหม่',    badgeCls: 'bg-cyan-600' },
-  { Icon: FileText,       bg: 'from-emerald-50 to-teal-100',  iconCls: 'text-emerald-600', title: 'เรซูเม่ภาษาไทย',       price: '฿20', badge: 'ใหม่',    badgeCls: 'bg-cyan-600' },
-  { Icon: Coffee,         bg: 'from-orange-50 to-amber-100',  iconCls: 'text-orange-600',  title: 'เปิดร้านกาแฟ',         price: '฿20', badge: 'ขายดี',   badgeCls: 'bg-red-600' },
-  { Icon: BookOpen,       bg: 'from-indigo-50 to-violet-100', iconCls: 'text-indigo-600',  title: 'บันทึกการอ่าน',        price: '฿20', badge: 'ร้อนแรง', badgeCls: 'bg-red-600' },
-  { Icon: Calendar,       bg: 'from-teal-50 to-cyan-100',     iconCls: 'text-teal-600',    title: 'แพลนเนอร์รายสัปดาห์', price: '฿20', badge: 'ใหม่',    badgeCls: 'bg-cyan-600' },
-  { Icon: Lightbulb,      bg: 'from-yellow-50 to-amber-100',  iconCls: 'text-yellow-600',  title: 'บอร์ดไอเดีย',         price: '฿20', badge: 'ร้อนแรง', badgeCls: 'bg-red-600' },
+  { Icon: Wallet,         bg: 'from-amber-50 to-orange-100',  iconCls: 'text-amber-600',   title: 'แพลนเนอร์งบประมาณ',    price: '฿30', badge: '#1',      badgeCls: 'bg-red-600' },
+  { Icon: ListChecks,     bg: 'from-blue-50 to-indigo-100',   iconCls: 'text-blue-600',    title: 'ติดตามนิสัย',           price: '฿30', badge: '#2',      badgeCls: 'bg-red-600' },
+  { Icon: HeartHandshake, bg: 'from-pink-50 to-rose-100',     iconCls: 'text-pink-600',    title: 'แพลนเนอร์งานแต่ง',     price: '฿30', badge: 'ใหม่',    badgeCls: 'bg-cyan-600' },
+  { Icon: FileText,       bg: 'from-emerald-50 to-teal-100',  iconCls: 'text-emerald-600', title: 'เรซูเม่ภาษาไทย',       price: '฿30', badge: 'ใหม่',    badgeCls: 'bg-cyan-600' },
+  { Icon: Coffee,         bg: 'from-orange-50 to-amber-100',  iconCls: 'text-orange-600',  title: 'เปิดร้านกาแฟ',         price: '฿30', badge: 'ขายดี',   badgeCls: 'bg-red-600' },
+  { Icon: BookOpen,       bg: 'from-indigo-50 to-violet-100', iconCls: 'text-indigo-600',  title: 'บันทึกการอ่าน',        price: '฿30', badge: 'ร้อนแรง', badgeCls: 'bg-red-600' },
+  { Icon: Calendar,       bg: 'from-teal-50 to-cyan-100',     iconCls: 'text-teal-600',    title: 'แพลนเนอร์รายสัปดาห์', price: '฿30', badge: 'ใหม่',    badgeCls: 'bg-cyan-600' },
+  { Icon: Lightbulb,      bg: 'from-yellow-50 to-amber-100',  iconCls: 'text-yellow-600',  title: 'บอร์ดไอเดีย',         price: '฿30', badge: 'ร้อนแรง', badgeCls: 'bg-red-600' },
 ]
 
 // ── Page ──────────────────────────────────────────────────────────────────────
@@ -140,7 +140,7 @@ export default async function HomePage(): Promise<ReactElement> {
               ยิ่งวางแผนเยอะ ยิ่งจ่ายน้อย
             </h1>
             <p className="mt-2 text-sm leading-relaxed text-neutral-500">
-              ฿20 ชิ้นแรก · ฿10 ชิ้นต่อไป · ฿7 ตั้งแต่ชิ้นที่ 6
+              ฿30 ชิ้นแรก · ฿20 ชิ้นต่อไป · ฿10 ตั้งแต่ชิ้นที่ 6
             </p>
 
             {/* 4-step flow */}
@@ -187,7 +187,7 @@ export default async function HomePage(): Promise<ReactElement> {
                 href="/templates"
                 className="flex h-12 w-full items-center justify-center rounded-2xl bg-amber-500 text-base font-black text-white shadow-md transition hover:bg-amber-600"
               >
-                เริ่มต้นที่ ฿20 → ดูเทมเพลตทั้งหมด
+                เริ่มต้นที่ ฿30 → ดูเทมเพลตทั้งหมด
               </Link>
             </div>
 

@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import AddToCartButton from '@/components/cart/AddToCartButton'
 import FreeDownloadButton from '@/components/templates/FreeDownloadButton'
+import { PRICE_TIERS } from '@/lib/pricing'
 
 export type CatalogTemplate = {
   id: string; slug: string; title: string
@@ -17,7 +18,7 @@ const TYPE_LABEL: Record<string, string> = {
   report:    '📊 รายงาน',
 }
 const TIER_LABEL: Record<string, string> = {
-  free: 'ฟรี', standard: '฿20', premium: '฿20', ultra: '฿20',
+  free: 'ฟรี', standard: `฿${PRICE_TIERS.TIER_1}`, premium: `฿${PRICE_TIERS.TIER_1}`, ultra: `฿${PRICE_TIERS.TIER_1}`,
 }
 const TIER_COLOR: Record<string, string> = {
   free:     'bg-emerald-100 text-emerald-700',

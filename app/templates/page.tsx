@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: 'เทมเพลต PDF ทั้งหมด — แพลนพร้อม',
-  description: 'เทมเพลต PDF พร้อมใช้ · วางแผนการเงิน ธุรกิจ ครอบครัว อาชีพ · ฿20–100 ดาวน์โหลดทันที',
+  description: 'เทมเพลต PDF พร้อมใช้ · วางแผนการเงิน ธุรกิจ ครอบครัว อาชีพ · ฿30 ดาวน์โหลดทันที ยิ่งซื้อมากยิ่งคุ้ม',
 }
 
 type Template = {
@@ -136,7 +136,7 @@ export default async function TemplatesPage({ searchParams }: Props) {
             {[
               { value: '',   label: 'ทุกราคา' },
               { value: '0',  label: 'ฟรี' },
-              { value: '20', label: '฿20' },
+              { value: '30', label: '฿30' },
             ].map((p, i) => (
               <>
                 {i > 0 && <span key={`sep-p-${i}`} className="text-neutral-300">|</span>}
@@ -202,17 +202,17 @@ export default async function TemplatesPage({ searchParams }: Props) {
           <p className="mt-0.5 text-sm text-emerald-700">ราคาลดอัตโนมัติในตะกร้า ไม่ต้องใส่โค้ด</p>
           <div className="mt-4 flex items-center justify-center gap-2 text-sm font-bold">
             <div className="rounded-xl bg-white border border-emerald-300 px-4 py-2.5 text-center">
-              <p className="text-lg font-black text-emerald-700">฿20</p>
+              <p className="text-lg font-black text-emerald-700">฿30</p>
               <p className="text-[11px] text-emerald-600 mt-0.5">ชิ้นแรก</p>
             </div>
             <span className="text-emerald-400 font-black text-lg">→</span>
             <div className="rounded-xl bg-white border border-emerald-300 px-4 py-2.5 text-center">
-              <p className="text-lg font-black text-emerald-700">฿10<span className="text-xs font-bold">/ชิ้น</span></p>
+              <p className="text-lg font-black text-emerald-700">฿20<span className="text-xs font-bold">/ชิ้น</span></p>
               <p className="text-[11px] text-emerald-600 mt-0.5">ชิ้น 2–5</p>
             </div>
             <span className="text-emerald-400 font-black text-lg">→</span>
             <div className="rounded-xl bg-white border border-emerald-300 px-4 py-2.5 text-center">
-              <p className="text-lg font-black text-emerald-700">฿7<span className="text-xs font-bold">/ชิ้น</span></p>
+              <p className="text-lg font-black text-emerald-700">฿10<span className="text-xs font-bold">/ชิ้น</span></p>
               <p className="text-[11px] text-emerald-600 mt-0.5">6 ชิ้นขึ้นไป</p>
             </div>
           </div>

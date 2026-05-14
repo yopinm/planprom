@@ -1,9 +1,9 @@
 export const REQUEST_ONLY_PRICE = 50
 
 export const PRICE_TIERS = {
-  TIER_1: 20, // ชิ้นที่ 1 (= Omise PromptPay minimum)
-  TIER_2: 10, // ชิ้นที่ 2-5
-  TIER_3: 7,  // ชิ้นที่ 6+
+  TIER_1: 30, // ชิ้นที่ 1
+  TIER_2: 20, // ชิ้นที่ 2-5
+  TIER_3: 10, // ชิ้นที่ 6+
 } as const
 
 function tierPriceForItem(position: number): number {

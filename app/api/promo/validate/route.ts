@@ -40,8 +40,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'ส่วนลดนี้ทำให้ยอดรวมต่ำกว่าขั้นต่ำการชำระเงิน (฿20)' })
   }
 
-  // Guard: tier branding — effective per-item ≥ ฿7
-  if (paid_item_count > 0 && final_total > 0 && (final_total / paid_item_count) < 7) {
+  // Guard: tier branding — effective per-item ≥ ฿10 (TIER_3)
+  if (paid_item_count > 0 && final_total > 0 && (final_total / paid_item_count) < 10) {
     return NextResponse.json({ error: 'ส่วนลดสูงเกินไปสำหรับจำนวนสินค้าในตะกร้า' })
   }
 

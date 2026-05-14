@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import type { CartData } from '@/lib/cart'
+import { PRICE_TIERS } from '@/lib/pricing'
 import { PromoCodeInput } from '@/components/checkout/PromoCodeInput'
 
 type Step = 'summary' | 'creating' | 'qr' | 'done' | 'error'
@@ -14,9 +15,9 @@ const POLL_INTERVAL_MS = 3000
 const QR_EXPIRY_SECS   = 120
 
 function tierPrice(position: number): number {
-  if (position === 1) return 20
-  if (position <= 5)  return 8
-  return 7
+  if (position === 1) return PRICE_TIERS.TIER_1
+  if (position <= 5)  return PRICE_TIERS.TIER_2
+  return PRICE_TIERS.TIER_3
 }
 
 export default function CheckoutPage() {

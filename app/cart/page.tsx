@@ -61,7 +61,7 @@ export default function CartPage() {
       )}
       {!hasRequest && until === null && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-700">
-          คุ้มสุด! ราคา <strong>฿7/ชิ้น</strong> สำหรับทุกชิ้นถัดไป
+          คุ้มสุด! ราคา <strong>฿10/ชิ้น</strong> สำหรับทุกชิ้นถัดไป
         </div>
       )}
 

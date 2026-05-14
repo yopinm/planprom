@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 import AddToCartButton from '@/components/cart/AddToCartButton'
 import FreeDownloadButton from '@/components/templates/FreeDownloadButton'
 import { TocPreview, type TocItem } from '@/components/templates/TocPreview'
+import { PRICE_TIERS } from '@/lib/pricing'
 
 export type PreviewTemplate = {
   id: string
@@ -30,7 +31,7 @@ const TYPE_COLOR: Record<string, string> = {
   report:    'bg-orange-100 text-orange-700',
 }
 const TIER_LABEL: Record<string, string> = {
-  free: 'ฟรี', standard: '฿20', premium: '฿20', ultra: '฿20',
+  free: 'ฟรี', standard: `฿${PRICE_TIERS.TIER_1}`, premium: `฿${PRICE_TIERS.TIER_1}`, ultra: `฿${PRICE_TIERS.TIER_1}`,
 }
 const TIER_COLOR: Record<string, string> = {
   free:     'bg-emerald-100 text-emerald-700',

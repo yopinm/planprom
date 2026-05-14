@@ -4,6 +4,7 @@ import { cookies } from 'next/headers'
 import { randomBytes } from 'crypto'
 import { db } from '@/lib/db'
 import { getCartBySession, CART_COOKIE } from '@/lib/cart'
+import { PRICE_TIERS, REQUEST_ONLY_PRICE } from '@/lib/pricing'
 import { createPromptPayCharge } from '@/lib/omise'
 import { createServerClient } from '@/lib/supabase/server'
 
@@ -14,9 +15,9 @@ async function newOrderUid(): Promise<string> {
 }
 
 function tierPriceForItem(position: number): number {
-  if (position === 1) return 20
-  if (position <= 5)  return 8
-  return 7
+  if (position === 1) return PRICE_TIERS.TIER_1
+  if (position <= 5)  return PRICE_TIERS.TIER_2
+  return PRICE_TIERS.TIER_3
 }
 
 export async function POST(req: NextRequest) {
@@ -71,6 +72,7 @@ export async function POST(req: NextRequest) {
   let paidIdx = 0
   const itemPrices = cart.items.map(item => {
     if (item.tier === 'free') return { ...item, unitPrice: 0 }
+    if (item.isRequestOnly)  return { ...item, unitPrice: REQUEST_ONLY_PRICE }
     paidIdx++
     return { ...item, unitPrice: tierPriceForItem(paidIdx) }
   })

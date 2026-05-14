@@ -5,55 +5,55 @@ describe('calculateCartTotal', () => {
   it('0 ชิ้น = ฿0', () => {
     expect(calculateCartTotal(0).total).toBe(0)
   })
-  it('1 ชิ้น = ฿20', () => {
-    expect(calculateCartTotal(1).total).toBe(20)
+  it('1 ชิ้น = ฿30', () => {
+    expect(calculateCartTotal(1).total).toBe(30)
   })
-  it('2 ชิ้น = ฿30', () => {
-    expect(calculateCartTotal(2).total).toBe(30)
+  it('2 ชิ้น = ฿50', () => {
+    expect(calculateCartTotal(2).total).toBe(50)
   })
-  it('3 ชิ้น = ฿40', () => {
-    expect(calculateCartTotal(3).total).toBe(40)
+  it('3 ชิ้น = ฿70', () => {
+    expect(calculateCartTotal(3).total).toBe(70)
   })
-  it('4 ชิ้น = ฿50', () => {
-    expect(calculateCartTotal(4).total).toBe(50)
+  it('4 ชิ้น = ฿90', () => {
+    expect(calculateCartTotal(4).total).toBe(90)
   })
-  it('5 ชิ้น = ฿60', () => {
-    expect(calculateCartTotal(5).total).toBe(60)
+  it('5 ชิ้น = ฿110', () => {
+    expect(calculateCartTotal(5).total).toBe(110)
   })
-  it('6 ชิ้น = ฿67', () => {
-    expect(calculateCartTotal(6).total).toBe(67)
+  it('6 ชิ้น = ฿120', () => {
+    expect(calculateCartTotal(6).total).toBe(120)
   })
-  it('7 ชิ้น = ฿74', () => {
-    expect(calculateCartTotal(7).total).toBe(74)
+  it('7 ชิ้น = ฿130', () => {
+    expect(calculateCartTotal(7).total).toBe(130)
   })
-  it('10 ชิ้น = ฿95', () => {
-    expect(calculateCartTotal(10).total).toBe(95)
+  it('10 ชิ้น = ฿160', () => {
+    expect(calculateCartTotal(10).total).toBe(160)
   })
-  it('11 ชิ้น = ฿102', () => {
-    expect(calculateCartTotal(11).total).toBe(102)
+  it('11 ชิ้น = ฿170', () => {
+    expect(calculateCartTotal(11).total).toBe(170)
   })
 
   describe('nextItemPrice', () => {
-    it('ชิ้นที่ 1 → 2 = ฿10', () => {
-      expect(calculateCartTotal(1).nextItemPrice).toBe(10)
+    it('ชิ้นที่ 1 → 2 = ฿20', () => {
+      expect(calculateCartTotal(1).nextItemPrice).toBe(20)
     })
-    it('ชิ้นที่ 5 → 6 = ฿7 (unlock tier 3)', () => {
-      expect(calculateCartTotal(5).nextItemPrice).toBe(7)
+    it('ชิ้นที่ 5 → 6 = ฿10 (unlock tier 3)', () => {
+      expect(calculateCartTotal(5).nextItemPrice).toBe(10)
     })
-    it('ชิ้นที่ 10 → 11 = ฿7', () => {
-      expect(calculateCartTotal(10).nextItemPrice).toBe(7)
+    it('ชิ้นที่ 10 → 11 = ฿10', () => {
+      expect(calculateCartTotal(10).nextItemPrice).toBe(10)
     })
   })
 
-  describe('savedVsFullPrice (เทียบกับ ฿20 ทุกชิ้น)', () => {
+  describe('savedVsFullPrice (เทียบกับ ฿30 ทุกชิ้น)', () => {
     it('1 ชิ้น ประหยัด ฿0', () => {
       expect(calculateCartTotal(1).savedVsFullPrice).toBe(0)
     })
-    it('5 ชิ้น ประหยัด ฿40 (100-60)', () => {
+    it('5 ชิ้น ประหยัด ฿40 (150-110)', () => {
       expect(calculateCartTotal(5).savedVsFullPrice).toBe(40)
     })
-    it('10 ชิ้น ประหยัด ฿105 (200-95)', () => {
-      expect(calculateCartTotal(10).savedVsFullPrice).toBe(105)
+    it('10 ชิ้น ประหยัด ฿140 (300-160)', () => {
+      expect(calculateCartTotal(10).savedVsFullPrice).toBe(140)
     })
   })
 
@@ -84,13 +84,13 @@ describe('itemsUntilNextTier', () => {
 })
 
 describe('currentTierLabel', () => {
-  it('1 ชิ้น = ฿20/ชิ้น', () => {
-    expect(currentTierLabel(1)).toBe('฿20/ชิ้น')
+  it('1 ชิ้น = ฿30/ชิ้น', () => {
+    expect(currentTierLabel(1)).toBe('฿30/ชิ้น')
   })
-  it('3 ชิ้น = ฿10/ชิ้น', () => {
-    expect(currentTierLabel(3)).toBe('฿10/ชิ้น')
+  it('3 ชิ้น = ฿20/ชิ้น', () => {
+    expect(currentTierLabel(3)).toBe('฿20/ชิ้น')
   })
-  it('6 ชิ้น = ฿7/ชิ้น', () => {
-    expect(currentTierLabel(6)).toBe('฿7/ชิ้น')
+  it('6 ชิ้น = ฿10/ชิ้น', () => {
+    expect(currentTierLabel(6)).toBe('฿10/ชิ้น')
   })
 })
