@@ -53,24 +53,25 @@ export default async function PaymentLogPage({
 
   const [summary] = await db<{ total: string; paid: string; pending: string; revenue: string; fee: string }[]>`
     SELECT
-      COUNT(*)::text                                                                   AS total,
-      COUNT(*) FILTER (WHERE status = 'paid')::text                                   AS paid,
-      COUNT(*) FILTER (WHERE status = 'pending_payment')::text                        AS pending,
-      COALESCE(SUM(total_baht) FILTER (WHERE status = 'paid'), 0)::text              AS revenue,
-      COALESCE(ROUND(SUM(GREATEST(total_baht * 0.015, 5)) FILTER (WHERE status = 'paid')), 0)::text AS fee
+      COUNT(*)::text                                                                                                      AS total,
+      COUNT(*) FILTER (WHERE status = 'paid')::text                                                                      AS paid,
+      COUNT(*) FILTER (WHERE status = 'pending_payment')::text                                                           AS pending,
+      COALESCE(SUM(total_baht) FILTER (WHERE status = 'paid'), 0)::text                                                 AS revenue,
+      COALESCE(ROUND(SUM(total_baht * 0.017655) FILTER (WHERE status = 'paid' AND omise_charge_id IS NOT NULL)), 0)::text AS fee
     FROM orders
     WHERE created_at >= ${start} AND created_at <= ${end}
   `
 
   const orders = await db<{
-    order_uid:   string
-    item_titles: string
-    item_count:  string
-    total_baht:  number
-    status:      string
-    fraud_flag:  string
-    created_at:  string
-    paid_at:     string | null
+    order_uid:       string
+    item_titles:     string
+    item_count:      string
+    total_baht:      number
+    status:          string
+    fraud_flag:      string
+    created_at:      string
+    paid_at:         string | null
+    omise_charge_id: string | null
   }[]>`
     SELECT
       o.order_uid,
@@ -80,7 +81,8 @@ export default async function PaymentLogPage({
       o.status,
       o.fraud_flag,
       o.created_at,
-      o.paid_at
+      o.paid_at,
+      o.omise_charge_id
     FROM orders o
     LEFT JOIN order_items oi ON oi.order_id = o.id
     LEFT JOIN templates   t  ON t.id = oi.template_id
@@ -100,7 +102,7 @@ export default async function PaymentLogPage({
       o.order_uid,
       `"${(o.item_titles ?? '').replace(/"/g, '""')}"`,
       String(o.total_baht),
-      o.status === 'paid' ? String(Math.round(o.total_baht - Math.max(o.total_baht * 0.015, 5))) : '',
+      o.status === 'paid' ? String(Math.round(o.total_baht - (o.omise_charge_id ? o.total_baht * 0.017655 : 0))) : '',
       o.status,
       o.fraud_flag,
       o.paid_at ?? '',
