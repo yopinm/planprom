@@ -3,6 +3,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { requireAdminSession } from '@/lib/admin-auth'
 import { db } from '@/lib/db'
+import { recordFulfilledAction } from './actions'
 
 export const metadata: Metadata = {
   title: 'Market Intelligence — Admin',
@@ -55,7 +56,9 @@ type DailyRow = { day: string; orders: string; revenue: string }
 type RankRow  = { id: string; title: string; slug: string; engine_type: string; price_baht: number; status: string; orders: string; revenue: string; downloads: string }
 type GapRow   = { engine_type: string; template_count: string; total_orders: string }
 type CatalogPerfRow = { slug: string; name: string; emoji: string; template_count: string; paid_orders: string; revenue: string }
-type CatalogRef = { slug: string; name: string; emoji: string }
+type CatalogRef     = { slug: string; name: string; emoji: string }
+type FulfilledRow   = { idea_text: string; fulfilled_at: string }
+type SnapshotRow    = { idea_text: string; engine_type: string; score: number }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 async function fetchSuggestions(keyword: string): Promise<string[]> {
@@ -107,6 +110,15 @@ function priorityBadge(score: number): { label: string; color: string } {
   return              { label: '⚪ ต่ำ',          color: 'bg-neutral-100 text-neutral-500' }
 }
 
+function normalizeIdea(idea: string): string {
+  return idea
+    .toLowerCase()
+    .replace(/^(checklist|planner|form|report|ฟอร์ม|รายงาน|เช็คลิสต์|แพลนเนอร์|แบบฟอร์ม|แบบ|ตาราง|ใบแจ้ง|แผนงาน|บัญชี)\s+/i, '')
+    .replace(/\s+/g, '')
+    .trim()
+    .slice(0, 10)
+}
+
 // ideaPattern = keywords ใน idea text / catPattern = match กับ category.slug หรือ category.name จริงๆ ใน DB
 // เรียงจาก specific → general เพื่อให้ first-match ถูกต้อง
 const CATALOG_KEYWORD_MAP: Array<{ ideaPattern: RegExp; catPattern: RegExp }> = [
@@ -154,7 +166,7 @@ export default async function AdminMarketIntelPage() {
   await requireAdminSession('/admin/login')
 
   // ── Phase 1 (parallel) ───────────────────────────────────────────────────
-  const [baseSuggestRaw, allTemplates, kpiRow, byType, daily, ranking, gapData, alphaRaw, catalogPerf, allCategories] =
+  const [baseSuggestRaw, allTemplates, kpiRow, byType, daily, ranking, gapData, alphaRaw, catalogPerf, allCategories, fulfilledRaw, yesterdaySnaps] =
     await Promise.all([
       Promise.all(SEED_KEYWORDS.map(async kw => ({ kw, suggestions: await fetchSuggestions(kw.key) }))),
 
@@ -250,6 +262,17 @@ export default async function AdminMarketIntelPage() {
       db<CatalogRef[]>`
         SELECT slug, name, emoji FROM template_categories ORDER BY sort_order, name
       `.catch(() => [] as CatalogRef[]),
+
+      db<FulfilledRow[]>`
+        SELECT idea_text, fulfilled_at::text FROM intel_fulfilled
+        WHERE fulfilled_at > NOW() - INTERVAL '30 days'
+        ORDER BY fulfilled_at DESC
+      `.catch(() => [] as FulfilledRow[]),
+
+      db<SnapshotRow[]>`
+        SELECT idea_text, engine_type, score::int AS score FROM intel_snapshots
+        WHERE snapshot_date = CURRENT_DATE - 1
+      `.catch(() => [] as SnapshotRow[]),
     ])
 
   const kpi = kpiRow[0] ?? { total_revenue: '0', paid_orders: '0', pending_orders: '0', total_downloads: '0', unique_buyers: '0' }
@@ -335,11 +358,44 @@ export default async function AdminMarketIntelPage() {
       priorityList.push({ idea: row.idea, level: row.level, engineType, score: priorityScore(row.level, pct) })
     }
   }
-  const topBuildNext = priorityList.sort((a, b) => b.score - a.score).slice(0, 20)
-  const topBuildNextWithCatalog = topBuildNext.map(item => ({
-    ...item,
-    catalog: suggestCatalog(item.idea, allCategories),
-  }))
+  // ── Feature 1: Cluster · Feature 2: Fulfilled filter · Feature 3: Trend ────
+  const fulfilledSet = new Set(fulfilledRaw.map(f => f.idea_text.toLowerCase()))
+  const snapMap      = new Map(yesterdaySnaps.map(s => [`${s.idea_text}::${s.engine_type}`, s.score]))
+
+  type ClusteredItem = {
+    idea: string; level: 1|2|3; engineType: string; score: number
+    demandCount: number; catalog: CatalogRef | null; trend: number | null
+  }
+  const clusteredList: ClusteredItem[] = (() => {
+    const unfulfilled = priorityList.filter(item => !fulfilledSet.has(item.idea.toLowerCase()))
+    const clusters    = new Map<string, { item: typeof priorityList[0]; count: number }>()
+    for (const item of unfulfilled) {
+      const key      = normalizeIdea(item.idea)
+      const existing = clusters.get(key)
+      if (existing) { existing.count++; if (item.score > existing.item.score) existing.item = { ...item } }
+      else clusters.set(key, { item: { ...item }, count: 1 })
+    }
+    return [...clusters.values()]
+      .map(({ item, count }) => {
+        const cs = item.score * count
+        const ys = snapMap.get(`${item.idea}::${item.engineType}`) ?? null
+        return { ...item, score: cs, demandCount: count, catalog: suggestCatalog(item.idea, allCategories), trend: ys !== null ? cs - ys : null }
+      })
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 20)
+  })()
+
+  // Save daily snapshot on first page visit of the day (ONCE per day)
+  const todayCount = await db<{ n: string }[]>`
+    SELECT COUNT(*)::text AS n FROM intel_snapshots WHERE snapshot_date = CURRENT_DATE
+  `.catch(() => [{ n: '1' }])
+  if (Number(todayCount[0]?.n ?? 0) === 0 && clusteredList.length > 0) {
+    await Promise.all(clusteredList.map(item =>
+      db`INSERT INTO intel_snapshots (idea_text, engine_type, catalog_slug, score, demand_count)
+         VALUES (${item.idea}, ${item.engineType}, ${item.catalog?.slug ?? null}, ${item.score}, ${item.demandCount})
+         ON CONFLICT (idea_text, engine_type, snapshot_date) DO NOTHING`.catch(() => null)
+    ))
+  }
 
   // ── Catalog demand heatmap ────────────────────────────────────────────────
   const catalogDemandMap = new Map<string, { slug: string; name: string; emoji: string; demand: number; covered: number }>()
@@ -530,16 +586,23 @@ export default async function AdminMarketIntelPage() {
           )}
         </section>
 
-        {/* ── S3: สร้างอะไรก่อน (C: Priority) ─────────────────────────────── */}
+        {/* ── S3: สร้างอะไรก่อน (C: Priority + Cluster + Fulfilled + Trend) ── */}
         <section>
-          <h2 className="mb-1 text-xs font-black uppercase tracking-widest text-neutral-400">สร้างอะไรก่อน</h2>
+          <div className="flex items-center justify-between mb-1">
+            <h2 className="text-xs font-black uppercase tracking-widest text-neutral-400">สร้างอะไรก่อน</h2>
+            {fulfilledRaw.length > 0 && (
+              <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 rounded-full px-2.5 py-0.5">
+                ✅ {fulfilledRaw.length} fulfilled (30 วัน)
+              </span>
+            )}
+          </div>
           <p className="mb-4 text-xs text-neutral-400">
-            Idea ที่ยังไม่มี template · เรียงตาม <span className="font-bold text-neutral-600">Priority = level × (100 − coverage%)</span>
+            Idea ที่ยังไม่มี template · เรียงตาม <span className="font-bold text-neutral-600">Priority = level × (100 − coverage%) × demand count</span>
           </p>
           <div className="rounded-2xl border border-neutral-200 bg-white shadow-sm divide-y divide-neutral-50">
-            {topBuildNextWithCatalog.length === 0 ? (
+            {clusteredList.length === 0 ? (
               <p className="px-5 py-6 text-sm font-bold text-emerald-600 text-center">🎉 ครอบคลุมทุก idea แล้ว!</p>
-            ) : topBuildNextWithCatalog.map((item, i) => {
+            ) : clusteredList.map((item, i) => {
               const badge  = priorityBadge(item.score)
               const lBadge = LEVEL_BADGE[item.level]
               const engCol = ENGINE_COLOR[item.engineType] ?? 'border-neutral-200 bg-neutral-50 text-neutral-900'
@@ -558,14 +621,50 @@ export default async function AdminMarketIntelPage() {
                     </span>
                   )}
                   <span className="flex-1 min-w-0 text-xs font-medium text-neutral-800 truncate">{item.idea}</span>
+                  {item.demandCount > 1 && (
+                    <span className="shrink-0 rounded-full bg-amber-50 border border-amber-200 px-1.5 py-0.5 text-[9px] font-black text-amber-700 whitespace-nowrap">
+                      ×{item.demandCount}
+                    </span>
+                  )}
+                  {item.trend !== null && (
+                    <span className={`shrink-0 font-mono text-[9px] whitespace-nowrap ${item.trend > 0 ? 'text-emerald-500' : item.trend < 0 ? 'text-red-400' : 'text-neutral-300'}`}>
+                      {item.trend > 0 ? `📈+${item.trend}` : item.trend < 0 ? `📉${item.trend}` : '→'}
+                    </span>
+                  )}
                   <span className="shrink-0 font-mono text-[9px] text-neutral-300">{item.score}pt</span>
-                  <Link href={catLink} className="shrink-0 rounded-lg border border-amber-300 bg-amber-50 px-2.5 py-1 text-[9px] font-black text-amber-700 hover:bg-amber-100 transition">
-                    + สร้าง
-                  </Link>
+                  <form action={recordFulfilledAction}>
+                    <input type="hidden" name="idea_text"    value={item.idea} />
+                    <input type="hidden" name="catalog_slug" value={item.catalog?.slug ?? ''} />
+                    <input type="hidden" name="engine_type"  value={item.engineType} />
+                    <input type="hidden" name="redirect_url" value={catLink} />
+                    <button type="submit" className="shrink-0 rounded-lg border border-amber-300 bg-amber-50 px-2.5 py-1 text-[9px] font-black text-amber-700 hover:bg-amber-100 transition">
+                      + สร้าง
+                    </button>
+                  </form>
                 </div>
               )
             })}
           </div>
+
+          {/* Fulfilled history (collapsible) */}
+          {fulfilledRaw.length > 0 && (
+            <details className="mt-3">
+              <summary className="cursor-pointer text-[10px] font-black text-neutral-400 hover:text-neutral-600 select-none">
+                ✅ fulfilled this month ({fulfilledRaw.length}) ▼
+              </summary>
+              <div className="mt-2 rounded-2xl border border-neutral-200 bg-white shadow-sm divide-y divide-neutral-50">
+                {fulfilledRaw.slice(0, 10).map((f, i) => (
+                  <div key={i} className="flex items-center gap-3 px-5 py-2.5">
+                    <span className="text-emerald-500 text-xs">✅</span>
+                    <span className="flex-1 min-w-0 text-xs text-neutral-700 truncate">{f.idea_text}</span>
+                    <span className="shrink-0 text-[9px] text-neutral-400">
+                      {new Date(f.fulfilled_at).toLocaleDateString('th-TH')}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </details>
+          )}
         </section>
 
         {/* ── S4: ครอบคลุมแค่ไหน ───────────────────────────────────────────── */}
