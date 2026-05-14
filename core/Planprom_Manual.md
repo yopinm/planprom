@@ -963,3 +963,84 @@ AdminLoginForm → Supabase signInWithPassword
 | `UPLOAD_DIR` | path สำหรับ PDF บน VPS (`/var/www/planprom/uploads/templates/`) |
 
 > Deploy commands → ดู [Section 22](#22-infra--deploy-reference)
+
+---
+
+## 23. Security Checklist (ต้องทำทุกครั้งก่อน deploy admin feature)
+
+> มาจาก Gemini Security Audit (2026-05-14) — VULN-001 ถึง VULN-004
+
+### 23.1 Access Control
+
+| กฎ | วิธีทำ |
+|---|---|
+| หน้า admin-only (log, snapshot, user data) | ใช้ `requireAdminRole('admin')` เท่านั้น |
+| หน้าที่ clerk เข้าได้ | ใช้ `requireAdminSession()` |
+| API route admin-only | ตรวจ role ก่อน return data เสมอ |
+
+```ts
+// ✅ ถูก — admin เท่านั้น
+await requireAdminRole('admin', '/admin/login')
+
+// ⚠️ ระวัง — อนุญาต clerk ด้วย
+await requireAdminSession('/admin/login')
+```
+
+### 23.2 PII & Privacy (PDPA)
+
+ข้อมูลที่ถือเป็น PII และต้อง mask ก่อนส่ง client หรือ export:
+
+| ข้อมูล | วิธี mask |
+|---|---|
+| IP address (Nginx log) | `x.x.x.0` — ลบ octet สุดท้าย |
+| อีเมล | `u***@domain.com` |
+| เบอร์โทร | `08x-xxx-xx89` |
+
+```ts
+// ✅ mask IPv4 last octet
+function maskIpLines(lines: string[]): string[] {
+  return lines.map(l =>
+    l.replace(/\b(\d{1,3}\.\d{1,3}\.\d{1,3})\.\d{1,3}\b/g, '$1.0')
+  )
+}
+```
+
+### 23.3 Path & Secret Disclosure
+
+- **ห้าม** แสดง absolute server path ใน UI — ใช้ `basename` เท่านั้น
+- **ห้าม** ส่ง `.env` value, JWT secret, หรือ DB connection string ไปยัง client
+- PM2 log path → แสดงเฉพาะ `planprom-out-7.log` ไม่ใช่ `/root/.pm2/logs/planprom-out-7.log`
+
+```ts
+// ✅ ถูก
+pm2OutPath: pm2OutPath.split('/').pop() ?? '(ไม่พบ)'
+
+// ❌ ผิด
+pm2OutPath: pm2OutPath  // เปิดเผย /root/.pm2/logs/...
+```
+
+### 23.4 Command Injection Prevention
+
+ทุกครั้งที่รัน shell command ใน Node.js ต้องใช้ `spawnSync` พร้อม array args — ไม่ผ่าน shell:
+
+```ts
+// ✅ ถูก — array args ไม่ผ่าน shell
+import { spawnSync } from 'child_process'
+const r = spawnSync('tail', ['-n', String(n), path], { encoding: 'utf8', timeout: 5000 })
+
+// ❌ ผิด — string ผ่าน shell อาจ inject ได้
+import { execSync } from 'child_process'
+execSync(`tail -n ${n} "${path}"`)
+```
+
+สำหรับ glob expansion ที่ต้องผ่าน shell (เช่น `ls -t *.log`) ให้ใช้ `spawnSync('sh', ['-c', cmd])` โดย cmd ต้องเป็น hardcoded string เท่านั้น ห้ามใส่ตัวแปรจาก user input.
+
+### 23.5 Pre-deploy Checklist
+
+ก่อน deploy feature ใหม่ที่แตะ admin หรือข้อมูล user:
+
+- [ ] Role check ถูกระดับ (`requireAdminRole` vs `requireAdminSession`)
+- [ ] มีข้อมูล PII (IP, email, phone) ใน response ไหม → mask ก่อน
+- [ ] มี absolute path หรือ secret ใน UI ไหม → ใช้ basename
+- [ ] มี `execSync` พร้อม string interpolation ไหม → เปลี่ยนเป็น `spawnSync` array
+- [ ] Export/Copy feature ส่งข้อมูลอะไรออกไปบ้าง → document ใน UI
