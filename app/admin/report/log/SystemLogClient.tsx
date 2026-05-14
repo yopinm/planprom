@@ -331,6 +331,12 @@ export function SystemLogClient({ data }: { data: SystemLogData }) {
             <li><span className="font-black">2.</span> เปิด Claude Code session ใหม่ → พิมพ์อธิบายปัญหา เช่น <span className="italic">"ระบบมีปัญหา X"</span></li>
             <li><span className="font-black">3.</span> Paste JSON ต่อท้ายข้อความ → Claude จะวิเคราะห์ DB + logs ได้ทันที</li>
           </ol>
+          <div className="mt-3 flex items-start gap-1.5 rounded-xl border border-amber-300 bg-amber-100 px-3 py-2">
+            <span className="text-[11px] shrink-0 mt-0.5">🔒</span>
+            <p className="text-[10px] text-amber-700 leading-relaxed">
+              <span className="font-black">ความเป็นส่วนตัว:</span> IP ใน Nginx log ถูก mask อัตโนมัติ (3 octet แรกเท่านั้น) ก่อน export — ไม่มี IP จริงของผู้เข้าชมในข้อมูลนี้
+            </p>
+          </div>
           <p className="mt-2 text-[10px] text-amber-500">
             ต้องการเฉพาะ log ไฟล์เดียว → ไปที่ tab ที่ต้องการ → กด Copy ใต้ log นั้น
           </p>

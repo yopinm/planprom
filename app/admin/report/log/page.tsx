@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
-import { execSync } from 'child_process'
+import { spawnSync } from 'child_process'
 import { db } from '@/lib/db'
-import { requireAdminSession } from '@/lib/admin-auth'
+import { requireAdminRole } from '@/lib/admin-auth'   // VULN-001: admin-only
 import { SystemLogClient, type SystemLogData } from './SystemLogClient'
 
 export const metadata: Metadata = {
@@ -21,18 +21,26 @@ const LINE_MAP: Record<string, { pm2Out: number; pm2Err: number; ngxAcc: number;
   'all': { pm2Out: 2000, pm2Err: 1000, ngxAcc: 10000, ngxErr: 3000 },
 }
 
+// VULN-004: spawnSync + array args — no shell interpolation
 function findLog(glob: string): string {
   try {
-    return execSync(`ls -t ${glob} 2>/dev/null | head -1`, { encoding: 'utf8', timeout: 3000 }).trim()
+    const r = spawnSync('sh', ['-c', `ls -t ${glob} 2>/dev/null | head -1`], { encoding: 'utf8', timeout: 3000 })
+    return r.stdout.trim()
   } catch { return '' }
 }
 
 function tailLines(path: string, n: number): string[] {
   if (!path) return []
   try {
-    const out = execSync(`tail -n ${n} "${path}" 2>/dev/null`, { encoding: 'utf8', timeout: 5000 })
-    return out.split('\n').filter(Boolean)
+    const r = spawnSync('tail', ['-n', String(n), path], { encoding: 'utf8', timeout: 5000 })
+    if (r.status !== 0 || r.error) return []
+    return r.stdout.split('\n').filter(Boolean)
   } catch { return [] }
+}
+
+// VULN-002: mask last IPv4 octet before data reaches the client
+function maskIpLines(lines: string[]): string[] {
+  return lines.map(l => l.replace(/\b(\d{1,3}\.\d{1,3}\.\d{1,3})\.\d{1,3}\b/g, '$1.0'))
 }
 
 function parseAccessSummary(lines: string[]) {
@@ -53,17 +61,17 @@ export default async function SystemLogPage({
 }: {
   searchParams: Promise<{ window?: string }>
 }) {
-  await requireAdminSession('/admin/login')
+  // VULN-001: admin role only — clerk cannot access system logs
+  await requireAdminRole('admin', '/admin/login')
+
   const sp = await searchParams
   const win = (['1h', '6h', '24h', 'all'].includes(sp.window ?? '') ? sp.window : '6h') as string
   const limits = LINE_MAP[win]
 
-  // Find latest PM2 logs (rotated)
   const pm2OutPath = findLog('/root/.pm2/logs/planprom-out*.log')
   const pm2ErrPath = findLog('/root/.pm2/logs/planprom-error*.log')
 
-  // Fetch logs + DB in parallel
-  const [pm2Out, pm2Err, ngxAcc, ngxErr, dbRows] = await Promise.all([
+  const [pm2Out, pm2Err, ngxAccRaw, ngxErr, dbRows] = await Promise.all([
     Promise.resolve(tailLines(pm2OutPath, limits.pm2Out)),
     Promise.resolve(tailLines(pm2ErrPath, limits.pm2Err)),
     Promise.resolve(tailLines(NGX_ACC, limits.ngxAcc)),
@@ -91,13 +99,17 @@ export default async function SystemLogPage({
     ]),
   ])
 
+  // VULN-002: mask IPs before any client-bound data is assembled
+  const ngxAcc        = maskIpLines(ngxAccRaw)
+  const ngxAccSummary = parseAccessSummary(ngxAcc)
+
   const [templates, categories, orderRows, cartRows] = dbRows
   const exportedAt = new Date().toISOString()
-  const ngxAccSummary = parseAccessSummary(ngxAcc)
 
   const snapshot = {
     exported_at: exportedAt,
     window: win,
+    note: 'IP addresses masked (last octet) for privacy.',   // VULN-002: document masking
     summary: {
       total_templates: templates.length,
       published:       templates.filter(t => t.status === 'published').length,
@@ -120,14 +132,14 @@ export default async function SystemLogPage({
       pm2_stdout:           pm2Out,
       pm2_stderr:           pm2Err,
       nginx_access_summary: ngxAccSummary,
-      nginx_access:         ngxAcc,
+      nginx_access:         ngxAcc,      // masked
       nginx_error:          ngxErr,
     },
   }
 
   const data: SystemLogData = {
     exportedAt,
-    window:      win,
+    window: win,
     summary: {
       total_templates: templates.length,
       published:       templates.filter(t => t.status === 'published').length,
@@ -146,11 +158,12 @@ export default async function SystemLogPage({
     },
     pm2Out,
     pm2Err,
-    ngxAcc,
+    ngxAcc,            // masked
     ngxAccSummary,
     ngxErr,
-    pm2OutPath: pm2OutPath || '(ไม่พบ)',
-    pm2ErrPath: pm2ErrPath || '(ไม่พบ)',
+    // VULN-003: pass only filename, not full server path
+    pm2OutPath: pm2OutPath ? pm2OutPath.split('/').pop() ?? '(ไม่พบ)' : '(ไม่พบ)',
+    pm2ErrPath: pm2ErrPath ? pm2ErrPath.split('/').pop() ?? '(ไม่พบ)' : '(ไม่พบ)',
     json: JSON.stringify(snapshot, null, 2),
   }
 
