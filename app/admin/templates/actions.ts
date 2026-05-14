@@ -109,7 +109,7 @@ export async function forceDeleteTemplateAction(formData: FormData): Promise<{ e
   await requireAdminSession('/admin/login')
   const id = str(formData, 'id')
   try {
-    await db`UPDATE promo_codes SET template_id = NULL WHERE template_id = ${id}`
+    await db`UPDATE promo_codes SET is_active = false, template_id = NULL WHERE template_id = ${id}`
     await db`DELETE FROM template_revisions      WHERE template_id = ${id}`
     await db`DELETE FROM order_items             WHERE template_id = ${id}`
     await db`DELETE FROM template_orders         WHERE template_id = ${id}`
