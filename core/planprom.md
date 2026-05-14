@@ -500,6 +500,67 @@ Page 2: render fields แบบเปล่า (_____ แทน value)
 
 ---
 
+## ADM-RBAC-1 — Custom Admin Auth + Role-Based Access (Session 68)
+
+> **Scope locked 2026-05-14** — Hybrid 2-tier auth: Supabase (primary) + Custom RBAC (fallback + clerk)
+
+### Flow
+```
+Login form (email + password)
+  ├── ลอง Supabase ก่อน (timeout 3 วิ)
+  │     ✅ สำเร็จ → Supabase session → role = 'admin'
+  │     ❌ ล้มเหลว / timeout → Tier 2
+  └── Tier 2: ตรวจ admin_users table (bcrypt)
+        ✅ match → set _admin_token JWT cookie (8h) → role จาก DB
+        ❌ ไม่ match → login fail
+Middleware: Supabase session valid OR _admin_token valid → ผ่าน
+```
+
+### Roles
+| Role | สิทธิ์ | เมนูที่เห็น |
+|---|---|---|
+| `admin` | ทุกอย่าง | ทุกเมนู |
+| `clerk` | สร้าง/แก้ template เท่านั้น | TEMPLATE · CATALOG · FIELD TEMPLATES เท่านั้น |
+
+### DB
+```sql
+CREATE TABLE admin_users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email TEXT NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  role TEXT NOT NULL DEFAULT 'clerk' CHECK (role IN ('admin', 'clerk')),
+  name TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+```
+
+### Files
+| File | Change |
+|---|---|
+| DB | `admin_users` table + seed admin account |
+| `app/api/admin/auth/login/route.ts` | NEW — bcrypt verify → JWT cookie `_admin_token` (8h) |
+| `app/api/admin/auth/logout/route.ts` | NEW — clear `_admin_token` cookie |
+| `src/lib/admin-rbac.ts` | NEW — JWT sign/verify + role helpers |
+| `src/lib/admin-auth.ts` | UPDATE — เช็ค Supabase session OR `_admin_token` |
+| `app/admin/login/AdminLoginForm.tsx` | UPDATE — try Supabase → fallback RBAC auto |
+| `app/admin/layout.tsx` | UPDATE — hide menus ตาม role |
+| `app/admin/users/page.tsx` | NEW — admin only: list/add/delete admin_users |
+| `app/admin/users/actions.ts` | NEW — createAdminUser, deleteAdminUser |
+
+### Clerk Restrictions
+- `/admin/report/*`, `/admin/seo/*`, `/admin/promo/*`, `/admin/orders/*` → redirect `/admin/templates`
+- Publish / Delete / Archive template → blocked (403)
+- Server actions check role before sensitive ops
+
+### Security
+- Rate limit: 5 attempts / 15 min / IP (custom RBAC path)
+- LINE push ทุกครั้งที่ fallback หรือ clerk login
+- Clerk ไม่มี Supabase account — ใช้ Tier 2 เสมอ
+- `_admin_token` httpOnly, sameSite=lax, secure
+
+---
+
 ## Session 67 Changes (2026-05-14) — SEO Manual Blog + Search Console
 
 | # | Change | Status |
