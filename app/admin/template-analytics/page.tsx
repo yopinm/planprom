@@ -107,23 +107,23 @@ function priorityBadge(score: number): { label: string; color: string } {
   return              { label: '⚪ ต่ำ',          color: 'bg-neutral-100 text-neutral-500' }
 }
 
-const CATALOG_KEYWORD_MAP: Array<{ pattern: RegExp; slugFragment: string }> = [
-  { pattern: /เที่ยว|ท่องเที่ยว|ต่างประเทศ|บิน|สนามบิน|โรงแรม|ทริป/, slugFragment: 'travel' },
-  { pattern: /ร้าน|ธุรกิจ|ขาย|invoice|บริษัท|ลูกค้า|ใบเสนอ|ใบส่ง/, slugFragment: 'business' },
-  { pattern: /ราชการ|หน่วยงาน|ว่างงาน|ปฏิบัติงาน|ลา|มอบอำนาจ/, slugFragment: 'gov' },
-  { pattern: /โครงการ|ก่อสร้าง|milestone|งบโครงการ/, slugFragment: 'project' },
-  { pattern: /นักเรียน|มหา|สอบ|เรียน|วิชา|semester|วิทยาลัย/, slugFragment: 'edu' },
-  { pattern: /งานแต่ง|งานบวช|อีเวนต์|event|งานเลี้ยง/, slugFragment: 'event' },
-  { pattern: /สุขภาพ|ออกกำลัง|ไดเอท|ยา|คลินิก|หมอ/, slugFragment: 'health' },
-  { pattern: /ค่าใช้จ่าย|งบประมาณ|เงิน|ออม|budget/, slugFragment: 'finance' },
-  { pattern: /บ้าน|ห้อง|ซ่อม|ตกแต่ง/, slugFragment: 'home' },
-  { pattern: /พนักงาน|HR|สัมภาษณ์|ประเมิน|ทีม/, slugFragment: 'hr' },
+// ideaPattern = keywords ใน idea text / catPattern = match กับ category.slug หรือ category.name จริงๆ ใน DB
+const CATALOG_KEYWORD_MAP: Array<{ ideaPattern: RegExp; catPattern: RegExp }> = [
+  { ideaPattern: /เที่ยว|ท่องเที่ยว|ต่างประเทศ|บิน|สนามบิน|โรงแรม|ทริป/,                         catPattern: /ท่องเที่ยว|travel/ },
+  { ideaPattern: /ร้าน|ธุรกิจ|ขาย|invoice|บริษัท|ลูกค้า|ใบเสนอ|ใบส่ง|ประกอบการ|ประชุม|ว่างงาน|รายงานตัว|ปฏิบัติงาน|ราชการ|ประกันสังคม|หน่วยงาน|มอบอำนาจ/, catPattern: /ธุรกิจ|business/ },
+  { ideaPattern: /เงิน|ออม|budget|บัญชี|งบประมาณ|ค่าใช้จ่าย|รายรับ|รายจ่าย|การเงิน|ลงทุน|หุ้น|งบ/, catPattern: /การเงิน|finance/ },
+  { ideaPattern: /สุขภาพ|ออกกำลัง|ไดเอท|ยา|คลินิก|หมอ/,                                          catPattern: /สุขภาพ|health/ },
+  { ideaPattern: /บ้าน|ห้อง|ซ่อม|ตกแต่ง/,                                                         catPattern: /บ้าน|home/ },
+  { ideaPattern: /นักเรียน|มหา|สอบ|เรียน|วิชา|วิทยาลัย/,                                         catPattern: /การศึกษา|edu/ },
+  { ideaPattern: /งานแต่ง|งานบวช|อีเวนต์|งานเลี้ยง/,                                              catPattern: /อีเวนต์|event/ },
+  { ideaPattern: /โครงการ|ก่อสร้าง|milestone/,                                                     catPattern: /โครงการ|project/ },
+  { ideaPattern: /พนักงาน|สัมภาษณ์|ประเมิน|ทีม/,                                                  catPattern: /HR|พนักงาน|hr/ },
 ]
 
 function suggestCatalog(idea: string, catalogs: CatalogRef[]): CatalogRef | null {
-  for (const { pattern, slugFragment } of CATALOG_KEYWORD_MAP) {
-    if (pattern.test(idea)) {
-      const found = catalogs.find(c => c.slug.includes(slugFragment) || c.name.includes(slugFragment))
+  for (const { ideaPattern, catPattern } of CATALOG_KEYWORD_MAP) {
+    if (ideaPattern.test(idea)) {
+      const found = catalogs.find(c => catPattern.test(c.slug) || catPattern.test(c.name))
       if (found) return found
     }
   }
@@ -356,6 +356,12 @@ export default async function AdminMarketIntelPage() {
     .sort((a, b) => b.demand - a.demand)
   const catPerfMap = new Map(catalogPerf.map(c => [c.slug, c]))
 
+  // S2a: merge allCategories + catalogPerf → แสดงทุก category แม้ query จะ fail
+  const displayCatalogPerf: CatalogPerfRow[] = allCategories.map(cat => {
+    const perf = catPerfMap.get(cat.slug)
+    return perf ?? { slug: cat.slug, name: cat.name, emoji: cat.emoji, template_count: '0', paid_orders: '0', revenue: '0' }
+  })
+
   // ── Sales ─────────────────────────────────────────────────────────────────
   const ALL_TYPES   = ['checklist', 'pipeline', 'form', 'report'] as const
   const typeMap     = new Map(byType.map(r => [r.type_group, r]))
@@ -431,11 +437,11 @@ export default async function AdminMarketIntelPage() {
         <section>
           <h2 className="mb-1 text-xs font-black uppercase tracking-widest text-neutral-400">ผลการขายแยกตาม Catalog</h2>
           <p className="mb-4 text-xs text-neutral-400">แต่ละหมวด: template ที่มี, ยอดขาย, รายได้</p>
-          {catalogPerf.length === 0 ? (
+          {displayCatalogPerf.length === 0 ? (
             <div className="rounded-2xl border border-neutral-200 bg-white px-5 py-6 text-sm text-neutral-400 text-center">— ยังไม่มีข้อมูล catalog</div>
           ) : (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {catalogPerf.map(cat => {
+              {displayCatalogPerf.map(cat => {
                 const hasOrders   = Number(cat.paid_orders) > 0
                 const hasTemplate = Number(cat.template_count) > 0
                 const status = hasOrders
