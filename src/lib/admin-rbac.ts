@@ -2,10 +2,21 @@ import { SignJWT, jwtVerify } from 'jose'
 
 export type AdminRole = 'admin' | 'clerk'
 
+export const PERMISSION_MODULES = [
+  { key: 'templates',    label: 'Templates',     desc: 'New Template · Templates · Field Templates' },
+  { key: 'catalog',      label: 'Catalog',        desc: 'Catalog manager' },
+  { key: 'analytics',    label: 'Analytics',      desc: 'Template Analytics' },
+  { key: 'blog_seo',     label: 'Blog SEO',       desc: 'Blog Manager' },
+  { key: 'form_builder', label: 'Form Builder',   desc: 'Form Builder' },
+] as const
+
+export type PermissionKey = typeof PERMISSION_MODULES[number]['key']
+
 export interface AdminTokenPayload {
   id: string
   email: string
   role: AdminRole
+  permissions: string[]
 }
 
 const SECRET = new TextEncoder().encode(
@@ -31,7 +42,12 @@ export async function verifyAdminToken(token: string): Promise<AdminTokenPayload
       typeof payload.email === 'string' &&
       (payload.role === 'admin' || payload.role === 'clerk')
     ) {
-      return { id: payload.id, email: payload.email, role: payload.role }
+      return {
+        id: payload.id,
+        email: payload.email,
+        role: payload.role,
+        permissions: Array.isArray(payload.permissions) ? payload.permissions as string[] : [],
+      }
     }
     return null
   } catch {

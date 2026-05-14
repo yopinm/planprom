@@ -1,14 +1,14 @@
 import { Suspense } from 'react'
 import { AdminNav } from '@/components/admin/AdminNav'
-import { getAdminRole } from '@/lib/admin-auth'
+import { getAdminSession } from '@/lib/admin-auth'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const role = await getAdminRole()
+  const session = await getAdminSession()
 
   return (
     <div className="min-h-screen bg-neutral-50">
       <Suspense fallback={null}>
-        <AdminNav role={role} />
+        <AdminNav role={session?.role} permissions={session?.permissions ?? []} />
       </Suspense>
       {children}
     </div>

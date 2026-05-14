@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 import { requireAdminRole } from '@/lib/admin-auth'
 import { db } from '@/lib/db'
-import { createAdminUserAction, deleteAdminUserAction } from './actions'
+import { PERMISSION_MODULES } from '@/lib/admin-rbac'
+import { createAdminUserAction, deleteAdminUserAction, updatePermissionsAction } from './actions'
 
 export const metadata: Metadata = {
   title: 'Admin Users · Planprom',
@@ -15,6 +16,7 @@ type AdminUser = {
   email: string
   role: string
   name: string | null
+  permissions: string[]
   created_at: Date
 }
 
@@ -25,7 +27,7 @@ export default async function AdminUsersPage() {
   await requireAdminRole('admin', '/admin/users')
 
   const users = await db<AdminUser[]>`
-    SELECT id, email, role, name, created_at
+    SELECT id, email, role, name, permissions, created_at
     FROM admin_users
     ORDER BY created_at ASC
   `
@@ -40,7 +42,7 @@ export default async function AdminUsersPage() {
           </div>
           <h1 className="mt-2 text-2xl font-black text-black">จัดการ Admin Accounts</h1>
           <p className="mt-0.5 text-sm text-neutral-500">
-            สร้าง/ลบ admin และ clerk accounts — เฉพาะ Admin เท่านั้น
+            สร้าง/ลบ admin และ clerk accounts — กำหนด permissions ต่อ clerk ได้
           </p>
         </div>
 
@@ -51,28 +53,71 @@ export default async function AdminUsersPage() {
           ) : (
             <div className="divide-y divide-neutral-100">
               {users.map(u => (
-                <div key={u.id} className="flex items-center gap-3 px-5 py-4">
-                  <div className={`shrink-0 h-8 w-8 rounded-full flex items-center justify-center text-xs font-black text-white ${u.role === 'admin' ? 'bg-black' : 'bg-amber-500'}`}>
-                    {u.role === 'admin' ? 'A' : 'C'}
+                <div key={u.id}>
+                  {/* User row */}
+                  <div className="flex items-center gap-3 px-5 py-4">
+                    <div className={`shrink-0 h-8 w-8 rounded-full flex items-center justify-center text-xs font-black text-white ${u.role === 'admin' ? 'bg-black' : 'bg-amber-500'}`}>
+                      {u.role === 'admin' ? 'A' : 'C'}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-bold text-neutral-900">{u.name ?? u.email}</p>
+                      <p className="text-xs text-neutral-400">{u.email}</p>
+                    </div>
+                    <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-black ${
+                      u.role === 'admin' ? 'bg-black text-white' : 'bg-amber-100 text-amber-700'
+                    }`}>
+                      {u.role}
+                    </span>
+                    {u.role === 'clerk' && (
+                      <span className="shrink-0 text-[10px] text-neutral-400">
+                        {u.permissions.length === 0
+                          ? 'ไม่มี permission'
+                          : `${u.permissions.length} module`}
+                      </span>
+                    )}
+                    <form action={deleteAdminUserAction}>
+                      <input type="hidden" name="id" value={u.id} />
+                      <button
+                        type="submit"
+                        className="shrink-0 rounded-lg bg-red-50 px-2.5 py-1.5 text-xs font-bold text-red-500 hover:bg-red-100 transition"
+                      >
+                        ลบ
+                      </button>
+                    </form>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-bold text-neutral-900">{u.name ?? u.email}</p>
-                    <p className="text-xs text-neutral-400">{u.email}</p>
-                  </div>
-                  <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-black ${
-                    u.role === 'admin' ? 'bg-black text-white' : 'bg-amber-100 text-amber-700'
-                  }`}>
-                    {u.role}
-                  </span>
-                  <form action={deleteAdminUserAction}>
-                    <input type="hidden" name="id" value={u.id} />
-                    <button
-                      type="submit"
-                      className="shrink-0 rounded-lg bg-red-50 px-2.5 py-1.5 text-xs font-bold text-red-500 hover:bg-red-100 transition"
-                    >
-                      ลบ
-                    </button>
-                  </form>
+
+                  {/* Permissions editor — clerk only */}
+                  {u.role === 'clerk' && (
+                    <form action={updatePermissionsAction} className="border-t border-neutral-50 bg-neutral-50 px-5 py-3">
+                      <input type="hidden" name="id" value={u.id} />
+                      <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-neutral-400">
+                        Permissions
+                      </p>
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {PERMISSION_MODULES.map(m => (
+                          <label
+                            key={m.key}
+                            className="flex cursor-pointer items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-700 hover:border-amber-400 transition has-[:checked]:border-amber-500 has-[:checked]:bg-amber-50 has-[:checked]:text-amber-800"
+                          >
+                            <input
+                              type="checkbox"
+                              name="permissions"
+                              value={m.key}
+                              defaultChecked={u.permissions.includes(m.key)}
+                              className="accent-amber-500"
+                            />
+                            {m.label}
+                          </label>
+                        ))}
+                      </div>
+                      <button
+                        type="submit"
+                        className="rounded-xl bg-amber-500 px-4 py-1.5 text-xs font-black text-white hover:bg-amber-600 transition"
+                      >
+                        บันทึก Permissions
+                      </button>
+                    </form>
+                  )}
                 </div>
               ))}
             </div>

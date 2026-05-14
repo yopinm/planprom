@@ -9,6 +9,7 @@ interface AdminUserRow {
   password_hash: string
   role: AdminRole
   name: string | null
+  permissions: string[]
 }
 
 export async function POST(req: NextRequest) {
@@ -19,7 +20,7 @@ export async function POST(req: NextRequest) {
   }
 
   const [user] = await db<AdminUserRow[]>`
-    SELECT id, email, password_hash, role, name
+    SELECT id, email, password_hash, role, name, permissions
     FROM admin_users
     WHERE email = ${email.toLowerCase().trim()}
     LIMIT 1
@@ -34,7 +35,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'invalid credentials' }, { status: 401 })
   }
 
-  const token = await signAdminToken({ id: user.id, email: user.email, role: user.role })
+  const token = await signAdminToken({
+    id: user.id,
+    email: user.email,
+    role: user.role,
+    permissions: user.permissions ?? [],
+  })
 
   const res = NextResponse.json({ ok: true, role: user.role })
   res.cookies.set(COOKIE_NAME, token, {

@@ -5,7 +5,9 @@ import { redirect } from 'next/navigation'
 import bcrypt from 'bcryptjs'
 import { db } from '@/lib/db'
 import { requireAdminRole } from '@/lib/admin-auth'
-import type { AdminRole } from '@/lib/admin-rbac'
+import { PERMISSION_MODULES, type AdminRole } from '@/lib/admin-rbac'
+
+const VALID_PERMISSIONS = PERMISSION_MODULES.map(m => m.key)
 
 export async function createAdminUserAction(formData: FormData) {
   await requireAdminRole('admin', '/admin/users')
@@ -39,6 +41,24 @@ export async function deleteAdminUserAction(formData: FormData) {
   if (!id) throw new Error('missing id')
 
   await db`DELETE FROM admin_users WHERE id = ${id}`
+
+  revalidatePath('/admin/users')
+}
+
+export async function updatePermissionsAction(formData: FormData) {
+  await requireAdminRole('admin', '/admin/users')
+
+  const id = formData.get('id') as string
+  if (!id) throw new Error('missing id')
+
+  const selected = formData.getAll('permissions') as string[]
+  const permissions = selected.filter(p => VALID_PERMISSIONS.includes(p as typeof VALID_PERMISSIONS[number]))
+
+  await db`
+    UPDATE admin_users
+    SET permissions = ${db.array(permissions)}, updated_at = NOW()
+    WHERE id = ${id} AND role = 'clerk'
+  `
 
   revalidatePath('/admin/users')
 }

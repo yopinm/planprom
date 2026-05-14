@@ -11,6 +11,7 @@ interface NavLink {
   label: string
   path: string
   pattern: RegExp
+  permission?: string  // clerk needs this permission to see the link
 }
 
 interface NavGroup {
@@ -26,13 +27,13 @@ const GROUPS: Record<GroupKey, NavGroup> = {
     sublabel: 'Store · Orders',
     color: 'bg-amber-600',
     links: [
-      { label: '+ New Template', path: '/admin/templates/new',      pattern: /^\/admin\/templates\/new/ },
-      { label: '📋 Templates',   path: '/admin/templates',          pattern: /^\/admin\/templates(?!\/new)/ },
-      { label: '🗂 Catalog',     path: '/admin/catalogs',           pattern: /^\/admin\/catalogs/ },
-      { label: '📊 Analytics',   path: '/admin/template-analytics', pattern: /^\/admin\/template-analytics/ },
-      { label: '📝 Blog SEO',    path: '/admin/seo',                pattern: /^\/admin\/seo/ },
-      { label: '📋 Form Builder',    path: '/admin/form-builder',      pattern: /^\/admin\/form-builder/ },
-      { label: '🧩 Field Templates', path: '/admin/field-templates',  pattern: /^\/admin\/field-templates/ },
+      { label: '+ New Template',    path: '/admin/templates/new',      pattern: /^\/admin\/templates\/new/,    permission: 'templates' },
+      { label: '📋 Templates',      path: '/admin/templates',          pattern: /^\/admin\/templates(?!\/new)/, permission: 'templates' },
+      { label: '🗂 Catalog',        path: '/admin/catalogs',           pattern: /^\/admin\/catalogs/,           permission: 'catalog' },
+      { label: '📊 Analytics',      path: '/admin/template-analytics', pattern: /^\/admin\/template-analytics/, permission: 'analytics' },
+      { label: '📝 Blog SEO',       path: '/admin/seo',                pattern: /^\/admin\/seo/,                permission: 'blog_seo' },
+      { label: '📋 Form Builder',   path: '/admin/form-builder',       pattern: /^\/admin\/form-builder/,       permission: 'form_builder' },
+      { label: '🧩 Field Templates',path: '/admin/field-templates',    pattern: /^\/admin\/field-templates/,    permission: 'templates' },
     ],
   },
   promo: {
@@ -60,7 +61,6 @@ const GROUPS: Record<GroupKey, NavGroup> = {
   },
 }
 
-// Clerk only sees template group (no promo / report)
 const CLERK_GROUPS: GroupKey[] = ['template']
 const ALL_GROUPS:   GroupKey[] = ['template', 'promo', 'report']
 
@@ -71,11 +71,18 @@ function detectGroup(pathname: string): GroupKey {
   return 'template'
 }
 
-interface AdminNavProps {
-  role?: AdminRole | null
+function canSeeLink(link: NavLink, role: AdminRole | null | undefined, permissions: string[]): boolean {
+  if (role === 'admin') return true
+  if (!link.permission) return true
+  return permissions.includes(link.permission)
 }
 
-export function AdminNav({ role }: AdminNavProps) {
+interface AdminNavProps {
+  role?: AdminRole | null
+  permissions?: string[]
+}
+
+export function AdminNav({ role, permissions = [] }: AdminNavProps) {
   const pathname = usePathname()
   const detected = detectGroup(pathname)
   const [active, setActive] = useState<GroupKey>(detected)
@@ -84,10 +91,10 @@ export function AdminNav({ role }: AdminNavProps) {
 
   const availableGroups = role === 'clerk' ? CLERK_GROUPS : ALL_GROUPS
   const isDashboard = pathname === '/admin'
-
-  // If current group not available for this role, reset to template
   const safeActive = availableGroups.includes(active) ? active : 'template'
   const group = GROUPS[safeActive]
+
+  const visibleLinks = group.links.filter(l => canSeeLink(l, role, permissions))
 
   return (
     <header className="sticky top-0 z-50 border-b border-neutral-200 bg-white/95 backdrop-blur shadow-sm">
@@ -144,7 +151,7 @@ export function AdminNav({ role }: AdminNavProps) {
       {/* ── Row 2: Links of active group ── */}
       <div className="mx-auto max-w-6xl px-4 pb-2">
         <nav className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
-          {group.links.map(link => {
+          {visibleLinks.map(link => {
             const isActive = link.pattern.test(pathname)
             const isNew = link.path === '/admin/templates/new'
             return (

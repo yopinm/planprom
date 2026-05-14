@@ -14,6 +14,7 @@ interface UserRoleRow { role: string | null }
 interface ResolvedSession {
   userId: string
   role: AdminRole
+  permissions: string[]
 }
 
 async function resolveSession(): Promise<ResolvedSession | null> {
@@ -26,7 +27,7 @@ async function resolveSession(): Promise<ResolvedSession | null> {
         SELECT role FROM user_profiles WHERE id = ${user.id} LIMIT 1
       `
       if (profile?.role === 'admin') {
-        return { userId: user.id, role: 'admin' }
+        return { userId: user.id, role: 'admin', permissions: [] }
       }
     }
   } catch {
@@ -38,7 +39,9 @@ async function resolveSession(): Promise<ResolvedSession | null> {
   const token = jar.get(COOKIE_NAME)?.value
   if (token) {
     const payload = await verifyAdminToken(token)
-    if (payload) return { userId: payload.id, role: payload.role }
+    if (payload) {
+      return { userId: payload.id, role: payload.role, permissions: payload.permissions }
+    }
   }
 
   return null
@@ -64,12 +67,18 @@ export async function getAdminUser(): Promise<string | null> {
 }
 
 // ---------------------------------------------------------------------------
-// Role helpers
+// Role + permissions helpers
 // ---------------------------------------------------------------------------
 
 export async function getAdminRole(): Promise<AdminRole | null> {
   const session = await resolveSession()
   return session?.role ?? null
+}
+
+export async function getAdminSession(): Promise<{ role: AdminRole; permissions: string[] } | null> {
+  const session = await resolveSession()
+  if (!session) return null
+  return { role: session.role, permissions: session.permissions }
 }
 
 export async function requireAdminRole(
