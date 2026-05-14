@@ -538,26 +538,36 @@ CREATE TABLE admin_users (
 ### Files
 | File | Change |
 |---|---|
-| DB | `admin_users` table + seed admin account |
+| DB | `admin_users` table + `permissions TEXT[]` column |
+| `middleware.ts` | NEW — Edge Runtime route guard (CLERK_PERMISSION_MAP + ADMIN_ONLY) |
 | `app/api/admin/auth/login/route.ts` | NEW — bcrypt verify → JWT cookie `_admin_token` (8h) |
 | `app/api/admin/auth/logout/route.ts` | NEW — clear `_admin_token` cookie |
-| `src/lib/admin-rbac.ts` | NEW — JWT sign/verify + role helpers |
-| `src/lib/admin-auth.ts` | UPDATE — เช็ค Supabase session OR `_admin_token` |
+| `src/lib/admin-rbac.ts` | NEW — JWT sign/verify, AdminRole, PERMISSION_MODULES |
+| `src/lib/admin-auth.ts` | UPDATE — เช็ค Supabase session OR `_admin_token`, getAdminSession() |
 | `app/admin/login/AdminLoginForm.tsx` | UPDATE — try Supabase → fallback RBAC auto |
-| `app/admin/layout.tsx` | UPDATE — hide menus ตาม role |
-| `app/admin/users/page.tsx` | NEW — admin only: list/add/delete admin_users |
-| `app/admin/users/actions.ts` | NEW — createAdminUser, deleteAdminUser |
+| `app/admin/layout.tsx` | UPDATE — pass role + permissions ให้ AdminNav |
+| `components/admin/AdminNav.tsx` | UPDATE — filter links ตาม permissions |
+| `app/admin/users/page.tsx` | NEW — list/add/delete + checkbox permissions editor |
+| `app/admin/users/actions.ts` | NEW — createAdminUser, deleteAdminUser, updatePermissions |
 
-### Clerk Restrictions
-- `/admin/report/*`, `/admin/seo/*`, `/admin/promo/*`, `/admin/orders/*` → redirect `/admin/templates`
-- Publish / Delete / Archive template → blocked (403)
-- Server actions check role before sensitive ops
+### Clerk Restrictions (enforced at middleware — Edge Runtime)
+| Route | ต้องมี permission |
+|---|---|
+| `/admin/templates/*` | `templates` |
+| `/admin/field-templates/*` | `templates` |
+| `/admin/catalogs/*` | `catalog` |
+| `/admin/template-analytics/*` | `analytics` |
+| `/admin/seo/*` | `blog_seo` |
+| `/admin/form-builder/*` | `form_builder` |
+| `/admin/report/*` | admin only (clerk blocked) |
+| `/admin/promo-codes/*` | admin only (clerk blocked) |
+| `/admin/users/*` | admin only (clerk blocked) |
 
 ### Security
-- Rate limit: 5 attempts / 15 min / IP (custom RBAC path)
-- LINE push ทุกครั้งที่ fallback หรือ clerk login
+- Route guard ทำงานที่ Edge (middleware) — ก่อนถึง server component
+- Supabase-only session (ไม่มี `_admin_token`) ผ่าน middleware เสมอ — page จัดการเอง
+- `_admin_token` httpOnly, sameSite=lax, secure (8h)
 - Clerk ไม่มี Supabase account — ใช้ Tier 2 เสมอ
-- `_admin_token` httpOnly, sameSite=lax, secure
 
 ---
 

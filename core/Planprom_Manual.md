@@ -855,7 +855,7 @@ server {
 - ใช้ตาราง `admin_users` (bcrypt password_hash + JWT cookie)
 - Login → `POST /api/admin/auth/login` → ตั้ง `_admin_token` cookie (HttpOnly, 8h)
 - Logout → `POST /api/admin/auth/logout` → ล้าง cookie
-- Role: `admin` (เข้าถึงทุกเมนู) | `clerk` (เฉพาะ Template group)
+- Role: `admin` (เข้าถึงทุกเมนู) | `clerk` (เฉพาะ module ที่ได้รับ permission)
 - ใช้ได้แม้ Supabase ล่ม
 
 #### Login Flow
@@ -863,35 +863,51 @@ server {
 AdminLoginForm → Supabase signInWithPassword
   ├─ ✅ success → redirect
   └─ ❌ fail → POST /api/admin/auth/login (bcrypt check)
-                  ├─ ✅ success → _admin_token cookie → redirect
+                  ├─ ✅ success → _admin_token cookie (+ permissions) → redirect
                   └─ ❌ fail → แสดง error
 ```
 
-#### Role Permissions
-| Feature | admin | clerk |
-|---|---|---|
-| Template Group (nav) | ✅ | ✅ |
-| Promo Group (nav) | ✅ | ❌ ซ่อน |
-| Report Group (nav) | ✅ | ❌ ซ่อน |
-| /admin/users | ✅ | ❌ redirect |
-| Publish blog | ✅ | ❌ (Draft เท่านั้น — enforced server-side) |
+#### Module Permissions (clerk)
+| Permission Key | เมนูที่ได้ |
+|---|---|
+| `templates` | + New Template · Templates · Field Templates |
+| `catalog` | Catalog |
+| `analytics` | Analytics |
+| `blog_seo` | Blog SEO |
+| `form_builder` | Form Builder |
+
+#### Route Guard (middleware.ts — Edge Runtime)
+- ทำงานก่อน server component — clerk พิมพ์ URL ตรงก็เข้าไม่ได้
+- อ่าน `_admin_token` JWT → ตรวจ role + permissions
+- Supabase-only session (ไม่มี `_admin_token`) → ผ่าน middleware เสมอ
+
+| Route | Clerk ต้องมี |
+|---|---|
+| `/admin/templates/*`, `/admin/field-templates/*` | `templates` |
+| `/admin/catalogs/*` | `catalog` |
+| `/admin/template-analytics/*` | `analytics` |
+| `/admin/seo/*` | `blog_seo` |
+| `/admin/form-builder/*` | `form_builder` |
+| `/admin/report/*`, `/admin/promo-codes/*`, `/admin/users/*` | ❌ admin only |
 
 #### จัดการ Clerk Accounts
-- ไปที่ `/admin/users` (เข้าได้เฉพาะ admin role เท่านั้น)
-- ปุ่ม "Users" ใน AdminNav header (มองเห็นเฉพาะ admin)
-- สร้าง/ลบ account ได้เลย — ไม่ต้องผ่าน Supabase
+- ไปที่ `/admin/users` (เข้าได้เฉพาะ admin เท่านั้น)
+- ปุ่ม "Users" ใน nav header (มองเห็นเฉพาะ admin)
+- สร้าง / ลบ account + ติ๊ก checkbox permissions ต่อ clerk ได้เลย
+- permissions บันทึกใน DB และใส่ใน JWT token ทุกครั้งที่ login
 
 #### Files ที่เกี่ยวข้อง
 | File | หน้าที่ |
 |---|---|
-| `src/lib/admin-rbac.ts` | JWT sign/verify, AdminRole type, COOKIE_NAME |
-| `src/lib/admin-auth.ts` | resolveSession (Tier1+Tier2), requireAdminSession, getAdminRole, requireAdminRole |
-| `app/api/admin/auth/login/route.ts` | POST — bcrypt verify → JWT cookie |
+| `middleware.ts` | Edge route guard — CLERK_PERMISSION_MAP + ADMIN_ONLY |
+| `src/lib/admin-rbac.ts` | JWT sign/verify, AdminRole, PERMISSION_MODULES, COOKIE_NAME |
+| `src/lib/admin-auth.ts` | resolveSession (Tier1+Tier2), requireAdminSession, getAdminSession |
+| `app/api/admin/auth/login/route.ts` | POST — bcrypt verify → JWT cookie (incl. permissions) |
 | `app/api/admin/auth/logout/route.ts` | POST — clear cookie |
-| `app/admin/users/page.tsx` | หน้า list + add admin_users |
-| `app/admin/users/actions.ts` | createAdminUserAction, deleteAdminUserAction |
-| `components/admin/AdminNav.tsx` | รับ role prop, ซ่อน group สำหรับ clerk |
-| `app/admin/layout.tsx` | อ่าน role → pass ให้ AdminNav |
+| `app/admin/users/page.tsx` | list + add + checkbox permissions editor |
+| `app/admin/users/actions.ts` | createAdminUser, deleteAdminUser, updatePermissions |
+| `components/admin/AdminNav.tsx` | filter links ตาม role + permissions |
+| `app/admin/layout.tsx` | อ่าน session → pass role + permissions ให้ AdminNav |
 
 ### Environment Variables สำคัญ
 
