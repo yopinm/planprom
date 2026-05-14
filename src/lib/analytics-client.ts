@@ -15,12 +15,19 @@ export function track(
 ): void {
   if (typeof window === 'undefined') return
 
+  // generate session_id once per tab (sessionStorage clears on tab close)
+  let sid = sessionStorage.getItem('ck_session')
+  if (!sid) {
+    sid = Math.random().toString(36).slice(2) + Date.now().toString(36)
+    sessionStorage.setItem('ck_session', sid)
+  }
+
   const payload = {
     event,
     properties,
     path:       window.location.pathname,
     referrer:   document.referrer || null,
-    session_id: sessionStorage.getItem('ck_session') ?? null,
+    session_id: sid,
   }
 
   // Fire-and-forget — no await, no error surfaced
