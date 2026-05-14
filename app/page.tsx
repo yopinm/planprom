@@ -14,6 +14,7 @@ import { db } from '@/lib/db'
 import { RecoveryHashRedirect } from '@/components/auth/RecoveryHashRedirect'
 import FeaturedTemplateCard, { type FeaturedTemplate } from '@/components/home/FeaturedTemplateCard'
 import { PromoCodeBanner, PromoCodeBannerPlaceholder, type PromoData } from '@/components/promo/PromoCodeBanner'
+import { getPinnedPublishedPosts, type DbBlogPost } from '@/lib/blog-db'
 
 export const dynamic = 'force-dynamic'
 
@@ -87,6 +88,10 @@ async function fetchFeaturedTemplates(): Promise<FeaturedTemplate[]> {
   }
 }
 
+async function fetchPinnedPosts(): Promise<DbBlogPost[]> {
+  return getPinnedPublishedPosts(6)
+}
+
 async function fetchCatalogGroups(): Promise<CatalogGroup[]> {
   try {
     return await db<CatalogGroup[]>`
@@ -118,10 +123,11 @@ const MOCK_TEMPLATE_CARDS = [
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default async function HomePage(): Promise<ReactElement> {
-  const [catalogGroups, featuredTemplates, activePromo] = await Promise.all([
+  const [catalogGroups, featuredTemplates, activePromo, pinnedPosts] = await Promise.all([
     fetchCatalogGroups(),
     fetchFeaturedTemplates(),
     fetchActivePromo(),
+    fetchPinnedPosts(),
   ])
 
   const websiteSchema = buildWebSiteJsonLd()
@@ -332,6 +338,39 @@ export default async function HomePage(): Promise<ReactElement> {
               {' '}➕ LINE → 💬 บอกฟอร์ม → ✅ ใน 24ชม.
               <span className="font-bold text-neutral-800"> · 50฿</span>
             </a>
+
+            {/* Pinned Blog Posts */}
+            {pinnedPosts.length > 0 && (
+              <div className="mt-8">
+                <div className="mb-4 flex items-center justify-between">
+                  <p className="text-sm font-black text-neutral-700">📌 บทความแนะนำ</p>
+                  <Link href="/blog" className="text-xs font-semibold text-emerald-600 hover:underline">
+                    ดูทั้งหมด →
+                  </Link>
+                </div>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {pinnedPosts.map(post => (
+                    <Link
+                      key={post.slug}
+                      href={`/blog/${post.slug}`}
+                      className="group flex flex-col rounded-xl border border-neutral-200 bg-white px-4 py-4 shadow-sm transition hover:border-emerald-300 hover:shadow-md"
+                    >
+                      <p className="line-clamp-2 text-sm font-black leading-snug text-neutral-900 group-hover:text-emerald-700">
+                        {post.title}
+                      </p>
+                      {post.description && (
+                        <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-neutral-500">
+                          {post.description}
+                        </p>
+                      )}
+                      <p className="mt-3 text-[11px] font-medium text-neutral-400">
+                        อ่าน {post.readingTimeMin} นาที
+                      </p>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
 
           </div>
         </div>
