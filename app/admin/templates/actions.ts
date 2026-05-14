@@ -112,6 +112,8 @@ export async function forceDeleteTemplateAction(formData: FormData): Promise<{ e
     await db`UPDATE promo_codes SET is_active = false, template_id = NULL WHERE template_id = ${id}`
     await db`DELETE FROM template_revisions      WHERE template_id = ${id}`
     await db`DELETE FROM order_items             WHERE template_id = ${id}`
+    // ลบ orders ที่ไม่มี items เหลือ (CASCADE จะลบ promo_code_uses ตาม)
+    await db`DELETE FROM orders WHERE id NOT IN (SELECT DISTINCT order_id FROM order_items)`
     await db`DELETE FROM template_orders         WHERE template_id = ${id}`
     await db`DELETE FROM cart_items              WHERE template_id = ${id}`
     await db`DELETE FROM template_category_links WHERE template_id = ${id}`
