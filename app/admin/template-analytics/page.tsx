@@ -933,16 +933,17 @@ export default async function AdminMarketIntelPage() {
               const total   = rows.length
               const pct     = total > 0 ? Math.round((covered / total) * 100) : 0
               return (
-                <div key={kw.engineType} className={`rounded-2xl border bg-white shadow-sm overflow-hidden ${kw.border}`}>
-                  <div className={`flex items-center justify-between px-5 py-3 border-b ${kw.border} ${kw.headerBg}`}>
+                <details key={kw.engineType} className={`group rounded-2xl border bg-white shadow-sm overflow-hidden ${kw.border}`}>
+                  <summary className={`flex cursor-pointer list-none items-center justify-between px-5 py-3 border-b ${kw.border} ${kw.headerBg} select-none`}>
                     <span className={`font-mono font-black text-sm uppercase tracking-wider ${kw.color}`}>{ENGINE_LABEL[kw.engineType] ?? kw.engineType}</span>
                     <div className="flex items-center gap-3">
                       <span className="text-xs text-neutral-500">{covered}/{total} ครอบแล้ว</span>
                       <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-black ${pct >= 60 ? 'bg-green-100 text-green-700' : pct >= 30 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-600'}`}>
                         {pct}% covered
                       </span>
+                      <span className="inline-block text-neutral-400 text-xs transition-transform duration-150 group-open:rotate-90">▶</span>
                     </div>
-                  </div>
+                  </summary>
                   {(() => {
                     const catHits = new Map<string, { cat: CatalogRef; count: number }>()
                     for (const row of rows.filter(r => !r.match)) {
@@ -993,7 +994,7 @@ export default async function AdminMarketIntelPage() {
                       })}
                     </div>
                   )}
-                </div>
+                </details>
               )
             })}
           </div>
