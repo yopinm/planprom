@@ -29,11 +29,11 @@
 | **Doc Sync** | task เสร็จ → อัพเดต PRD.md + `core/planprom.md` เสมอ |
 | **Scope Gate** | ก่อนเริ่ม implement ทุก task → ต้องมี scope + flow ใน `core/planprom.md` ก่อน → commit docs → รอ owner confirm → ค่อย implement |
 | **Blockers** | Lazada pool=49 fixed · Affiliate tasks ❌ CLOSED 2026-05-13 (owner decision) |
-| **Next task** | **ADM-FALLBACK-1** 🔴 → E9/E10 → J19 |
-| **Pending (code)** | **ADM-FALLBACK-1** 🔴 · J19 · E9/E10 · UI-G(defer) |
+| **Next task** | **ADM-FALLBACK-1** 🔴 → E9/E10 |
+| **Pending (code)** | **ADM-FALLBACK-1** 🔴 · E9/E10 · UI-G(defer) |
 | **Pending (UAT)** | **INTEL-SMART** 🟡 (trend arrows รอ 1 วัน) · **฿30 tier admin wizard** 🟡 (UAT pending) · INTEL-C/D · DC-1 · DC-2 · DC-8 · DC-16 · E9/E10 · J9(รอ live keys) |
 | **Pending (decision)** | Homepage UX: D (social proof bar) + B (featured badge pulse) — mock ready รอ confirm |
-| **Last session** | **Session 68 (2026-05-14)** — ADM-RBAC-1: hybrid 2-tier auth + clerk permissions + middleware guard · ฿30 pricing admin wizards + public UI · Force delete FK fix · Request template price badge |
+| **Last session** | **Session 69 (2026-05-14)** — J19: System Log unified page `/admin/report/log` (4 log tabs + export JSON + Thai alert cards + expandable card detail) |
 | **ห้าม** | ไม่แตะ Later task ขณะที่ Now ยังค้างอยู่ · ไม่แตะ secrets โดยตรง · ไม่ทำให้ revenue channel หายไประหว่าง pivot |
 
 ---
@@ -178,7 +178,7 @@
 | 14 | **J13** Customer Request Form `/templates/request` | 🟡 Medium | 🔲 Planned |
 | 15 | **J14** ระบบสมาชิก + Auto Push LINE | ❌ CANCELLED | ❌ Cancelled (2026-05-13 owner decision) |
 | 16 | **J17** Subscription รายเดือน (Standard/Pro) | ❌ CANCELLED | ❌ Cancelled (2026-05-13 owner decision) |
-| 17 | **J19** Template Log Export `/admin/templates/log-export` | 🟡 Medium | 🔲 Planned |
+| 17 | **J19** System Log Unified `/admin/report/log` | 🟡 Medium | ✅ Done · Live (Session 69 · 2026-05-14) |
 | 18 | **PROMO-1** Promo Code API + Checkout Integration | 🟡 Medium | ✅ Done · UAT ผ่าน |
 | 19 | **PROMO-2** PromoCodeBanner Homepage + Countdown | 🟡 Medium | ✅ Done · UAT ผ่าน |
 | 20 | **PROMO-3** Admin Promo Code CRUD + is_secret + comeback_text | 🟡 Medium | ✅ Done · UAT ผ่าน |
@@ -202,6 +202,7 @@
 
 | Session | สถานะ |
 |---|---|
+| **Session 69 (2026-05-14) — J19 System Log** | ✅ Live — System Log unified `/admin/report/log`: 4 log tabs (PM2/Nginx-Access/Nginx-Error/Error-Digest) + Export JSON + Thai alert cards (5xx/error/4xx/template/cart) + expandable card detail (เงื่อนไข / ความหมาย / วิธีแก้) |
 | **Session 68 (2026-05-14) — ADM-RBAC-1 + Pricing + Bug Fixes** | 🟡 ฿30 tier Pending UAT — ADM-RBAC-1: Supabase+bcrypt hybrid auth · clerk module permissions (checkbox) · middleware Edge route guard · /admin/users · ฿30 Standard tier ทุก engine wizard + public UI · force delete FK fix (promo_codes deactivate) · request template price badge hide |
 | **Session 67 (2026-05-14) — SEO Manual Blog + Search Console** | ✅ Live — Admin manual blog creation: template picker (DB-based, 10 topics, inline CRUD) · createPostAction (draft/publish) · Google Search Console verified + sitemap 22 pages · robots.txt domain fix · Blog Manager search+filter (BlogListClient) |
 | **Session 66 (2026-05-14) — BLOG-EDIT + SEO-ENGINE scaffold** | ✅ Live — BLOG-EDIT: import built-in→DB + edit page + delete button · SEO-ENGINE: pending_review status + approveDraftAction + GenerateDraftButton (removed — Gemini quota 0) |

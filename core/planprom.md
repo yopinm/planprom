@@ -385,10 +385,10 @@ ALTER TABLE orders ADD COLUMN discount_baht NUMERIC(10,2) NOT NULL DEFAULT 0;
 | R-2 | `/admin/report/payments` | PromptPay verify log · Omise webhook log · status per order · date filter | ✅ Live (Session 34) |
 | R-3 | `/admin/report/downloads` | download events per template · unique/repeat · date filter | ✅ Live (Session 34) |
 | R-4 | `/admin/report/export` | export orders CSV · filter by date + status · download button | ✅ Live (Session 34) |
-| R-5 | `/admin/report/log/pm2` | PM2 stdout+stderr tail · filter 1h/6h/24h · copy to clipboard | ✅ Live (Session 34) |
-| R-6 | `/admin/report/log/nginx-access` | Nginx access log · top paths · 4xx/5xx count · date filter | ✅ Live (Session 34) |
-| R-7 | `/admin/report/log/nginx-error` | Nginx error log · 502/504 · upstream fail · date filter | ✅ Live (Session 34) |
-| R-8 | `/admin/report/log/errors` | Error Digest รวมทุก source → markdown block · copy-paste ให้ Claude ได้เลย | ✅ Live (Session 34) |
+| R-5 | `/admin/report/log` | **System Log Unified (Session 69):** 4 tabs (PM2 stdout/stderr · Nginx Access · Nginx Error · Error Digest) · Export JSON (DB snapshot + all logs) · Thai alert cards (5xx/error/4xx/ไม่มีtemplate/cart) + expandable detail (เงื่อนไข/ความหมาย/วิธีแก้) · window filter 1h/6h/24h/all · PM2 log rotation aware (glob `planprom-out*.log`) | ✅ Live (Session 69 · 2026-05-14) |
+| ~~R-6~~ | ~~`/admin/report/log/nginx-access`~~ | ยุบรวมใน R-5 | ❌ Removed (Session 69) |
+| ~~R-7~~ | ~~`/admin/report/log/nginx-error`~~ | ยุบรวมใน R-5 | ❌ Removed (Session 69) |
+| ~~R-8~~ | ~~`/admin/report/log/errors`~~ | ยุบรวมใน R-5 | ❌ Removed (Session 69) |
 | R-9 | `/admin/report/pageviews` | analytics_events page_view · KPI · top pages bar chart · daily breakdown · date filter | ✅ Live (Session 34) |
 | R-10 | `/admin/report/predict` | Google Suggest TH (4 keywords) + analysis (demand, audience, template ideas) · bestseller ranking · zero-sale list | ✅ Live (Session 34) |
 
@@ -2123,5 +2123,5 @@ Next priorities:
 
 ---
 
-_Last updated: 2026-05-13 (Session 60) · Domain: planprom.com live · SSL + Email routing ✅ · App: VPS port 3001 fork mode · Affiliate tasks CLOSED · J14+J17 CANCELLED (owner decision) · Next: INTEL UAT → DC-16 UAT → E9/E10 → J19_
+_Last updated: 2026-05-14 (Session 69) · Domain: planprom.com live · SSL + Email routing ✅ · App: VPS port 3001 fork mode · Affiliate tasks CLOSED · J14+J17 CANCELLED (owner decision) · J19 ✅ Done (System Log unified + alert cards + expandable detail) · Next: ADM-FALLBACK-1 🔴 → E9/E10_
 _Owner: yopinm@gmail.com · LINE: yopinm · PromptPay: 0948859962_

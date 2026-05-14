@@ -563,6 +563,21 @@ URL: `/admin/report/log`
 - DB snapshot: templates · categories · orders 30 วัน · cart stats
 - Logs: PM2 stdout + stderr · Nginx access + error · สรุป top paths
 
+#### Alert Cards (สถานะระบบ)
+
+การ์ดคำนวณจากข้อมูลสด — ไม่ต้องตั้งค่า เปลี่ยนสีอัตโนมัติเมื่อเงื่อนไขหาย
+
+| การ์ด | เงื่อนไข | สี |
+|---|---|---|
+| 🔴 พบ 5xx Error | Nginx 5xx ≥ 1 | แดง |
+| ⚠️ พบ Error ใน Log | error/warn/fail keyword ใน PM2+Nginx | เหลือง |
+| 🟠 4xx สูงผิดปกติ | Nginx 4xx > 10 | ส้ม |
+| 📋 ยังไม่มีเทมเพลต | published = 0 | ฟ้า |
+| 🛒 มีตะกร้าค้างอยู่ | active carts > 0 | ฟ้า |
+| ✅ ระบบทำงานปกติ | ไม่มีการ์ดด้านบนเลย | เขียว |
+
+**คลิกที่การ์ด** → เปิด/ปิด detail box แสดง 3 แถว: **เงื่อนไข** (ค่าที่ trigger) · **ความหมาย** (ผลต่อระบบ) · **วิธีแก้** (step แก้ปัญหา)
+
 ### 15.3 Data Reports
 
 | Route | เนื้อหา |
