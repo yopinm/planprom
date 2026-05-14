@@ -217,11 +217,11 @@ export default async function SalesReportPage({
             <div className="flex items-center gap-2">
               <Link href="/admin/orders/audit"
                 className="rounded-xl bg-orange-50 border border-orange-200 px-3 py-1.5 text-xs font-bold text-orange-700 hover:bg-orange-100 transition">
-                Daily Audit →
+                ตรวจสอบรายวัน →
               </Link>
               <Link href="/admin"
                 className="rounded-2xl border border-neutral-200 bg-white px-4 py-2 text-xs font-black text-neutral-600 shadow-sm hover:border-black">
-                ← Admin
+                ← แอดมิน
               </Link>
             </div>
           </div>
@@ -259,10 +259,10 @@ export default async function SalesReportPage({
           <h2 className="mb-3 text-[11px] font-black uppercase tracking-wider text-neutral-400">ภาพรวม</h2>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {[
-              { label: 'Revenue',        value: `฿${totalRevenue.toLocaleString('th-TH')}`,  color: totalRevenue > 0   ? 'text-indigo-600'  : 'text-neutral-300' },
-              { label: 'Orders จ่ายแล้ว', value: String(paidOrders),                          color: paidOrders > 0    ? 'text-green-600'   : 'text-neutral-300' },
-              { label: 'Avg / Order',    value: `฿${avgOrder.toFixed(0)}`,                   color: avgOrder > 0      ? 'text-amber-600'   : 'text-neutral-300' },
-              { label: 'Pending',        value: String(pendingOrders),                        color: pendingOrders > 0 ? 'text-orange-500'  : 'text-neutral-300' },
+              { label: 'รายได้',           value: `฿${totalRevenue.toLocaleString('th-TH')}`,  color: totalRevenue > 0   ? 'text-indigo-600'  : 'text-neutral-300' },
+              { label: 'ออเดอร์ จ่ายแล้ว', value: String(paidOrders),                        color: paidOrders > 0    ? 'text-green-600'   : 'text-neutral-300' },
+              { label: 'เฉลี่ย / ออเดอร์', value: `฿${avgOrder.toFixed(0)}`,                 color: avgOrder > 0      ? 'text-amber-600'   : 'text-neutral-300' },
+              { label: 'รอชำระ',           value: String(pendingOrders),                      color: pendingOrders > 0 ? 'text-orange-500'  : 'text-neutral-300' },
               { label: 'ยอดรับจริง',    value: `฿${netRevenue.toLocaleString('th-TH')}`,    color: netRevenue > 0    ? 'text-emerald-700' : 'text-neutral-300', hint: undefined },
               { label: 'ค่าธรรมเนียม',  value: `฿${fee.toLocaleString('th-TH')}`,           color: fee > 0           ? 'text-rose-500'    : 'text-neutral-300', hint: 'PromptPay via Omise: 1.65% + VAT 7% = 1.7655%\n(คิดจากยอด paid ที่มี omise_charge_id เท่านั้น)' },
               { label: 'ดาวน์โหลดฟรี', value: String(freeCount),                              color: freeCount > 0     ? 'text-emerald-600' : 'text-neutral-300', hint: 'จาก template tier=free ที่กด "รับฟรี" โดยตรง (ไม่ผ่าน cart)' },
@@ -279,15 +279,15 @@ export default async function SalesReportPage({
 
         {/* ── S3: Revenue by Type ── */}
         <section>
-          <h2 className="mb-3 text-[11px] font-black uppercase tracking-wider text-neutral-400">Revenue by Type</h2>
+          <h2 className="mb-3 text-[11px] font-black uppercase tracking-wider text-neutral-400">รายได้ตามประเภท</h2>
           <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-neutral-100 bg-neutral-50 text-[10px] font-black uppercase tracking-wider text-neutral-400">
                   <th className="px-5 py-3 text-left">ประเภท</th>
-                  <th className="px-5 py-3 text-right">Orders</th>
+                  <th className="px-5 py-3 text-right">ออเดอร์</th>
                   <th className="px-5 py-3 text-right">จ่ายแล้ว</th>
-                  <th className="px-5 py-3 text-right">Revenue</th>
+                  <th className="px-5 py-3 text-right">รายได้</th>
                 </tr>
               </thead>
               <tbody>
@@ -315,17 +315,17 @@ export default async function SalesReportPage({
         {/* ── S4: Promo Code Performance ── */}
         {promoStats.length > 0 && (
           <section>
-            <h2 className="mb-3 text-[11px] font-black uppercase tracking-wider text-neutral-400">Promo Code Performance</h2>
+            <h2 className="mb-3 text-[11px] font-black uppercase tracking-wider text-neutral-400">ประสิทธิภาพโปรโมชัน</h2>
             <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-neutral-100 bg-neutral-50 text-[10px] font-black uppercase tracking-wider text-neutral-400">
                     <th className="px-5 py-3 text-left">Code</th>
-                    <th className="px-5 py-3 text-left">Label</th>
-                    <th className="px-5 py-3 text-left">Channel</th>
+                    <th className="px-5 py-3 text-left">ชื่อ</th>
+                    <th className="px-5 py-3 text-left">ช่องทาง</th>
                     <th className="px-5 py-3 text-right">ใช้</th>
                     <th className="px-5 py-3 text-right">ส่วนลดรวม</th>
-                    <th className="px-5 py-3 text-right">Revenue</th>
+                    <th className="px-5 py-3 text-right">รายได้</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -360,9 +360,9 @@ export default async function SalesReportPage({
                 <thead>
                   <tr className="border-b border-neutral-100 bg-neutral-50 text-[10px] font-black uppercase tracking-wider text-neutral-400">
                     <th className="px-5 py-3 text-left">วันที่</th>
-                    <th className="px-5 py-3 text-right">Orders</th>
+                    <th className="px-5 py-3 text-right">ออเดอร์</th>
                     <th className="px-5 py-3 text-right">จ่ายแล้ว</th>
-                    <th className="px-5 py-3 text-right">Revenue</th>
+                    <th className="px-5 py-3 text-right">รายได้</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -399,9 +399,9 @@ export default async function SalesReportPage({
                 <thead>
                   <tr className="border-b border-neutral-100 bg-neutral-50 text-[10px] font-black uppercase tracking-wider text-neutral-400">
                     <th className="px-5 py-3 text-left">Template</th>
-                    <th className="px-5 py-3 text-right">Orders</th>
+                    <th className="px-5 py-3 text-right">ออเดอร์</th>
                     <th className="px-5 py-3 text-right">จ่ายแล้ว</th>
-                    <th className="px-5 py-3 text-right">Revenue</th>
+                    <th className="px-5 py-3 text-right">รายได้</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -422,7 +422,7 @@ export default async function SalesReportPage({
         {/* ── S7: Order list ── */}
         <section>
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-[11px] font-black uppercase tracking-wider text-neutral-400">รายการ Orders</h2>
+            <h2 className="text-[11px] font-black uppercase tracking-wider text-neutral-400">รายการออเดอร์</h2>
             <span className="text-[10px] text-neutral-400">{cartOrders.length} รายการ</span>
           </div>
 
@@ -459,7 +459,7 @@ export default async function SalesReportPage({
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="font-mono text-sm font-black text-neutral-900">{o.order_uid}</span>
                       <span className={`rounded-full px-2 py-0.5 text-[10px] font-black uppercase ${STATUS_COLOR[o.status] ?? 'bg-neutral-100 text-neutral-500'}`}>
-                        {o.status === 'pending_payment' ? 'รอชำระ' : o.status === 'paid' ? 'PAID' : o.status}
+                        {o.status === 'pending_payment' ? 'รอชำระ' : o.status === 'paid' ? 'จ่ายแล้ว' : o.status}
                       </span>
                       {o.fraud_flag !== 'clean' && (
                         <span className={`rounded-full px-2 py-0.5 text-[10px] font-black uppercase ${FRAUD_COLOR[o.fraud_flag] ?? ''}`}>
@@ -475,7 +475,7 @@ export default async function SalesReportPage({
                       <span className="font-bold text-emerald-600">฿{o.total_baht}</span>
                       {o.paid_at && <span>paid: {new Date(o.paid_at).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' })}</span>}
                       <span>{new Date(o.created_at).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' })}</span>
-                      <Link href={`/order/${o.order_uid}`} className="text-indigo-500 hover:underline" target="_blank">Receipt →</Link>
+                      <Link href={`/order/${o.order_uid}`} className="text-indigo-500 hover:underline" target="_blank">ใบเสร็จ →</Link>
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">

@@ -121,18 +121,18 @@ export default async function PaymentLogPage({
             <p className="mt-0.5 text-sm text-neutral-500">{label} · {orders.length} รายการ</p>
           </div>
           <Link href="/admin" className="rounded-2xl border border-neutral-200 bg-white px-4 py-2 text-xs font-black text-neutral-600 shadow-sm hover:border-black">
-            ← Admin
+            ← แอดมิน
           </Link>
         </div>
 
         {/* KPI */}
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-5">
           {[
-            { label: 'Revenue',       value: `฿${revenue.toLocaleString('th-TH')}`,                   color: 'text-indigo-600',  hint: undefined },
+            { label: 'รายได้',        value: `฿${revenue.toLocaleString('th-TH')}`,                   color: 'text-indigo-600',  hint: undefined },
             { label: 'ยอดรับจริง',    value: `฿${(revenue - fee).toLocaleString('th-TH')}`,            color: 'text-emerald-600', hint: undefined },
             { label: 'ค่าธรรมเนียม', value: `฿${fee.toLocaleString('th-TH')}`,                        color: 'text-rose-500',    hint: 'PromptPay via Omise: 1.65% + VAT 7% = 1.7655%\n(คิดจากยอด paid ที่มี omise_charge_id เท่านั้น)' },
             { label: 'จ่ายแล้ว',     value: summary?.paid ?? '0',                                      color: 'text-green-600',   hint: undefined },
-            { label: 'Pending',       value: summary?.pending ?? '0',                                   color: 'text-orange-500',  hint: undefined },
+            { label: 'รอชำระ',        value: summary?.pending ?? '0',                                   color: 'text-orange-500',  hint: undefined },
           ].map(k => (
             <div key={k.label} title={k.hint} className={`rounded-2xl border border-neutral-200 bg-white px-4 py-4 text-center shadow-sm ${k.hint ? 'cursor-help' : ''}`}>
               <p className={`text-xl font-black ${k.color}`}>{k.value}</p>
@@ -182,10 +182,10 @@ export default async function PaymentLogPage({
               <table className="w-full text-xs">
                 <thead>
                   <tr className="border-b border-neutral-100 bg-neutral-50 text-[10px] font-black uppercase tracking-wider text-neutral-400">
-                    <th className="px-4 py-3 text-left">Order</th>
+                    <th className="px-4 py-3 text-left">ออเดอร์</th>
                     <th className="px-4 py-3 text-left">Templates</th>
                     <th className="px-4 py-3 text-right">฿</th>
-                    <th className="px-4 py-3 text-center">Status</th>
+                    <th className="px-4 py-3 text-center">สถานะ</th>
                     <th className="px-4 py-3 text-left">เวลา</th>
                   </tr>
                 </thead>

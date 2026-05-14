@@ -160,23 +160,23 @@ export default async function AdminPage() {
           <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
             <div className="rounded-2xl border border-amber-200 bg-white px-4 py-4 text-center shadow-sm">
               <p className="text-2xl font-black text-amber-700">{data.published}</p>
-              <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">Published</p>
+              <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">เผยแพร่</p>
             </div>
             <div className="rounded-2xl border border-neutral-200 bg-white px-4 py-4 text-center shadow-sm">
               <p className="text-2xl font-black text-neutral-400">{data.draft}</p>
-              <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">Draft</p>
+              <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">ฉบับร่าง</p>
             </div>
             <div className={`rounded-2xl border bg-white px-4 py-4 text-center shadow-sm ${data.ordersToday > 0 ? 'border-green-300' : 'border-neutral-200'}`}>
               <p className={`text-2xl font-black ${data.ordersToday > 0 ? 'text-green-600' : 'text-neutral-300'}`}>
                 {data.ordersToday}
               </p>
-              <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">Orders วันนี้</p>
+              <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">ออเดอร์ วันนี้</p>
             </div>
             <div className={`rounded-2xl border bg-white px-4 py-4 text-center shadow-sm ${data.revenueToday > 0 ? 'border-green-300' : 'border-neutral-200'}`}>
               <p className={`text-2xl font-black ${data.revenueToday > 0 ? 'text-green-600' : 'text-neutral-300'}`}>
                 ฿{data.revenueToday.toLocaleString()}
               </p>
-              <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">Revenue วันนี้</p>
+              <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">รายได้ วันนี้</p>
             </div>
           </div>
 
@@ -197,7 +197,7 @@ export default async function AdminPage() {
               className="flex items-start gap-3 rounded-3xl border border-amber-200 bg-white px-5 py-4 transition hover:border-amber-500 hover:shadow-md">
               <span className="text-2xl">📋</span>
               <div>
-                <p className="font-black text-black">Template Manager</p>
+                <p className="font-black text-black">จัดการ Template</p>
                 <p className="mt-0.5 text-xs text-neutral-500">เพิ่ม · แก้ไข · Publish · จัดลำดับ</p>
               </div>
             </Link>
@@ -205,7 +205,7 @@ export default async function AdminPage() {
               className="flex items-start gap-3 rounded-3xl border border-amber-200 bg-white px-5 py-4 transition hover:border-amber-500 hover:shadow-md">
               <span className="text-2xl">🧾</span>
               <div>
-                <p className="font-black text-black">Order Manager</p>
+                <p className="font-black text-black">จัดการออเดอร์</p>
                 <p className="mt-0.5 text-xs text-neutral-500">คำสั่งซื้อ · สถานะ PromptPay · Download link</p>
               </div>
             </Link>
@@ -213,7 +213,7 @@ export default async function AdminPage() {
               className="flex items-start gap-3 rounded-3xl border border-amber-200 bg-white px-5 py-4 transition hover:border-amber-500 hover:shadow-md">
               <span className="text-2xl">📊</span>
               <div>
-                <p className="font-black text-black">Template Analytics</p>
+                <p className="font-black text-black">วิเคราะห์ยอดขาย</p>
                 <p className="mt-0.5 text-xs text-neutral-500">ยอดขาย · Template ยอดนิยม · Conversion</p>
               </div>
             </Link>
@@ -255,15 +255,15 @@ export default async function AdminPage() {
           <div className="mt-4 flex flex-wrap gap-2">
             <Link href="/admin/report/sales"
               className="rounded-2xl border border-indigo-200 bg-white px-4 py-2 text-xs font-black text-indigo-700 hover:bg-indigo-50 transition">
-              📊 ดู Sales Report →
+              📊 ดู ยอดขาย →
             </Link>
             <Link href="/admin/report/payments"
               className="rounded-2xl border border-indigo-200 bg-white px-4 py-2 text-xs font-black text-indigo-700 hover:bg-indigo-50 transition">
-              💳 ดู Payments →
+              💳 ดู การชำระเงิน →
             </Link>
             <Link href="/admin/report/pageviews"
               className="rounded-2xl border border-indigo-200 bg-white px-4 py-2 text-xs font-black text-indigo-700 hover:bg-indigo-50 transition">
-              👁 ดู Pageviews →
+              👁 ดู ผู้เข้าชม →
             </Link>
           </div>
         </section>
@@ -302,7 +302,7 @@ export default async function AdminPage() {
               <p className={`text-2xl font-black ${health.errorLines > 0 ? 'text-amber-600' : 'text-emerald-500'}`}>
                 {health.errorLines}
               </p>
-              <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">Error Lines (PM2)</p>
+              <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">ข้อผิดพลาด (PM2)</p>
             </div>
             <div className={`rounded-2xl border bg-white px-4 py-4 text-center shadow-sm ${health.count4xx > 10 ? 'border-amber-200' : 'border-neutral-200'}`}>
               <p className={`text-2xl font-black ${health.count4xx > 10 ? 'text-amber-500' : 'text-neutral-400'}`}>
@@ -348,17 +348,17 @@ export default async function AdminPage() {
               <p className={`text-2xl font-black ${data.activePromos > 0 ? 'text-rose-600' : 'text-neutral-300'}`}>
                 {data.activePromos}
               </p>
-              <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">Promo Active</p>
+              <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">โปรโมชัน ใช้งาน</p>
             </div>
             <div className={`rounded-2xl border bg-white px-4 py-4 text-center shadow-sm ${data.draftPosts > 0 ? 'border-amber-300' : 'border-neutral-200'}`}>
               <p className={`text-2xl font-black ${data.draftPosts > 0 ? 'text-amber-600' : 'text-neutral-300'}`}>
                 {data.draftPosts}
               </p>
-              <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">Blog Draft</p>
+              <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">บทความ ร่าง</p>
             </div>
             <div className="rounded-2xl border border-neutral-200 bg-white px-4 py-4 text-center shadow-sm">
               <p className="text-2xl font-black text-neutral-600">{data.publishedPosts}</p>
-              <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">Blog Published</p>
+              <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">บทความ เผยแพร่</p>
             </div>
           </div>
 
