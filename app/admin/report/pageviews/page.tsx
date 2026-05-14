@@ -4,7 +4,7 @@ import { requireAdminSession } from '@/lib/admin-auth'
 import { db } from '@/lib/db'
 
 export const metadata: Metadata = {
-  title: 'Pageviews — Admin Report',
+  title: 'ยอดผู้เข้าชม — Admin',
   robots: { index: false, follow: false },
 }
 
@@ -88,18 +88,19 @@ export default async function PageviewsPage({
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[11px] font-black uppercase tracking-widest text-neutral-400">Report</p>
-            <h1 className="text-2xl font-black text-black">👁️ Pageviews</h1>
-            <p className="mt-0.5 text-sm text-neutral-500">{label} · ทั้งหมดตลอดกาล: <strong>{Number(allTime?.total ?? 0).toLocaleString()}</strong> views</p>
+            <h1 className="text-2xl font-black text-black">👁️ ยอดผู้เข้าชม</h1>
+            <p className="mt-0.5 text-sm text-neutral-500">{label}</p>
           </div>
           <Link href="/admin" className="rounded-2xl border border-neutral-200 bg-white px-4 py-2 text-xs font-black text-neutral-600 shadow-sm hover:border-black">← Admin</Link>
         </div>
 
         {/* KPI */}
-        <div className="mt-6 grid grid-cols-3 gap-3">
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
-            { label: 'Page Views', value: Number(totals?.total_views ?? 0).toLocaleString(), color: 'text-indigo-600' },
-            { label: 'Unique Sessions', value: Number(totals?.unique_sessions ?? 0).toLocaleString(), color: 'text-emerald-600' },
-            { label: 'Unique Pages', value: Number(totals?.unique_paths ?? 0).toLocaleString(), color: 'text-amber-600' },
+            { label: 'ยอดเข้าชม',    value: Number(totals?.total_views    ?? 0).toLocaleString('th-TH'), color: 'text-indigo-600' },
+            { label: 'เซสชันไม่ซ้ำ', value: Number(totals?.unique_sessions ?? 0).toLocaleString('th-TH'), color: 'text-emerald-600' },
+            { label: 'หน้าที่เปิด',   value: Number(totals?.unique_paths   ?? 0).toLocaleString('th-TH'), color: 'text-amber-600' },
+            { label: 'ตลอดกาล',      value: Number(allTime?.total         ?? 0).toLocaleString('th-TH'), color: 'text-neutral-500' },
           ].map(k => (
             <div key={k.label} className="rounded-2xl border border-neutral-200 bg-white px-4 py-5 text-center shadow-sm">
               <p className={`text-2xl font-black ${k.color}`}>{k.value}</p>
@@ -142,8 +143,10 @@ export default async function PageviewsPage({
                     </div>
                   </div>
                   <div className="text-right shrink-0">
-                    <p className="font-black text-sm text-indigo-600">{Number(p.views).toLocaleString()}</p>
-                    <p className="text-[10px] text-neutral-400">{Number(p.sessions).toLocaleString()} sessions</p>
+                    <p className="font-black text-sm text-indigo-600">{Number(p.views).toLocaleString('th-TH')}</p>
+                    <p className="text-[10px] text-neutral-400">
+                      {Math.round((Number(p.views) / maxViews) * 100)}% · {Number(p.sessions).toLocaleString('th-TH')} เซสชัน
+                    </p>
                   </div>
                 </div>
               ))}
@@ -160,16 +163,18 @@ export default async function PageviewsPage({
                 <thead>
                   <tr className="border-b border-neutral-100 bg-neutral-50 text-[10px] font-black uppercase tracking-wider text-neutral-400">
                     <th className="px-5 py-3 text-left">วันที่</th>
-                    <th className="px-5 py-3 text-right">Views</th>
-                    <th className="px-5 py-3 text-right">Sessions</th>
+                    <th className="px-5 py-3 text-right">เข้าชม</th>
+                    <th className="px-5 py-3 text-right">เซสชัน</th>
                   </tr>
                 </thead>
                 <tbody>
                   {daily.map((row, i) => (
                     <tr key={row.day} className={`border-b border-neutral-50 ${i % 2 === 1 ? 'bg-neutral-50/50' : ''}`}>
-                      <td className="px-5 py-2.5 font-mono text-xs text-neutral-600">{row.day}</td>
-                      <td className="px-5 py-2.5 text-right font-black text-indigo-600">{Number(row.views).toLocaleString()}</td>
-                      <td className="px-5 py-2.5 text-right text-neutral-500">{Number(row.sessions).toLocaleString()}</td>
+                      <td className="px-5 py-2.5 text-xs text-neutral-600">
+                        {new Date(row.day).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })}
+                      </td>
+                      <td className="px-5 py-2.5 text-right font-black text-indigo-600">{Number(row.views).toLocaleString('th-TH')}</td>
+                      <td className="px-5 py-2.5 text-right text-neutral-500">{Number(row.sessions).toLocaleString('th-TH')}</td>
                     </tr>
                   ))}
                 </tbody>
