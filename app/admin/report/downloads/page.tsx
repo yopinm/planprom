@@ -29,8 +29,8 @@ function getDateRange(range: RangeKey, from?: string, to?: string) {
 
 const SOURCE_BADGE: Record<Source, { label: string; cls: string }> = {
   free:   { label: '🆓 ฟรี',    cls: 'bg-emerald-100 text-emerald-700' },
-  direct: { label: '💳 Direct', cls: 'bg-indigo-100 text-indigo-700'   },
-  cart:   { label: '🛒 Cart',   cls: 'bg-amber-100 text-amber-700'     },
+  direct: { label: '💳 โดยตรง', cls: 'bg-indigo-100 text-indigo-700'   },
+  cart:   { label: '🛒 ตะกร้า', cls: 'bg-amber-100 text-amber-700'     },
 }
 
 export default async function DownloadLogPage({
@@ -171,19 +171,19 @@ export default async function DownloadLogPage({
 
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[11px] font-black uppercase tracking-widest text-neutral-400">Report</p>
-            <h1 className="text-2xl font-black text-black">📥 Download Log</h1>
+            <p className="text-[11px] font-black uppercase tracking-widest text-neutral-400">รายงาน</p>
+            <h1 className="text-2xl font-black text-black">📥 บันทึกดาวน์โหลด</h1>
             <p className="mt-0.5 text-sm text-neutral-500">{label}</p>
           </div>
-          <Link href="/admin" className="rounded-2xl border border-neutral-200 bg-white px-4 py-2 text-xs font-black text-neutral-600 shadow-sm hover:border-black">← Admin</Link>
+          <Link href="/admin" className="rounded-2xl border border-neutral-200 bg-white px-4 py-2 text-xs font-black text-neutral-600 shadow-sm hover:border-black">← แอดมิน</Link>
         </div>
 
         {/* KPI */}
         <div className="mt-6 grid grid-cols-4 gap-3">
           {[
-            { label: 'Total Downloads',   value: totalDownloads,  color: 'text-indigo-600' },
-            { label: 'ดาวน์โหลดฟรี',     value: freeCount,       color: 'text-emerald-600' },
-            { label: 'Unique Customers',  value: uniqueCustomers, color: 'text-green-600' },
+            { label: 'ดาวน์โหลดทั้งหมด',  value: totalDownloads,    color: 'text-indigo-600' },
+            { label: 'ดาวน์โหลดฟรี',     value: freeCount,         color: 'text-emerald-600' },
+            { label: 'ลูกค้าไม่ซ้ำ',     value: uniqueCustomers,   color: 'text-green-600' },
             { label: 'Templates',         value: byTemplate.length, color: 'text-amber-600' },
           ].map(k => (
             <div key={k.label} className="rounded-2xl border border-neutral-200 bg-white px-4 py-5 text-center shadow-sm">
@@ -228,8 +228,8 @@ export default async function DownloadLogPage({
                     <th className="px-5 py-3 text-left">Template</th>
                     <th className="px-5 py-3 text-right">รวม</th>
                     <th className="px-5 py-3 text-right">🆓 ฟรี</th>
-                    <th className="px-5 py-3 text-right">💳 Direct</th>
-                    <th className="px-5 py-3 text-right">🛒 Cart</th>
+                    <th className="px-5 py-3 text-right">💳 โดยตรง</th>
+                    <th className="px-5 py-3 text-right">🛒 ตะกร้า</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -260,7 +260,7 @@ export default async function DownloadLogPage({
                   <thead>
                     <tr className="border-b border-neutral-100 bg-neutral-50 text-[10px] font-black uppercase tracking-wider text-neutral-400">
                       <th className="px-4 py-3 text-left">แหล่งที่มา</th>
-                      <th className="px-4 py-3 text-left">Order</th>
+                      <th className="px-4 py-3 text-left">ออเดอร์</th>
                       <th className="px-4 py-3 text-left">Template</th>
                       <th className="px-4 py-3 text-center">ครั้ง</th>
                       <th className="px-4 py-3 text-left">หมดอายุ</th>
