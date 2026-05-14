@@ -29,11 +29,11 @@
 | **Doc Sync** | task เสร็จ → อัพเดต PRD.md + `core/planprom.md` เสมอ |
 | **Scope Gate** | ก่อนเริ่ม implement ทุก task → ต้องมี scope + flow ใน `core/planprom.md` ก่อน → commit docs → รอ owner confirm → ค่อย implement |
 | **Blockers** | Lazada pool=49 fixed · Affiliate tasks ❌ CLOSED 2026-05-13 (owner decision) |
-| **Next task** | **PROMO-5** Promo UI Refresh (หลัง UI-I UAT) → **UI-H** Analytics match catalog → **RE-1** → **ADM-FALLBACK-1** → E9/E10 → J19 |
-| **Pending (code)** | **PROMO-5** 🔴 (หลัง UI-I UAT) · **UI-H** 🔴 · **RE-1** · **ADM-FALLBACK-1** · J19 · E9/E10 · UI-G(defer) |
+| **Next task** | **PROMO-5** Promo UI Refresh · **UI-H** Analytics match catalog → **RE-1** → **ADM-FALLBACK-1** → E9/E10 → J19 |
+| **Pending (code)** | **PROMO-5** 🔴 · **UI-H** 🔴 · **RE-1** · **ADM-FALLBACK-1** · J19 · E9/E10 · UI-G(defer) |
 | **Pending (UAT)** | **UI-I** 🟡 ฿30/฿20/฿10 · **INTEL-E** 🟡 Catalog intelligence · INTEL-C/D · DC-1 · DC-2 · DC-8 · DC-16 · E9/E10 · J9(รอ live keys) |
 | **Pending (decision)** | Homepage UX: D (social proof bar) + B (featured badge pulse) — mock ready รอ confirm |
-| **Last session** | **Session 61 (2026-05-14)** — UI-I ✅ Pricing ฿30/฿20/฿10 (3 files, 2 bugs fixed) · INTEL-E ✅ Catalog intelligence 5 features (S2a perf cards · S2b demand heatmap · S3 catalog badge+pre-fill · S4 gap chips · WizardClient pre-fill) |
+| **Last session** | **Session 62 (2026-05-14)** — UI-I ✅ UAT ผ่าน · fix badge -50%→-33% + label ครึ่งราคา→ประหยัด |
 | **ห้าม** | ไม่แตะ Later task ขณะที่ Now ยังค้างอยู่ · ไม่แตะ secrets โดยตรง · ไม่ทำให้ revenue channel หายไประหว่าง pivot |
 
 ---
@@ -188,7 +188,7 @@
 
 | กลุ่ม | รายการ | สถานะ |
 |---|---|---|
-| **UI-I** | Pricing ฿30/฿20/฿10 ทั้ง 10 ไฟล์ — fix 2 bugs (stale TIER_2 ฿8, request-only unit_price) | 🟡 **UAT Pending (Session 61)** |
+| **UI-I** | Pricing ฿30/฿20/฿10 ทั้ง 10 ไฟล์ — fix 2 bugs (stale TIER_2 ฿8, request-only unit_price) | ✅ **UAT ผ่าน (Session 62)** |
 | **INTEL-E** | Catalog intelligence — S2a perf cards · S2b heatmap · S3 badge+pre-fill · S4 gap chips | 🟡 **UAT Pending (Session 61)** |
 | **INTEL-C/D** | 3-Level Coverage Card + Smart Engine Expansion | 🟡 **UAT Pending (Session 53)** |
 | **DC-1** | Standard PDF Generator (.docx → A4) — checklist/planner UAT | 🟡 **Code Done · UAT Pending** |
