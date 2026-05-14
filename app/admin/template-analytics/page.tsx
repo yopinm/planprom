@@ -113,7 +113,7 @@ const CATALOG_KEYWORD_MAP: Array<{ ideaPattern: RegExp; catPattern: RegExp }> = 
   { ideaPattern: /กฎหมาย|สัญญา|นิติ|ข้อตกลง/,                                                  catPattern: /กฎหมาย|สัญญา/ },
   { ideaPattern: /อสังหา|ซื้อบ้าน|คอนโด|ที่ดิน/,                                              catPattern: /อสังหา/ },
   { ideaPattern: /ภาษี|ยื่นภาษี|ลดหย่อน|กรมสรรพากร|บัญชี|งบการเงิน/,                         catPattern: /ภาษี|บัญชี/ },
-  { ideaPattern: /พัฒนาตัวเอง|เรียนรู้|เป้าหมาย|นิสัย|ทักษะ|habit|goal/,                      catPattern: /เรียนรู้|พัฒนา/ },
+  { ideaPattern: /พัฒนาตัวเอง|เรียนรู้|เป้าหมาย|นิสัย|ทักษะ|habit|goal|จดบันทึก|อ่านหนังสือ|ฝึกฝน|เรียนภาษา|แผนพัฒนา|ปรับปรุงตัว/, catPattern: /เรียนรู้|พัฒนา/ },
   { ideaPattern: /ครอบครัว|ลูก|พ่อแม่|ลูกน้อย|บ้าน|ห้อง|ซ่อม|ตกแต่ง/,                        catPattern: /ครอบครัว|ไลฟ์/ },
   { ideaPattern: /นักเรียน|นักศึกษ|มหาวิทยาลัย|สอบ|วิชา|วิทยาลัย|คณะ/,                       catPattern: /นักเรียน|นักศึกษ/ },
   { ideaPattern: /สมัครงาน|หางาน|ออฟฟิศ|เส้นทางอาชีพ|ผลงาน/,                                 catPattern: /อาชีพ|ออฟฟิศ/ },
@@ -124,7 +124,7 @@ const CATALOG_KEYWORD_MAP: Array<{ ideaPattern: RegExp; catPattern: RegExp }> = 
   { ideaPattern: /สุขภาพ|ออกกำลัง|ไดเอท|ยา|คลินิก|หมอ|ฟิตเนส/,                              catPattern: /สุขภาพ|health/ },
   { ideaPattern: /งานแต่ง|งานบวช|อีเวนต์|งานเลี้ยง/,                                         catPattern: /อีเวนต์|event/ },
   { ideaPattern: /โครงการ|ก่อสร้าง|milestone/,                                                catPattern: /โครงการ|project/ },
-  { ideaPattern: /พนักงาน|สัมภาษณ์|ประเมิน|ทีม/,                                             catPattern: /อาชีพ|ออฟฟิศ|HR|พนักงาน/ },
+  { ideaPattern: /พนักงาน|สัมภาษณ์|ประเมิน|ทีมงาน/,                                           catPattern: /อาชีพ|ออฟฟิศ|HR|พนักงาน/ },
 ]
 
 function suggestCatalog(idea: string, catalogs: CatalogRef[]): CatalogRef | null {
@@ -409,7 +409,10 @@ export default async function AdminMarketIntelPage() {
             <h1 className="mt-1 text-2xl font-black text-black">Market Intelligence</h1>
             <p className="mt-0.5 text-sm text-neutral-500">ตลาดต้องการอะไร + เราครอบแค่ไหน → สร้าง template ที่ถูกจุด</p>
           </div>
-          <span className="mt-6 rounded-full bg-indigo-100 px-3 py-1 text-[10px] font-black text-indigo-700 uppercase">
+          <span
+            title={`ระบบดึงข้อมูลจาก Google Suggest ด้วย ${SEED_KEYWORDS.length} seed keywords (checklist/planner/form/report ฯลฯ) × ${ALPHA_CHARS.length} ตัวอักษร = ${SEED_KEYWORDS.length * ALPHA_CHARS.length} queries · ผลลัพธ์ cache ไว้ 1 ชั่วโมง`}
+            className="mt-6 cursor-help rounded-full bg-indigo-100 px-3 py-1 text-[10px] font-black text-indigo-700 uppercase"
+          >
             {SEED_KEYWORDS.length} keywords · {ALPHA_CHARS.length} alpha · cache 1h
           </span>
         </div>
