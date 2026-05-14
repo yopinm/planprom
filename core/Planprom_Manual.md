@@ -481,14 +481,28 @@ Today / 7d / 30d / Custom — query ข้อมูลจริงทุก filt
 
 ### 15.1 Market Intelligence (/admin/template-analytics)
 
-Dashboard วิเคราะห์ตลาด:
-- **KPI:** revenue · orders · avg · downloads · unique buyers
-- **Revenue by Engine Type:** ยอดขายแต่ละประเภท
-- **Market Demand:** Google Suggest TH 8 keywords × 15 alphabet → ความต้องการตลาด
-- **Market Gap Matrix:** demand vs มี template หรือยัง vs มี orders
-- **Coverage Card:** ครอบคลุมแค่ไหน (%) ต่อ engine type
-- **Priority Score:** สิ่งที่ควรสร้างก่อน (demand × uncoverage)
-- **Bestseller / Zero-sale:** template ขายดีที่สุด vs ขายไม่ออก
+**หลักการ:** ระบบวิเคราะห์ความต้องการตลาดจาก Google Suggest แล้วบอก admin ว่าวันนี้ควรสร้าง template อะไร ใน catalog ไหน ประเภทไหน — admin กด "+ สร้าง" ระบบ pre-fill ให้พร้อม ไม่ต้องเดาเอง
+
+**วิธีทำงาน:**
+1. ดึง Google Suggest ด้วย 8 seed keywords (checklist · planner · ฟอร์ม · รายงาน · ตาราง · ใบแจ้ง · แผนงาน · บัญชี) × 15 ตัวอักษรไทย = **120 queries/ชั่วโมง** (cache 1h)
+2. คำนวณ **Priority Score** = level × (100 − coverage%) → เรียงลำดับว่าควรสร้างอะไรก่อน
+3. จับคู่ idea → catalog ด้วย **CATALOG_KEYWORD_MAP** (14 entries ครอบคลุมทุก catalog ใน DB)
+4. แสดง top 3 ideas ต่อ catalog ใน **Catalog Action Cards** พร้อมปุ่ม "+ สร้าง" ที่ pre-fill title/engine/category ให้อัตโนมัติ
+
+**Scale อัตโนมัติ:**
+- เพิ่ม catalog ใหม่ใน Catalog Manager → card ขึ้นทันที (ดึงจาก DB ตรงๆ)
+- เพิ่ม seed keyword → ได้ ideas ใหม่ใน cycle ถัดไป (1 seed = +16 queries)
+- ideas match catalog ใหม่ได้ถ้า catPattern ตรงกับชื่อ/slug หรือ idea text มีชื่อ category ตรงๆ
+
+**Sections ในหน้า:**
+- **S1 — KPI:** revenue · orders · avg · downloads · unique buyers
+- **S2 — Revenue by Engine:** ยอดขายแต่ละประเภท (Checklist/Planner/Form/Report)
+- **S2a — Catalog Action Cards:** top 3 ideas ต่อ catalog + ปุ่ม "+ สร้าง" (pre-fill wizard)
+- **S3 — Priority List:** top 20 uncovered ideas เรียงตาม score · แต่ละ row มี catalog badge + engine badge
+- **S4 — Coverage:** ครอบคลุมแค่ไหน (%) ต่อ engine type · gap heatmap
+- **S5 — Bestseller / Zero-sale:** template ขายดีสุด vs ขายไม่ออก · 14-day daily chart
+
+**Badge "N KEYWORDS · N ALPHA · CACHE 1H":** hover เพื่อดูรายละเอียด — บอกจำนวน queries และอายุ cache ปัจจุบัน
 
 ### 15.2 Log Pages
 
