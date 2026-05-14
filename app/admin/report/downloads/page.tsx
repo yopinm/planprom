@@ -11,6 +11,7 @@ export const metadata: Metadata = {
 export const dynamic = 'force-dynamic'
 
 type RangeKey = 'today' | '7d' | '30d' | 'custom'
+type Source = 'free' | 'direct' | 'cart'
 
 function getDateRange(range: RangeKey, from?: string, to?: string) {
   const now = new Date()
@@ -26,6 +27,12 @@ function getDateRange(range: RangeKey, from?: string, to?: string) {
   return { start, end, label: `${days} วันล่าสุด` }
 }
 
+const SOURCE_BADGE: Record<Source, { label: string; cls: string }> = {
+  free:   { label: '🆓 ฟรี',    cls: 'bg-emerald-100 text-emerald-700' },
+  direct: { label: '💳 Direct', cls: 'bg-indigo-100 text-indigo-700'   },
+  cart:   { label: '🛒 Cart',   cls: 'bg-amber-100 text-amber-700'     },
+}
+
 export default async function DownloadLogPage({
   searchParams,
 }: {
@@ -36,7 +43,7 @@ export default async function DownloadLogPage({
   const range = (['today', '7d', '30d', 'custom'].includes(sp.range ?? '') ? sp.range : '7d') as RangeKey
   const { start, end, label } = getDateRange(range, sp.from, sp.to)
 
-  // Single-template orders ที่ถูกดาวน์โหลด
+  // Direct orders (template_orders) — includes free + paid direct
   const singleDownloads = await db<{
     order_number: string
     template_title: string
@@ -45,6 +52,7 @@ export default async function DownloadLogPage({
     download_expires_at: string | null
     paid_at: string | null
     created_at: string
+    payment_method: string | null
   }[]>`
     SELECT
       o.order_number,
@@ -53,7 +61,8 @@ export default async function DownloadLogPage({
       o.download_count,
       o.download_expires_at,
       o.paid_at,
-      o.created_at
+      o.created_at,
+      o.payment_method
     FROM template_orders o
     JOIN templates t ON t.id = o.template_id
     WHERE o.status = 'paid'
@@ -63,7 +72,7 @@ export default async function DownloadLogPage({
     LIMIT 300
   `
 
-  // Cart order items ที่ถูกดาวน์โหลด (guest checkout — ไม่มี customer_line_id)
+  // Cart orders (order_items + orders)
   const cartDownloads = await db<{
     order_uid: string
     template_title: string
@@ -89,34 +98,25 @@ export default async function DownloadLogPage({
     LIMIT 300
   `
 
-  // Per-template stats — template_orders (direct + free)
-  const byTemplateDirect = await db<{
-    title: string
-    total_downloads: string
-    unique_orders: string
-  }[]>`
+  // Per-template — direct
+  const byTemplateDirect = await db<{ title: string; payment_method: string | null; total_downloads: string }[]>`
     SELECT
       t.title,
-      SUM(o.download_count)   AS total_downloads,
-      COUNT(o.id)             AS unique_orders
+      o.payment_method,
+      SUM(o.download_count) AS total_downloads
     FROM template_orders o
     JOIN templates t ON t.id = o.template_id
     WHERE o.status = 'paid'
       AND o.download_count > 0
       AND o.created_at >= ${start} AND o.created_at <= ${end}
-    GROUP BY t.title
+    GROUP BY t.title, o.payment_method
   `
 
-  // Per-template stats — order_items (cart flow)
-  const byTemplateCart = await db<{
-    title: string
-    total_downloads: string
-    unique_orders: string
-  }[]>`
+  // Per-template — cart
+  const byTemplateCart = await db<{ title: string; total_downloads: string }[]>`
     SELECT
       t.title,
-      SUM(oi.download_count)  AS total_downloads,
-      COUNT(oi.id)            AS unique_orders
+      SUM(oi.download_count) AS total_downloads
     FROM order_items oi
     JOIN orders o    ON o.id  = oi.order_id
     JOIN templates t ON t.id  = oi.template_id
@@ -126,24 +126,43 @@ export default async function DownloadLogPage({
     GROUP BY t.title
   `
 
-  // Merge both sources per template title
-  const byTemplateMap: Record<string, { total_downloads: number; unique_orders: number }> = {}
-  for (const r of [...byTemplateDirect, ...byTemplateCart]) {
-    if (!byTemplateMap[r.title]) byTemplateMap[r.title] = { total_downloads: 0, unique_orders: 0 }
-    byTemplateMap[r.title].total_downloads += Number(r.total_downloads)
-    byTemplateMap[r.title].unique_orders   += Number(r.unique_orders)
+  // Merge: track free / direct / cart per template
+  const byTemplateMap: Record<string, { free: number; direct: number; cart: number }> = {}
+  for (const r of byTemplateDirect) {
+    if (!byTemplateMap[r.title]) byTemplateMap[r.title] = { free: 0, direct: 0, cart: 0 }
+    if (r.payment_method === 'free') byTemplateMap[r.title].free   += Number(r.total_downloads)
+    else                             byTemplateMap[r.title].direct += Number(r.total_downloads)
+  }
+  for (const r of byTemplateCart) {
+    if (!byTemplateMap[r.title]) byTemplateMap[r.title] = { free: 0, direct: 0, cart: 0 }
+    byTemplateMap[r.title].cart += Number(r.total_downloads)
   }
   const byTemplate = Object.entries(byTemplateMap)
-    .sort((a, b) => b[1].total_downloads - a[1].total_downloads)
-    .map(([title, s]) => ({ title, total_downloads: s.total_downloads, unique_orders: s.unique_orders }))
+    .map(([title, s]) => ({ title, total: s.free + s.direct + s.cart, free: s.free, direct: s.direct, cart: s.cart }))
+    .sort((a, b) => b.total - a.total)
 
-  const totalDownloads = singleDownloads.reduce((s, r) => s + r.download_count, 0)
+  const totalDownloads  = singleDownloads.reduce((s, r) => s + r.download_count, 0)
     + cartDownloads.reduce((s, r) => s + r.download_count, 0)
+  const freeCount       = singleDownloads.filter(r => r.payment_method === 'free').length
   const uniqueCustomers = new Set(singleDownloads.map(r => r.customer_line_id)).size
 
   const allRows = [
-    ...singleDownloads.map(r => ({ ref: r.order_number, title: r.template_title, customer: r.customer_line_id, count: r.download_count, expires: r.download_expires_at, at: r.created_at })),
-    ...cartDownloads.map(r => ({ ref: r.order_uid, title: r.template_title, customer: '(guest)', count: r.download_count, expires: r.download_expires_at, at: r.created_at })),
+    ...singleDownloads.map(r => ({
+      ref: r.order_number,
+      title: r.template_title,
+      count: r.download_count,
+      expires: r.download_expires_at,
+      at: r.created_at,
+      source: (r.payment_method === 'free' ? 'free' : 'direct') as Source,
+    })),
+    ...cartDownloads.map(r => ({
+      ref: r.order_uid,
+      title: r.template_title,
+      count: r.download_count,
+      expires: r.download_expires_at,
+      at: r.created_at,
+      source: 'cart' as Source,
+    })),
   ].sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime())
 
   return (
@@ -160,11 +179,12 @@ export default async function DownloadLogPage({
         </div>
 
         {/* KPI */}
-        <div className="mt-6 grid grid-cols-3 gap-3">
+        <div className="mt-6 grid grid-cols-4 gap-3">
           {[
-            { label: 'Total Downloads', value: totalDownloads, color: 'text-indigo-600' },
-            { label: 'Unique Customers', value: uniqueCustomers, color: 'text-green-600' },
-            { label: 'Templates', value: byTemplate.length, color: 'text-amber-600' },
+            { label: 'Total Downloads',   value: totalDownloads,  color: 'text-indigo-600' },
+            { label: 'ดาวน์โหลดฟรี',     value: freeCount,       color: 'text-emerald-600' },
+            { label: 'Unique Customers',  value: uniqueCustomers, color: 'text-green-600' },
+            { label: 'Templates',         value: byTemplate.length, color: 'text-amber-600' },
           ].map(k => (
             <div key={k.label} className="rounded-2xl border border-neutral-200 bg-white px-4 py-5 text-center shadow-sm">
               <p className={`text-2xl font-black ${k.color}`}>{k.value}</p>
@@ -190,6 +210,13 @@ export default async function DownloadLogPage({
           </form>
         </div>
 
+        {/* Source legend */}
+        <div className="mt-4 flex flex-wrap gap-2">
+          {(Object.entries(SOURCE_BADGE) as [Source, { label: string; cls: string }][]).map(([, b]) => (
+            <span key={b.label} className={`rounded-full px-3 py-1 text-[10px] font-black ${b.cls}`}>{b.label}</span>
+          ))}
+        </div>
+
         {/* By template */}
         {byTemplate.length > 0 && (
           <section className="mt-6">
@@ -199,16 +226,20 @@ export default async function DownloadLogPage({
                 <thead>
                   <tr className="border-b border-neutral-100 bg-neutral-50 text-[10px] font-black uppercase tracking-wider text-neutral-400">
                     <th className="px-5 py-3 text-left">Template</th>
-                    <th className="px-5 py-3 text-right">Downloads</th>
-                    <th className="px-5 py-3 text-right">Orders</th>
+                    <th className="px-5 py-3 text-right">รวม</th>
+                    <th className="px-5 py-3 text-right">🆓 ฟรี</th>
+                    <th className="px-5 py-3 text-right">💳 Direct</th>
+                    <th className="px-5 py-3 text-right">🛒 Cart</th>
                   </tr>
                 </thead>
                 <tbody>
                   {byTemplate.map((row, i) => (
                     <tr key={row.title} className={`border-b border-neutral-50 ${i % 2 === 1 ? 'bg-neutral-50/50' : ''}`}>
                       <td className="px-5 py-3 font-bold text-neutral-800 max-w-xs truncate">{row.title}</td>
-                      <td className="px-5 py-3 text-right font-black text-indigo-600">{row.total_downloads}</td>
-                      <td className="px-5 py-3 text-right text-neutral-500">{row.unique_orders}</td>
+                      <td className="px-5 py-3 text-right font-black text-indigo-600">{row.total}</td>
+                      <td className="px-5 py-3 text-right font-bold text-emerald-600">{row.free || '—'}</td>
+                      <td className="px-5 py-3 text-right text-indigo-400">{row.direct || '—'}</td>
+                      <td className="px-5 py-3 text-right text-amber-600">{row.cart || '—'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -228,6 +259,7 @@ export default async function DownloadLogPage({
                 <table className="w-full text-xs">
                   <thead>
                     <tr className="border-b border-neutral-100 bg-neutral-50 text-[10px] font-black uppercase tracking-wider text-neutral-400">
+                      <th className="px-4 py-3 text-left">แหล่งที่มา</th>
                       <th className="px-4 py-3 text-left">Order</th>
                       <th className="px-4 py-3 text-left">Template</th>
                       <th className="px-4 py-3 text-center">ครั้ง</th>
@@ -236,21 +268,27 @@ export default async function DownloadLogPage({
                     </tr>
                   </thead>
                   <tbody>
-                    {allRows.map((row, i) => (
-                      <tr key={`${row.ref}-${i}`} className={`border-b border-neutral-50 ${i % 2 === 1 ? 'bg-neutral-50/50' : ''}`}>
-                        <td className="px-4 py-2.5 font-mono font-bold text-neutral-600 max-w-[120px] truncate">{row.ref}</td>
-                        <td className="px-4 py-2.5 text-neutral-700 max-w-[180px] truncate">{row.title}</td>
-                        <td className="px-4 py-2.5 text-center">
-                          <span className={`font-black ${row.count >= 3 ? 'text-red-500' : 'text-indigo-600'}`}>{row.count}/3</span>
-                        </td>
-                        <td className="px-4 py-2.5 text-neutral-400 whitespace-nowrap">
-                          {row.expires ? new Date(row.expires).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' }) : '—'}
-                        </td>
-                        <td className="px-4 py-2.5 text-neutral-500 whitespace-nowrap">
-                          {new Date(row.at).toLocaleString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                        </td>
-                      </tr>
-                    ))}
+                    {allRows.map((row, i) => {
+                      const badge = SOURCE_BADGE[row.source]
+                      return (
+                        <tr key={`${row.ref}-${i}`} className={`border-b border-neutral-50 ${i % 2 === 1 ? 'bg-neutral-50/50' : ''}`}>
+                          <td className="px-4 py-2.5">
+                            <span className={`rounded-full px-2 py-0.5 text-[10px] font-black ${badge.cls}`}>{badge.label}</span>
+                          </td>
+                          <td className="px-4 py-2.5 font-mono font-bold text-neutral-600 max-w-[120px] truncate">{row.ref}</td>
+                          <td className="px-4 py-2.5 text-neutral-700 max-w-[180px] truncate">{row.title}</td>
+                          <td className="px-4 py-2.5 text-center">
+                            <span className={`font-black ${row.count >= 3 ? 'text-red-500' : 'text-indigo-600'}`}>{row.count}/3</span>
+                          </td>
+                          <td className="px-4 py-2.5 text-neutral-400 whitespace-nowrap">
+                            {row.expires ? new Date(row.expires).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' }) : '—'}
+                          </td>
+                          <td className="px-4 py-2.5 text-neutral-500 whitespace-nowrap">
+                            {new Date(row.at).toLocaleString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                          </td>
+                        </tr>
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>
