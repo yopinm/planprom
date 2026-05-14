@@ -7,7 +7,7 @@ export type DbBlogPost = BlogPost & {
   id: string
   pinned: boolean
   pinned_order: number
-  status: 'draft' | 'published'
+  status: 'draft' | 'published' | 'pending_review'
   source: 'db'
 }
 
@@ -47,7 +47,7 @@ function rowToPost(r: DbRow): DbBlogPost {
     readingTimeMin: r.reading_time_min,
     pinned: r.pinned,
     pinned_order: r.pinned_order,
-    status: r.status as 'draft' | 'published',
+    status: r.status as 'draft' | 'published' | 'pending_review',
     source: 'db',
   }
 }

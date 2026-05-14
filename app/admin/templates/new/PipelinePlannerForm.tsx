@@ -101,7 +101,7 @@ export function PipelinePlannerForm({ onChange }: Props) {
     setWeeklyPlans(prev => Array.from({ length: monthlyWeekCount }, (_, i) =>
       prev[i] ?? { weekLabel: `สัปดาห์ที่ ${i + 1}`, goal: '', main1: '', secondary: ['', '', ''], small: ['', '', '', '', '', ''] }
     ))
-  }, [horizon, monthlyWeekCount]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [horizon, monthlyWeekCount])  
 
   useEffect(() => {
     const s2: PlannerPipelineDataV4['s2_timeplan'] = horizon === 'yearly'

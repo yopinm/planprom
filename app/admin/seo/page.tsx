@@ -4,8 +4,9 @@ import { requireAdminSession } from '@/lib/admin-auth'
 import { getAllPosts } from '@/lib/blog'
 import { getAllDbPosts } from '@/lib/blog-db'
 import { UploadDocx } from './UploadDocx'
-import { togglePinAction, togglePostPublishAction, importStaticPostAction } from './actions'
+import { togglePinAction, togglePostPublishAction, importStaticPostAction, approveDraftAction } from './actions'
 import { DeletePostButton } from './DeletePostButton'
+import { GenerateDraftButton } from './GenerateDraftButton'
 
 export const metadata: Metadata = {
   title: 'Blog Manager · Admin — Planprom',
@@ -22,7 +23,9 @@ export default async function AdminSeoPage() {
     Promise.resolve(getAllPosts()),
   ])
 
-  const pinnedCount = dbPosts.filter(p => p.pinned).length
+  const pinnedCount   = dbPosts.filter(p => p.pinned).length
+  const pendingPosts  = dbPosts.filter(p => p.status === 'pending_review')
+  const publishedPosts = dbPosts.filter(p => p.status !== 'pending_review')
 
   return (
     <main className="min-h-screen bg-neutral-50 pb-20">
@@ -39,13 +42,16 @@ export default async function AdminSeoPage() {
               {dbPosts.length} บทความใน DB · {pinnedCount} ปักหมุด · {staticPosts.length} บทความ built-in
             </p>
           </div>
-          <Link
-            href="/blog"
-            target="_blank"
-            className="rounded-xl border border-neutral-200 bg-white px-4 py-2 text-xs font-black text-neutral-600 shadow-sm hover:border-black transition"
-          >
-            ดูหน้า Blog →
-          </Link>
+          <div className="flex items-center gap-2">
+            <GenerateDraftButton />
+            <Link
+              href="/blog"
+              target="_blank"
+              className="rounded-xl border border-neutral-200 bg-white px-4 py-2 text-xs font-black text-neutral-600 shadow-sm hover:border-black transition"
+            >
+              ดูหน้า Blog →
+            </Link>
+          </div>
         </div>
 
         {/* Upload */}
@@ -53,19 +59,61 @@ export default async function AdminSeoPage() {
           <UploadDocx />
         </div>
 
+        {/* Pending Review Queue */}
+        {pendingPosts.length > 0 && (
+          <div className="mb-10">
+            <h2 className="mb-3 text-sm font-black uppercase tracking-widest text-indigo-500">
+              🤖 รออนุมัติ ({pendingPosts.length})
+            </h2>
+            <div className="divide-y divide-neutral-100 overflow-hidden rounded-2xl border border-indigo-200 bg-indigo-50 shadow-sm">
+              {pendingPosts.map(post => (
+                <div key={post.id} className="flex items-center gap-3 px-5 py-4">
+                  <span className="shrink-0 text-lg">🤖</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-bold text-neutral-900">{post.title}</p>
+                    <p className="mt-0.5 font-mono text-xs text-neutral-400">/blog/{post.slug}</p>
+                  </div>
+                  <span className="shrink-0 rounded-full bg-indigo-100 px-2.5 py-0.5 text-[10px] font-black text-indigo-700">
+                    AI Draft
+                  </span>
+                  <span className="shrink-0 text-xs text-neutral-400">{post.readingTimeMin} นาที</span>
+                  <div className="flex shrink-0 gap-1">
+                    <Link
+                      href={`/admin/seo/${post.id}/edit`}
+                      className="rounded-lg bg-neutral-100 px-2.5 py-1.5 text-xs font-bold text-neutral-500 hover:bg-neutral-200 transition"
+                    >
+                      แก้ไข
+                    </Link>
+                    <form action={approveDraftAction}>
+                      <input type="hidden" name="id" value={post.id} />
+                      <button
+                        type="submit"
+                        className="rounded-lg bg-emerald-100 px-2.5 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-200 transition"
+                      >
+                        Approve ✓
+                      </button>
+                    </form>
+                    <DeletePostButton id={post.id} title={post.title} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* DB Posts */}
         <div className="mb-10">
           <h2 className="mb-3 text-sm font-black uppercase tracking-widest text-neutral-500">
-            บทความใน DB ({dbPosts.length})
+            บทความใน DB ({publishedPosts.length})
           </h2>
 
-          {dbPosts.length === 0 ? (
+          {publishedPosts.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-neutral-300 py-12 text-center text-sm text-neutral-400">
-              ยังไม่มีบทความ — อัพโหลด .docx เพื่อเริ่มต้น
+              ยังไม่มีบทความ — อัพโหลด .docx หรือกด &quot;สร้าง Draft&quot; เพื่อเริ่มต้น
             </div>
           ) : (
             <div className="divide-y divide-neutral-100 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
-              {dbPosts.map(post => (
+              {publishedPosts.map(post => (
                 <div key={post.id} className="flex items-center gap-3 px-5 py-4">
 
                   <span className={`shrink-0 text-lg ${post.pinned ? 'text-amber-500' : 'text-neutral-200'}`}>

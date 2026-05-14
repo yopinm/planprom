@@ -500,6 +500,59 @@ Page 2: render fields แบบเปล่า (_____ แทน value)
 
 ---
 
+## Session 66 Changes (2026-05-14) — SEO-ENGINE + BLOG-EDIT
+
+| # | Change | Status |
+|---|---|---|
+| 1 | **BLOG-EDIT** — import built-in posts → DB (same slug = DB overrides static) · "แก้ไข" button → `/admin/seo/[id]/edit` · edit form (title/description/content/reading_time) · ปุ่มลบใน edit page + ใน built-in row (เฉพาะ "ใน DB แล้ว") | ✅ Live |
+| 2 | **SEO-ENGINE** — AI draft generator วันละ 1 บทความ + admin review queue | 🔄 In Progress |
+
+---
+
+## SEO-ENGINE — AI Blog Draft Generator (Session 66 · 2026-05-14)
+
+> **เป้าหมาย:** สร้าง blog post อัตโนมัติวันละ 1 บทความ โดยใช้ข้อมูล templates/checklists/planners ใน DB เป็นวัตถุดิบ → admin review → approve → published
+
+### Flow
+
+```
+Cron (วันละ 1 ครั้ง) หรือ admin trigger
+  → สุ่ม template จาก DB (published)
+  → Claude API สร้าง draft article (Markdown)
+  → INSERT blog_posts (status='pending_review', source_template_id)
+  → Admin เห็น queue ใน /admin/seo tab "รออนุมัติ"
+  → admin อ่าน แก้ไข → กด Approve → status='published'
+  → บทความโผล่ /blog + internal search
+```
+
+### Scope (MVP)
+
+| Feature | Detail |
+|---|---|
+| **DB change** | `blog_posts` เพิ่ม `source_template_id UUID NULLABLE` + status เพิ่ม `pending_review` |
+| **API route** | `POST /api/admin/seo/generate-draft` — สุ่ม template → Claude API → INSERT pending_review |
+| **Admin queue** | `/admin/seo` tab "รออนุมัติ (N)" แสดง pending posts · ปุ่ม Approve / ลบ |
+| **Approve action** | `approveDraftAction` → UPDATE status='published', published_at=NOW() |
+| **Admin trigger** | ปุ่ม "สร้าง Draft ใหม่" ใน /admin/seo (เรียก API route) |
+| **Cron (defer)** | ตั้ง cron job บน VPS หลัง core ทำงานได้ |
+
+### Files
+
+| File | Change |
+|---|---|
+| `migrations/add_pending_review.sql` | ALTER blog_posts: เพิ่ม source_template_id + pending_review status |
+| `app/api/admin/seo/generate-draft/route.ts` | NEW — สุ่ม template + Claude API + INSERT |
+| `app/admin/seo/actions.ts` | เพิ่ม `approveDraftAction` |
+| `app/admin/seo/page.tsx` | เพิ่ม tab "รออนุมัติ" + ปุ่ม "สร้าง Draft" |
+| `app/admin/seo/GenerateDraftButton.tsx` | NEW — client component เรียก API |
+
+### Frozen
+- blog-db.ts rowToPost — ไม่แตะ
+- Blog public page /blog/[slug] — ไม่แตะ
+- resolvePost() logic — ไม่แตะ
+
+---
+
 ## Session 65 Changes (2026-05-14) — PROMO-5 Pricing-Aware Promo UI
 
 | # | Change | Status |

@@ -29,11 +29,11 @@
 | **Doc Sync** | task เสร็จ → อัพเดต PRD.md + `core/planprom.md` เสมอ |
 | **Scope Gate** | ก่อนเริ่ม implement ทุก task → ต้องมี scope + flow ใน `core/planprom.md` ก่อน → commit docs → รอ owner confirm → ค่อย implement |
 | **Blockers** | Lazada pool=49 fixed · Affiliate tasks ❌ CLOSED 2026-05-13 (owner decision) |
-| **Next task** | **PROMO-5** Promo UI Refresh · **UI-H** Analytics match catalog → **RE-1** → **ADM-FALLBACK-1** → E9/E10 → J19 |
-| **Pending (code)** | **PROMO-5** 🔴 · **UI-H** 🔴 · **RE-1** · **ADM-FALLBACK-1** · J19 · E9/E10 · UI-G(defer) |
+| **Next task** | **SEO-ENGINE** 🔄 AI Draft Generator (in progress) → **ADM-FALLBACK-1** → E9/E10 → J19 |
+| **Pending (code)** | **SEO-ENGINE** 🔄 · **ADM-FALLBACK-1** 🔴 · J19 · E9/E10 · UI-G(defer) |
 | **Pending (UAT)** | **INTEL-SMART** 🟡 (พรุ่งนี้ — trend arrows ต้องรอ 1 วัน) · INTEL-C/D · DC-1 · DC-2 · DC-8 · DC-16 · E9/E10 · J9(รอ live keys) |
 | **Pending (decision)** | Homepage UX: D (social proof bar) + B (featured badge pulse) — mock ready รอ confirm |
-| **Last session** | **Session 62 (2026-05-14)** — INTEL-SMART: Dedup+Cluster (×N) · Fulfilled Tracking · Trend Score (📈/📉 พรุ่งนี้) · intel_fulfilled + intel_snapshots tables |
+| **Last session** | **Session 66 (2026-05-14)** — BLOG-EDIT: import built-in → DB + edit page + delete · SEO-ENGINE: AI draft generator (in progress) |
 | **ห้าม** | ไม่แตะ Later task ขณะที่ Now ยังค้างอยู่ · ไม่แตะ secrets โดยตรง · ไม่ทำให้ revenue channel หายไประหว่าง pivot |
 
 ---

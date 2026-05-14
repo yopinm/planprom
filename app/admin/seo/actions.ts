@@ -130,6 +130,18 @@ export async function deletePostAction(formData: FormData) {
   revalidatePath('/blog')
 }
 
+export async function approveDraftAction(formData: FormData) {
+  await requireAdminSession('/admin/seo')
+  const id = formData.get('id') as string
+  await db`
+    UPDATE blog_posts SET status = 'published', published_at = NOW(), updated_at = NOW()
+    WHERE id = ${id} AND status = 'pending_review'
+  `
+  revalidatePath('/admin/seo')
+  revalidatePath('/blog')
+  revalidatePath('/')
+}
+
 export async function importStaticPostAction(formData: FormData) {
   await requireAdminSession('/admin/seo')
   const slug = formData.get('slug') as string
