@@ -362,6 +362,16 @@ export default async function AdminMarketIntelPage() {
     return perf ?? { slug: cat.slug, name: cat.name, emoji: cat.emoji, template_count: '0', paid_orders: '0', revenue: '0' }
   })
 
+  // S2a Action: top 3 ideas per catalog จาก priorityList ทั้งหมด
+  type IdeaAction = { idea: string; engineType: string; score: number }
+  const catalogIdeaMap = new Map<string, IdeaAction[]>()
+  for (const item of priorityList) {
+    const cat = suggestCatalog(item.idea, allCategories)
+    if (!cat) continue
+    const list = catalogIdeaMap.get(cat.slug) ?? []
+    if (list.length < 3) { list.push({ idea: item.idea, engineType: item.engineType, score: item.score }); catalogIdeaMap.set(cat.slug, list) }
+  }
+
   // ── Sales ─────────────────────────────────────────────────────────────────
   const ALL_TYPES   = ['checklist', 'pipeline', 'form', 'report'] as const
   const typeMap     = new Map(byType.map(r => [r.type_group, r]))
@@ -433,46 +443,42 @@ export default async function AdminMarketIntelPage() {
           </div>
         </section>
 
-        {/* ── S2a: Catalog Performance ──────────────────────────────────────── */}
+        {/* ── S2a: Catalog Action Cards ─────────────────────────────────────── */}
         <section>
-          <h2 className="mb-1 text-xs font-black uppercase tracking-widest text-neutral-400">ผลการขายแยกตาม Catalog</h2>
-          <p className="mb-4 text-xs text-neutral-400">แต่ละหมวด: template ที่มี, ยอดขาย, รายได้</p>
+          <h2 className="mb-1 text-xs font-black uppercase tracking-widest text-neutral-400">สร้างอะไรใน Catalog นี้</h2>
+          <p className="mb-4 text-xs text-neutral-400">แต่ละ catalog: idea ที่ตลาดต้องการ · เลือกสร้างได้เลย</p>
           {displayCatalogPerf.length === 0 ? (
             <div className="rounded-2xl border border-neutral-200 bg-white px-5 py-6 text-sm text-neutral-400 text-center">— ยังไม่มีข้อมูล catalog</div>
           ) : (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {displayCatalogPerf.map(cat => {
-                const hasOrders   = Number(cat.paid_orders) > 0
-                const hasTemplate = Number(cat.template_count) > 0
-                const status = hasOrders
-                  ? { label: '🔥 ขายแล้ว',  color: 'bg-green-100 text-green-700' }
-                  : hasTemplate
-                    ? { label: '🕐 รอยอด',  color: 'bg-amber-100 text-amber-700' }
-                    : { label: '🆕 ว่างเปล่า', color: 'bg-neutral-100 text-neutral-500' }
+                const ideas = catalogIdeaMap.get(cat.slug) ?? []
                 return (
                   <div key={cat.slug} className="rounded-xl border border-neutral-200 bg-white px-4 py-4 shadow-sm">
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center gap-2 mb-3">
                       <span className="text-xl">{cat.emoji}</span>
-                      <p className="text-xs font-black text-neutral-800 leading-snug truncate">{cat.name}</p>
+                      <p className="text-xs font-black text-neutral-800 leading-snug">{cat.name}</p>
                     </div>
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-neutral-400">Templates</span>
-                        <span className="font-black text-neutral-700">{cat.template_count}</span>
+                    {ideas.length > 0 ? (
+                      <div className="space-y-2">
+                        {ideas.map(item => (
+                          <div key={item.idea} className="flex items-center gap-1.5">
+                            <span className={`shrink-0 rounded-full border px-1.5 py-0.5 text-[9px] font-black ${ENGINE_COLOR[item.engineType] ?? 'border-neutral-200 bg-neutral-50 text-neutral-600'}`}>
+                              {ENGINE_LABEL[item.engineType] ?? item.engineType}
+                            </span>
+                            <span className="min-w-0 flex-1 truncate text-[11px] text-neutral-700">{item.idea}</span>
+                            <Link
+                              href={`/admin/templates/new?title=${encodeURIComponent(item.idea)}&category=${cat.slug}&engine=${item.engineType}`}
+                              className="shrink-0 rounded-lg border border-amber-300 px-2 py-0.5 text-[9px] font-black text-amber-700 hover:bg-amber-50"
+                            >
+                              + สร้าง
+                            </Link>
+                          </div>
+                        ))}
                       </div>
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-neutral-400">Orders</span>
-                        <span className={`font-black ${hasOrders ? 'text-emerald-600' : 'text-neutral-400'}`}>{cat.paid_orders}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-neutral-400">รายได้</span>
-                        <span className={`font-black ${hasOrders ? 'text-emerald-600' : 'text-neutral-400'}`}>฿{Number(cat.revenue).toLocaleString('th-TH')}</span>
-                      </div>
-                    </div>
-                    <div className="mt-3 flex items-center justify-between">
-                      <span className={`rounded-full px-2 py-0.5 text-[9px] font-black ${status.color}`}>{status.label}</span>
-                      <Link href={`/admin/templates/new?category=${cat.slug}`} className="text-[9px] font-black text-amber-600 hover:text-amber-800">+ เพิ่ม →</Link>
-                    </div>
+                    ) : (
+                      <p className="text-[11px] text-neutral-400">— ยังไม่มี idea ที่ match</p>
+                    )}
                   </div>
                 )
               })}
