@@ -89,8 +89,8 @@ export default async function DownloadLogPage({
     LIMIT 300
   `
 
-  // Per-template stats
-  const byTemplate = await db<{
+  // Per-template stats — template_orders (direct + free)
+  const byTemplateDirect = await db<{
     title: string
     total_downloads: string
     unique_orders: string
@@ -105,8 +105,37 @@ export default async function DownloadLogPage({
       AND o.download_count > 0
       AND o.created_at >= ${start} AND o.created_at <= ${end}
     GROUP BY t.title
-    ORDER BY total_downloads DESC
   `
+
+  // Per-template stats — order_items (cart flow)
+  const byTemplateCart = await db<{
+    title: string
+    total_downloads: string
+    unique_orders: string
+  }[]>`
+    SELECT
+      t.title,
+      SUM(oi.download_count)  AS total_downloads,
+      COUNT(oi.id)            AS unique_orders
+    FROM order_items oi
+    JOIN orders o    ON o.id  = oi.order_id
+    JOIN templates t ON t.id  = oi.template_id
+    WHERE o.status = 'paid'
+      AND oi.download_count > 0
+      AND o.created_at >= ${start} AND o.created_at <= ${end}
+    GROUP BY t.title
+  `
+
+  // Merge both sources per template title
+  const byTemplateMap: Record<string, { total_downloads: number; unique_orders: number }> = {}
+  for (const r of [...byTemplateDirect, ...byTemplateCart]) {
+    if (!byTemplateMap[r.title]) byTemplateMap[r.title] = { total_downloads: 0, unique_orders: 0 }
+    byTemplateMap[r.title].total_downloads += Number(r.total_downloads)
+    byTemplateMap[r.title].unique_orders   += Number(r.unique_orders)
+  }
+  const byTemplate = Object.entries(byTemplateMap)
+    .sort((a, b) => b[1].total_downloads - a[1].total_downloads)
+    .map(([title, s]) => ({ title, total_downloads: s.total_downloads, unique_orders: s.unique_orders }))
 
   const totalDownloads = singleDownloads.reduce((s, r) => s + r.download_count, 0)
     + cartDownloads.reduce((s, r) => s + r.download_count, 0)

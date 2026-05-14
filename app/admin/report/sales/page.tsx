@@ -150,6 +150,13 @@ export default async function SalesReportPage({
     ORDER BY COALESCE(SUM(o.total_baht) FILTER (WHERE o.status = 'paid'), 0) DESC
   `.catch(() => [] as PromoRow[])
 
+  const [freeRow] = await db<{ free_count: string }[]>`
+    SELECT COUNT(*)::text AS free_count
+    FROM template_orders
+    WHERE payment_method = 'free'
+      AND created_at >= ${start} AND created_at <= ${end}
+  `.catch(() => [{ free_count: '0' }])
+
   const byEngineType = await db<TypeRow[]>`
     WITH item_share AS (
       SELECT
@@ -175,12 +182,13 @@ export default async function SalesReportPage({
 
   // ── Derived values ─────────────────────────────────────────────────────────
 
-  const totalRevenue  = Number(kpi?.revenue       ?? 0)
-  const totalOrders   = Number(kpi?.total_orders  ?? 0)
-  const paidOrders    = Number(kpi?.paid_orders   ?? 0)
-  const avgOrder      = Number(kpi?.avg_order     ?? 0)
+  const totalRevenue  = Number(kpi?.revenue        ?? 0)
+  const totalOrders   = Number(kpi?.total_orders   ?? 0)
+  const paidOrders    = Number(kpi?.paid_orders    ?? 0)
+  const avgOrder      = Number(kpi?.avg_order      ?? 0)
   const pendingOrders = Number(kpi?.pending_orders ?? 0)
-  const omiseRevenue  = Number(kpi?.omise_revenue ?? 0)
+  const omiseRevenue  = Number(kpi?.omise_revenue  ?? 0)
+  const freeCount     = Number(freeRow?.free_count ?? 0)
   // Omise PromptPay: 1.65% transaction fee + 7% VAT = 1.7655% of Omise-charged orders only
   const fee           = Math.round(omiseRevenue * 0.017655)
   const netRevenue    = totalRevenue - fee
@@ -257,6 +265,7 @@ export default async function SalesReportPage({
               { label: 'Pending',        value: String(pendingOrders),                        color: pendingOrders > 0 ? 'text-orange-500'  : 'text-neutral-300' },
               { label: 'ยอดรับจริง',    value: `฿${netRevenue.toLocaleString('th-TH')}`,    color: netRevenue > 0    ? 'text-emerald-700' : 'text-neutral-300', hint: undefined },
               { label: 'ค่าธรรมเนียม',  value: `฿${fee.toLocaleString('th-TH')}`,           color: fee > 0           ? 'text-rose-500'    : 'text-neutral-300', hint: 'PromptPay via Omise: 1.65% + VAT 7% = 1.7655%\n(คิดจากยอด paid ที่มี omise_charge_id เท่านั้น)' },
+              { label: 'ดาวน์โหลดฟรี', value: String(freeCount),                              color: freeCount > 0     ? 'text-emerald-600' : 'text-neutral-300', hint: 'จาก template tier=free ที่กด "รับฟรี" โดยตรง (ไม่ผ่าน cart)' },
             ].map(k => (
               <div key={k.label} title={k.hint} className={`rounded-2xl border border-neutral-200 bg-white px-4 py-5 text-center shadow-sm ${k.hint ? 'cursor-help' : ''}`}>
                 <p className={`text-2xl font-black ${k.color}`}>{k.value}</p>
