@@ -166,6 +166,52 @@ export async function importStaticPostAction(formData: FormData) {
   redirect(`/admin/seo/${id}/edit`)
 }
 
+export async function createBlogTemplateAction(formData: FormData) {
+  await requireAdminSession('/admin/seo')
+  const emoji = (formData.get('emoji') as string).trim() || '📝'
+  const label = (formData.get('label') as string).trim()
+  const keyword = (formData.get('keyword') as string).trim()
+  const title = (formData.get('title') as string).trim()
+  const description = (formData.get('description') as string).trim()
+  const outline = formData.get('outline') as string
+
+  await db`
+    INSERT INTO blog_templates (emoji, label, keyword, title, description, outline)
+    VALUES (${emoji}, ${label}, ${keyword}, ${title}, ${description}, ${outline})
+  `
+  revalidatePath('/admin/seo/new')
+  redirect('/admin/seo/new')
+}
+
+export async function updateBlogTemplateAction(formData: FormData) {
+  await requireAdminSession('/admin/seo')
+  const id = formData.get('id') as string
+  const emoji = (formData.get('emoji') as string).trim() || '📝'
+  const label = (formData.get('label') as string).trim()
+  const keyword = (formData.get('keyword') as string).trim()
+  const title = (formData.get('title') as string).trim()
+  const description = (formData.get('description') as string).trim()
+  const outline = formData.get('outline') as string
+
+  await db`
+    UPDATE blog_templates
+    SET emoji = ${emoji}, label = ${label}, keyword = ${keyword},
+        title = ${title}, description = ${description}, outline = ${outline},
+        updated_at = NOW()
+    WHERE id = ${id}
+  `
+  revalidatePath('/admin/seo/new')
+  redirect('/admin/seo/new')
+}
+
+export async function deleteBlogTemplateAction(formData: FormData) {
+  await requireAdminSession('/admin/seo')
+  const id = formData.get('id') as string
+  await db`DELETE FROM blog_templates WHERE id = ${id}`
+  revalidatePath('/admin/seo/new')
+  redirect('/admin/seo/new')
+}
+
 export async function createPostAction(formData: FormData) {
   await requireAdminSession('/admin/seo')
   const title = (formData.get('title') as string).trim()
