@@ -31,9 +31,9 @@
 | **Blockers** | Lazada pool=49 fixed · Affiliate tasks ❌ CLOSED 2026-05-13 (owner decision) |
 | **Next task** | **PROMO-5** Promo UI Refresh · **UI-H** Analytics match catalog → **RE-1** → **ADM-FALLBACK-1** → E9/E10 → J19 |
 | **Pending (code)** | **PROMO-5** 🔴 · **UI-H** 🔴 · **RE-1** · **ADM-FALLBACK-1** · J19 · E9/E10 · UI-G(defer) |
-| **Pending (UAT)** | INTEL-C/D · DC-1 · DC-2 · DC-8 · DC-16 · E9/E10 · J9(รอ live keys) |
+| **Pending (UAT)** | **INTEL-SMART** 🟡 (พรุ่งนี้ — trend arrows ต้องรอ 1 วัน) · INTEL-C/D · DC-1 · DC-2 · DC-8 · DC-16 · E9/E10 · J9(รอ live keys) |
 | **Pending (decision)** | Homepage UX: D (social proof bar) + B (featured badge pulse) — mock ready รอ confirm |
-| **Last session** | **Session 62 (2026-05-14)** — UI-I ✅ + INTEL-E ✅ UAT ผ่าน · fix CATALOG_KEYWORD_MAP + badge hint · ลูกค้ารีเควส tab |
+| **Last session** | **Session 62 (2026-05-14)** — INTEL-SMART: Dedup+Cluster (×N) · Fulfilled Tracking · Trend Score (📈/📉 พรุ่งนี้) · intel_fulfilled + intel_snapshots tables |
 | **ห้าม** | ไม่แตะ Later task ขณะที่ Now ยังค้างอยู่ · ไม่แตะ secrets โดยตรง · ไม่ทำให้ revenue channel หายไประหว่าง pivot |
 
 ---
@@ -201,7 +201,7 @@
 
 | Session | สถานะ |
 |---|---|
-| **Session 62 (2026-05-14) — INTEL-E UAT** | ✅ UAT ผ่าน — INTEL-E: fix CATALOG_KEYWORD_MAP (14 entries, cover all Thai DB categories) + ทีม→ทีมงาน false positive fix + badge tooltip · ลูกค้ารีเควส tab (/admin/templates) · seed 8 คำ = 120 Google Suggest queries |
+| **Session 62 (2026-05-14) — INTEL-SMART** | 🟡 Pending UAT พรุ่งนี้ — Dedup+Cluster (×N score×count) · Fulfilled Tracking (intel_fulfilled table + recordFulfilledAction) · Trend Score (intel_snapshots daily · 📈/📉 โชว์วันที่ 2+) · INTEL-E ✅ UAT ผ่าน |
 | **Session 61 (2026-05-14) — UI-I + INTEL-E** | ✅ Live — UI-I: ฿20→฿30 / ฿10→฿20 / ฿7→฿10 ครบ 10 ไฟล์ + fix stale TIER_2 bug + fix request-only unit_price bug · INTEL-E: 5 features catalog analytics + WizardClient pre-fill |
 | **J18. Cart + Volume Pricing** | ✅ UAT ผ่าน 2026-05-08 (Session 28) |
 | **DC-3. DB Sequence Order ID** | ✅ Done · Live (Session 29) |
