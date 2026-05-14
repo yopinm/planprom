@@ -6,6 +6,7 @@ import { getAllDbPosts } from '@/lib/blog-db'
 import { UploadDocx } from './UploadDocx'
 import { togglePinAction, togglePostPublishAction, importStaticPostAction } from './actions'
 import { DeletePostButton } from './DeletePostButton'
+import { DeletePostButton } from './DeletePostButton'
 
 export const metadata: Metadata = {
   title: 'Blog Manager · Admin — Planprom',
@@ -145,7 +146,8 @@ export default async function AdminSeoPage() {
           </h2>
           <div className="divide-y divide-neutral-100 overflow-hidden rounded-2xl border border-neutral-200 bg-white">
             {staticPosts.map(post => {
-              const inDb = dbPosts.some(d => d.slug === post.slug)
+              const dbMatch = dbPosts.find(d => d.slug === post.slug)
+              const inDb = !!dbMatch
               return (
                 <div key={post.slug} className="flex items-center gap-3 px-5 py-3.5">
                   <span className="shrink-0 text-base text-neutral-300">📄</span>
@@ -178,6 +180,9 @@ export default async function AdminSeoPage() {
                       แก้ไข
                     </button>
                   </form>
+                  {inDb && dbMatch && (
+                    <DeletePostButton id={dbMatch.id} title={post.title} />
+                  )}
                 </div>
               )
             })}
