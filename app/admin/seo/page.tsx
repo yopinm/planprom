@@ -6,7 +6,6 @@ import { getAllDbPosts } from '@/lib/blog-db'
 import { UploadDocx } from './UploadDocx'
 import { togglePinAction, togglePostPublishAction, importStaticPostAction, approveDraftAction } from './actions'
 import { DeletePostButton } from './DeletePostButton'
-import { GenerateDraftButton } from './GenerateDraftButton'
 
 export const metadata: Metadata = {
   title: 'Blog Manager · Admin — Planprom',
@@ -49,8 +48,7 @@ export default async function AdminSeoPage() {
             >
               ✏️ เขียนใหม่
             </Link>
-            <GenerateDraftButton />
-            <Link
+<Link
               href="/blog"
               target="_blank"
               className="rounded-xl border border-neutral-200 bg-white px-4 py-2 text-xs font-black text-neutral-600 shadow-sm hover:border-black transition"
