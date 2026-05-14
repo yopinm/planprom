@@ -767,85 +767,6 @@ export default async function AdminMarketIntelPage() {
           )}
         </section>
 
-        {/* ── S4: ครอบคลุมแค่ไหน ───────────────────────────────────────────── */}
-        <section>
-          <h2 className="mb-1 text-xs font-black uppercase tracking-widest text-neutral-400">ครอบคลุมแค่ไหน</h2>
-          <p className="mb-4 text-xs text-neutral-400">
-            จับคู่ Google Suggest → Template ใน DB · 3 ขั้น: <span className="font-bold text-indigo-600">🔍 Base</span> → <span className="font-bold text-purple-600">🔽 Drill-down</span> → <span className="font-bold text-teal-600">🔤 ก-ฮ Alphabet</span>
-          </p>
-          <div className="space-y-4">
-            {uniqueKwCards.map(kw => {
-              const rows    = coverageMap.get(kw.engineType) ?? []
-              const covered = rows.filter(r => r.match !== null).length
-              const total   = rows.length
-              const pct     = total > 0 ? Math.round((covered / total) * 100) : 0
-              return (
-                <div key={kw.engineType} className={`rounded-2xl border bg-white shadow-sm overflow-hidden ${kw.border}`}>
-                  <div className={`flex items-center justify-between px-5 py-3 border-b ${kw.border} ${kw.headerBg}`}>
-                    <span className={`font-mono font-black text-sm uppercase tracking-wider ${kw.color}`}>{ENGINE_LABEL[kw.engineType] ?? kw.engineType}</span>
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs text-neutral-500">{covered}/{total} ครอบแล้ว</span>
-                      <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-black ${pct >= 60 ? 'bg-green-100 text-green-700' : pct >= 30 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-600'}`}>
-                        {pct}% covered
-                      </span>
-                    </div>
-                  </div>
-                  {(() => {
-                    const catHits = new Map<string, { cat: CatalogRef; count: number }>()
-                    for (const row of rows.filter(r => !r.match)) {
-                      const cat = suggestCatalog(row.idea, allCategories)
-                      if (cat) catHits.set(cat.slug, { cat, count: (catHits.get(cat.slug)?.count ?? 0) + 1 })
-                    }
-                    const topCats = [...catHits.values()].sort((a, b) => b.count - a.count).slice(0, 3)
-                    if (topCats.length === 0) return null
-                    return (
-                      <div className="flex flex-wrap items-center gap-2 px-5 py-2 bg-white border-b border-neutral-50">
-                        <span className="text-[9px] font-black text-neutral-400">📂 Gap หมวด:</span>
-                        {topCats.map(({ cat, count }) => (
-                          <Link key={cat.slug}
-                            href={`/admin/templates/new?category=${cat.slug}&engine=${kw.engineType}`}
-                            className="rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-[9px] font-bold text-amber-700 hover:bg-amber-100 transition">
-                            {cat.emoji} {cat.name} ({count})
-                          </Link>
-                        ))}
-                      </div>
-                    )
-                  })()}
-                  {rows.length === 0 ? (
-                    <p className="px-5 py-4 text-xs text-neutral-400 italic">— ไม่มีข้อมูล</p>
-                  ) : (
-                    <div className="divide-y divide-neutral-50">
-                      {rows.map((row, i) => {
-                        const badge = LEVEL_BADGE[row.level]
-                        return (
-                          <div key={i} className="flex items-center gap-3 px-5 py-2.5">
-                            <span className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-black whitespace-nowrap ${badge.color}`}>{badge.label}</span>
-                            <span className="flex-1 min-w-0 text-xs text-neutral-700 truncate">{row.idea}</span>
-                            {row.match ? (
-                              <div className="shrink-0 flex items-center gap-2">
-                                <span className="text-[10px] text-emerald-600 font-bold truncate max-w-[160px]">✅ {row.match.title}</span>
-                                {row.match.orders > 0 && (
-                                  <span className="text-[9px] text-neutral-400">{row.match.orders} orders</span>
-                                )}
-                                <Link href={`/admin/templates/${row.match.id}/edit`} className="text-[9px] text-neutral-400 hover:text-black">แก้ไข →</Link>
-                              </div>
-                            ) : (
-                              <div className="shrink-0 flex items-center gap-2">
-                                <span className="text-[10px] text-orange-500 font-bold">🟠 ยังไม่มี</span>
-                                <Link href="/admin/templates/new" className="rounded-lg border border-amber-300 bg-amber-50 px-2 py-0.5 text-[9px] font-black text-amber-700 hover:bg-amber-100 transition">+ สร้าง</Link>
-                              </div>
-                            )}
-                          </div>
-                        )
-                      })}
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        </section>
-
         {/* ── S5: Market Demand (Google Suggest) ───────────────────────────── */}
         <section>
           <h2 className="mb-1 text-xs font-black uppercase tracking-widest text-neutral-400">ความต้องการตลาด (Google Suggest)</h2>
@@ -996,6 +917,85 @@ export default async function AdminMarketIntelPage() {
                 })}
               </tbody>
             </table>
+          </div>
+        </section>
+
+        {/* ── S4: ครอบคลุมแค่ไหน ───────────────────────────────────────────── */}
+        <section>
+          <h2 className="mb-1 text-xs font-black uppercase tracking-widest text-neutral-400">ครอบคลุมแค่ไหน</h2>
+          <p className="mb-4 text-xs text-neutral-400">
+            จับคู่ Google Suggest → Template ใน DB · 3 ขั้น: <span className="font-bold text-indigo-600">🔍 Base</span> → <span className="font-bold text-purple-600">🔽 Drill-down</span> → <span className="font-bold text-teal-600">🔤 ก-ฮ Alphabet</span>
+          </p>
+          <div className="space-y-4">
+            {uniqueKwCards.map(kw => {
+              const rows    = coverageMap.get(kw.engineType) ?? []
+              const covered = rows.filter(r => r.match !== null).length
+              const total   = rows.length
+              const pct     = total > 0 ? Math.round((covered / total) * 100) : 0
+              return (
+                <div key={kw.engineType} className={`rounded-2xl border bg-white shadow-sm overflow-hidden ${kw.border}`}>
+                  <div className={`flex items-center justify-between px-5 py-3 border-b ${kw.border} ${kw.headerBg}`}>
+                    <span className={`font-mono font-black text-sm uppercase tracking-wider ${kw.color}`}>{ENGINE_LABEL[kw.engineType] ?? kw.engineType}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs text-neutral-500">{covered}/{total} ครอบแล้ว</span>
+                      <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-black ${pct >= 60 ? 'bg-green-100 text-green-700' : pct >= 30 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-600'}`}>
+                        {pct}% covered
+                      </span>
+                    </div>
+                  </div>
+                  {(() => {
+                    const catHits = new Map<string, { cat: CatalogRef; count: number }>()
+                    for (const row of rows.filter(r => !r.match)) {
+                      const cat = suggestCatalog(row.idea, allCategories)
+                      if (cat) catHits.set(cat.slug, { cat, count: (catHits.get(cat.slug)?.count ?? 0) + 1 })
+                    }
+                    const topCats = [...catHits.values()].sort((a, b) => b.count - a.count).slice(0, 3)
+                    if (topCats.length === 0) return null
+                    return (
+                      <div className="flex flex-wrap items-center gap-2 px-5 py-2 bg-white border-b border-neutral-50">
+                        <span className="text-[9px] font-black text-neutral-400">📂 Gap หมวด:</span>
+                        {topCats.map(({ cat, count }) => (
+                          <Link key={cat.slug}
+                            href={`/admin/templates/new?category=${cat.slug}&engine=${kw.engineType}`}
+                            className="rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-[9px] font-bold text-amber-700 hover:bg-amber-100 transition">
+                            {cat.emoji} {cat.name} ({count})
+                          </Link>
+                        ))}
+                      </div>
+                    )
+                  })()}
+                  {rows.length === 0 ? (
+                    <p className="px-5 py-4 text-xs text-neutral-400 italic">— ไม่มีข้อมูล</p>
+                  ) : (
+                    <div className="divide-y divide-neutral-50">
+                      {rows.map((row, i) => {
+                        const badge = LEVEL_BADGE[row.level]
+                        return (
+                          <div key={i} className="flex items-center gap-3 px-5 py-2.5">
+                            <span className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-black whitespace-nowrap ${badge.color}`}>{badge.label}</span>
+                            <span className="flex-1 min-w-0 text-xs text-neutral-700 truncate">{row.idea}</span>
+                            {row.match ? (
+                              <div className="shrink-0 flex items-center gap-2">
+                                <span className="text-[10px] text-emerald-600 font-bold truncate max-w-[160px]">✅ {row.match.title}</span>
+                                {row.match.orders > 0 && (
+                                  <span className="text-[9px] text-neutral-400">{row.match.orders} orders</span>
+                                )}
+                                <Link href={`/admin/templates/${row.match.id}/edit`} className="text-[9px] text-neutral-400 hover:text-black">แก้ไข →</Link>
+                              </div>
+                            ) : (
+                              <div className="shrink-0 flex items-center gap-2">
+                                <span className="text-[10px] text-orange-500 font-bold">🟠 ยังไม่มี</span>
+                                <Link href="/admin/templates/new" className="rounded-lg border border-amber-300 bg-amber-50 px-2 py-0.5 text-[9px] font-black text-amber-700 hover:bg-amber-100 transition">+ สร้าง</Link>
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
           </div>
         </section>
 
