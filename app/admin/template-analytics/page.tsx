@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import { requireAdminSession } from '@/lib/admin-auth'
 import { db } from '@/lib/db'
 import { recordFulfilledAction } from './actions'
+import { CopyButton } from './CopyButton'
 
 export const metadata: Metadata = {
   title: 'Market Intelligence — Admin',
@@ -59,6 +60,14 @@ type CatalogPerfRow = { slug: string; name: string; emoji: string; template_coun
 type CatalogRef     = { slug: string; name: string; emoji: string }
 type FulfilledRow   = { idea_text: string; fulfilled_at: string }
 type SnapshotRow    = { idea_text: string; engine_type: string; score: number }
+type ScoreRow = {
+  id: string; title: string; slug: string
+  engine_type: string | null; tier: string; price_baht: number
+  description: string; engine_data: Record<string, unknown> | null
+  thumbnail_path: string | null; page_count: number; category_count: number
+}
+type DimResult = { name: string; max: number; score: number; issues: string[] }
+type HealthScore = { total: number; grade: '🟢' | '🟡' | '🔴'; dims: DimResult[] }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 async function fetchSuggestions(keyword: string): Promise<string[]> {
@@ -108,6 +117,52 @@ function priorityBadge(score: number): { label: string; color: string } {
   if (score >= 150) return { label: '🟠 ควรทำ',   color: 'bg-orange-100 text-orange-700' }
   if (score >= 50)  return { label: '🟡 พิจารณา', color: 'bg-amber-100 text-amber-700' }
   return              { label: '⚪ ต่ำ',          color: 'bg-neutral-100 text-neutral-500' }
+}
+
+function computeHealthScore(t: ScoreRow, priorityIdeas: string[]): HealthScore {
+  const dims: DimResult[] = []
+
+  // Dim 1: ความครบถ้วน (30)
+  let s1 = 0; const i1: string[] = []
+  if (t.thumbnail_path) s1 += 10; else i1.push('ไม่มีรูปปก')
+  if (t.description.length >= 80) s1 += 10; else i1.push(`description ${t.description.length}/80`)
+  if (t.page_count >= 2) s1 += 5; else i1.push(`หน้า ${t.page_count}/2`)
+  if (t.category_count > 0) s1 += 5; else i1.push('ไม่มี category')
+  dims.push({ name: 'ความครบถ้วน', max: 30, score: s1, issues: i1 })
+
+  // Dim 2: Engine data (30)
+  let s2 = 0; const i2: string[] = []
+  if (t.engine_data !== null && t.engine_data !== undefined) {
+    s2 += 15
+    if (Object.keys(t.engine_data).length > 0) s2 += 15; else i2.push('engine_data ว่างเปล่า')
+  } else if (!t.engine_type) {
+    s2 = 30 // upload-mode template — ผ่าน
+  } else {
+    i2.push('ไม่มี engine_data')
+  }
+  dims.push({ name: 'Engine Data', max: 30, score: s2, issues: i2 })
+
+  // Dim 3: ราคา/Payment (20)
+  let s3 = 0; const i3: string[] = []
+  if ((t.tier === 'free' && t.price_baht === 0) || (t.tier !== 'free' && t.price_baht > 0)) s3 = 20
+  else i3.push(`tier=${t.tier} แต่ price_baht=${t.price_baht} — ขัดแย้ง`)
+  dims.push({ name: 'ราคา/Payment', max: 20, score: s3, issues: i3 })
+
+  // Dim 4: Market fit (10)
+  let s4 = 0; const i4: string[] = []
+  const tl = t.title.toLowerCase()
+  if (priorityIdeas.some(idea => idea.split(/\s+/).some(w => w.length > 2 && tl.includes(w)))) s4 = 10
+  else i4.push('title ไม่ match Google Suggest demand')
+  dims.push({ name: 'Market Fit', max: 10, score: s4, issues: i4 })
+
+  // Dim 5: SEO basics (10)
+  let s5 = 0; const i5: string[] = []
+  if (t.slug.length <= 60) s5 += 5; else i5.push(`slug ยาว ${t.slug.length}/60 chars`)
+  if (t.description.length >= 80) s5 += 5; else i5.push('description < 80 chars')
+  dims.push({ name: 'SEO Basics', max: 10, score: s5, issues: i5 })
+
+  const total = s1 + s2 + s3 + s4 + s5
+  return { total, dims, grade: total >= 80 ? '🟢' : total >= 50 ? '🟡' : '🔴' }
 }
 
 function normalizeIdea(idea: string): string {
@@ -166,7 +221,7 @@ export default async function AdminMarketIntelPage() {
   await requireAdminSession('/admin/login')
 
   // ── Phase 1 (parallel) ───────────────────────────────────────────────────
-  const [baseSuggestRaw, allTemplates, kpiRow, byType, daily, ranking, gapData, alphaRaw, catalogPerf, allCategories, fulfilledRaw, yesterdaySnaps] =
+  const [baseSuggestRaw, allTemplates, kpiRow, byType, daily, ranking, gapData, alphaRaw, catalogPerf, allCategories, fulfilledRaw, yesterdaySnaps, healthRows] =
     await Promise.all([
       Promise.all(SEED_KEYWORDS.map(async kw => ({ kw, suggestions: await fetchSuggestions(kw.key) }))),
 
@@ -273,6 +328,20 @@ export default async function AdminMarketIntelPage() {
         SELECT idea_text, engine_type, score::int AS score FROM intel_snapshots
         WHERE snapshot_date = CURRENT_DATE - 1
       `.catch(() => [] as SnapshotRow[]),
+
+      db<ScoreRow[]>`
+        SELECT t.id, t.title, t.slug,
+          t.engine_type, COALESCE(t.tier, 'standard') AS tier,
+          COALESCE(t.price_baht, 0)::int AS price_baht,
+          COALESCE(t.description, '') AS description,
+          t.engine_data, t.thumbnail_path,
+          COALESCE(t.page_count, 0)::int AS page_count,
+          COUNT(tcl.category_id)::int AS category_count
+        FROM templates t
+        LEFT JOIN template_category_links tcl ON tcl.template_id = t.id
+        WHERE t.status = 'published'
+        GROUP BY t.id
+      `.catch(() => [] as ScoreRow[]),
     ])
 
   const kpi = kpiRow[0] ?? { total_revenue: '0', paid_orders: '0', pending_orders: '0', total_downloads: '0', unique_buyers: '0' }
@@ -384,6 +453,37 @@ export default async function AdminMarketIntelPage() {
       .sort((a, b) => b.score - a.score)
       .slice(0, 20)
   })()
+
+  // INTEL-SCORE: compute health scores
+  const priorityIdeas = priorityList.map(p => p.idea)
+  type ScoredTemplate = ScoreRow & { health: HealthScore }
+  const scoredTemplates: ScoredTemplate[] = healthRows
+    .map(t => ({ ...t, health: computeHealthScore(t, priorityIdeas) }))
+    .sort((a, b) => a.health.total - b.health.total)
+  const greenCount  = scoredTemplates.filter(t => t.health.grade === '🟢').length
+  const yellowCount = scoredTemplates.filter(t => t.health.grade === '🟡').length
+  const redCount    = scoredTemplates.filter(t => t.health.grade === '🔴').length
+
+  // INTEL-SEO-PANEL: SEO keyword blocks per engine type
+  type SeoItem = { targetKeyword: string; blogTitle: string; metaDesc: string; copyText: string }
+  type SeoGroup = { engineType: string; label: string; color: string; border: string; items: SeoItem[] }
+  const seoGroups: SeoGroup[] = [
+    { engineType: 'checklist', label: 'Checklist', color: 'bg-indigo-50 text-indigo-700', border: 'border-indigo-200' },
+    { engineType: 'pipeline',  label: 'Planner',   color: 'bg-purple-50 text-purple-700', border: 'border-purple-200' },
+    { engineType: 'form',      label: 'Form',       color: 'bg-teal-50 text-teal-700',     border: 'border-teal-200' },
+    { engineType: 'report',    label: 'Report',     color: 'bg-amber-50 text-amber-700',   border: 'border-amber-200' },
+  ].map(eng => {
+    const topIdeas = clusteredList.filter(item => item.engineType === eng.engineType).slice(0, 3).map(x => x.idea)
+    const kw = keywordData.find(k => k.engineType === eng.engineType)
+    const keywords = topIdeas.length > 0 ? topIdeas : (kw?.ideas ?? []).slice(0, 3)
+    const items: SeoItem[] = keywords.map(kwd => {
+      const blogTitle = `วิธีใช้ ${kwd} ให้ได้ผล · ตัวอย่างจริง + ดาวน์โหลดฟรี`
+      const metaDesc  = `${kwd} คืออะไร วิธีสร้างและใช้งานสำหรับคนไทย พร้อมตัวอย่างจริง ดาวน์โหลด ${eng.label} template ได้เลย`
+      const copyText  = `🎯 Target: ${kwd}\n📝 Title: ${blogTitle}\n📄 Meta: ${metaDesc}`
+      return { targetKeyword: kwd, blogTitle, metaDesc, copyText }
+    })
+    return { ...eng, items }
+  })
 
   // Save daily snapshot on first page visit of the day (ONCE per day)
   const todayCount = await db<{ n: string }[]>`
@@ -812,6 +912,48 @@ export default async function AdminMarketIntelPage() {
           </div>
         </section>
 
+        {/* ── S5.5: INTEL-SEO-PANEL ────────────────────────────────────────── */}
+        <section>
+          <h2 className="mb-1 text-xs font-black uppercase tracking-widest text-neutral-400">SEO Keyword Panel</h2>
+          <p className="mb-4 text-xs text-neutral-400">
+            Keyword demand จาก Google Suggest · copy ออกไปกรอก{' '}
+            <Link href="/admin/seo/new" className="text-indigo-500 hover:underline">/admin/seo/new</Link> ได้เลย
+          </p>
+          <div className="space-y-4">
+            {seoGroups.map(grp => grp.items.length === 0 ? null : (
+              <div key={grp.engineType} className={`rounded-2xl border bg-white shadow-sm overflow-hidden ${grp.border}`}>
+                <div className={`px-5 py-3 border-b ${grp.color} ${grp.border} flex items-center gap-2`}>
+                  <span className="font-mono font-black text-sm uppercase tracking-wider">{grp.label}</span>
+                  <span className="ml-1 text-[10px] opacity-60">{grp.items.length} keyword suggestions</span>
+                </div>
+                <div className="divide-y divide-neutral-50">
+                  {grp.items.map((item, i) => (
+                    <div key={i} className="px-5 py-4">
+                      <div className="flex items-start justify-between gap-3 mb-3">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[10px] font-black uppercase tracking-wider text-neutral-400 mb-0.5">Target Keyword</p>
+                          <p className="text-sm font-black text-neutral-900">{item.targetKeyword}</p>
+                        </div>
+                        <CopyButton text={item.copyText} />
+                      </div>
+                      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-wider text-neutral-400 mb-0.5">Blog Title</p>
+                          <p className="text-xs text-neutral-700 leading-snug">{item.blogTitle}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-wider text-neutral-400 mb-0.5">Meta Description</p>
+                          <p className="text-xs text-neutral-500 leading-snug">{item.metaDesc}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
         {/* ── S6: Market Gap Matrix ────────────────────────────────────────── */}
         <section>
           <h2 className="mb-1 text-xs font-black uppercase tracking-widest text-neutral-400">Market Gap Matrix</h2>
@@ -930,6 +1072,79 @@ export default async function AdminMarketIntelPage() {
             </div>
           )}
         </section>
+
+        {/* ── S9: INTEL-SCORE Template Health Check ────────────────────────── */}
+        {scoredTemplates.length > 0 && (
+          <section>
+            <div className="flex items-center justify-between mb-1">
+              <h2 className="text-xs font-black uppercase tracking-widest text-neutral-400">Template Health Check</h2>
+              <div className="flex items-center gap-1.5">
+                {redCount    > 0 && <span className="rounded-full bg-red-100    px-2.5 py-0.5 text-[10px] font-black text-red-600">🔴 {redCount}</span>}
+                {yellowCount > 0 && <span className="rounded-full bg-amber-100  px-2.5 py-0.5 text-[10px] font-black text-amber-600">🟡 {yellowCount}</span>}
+                {greenCount  > 0 && <span className="rounded-full bg-green-100  px-2.5 py-0.5 text-[10px] font-black text-green-600">🟢 {greenCount}</span>}
+              </div>
+            </div>
+            <p className="mb-4 text-xs text-neutral-400">คะแนน 5 มิติ รวม 100 · 🟢≥80 · 🟡50-79 · 🔴&lt;50 · เรียงจากต่ำ→สูง · คลิกแถวเพื่อดู breakdown</p>
+            <div className="rounded-2xl border border-neutral-200 bg-white shadow-sm divide-y divide-neutral-50">
+              {scoredTemplates.map(t => {
+                const topIssue      = t.health.dims.find(d => d.issues.length > 0)?.issues[0]
+                const barColor      = t.health.grade === '🟢' ? 'bg-green-400' : t.health.grade === '🟡' ? 'bg-amber-400' : 'bg-red-400'
+                const topFailing    = [...t.health.dims].filter(d => d.issues.length > 0).sort((a, b) => (b.max - b.score) - (a.max - a.score))[0]
+                const potentialGain = topFailing ? topFailing.max - topFailing.score : 0
+                return (
+                  <details key={t.id} className="group">
+                    <summary className="flex cursor-pointer list-none items-center gap-3 px-5 py-3 hover:bg-neutral-50 select-none">
+                      <span className="shrink-0 text-base leading-none">{t.health.grade}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-neutral-800 truncate">{t.title}</p>
+                        <div className="mt-1 flex items-center gap-2">
+                          <div className="h-1 w-20 rounded-full bg-neutral-100">
+                            <div className={`h-1 rounded-full ${barColor}`} style={{ width: `${t.health.total}%` }} />
+                          </div>
+                          <span className="text-[10px] font-mono text-neutral-400">{t.health.total}/100</span>
+                          {topIssue && <span className="text-[10px] text-orange-500 truncate max-w-[180px]">⚠ {topIssue}</span>}
+                        </div>
+                      </div>
+                      <Link
+                        href={`/admin/templates/${t.id}/edit`}
+                        onClick={e => e.stopPropagation()}
+                        className="shrink-0 rounded-xl border border-neutral-200 px-3 py-1.5 text-[9px] font-black text-neutral-500 hover:border-indigo-400 hover:text-indigo-600 transition"
+                      >
+                        แก้ไข
+                      </Link>
+                    </summary>
+                    <div className="border-t border-neutral-50 px-5 py-4 bg-neutral-50/80">
+                      <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+                        {t.health.dims.map(dim => (
+                          <div key={dim.name} className="rounded-xl border border-neutral-200 bg-white px-3 py-3">
+                            <p className="text-[9px] font-black uppercase tracking-wider text-neutral-400">{dim.name}</p>
+                            <p className={`mt-1 text-xl font-black ${dim.score >= dim.max ? 'text-green-600' : dim.score >= dim.max * 0.5 ? 'text-amber-600' : 'text-red-500'}`}>
+                              {dim.score}<span className="text-[10px] font-normal text-neutral-400">/{dim.max}</span>
+                            </p>
+                            {dim.issues.length > 0 ? (
+                              <ul className="mt-1.5 space-y-0.5">
+                                {dim.issues.map((iss, j) => (
+                                  <li key={j} className="text-[9px] text-orange-500 leading-snug">⚠ {iss}</li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <p className="mt-1 text-[9px] text-green-500">✅ ผ่าน</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      {topFailing && t.health.total < 100 && (
+                        <p className="mt-3 text-[10px] font-bold text-indigo-600">
+                          💡 แก้ {topFailing.name} ก่อน → score ~{Math.min(100, t.health.total + potentialGain)} pts
+                        </p>
+                      )}
+                    </div>
+                  </details>
+                )
+              })}
+            </div>
+          </section>
+        )}
 
       </div>
     </main>
