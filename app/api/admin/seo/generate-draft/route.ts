@@ -1,10 +1,26 @@
 import { NextResponse } from 'next/server'
 import { requireAdminSession } from '@/lib/admin-auth'
 import { db } from '@/lib/db'
-import { GoogleGenAI } from '@google/genai'
+
+const GEMINI_MODEL = 'gemini-1.5-flash'
 
 function slugify(text: string): string {
   return text.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^ก-๿a-z0-9-]/g, '').replace(/-+/g, '-').slice(0, 80)
+}
+
+async function callGemini(prompt: string, apiKey: string): Promise<string> {
+  const url = `https://generativelanguage.googleapis.com/v1/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+  })
+  const json = await res.json() as {
+    candidates?: { content?: { parts?: { text?: string }[] } }[]
+    error?: { message: string }
+  }
+  if (!res.ok || json.error) throw new Error(json.error?.message ?? `HTTP ${res.status}`)
+  return json.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
 }
 
 export async function POST() {
@@ -57,13 +73,7 @@ export async function POST() {
 
 ตอบเฉพาะเนื้อหาบทความในรูปแบบ Markdown เท่านั้น ไม่ต้องมีคำอธิบายเพิ่มเติม`
 
-  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
-  const result = await ai.models.generateContent({
-    model: 'gemini-1.5-flash',
-    contents: prompt,
-  })
-
-  const content = result.text ?? ''
+  const content = await callGemini(prompt, process.env.GEMINI_API_KEY)
   if (!content.trim()) {
     return NextResponse.json({ error: 'AI ไม่ได้ส่งเนื้อหากลับมา' }, { status: 500 })
   }
