@@ -6,7 +6,6 @@ import { getAllDbPosts } from '@/lib/blog-db'
 import { UploadDocx } from './UploadDocx'
 import { togglePinAction, togglePostPublishAction, importStaticPostAction } from './actions'
 import { DeletePostButton } from './DeletePostButton'
-import { DeletePostButton } from './DeletePostButton'
 
 export const metadata: Metadata = {
   title: 'Blog Manager · Admin — Planprom',
