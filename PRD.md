@@ -29,8 +29,8 @@
 | **Doc Sync** | task เสร็จ → อัพเดต PRD.md + `core/planprom.md` เสมอ |
 | **Scope Gate** | ก่อนเริ่ม implement ทุก task → ต้องมี scope + flow ใน `core/planprom.md` ก่อน → commit docs → รอ owner confirm → ค่อย implement |
 | **Blockers** | Lazada pool=49 fixed · Affiliate tasks ❌ CLOSED 2026-05-13 (owner decision) |
-| **Next task** | **UI-I** Pricing Restructure ฿30/฿20/฿10 → **UI-H** Analytics match catalog → RE-1 → ADM-FALLBACK-1 → E9/E10 → J19 |
-| **Pending (code)** | **UI-I** 🔴 · **UI-H** 🔴 · **RE-1** · **ADM-FALLBACK-1** · J19 · E9/E10 · UI-G(defer) |
+| **Next task** | **UI-I** Pricing Restructure ฿30/฿20/฿10 → **PROMO-5** Promo UI Refresh → **UI-H** Analytics match catalog → **INTEL-E** Catalog-Matched Analytics → RE-1 → ADM-FALLBACK-1 → E9/E10 → J19 |
+| **Pending (code)** | **UI-I** 🔴 · **PROMO-5** 🔴 (หลัง UI-I) · **UI-H** 🔴 · **INTEL-E** 🔲 (หลัง INTEL-C/D UAT) · **RE-1** · **ADM-FALLBACK-1** · J19 · E9/E10 · UI-G(defer) |
 | **Pending (UAT)** | INTEL-C/D · DC-1 · DC-2 · DC-8 · DC-16 · E9/E10 · J9(รอ live keys) |
 | **Pending (decision)** | Homepage UX: D (social proof bar) + B (featured badge pulse) — mock ready รอ confirm |
 | **Last session** | **Session 60 (2026-05-13)** — EF-8 ✅ ปิดสมบูรณ์ · multi-page carousel (2 pages) · fix preview_pages ::jsonb · fix preview API regex · viewport 3200→792 (blank pages แก้แล้ว) · DB migration report row |
@@ -451,11 +451,11 @@
 |---|---|
 | Lazada products | ✅ ใช้ LiteApp Affiliate API (adsense.lazada.co.th) — active cron `0 */8 * * *` · 34 products · volume จำกัดตาม feed API (ไม่เกี่ยวกับ Open API / approval) |
 | Involve Asia properties | ✅ **APPROVED 2026-05-02** — Affiliate ID 1082367 · Approved: Tech/Home/Beauty |
-| AT Datafeed API | ⏳ รอ reply AT Support TH |
-| IndexNow Key | ⏳ Owner ต้องตั้งใน VPS `.env.local` |
+| AT Datafeed API | ❌ **CLOSED 2026-05-14** — ไม่เกี่ยวกับ Template system · affiliate tasks closed |
+| IndexNow Key | ❌ **CLOSED 2026-05-14** — ไม่เกี่ยวกับ Template system |
 | UptimeRobot Dashboard | ⏳ Owner setup remains |
 | FB Graph API posting | ⏳ ตั้ง `FB_DISABLE_GRAPH_API_POSTING=false` เมื่อพร้อม |
-| **Shopee Affiliate Open API** | ⏳ Submitted 2026-05-05 · ETA 7 วันทำการ (2026-05-14) · รอ reply ที่ partner@couponkum.com |
+| **Shopee Affiliate Open API** | ❌ **CLOSED 2026-05-14** — ไม่เกี่ยวกับ Template system · affiliate tasks closed |
 
 ---
 
