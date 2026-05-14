@@ -115,6 +115,15 @@ export function SystemLogClient({ data }: { data: SystemLogData }) {
     ...data.ngxErr.filter(isError),
   ]
 
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set())
+  function toggleCard(title: string) {
+    setExpandedCards(prev => {
+      const next = new Set(prev)
+      next.has(title) ? next.delete(title) : next.add(title)
+      return next
+    })
+  }
+
   // Build alert cards
   type AlertLevel = 'error' | 'warning' | 'info' | 'ok'
   interface Alert {
@@ -122,6 +131,7 @@ export function SystemLogClient({ data }: { data: SystemLogData }) {
     icon: string
     title: string
     desc: string
+    detail?: { trigger: string; meaning: string; fix: string }
     action?: { label: string; onClick?: () => void; href?: string }
   }
   const alerts: Alert[] = []
@@ -132,6 +142,11 @@ export function SystemLogClient({ data }: { data: SystemLogData }) {
       icon: '🔴',
       title: 'พบ 5xx Error',
       desc: `Nginx มี ${data.ngxAccSummary.status_5xx} รายการ — อาจมีปัญหา upstream`,
+      detail: {
+        trigger: `Nginx Access log มี HTTP 5xx ≥ 1 รายการในช่วงเวลาที่เลือก (ตอนนี้: ${data.ngxAccSummary.status_5xx})`,
+        meaning: 'Server ตอบ error ให้ผู้เข้าชม — อาจเกิดจาก PM2 crash, DB หลุด, หรือ memory ล้น',
+        fix: 'ดู tab "Nginx Error" → หา upstream fail → ถ้า PM2 crash ให้ restart · ถ้า DB หลุดให้ check connection string',
+      },
       action: { label: 'ดู Nginx Error', onClick: () => setTab('nginx-error') },
     })
   }
@@ -141,6 +156,11 @@ export function SystemLogClient({ data }: { data: SystemLogData }) {
       icon: '⚠️',
       title: 'พบ Error ใน Log',
       desc: `Error Digest มี ${errorDigest.length} บรรทัด จาก PM2 + Nginx`,
+      detail: {
+        trigger: `พบคำว่า error / warn / fail / crash / unhandled ใน PM2 stdout, PM2 stderr, หรือ Nginx error (ตอนนี้: ${errorDigest.length} บรรทัด)`,
+        meaning: 'อาจมี exception ที่ไม่ถูก handle, API ล้มเหลว, หรือ dependency ผิดพลาด',
+        fix: 'ดู tab "Error Digest" → ระบุ error ที่ซ้ำมากที่สุด → แก้ต้นเหตุ → restart PM2 แล้ว refresh',
+      },
       action: { label: 'ดู Error Digest', onClick: () => setTab('error-digest') },
     })
   }
@@ -150,6 +170,11 @@ export function SystemLogClient({ data }: { data: SystemLogData }) {
       icon: '🟠',
       title: '4xx สูงผิดปกติ',
       desc: `Nginx มี ${data.ngxAccSummary.status_4xx} รายการ — มี broken link หรือ path ผิด`,
+      detail: {
+        trigger: `Nginx Access log มี HTTP 4xx > 10 รายการ (ตอนนี้: ${data.ngxAccSummary.status_4xx})`,
+        meaning: 'มี path ที่ถูกเรียกแต่ไม่มีอยู่ — อาจเป็น broken link, bot scan, หรือ path เปลี่ยนหลัง deploy',
+        fix: 'ดู tab "Nginx Access" → Top 10 Paths → หา path ที่ 404 มากที่สุด → เพิ่ม redirect หรือแก้ลิงก์',
+      },
       action: { label: 'ดู Nginx Access', onClick: () => setTab('nginx-access') },
     })
   }
@@ -159,6 +184,11 @@ export function SystemLogClient({ data }: { data: SystemLogData }) {
       icon: '📋',
       title: 'ยังไม่มีเทมเพลต',
       desc: 'ยังไม่มี template ที่ publish — ลูกค้ายังซื้อไม่ได้',
+      detail: {
+        trigger: 'จำนวน template ที่มี status = "published" เป็น 0',
+        meaning: 'หน้า catalog และ store จะว่างเปล่า ลูกค้าไม่สามารถซื้อได้',
+        fix: 'ไปที่ Admin → Templates → เพิ่มเทมเพลตใหม่ หรือ publish template ที่อยู่ใน draft',
+      },
       action: { label: '+ เพิ่มเทมเพลต', href: '/admin/templates/new' },
     })
   }
@@ -168,6 +198,11 @@ export function SystemLogClient({ data }: { data: SystemLogData }) {
       icon: '🛒',
       title: 'มีตะกร้าค้างอยู่',
       desc: `${data.cartStats.active_carts} ตะกร้า · ${data.cartStats.total_cart_items} รายการ — ลูกค้ากำลังเรียกดู`,
+      detail: {
+        trigger: `มี cart ที่ expires_at > NOW() และมี cart_items อย่างน้อย 1 รายการ (ตอนนี้: ${data.cartStats.active_carts} ตะกร้า)`,
+        meaning: 'ลูกค้ากำลังอยู่ในขั้นตอนซื้อ ตะกร้าจะหมดอายุเองตาม TTL ที่ตั้งไว้',
+        fix: 'ปกติไม่ต้องทำอะไร — ถ้า cart ค้างนานผิดปกติ ตรวจสอบ TTL ใน DB หรือ payment flow',
+      },
     })
   }
   if (alerts.length === 0) {
@@ -176,6 +211,11 @@ export function SystemLogClient({ data }: { data: SystemLogData }) {
       icon: '✅',
       title: 'ระบบทำงานปกติ',
       desc: 'ไม่พบ 5xx · ไม่มี error ใน log · มี template live แล้ว',
+      detail: {
+        trigger: 'ไม่มีเงื่อนไขใดใน 4 การ์ดด้านบนที่เป็นจริง',
+        meaning: 'Nginx ไม่มี 5xx, log ไม่มี error keyword, มี template published, ไม่มีตะกร้าค้าง',
+        fix: 'ไม่ต้องดำเนินการใดๆ — ตรวจสอบ analytics เพื่อติดตาม conversion',
+      },
     })
   }
 
@@ -225,26 +265,61 @@ export function SystemLogClient({ data }: { data: SystemLogData }) {
         <div className="mb-5">
           <p className="text-[10px] font-black uppercase tracking-wider text-neutral-400 mb-2">สถานะระบบ</p>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {alerts.map(a => (
-              <div key={a.title} className={`rounded-2xl border p-4 ${alertStyle[a.level]}`}>
-                <div className="flex items-start gap-2 mb-2">
-                  <span className="text-base leading-none mt-0.5">{a.icon}</span>
-                  <p className="text-sm font-black text-neutral-900 leading-snug">{a.title}</p>
+            {alerts.map(a => {
+              const isExpanded = expandedCards.has(a.title)
+              return (
+                <div key={a.title} className={`rounded-2xl border ${alertStyle[a.level]}`}>
+                  {/* Card header — clickable */}
+                  <button
+                    onClick={() => toggleCard(a.title)}
+                    className="w-full p-4 text-left"
+                  >
+                    <div className="flex items-start gap-2 mb-2">
+                      <span className="text-base leading-none mt-0.5">{a.icon}</span>
+                      <p className="flex-1 text-sm font-black text-neutral-900 leading-snug">{a.title}</p>
+                      {a.detail && (
+                        <span className="text-[10px] text-neutral-400 mt-0.5 shrink-0">
+                          {isExpanded ? '▲' : '▼'}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-neutral-600 leading-relaxed">{a.desc}</p>
+                  </button>
+
+                  {/* Expandable detail */}
+                  {a.detail && isExpanded && (
+                    <div className="mx-4 mb-4 rounded-xl bg-white/60 border border-white/80 px-3 py-3 space-y-2">
+                      {[
+                        { label: 'เงื่อนไข', value: a.detail.trigger },
+                        { label: 'ความหมาย', value: a.detail.meaning },
+                        { label: 'วิธีแก้', value: a.detail.fix },
+                      ].map(row => (
+                        <div key={row.label}>
+                          <p className="text-[9px] font-black uppercase tracking-wider text-neutral-400 mb-0.5">{row.label}</p>
+                          <p className="text-[11px] text-neutral-700 leading-relaxed">{row.value}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Action button */}
+                  {a.action && (
+                    <div className="px-4 pb-4">
+                      {a.action.href
+                        ? <Link href={a.action.href}
+                            className={`inline-block rounded-xl px-3 py-1.5 text-[11px] font-black transition ${alertBtn[a.level]}`}>
+                            {a.action.label}
+                          </Link>
+                        : <button onClick={a.action.onClick}
+                            className={`rounded-xl px-3 py-1.5 text-[11px] font-black transition ${alertBtn[a.level]}`}>
+                            {a.action.label}
+                          </button>
+                      }
+                    </div>
+                  )}
                 </div>
-                <p className="text-xs text-neutral-600 leading-relaxed mb-3">{a.desc}</p>
-                {a.action && (
-                  a.action.href
-                    ? <Link href={a.action.href}
-                        className={`inline-block rounded-xl px-3 py-1.5 text-[11px] font-black transition ${alertBtn[a.level]}`}>
-                        {a.action.label}
-                      </Link>
-                    : <button onClick={a.action.onClick}
-                        className={`rounded-xl px-3 py-1.5 text-[11px] font-black transition ${alertBtn[a.level]}`}>
-                        {a.action.label}
-                      </button>
-                )}
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
 
