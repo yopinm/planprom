@@ -9,7 +9,7 @@
 
 | Item | Value |
 |---|---|
-| **Slogan** | **"เช็คทุกขั้น แพลนทุกวัน ง่ายทุกงานวางแผน"** |
+| **Slogan** | **"เช็คทุกขั้น แพลนทุกวัน ใช้ได้ทุกงาน"** |
 | **Niche** | Section 1 = Digital Template Store (PDF planner/checklist) @ `/` · Section 2 = Coupon Affiliate @ `/affiliate` (แยก route โดยสมบูรณ์ — ไม่ mix กับ template) |
 | **Monetization** | ทุกช่องทางรายได้ยังเปิดเต็มที่ — affiliate commission ทุก network, sub-ID tracking, future ad slot, future cashback rebate, future drop shipping (Year 2) — ดู Blueprint Part E "Break-Even ROI Roadmap" |
 | **Architecture Decision (2026-05-08)** | **Coupon/Wallet/Affiliate ทั้งระบบจะแยกไปอยู่ `/affiliate` route** — ไม่เกี่ยวข้องกับ template pages (/templates, /cart, /checkout, /order) เลย · งานใหม่ที่เกี่ยวกับ coupon → วางใต้ /affiliate เสมอ |
@@ -53,7 +53,7 @@
 | Item | Value |
 |---|---|
 | Product | planprom.com |
-| Slogan | **เช็คทุกขั้น แพลนทุกวัน ง่ายทุกงานวางแผน** |
+| Slogan | **เช็คทุกขั้น แพลนทุกวัน ใช้ได้ทุกงาน** |
 | Mode | **Post-Launch / V15 Template + Coupon** |
 | Production | **Live since 2026-05-01** — VPS + PM2 (fork mode) + Nginx + Cloudflare Full (Strict) |
 | Goal now | V15 Template Store — publish templates, DC-8 revision system, UAT pending tasks |

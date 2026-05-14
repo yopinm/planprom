@@ -39,7 +39,7 @@ export default async function LoginPage({ searchParams }: Props) {
               แพลนพร้อม
             </span>
           </Link>
-          <p className="text-sm font-bold text-orange-600">เช็คทุกขั้น แพลนทุกวัน ง่ายทุกงานวางแผน</p>
+          <p className="text-sm font-bold text-orange-600">เช็คทุกขั้น แพลนทุกวัน ใช้ได้ทุกงาน</p>
         </div>
 
         <div className="text-center mb-8">

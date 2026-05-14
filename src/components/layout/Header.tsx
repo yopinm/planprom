@@ -60,7 +60,7 @@ export function Header(): ReactElement {
             </span>
           </Link>
           <span className="hidden flex-1 text-3xl font-semibold leading-none text-neutral-600 sm:block">
-            เช็คทุกขั้น แพลนทุกวัน ง่ายทุกงานวางแผน
+            เช็คทุกขั้น แพลนทุกวัน ใช้ได้ทุกงาน
           </span>
         </div>
       </div>
