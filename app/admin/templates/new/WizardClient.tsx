@@ -53,9 +53,12 @@ function suggestTags(tier: string): ValidTag[] {
 interface Props {
   categories: Category[]
   cloneSources: CloneSource[]
+  initialTitle?: string
+  initialCatSlug?: string
+  initialMode?: Mode
 }
 
-export function WizardClient({ categories, cloneSources }: Props) {
+export function WizardClient({ categories, cloneSources, initialTitle, initialCatSlug, initialMode }: Props) {
   const router   = useRouter()
   const [pending, startTransition] = useTransition()
 
@@ -65,11 +68,13 @@ export function WizardClient({ categories, cloneSources }: Props) {
   const titleRef     = useRef('')
   const slugTouchedRef = useRef(false)
 
-  const [step,            setStep]           = useState<number>(1)
-  const [mode,            setMode]           = useState<Mode | null>(null)
-  const [catSlug,         setCatSlug]        = useState('')
-  const [title,           setTitle]          = useState('')
-  const [slug,            setSlug]           = useState('')
+  const initStep = initialMode && initialCatSlug && initialTitle ? 3 : initialMode && initialCatSlug ? 3 : initialMode ? 2 : 1
+
+  const [step,            setStep]           = useState<number>(initStep)
+  const [mode,            setMode]           = useState<Mode | null>(initialMode ?? null)
+  const [catSlug,         setCatSlug]        = useState(initialCatSlug ?? '')
+  const [title,           setTitle]          = useState(initialTitle ?? '')
+  const [slug,            setSlug]           = useState(initialTitle ? autoSlug(initialTitle) : '')
   const [slugTouched,     setSlugTouched]    = useState(false)
   const [desc,            setDesc]           = useState('')
   const [pdfPath,         setPdfPath]        = useState('')

@@ -54,6 +54,8 @@ type TypeRow = { type_group: string; orders: string; paid: string; revenue: stri
 type DailyRow = { day: string; orders: string; revenue: string }
 type RankRow  = { id: string; title: string; slug: string; engine_type: string; price_baht: number; status: string; orders: string; revenue: string; downloads: string }
 type GapRow   = { engine_type: string; template_count: string; total_orders: string }
+type CatalogPerfRow = { slug: string; name: string; emoji: string; template_count: string; paid_orders: string; revenue: string }
+type CatalogRef = { slug: string; name: string; emoji: string }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 async function fetchSuggestions(keyword: string): Promise<string[]> {
@@ -105,6 +107,32 @@ function priorityBadge(score: number): { label: string; color: string } {
   return              { label: '⚪ ต่ำ',          color: 'bg-neutral-100 text-neutral-500' }
 }
 
+const CATALOG_KEYWORD_MAP: Array<{ pattern: RegExp; slugFragment: string }> = [
+  { pattern: /เที่ยว|ท่องเที่ยว|ต่างประเทศ|บิน|สนามบิน|โรงแรม|ทริป/, slugFragment: 'travel' },
+  { pattern: /ร้าน|ธุรกิจ|ขาย|invoice|บริษัท|ลูกค้า|ใบเสนอ|ใบส่ง/, slugFragment: 'business' },
+  { pattern: /ราชการ|หน่วยงาน|ว่างงาน|ปฏิบัติงาน|ลา|มอบอำนาจ/, slugFragment: 'gov' },
+  { pattern: /โครงการ|ก่อสร้าง|milestone|งบโครงการ/, slugFragment: 'project' },
+  { pattern: /นักเรียน|มหา|สอบ|เรียน|วิชา|semester|วิทยาลัย/, slugFragment: 'edu' },
+  { pattern: /งานแต่ง|งานบวช|อีเวนต์|event|งานเลี้ยง/, slugFragment: 'event' },
+  { pattern: /สุขภาพ|ออกกำลัง|ไดเอท|ยา|คลินิก|หมอ/, slugFragment: 'health' },
+  { pattern: /ค่าใช้จ่าย|งบประมาณ|เงิน|ออม|budget/, slugFragment: 'finance' },
+  { pattern: /บ้าน|ห้อง|ซ่อม|ตกแต่ง/, slugFragment: 'home' },
+  { pattern: /พนักงาน|HR|สัมภาษณ์|ประเมิน|ทีม/, slugFragment: 'hr' },
+]
+
+function suggestCatalog(idea: string, catalogs: CatalogRef[]): CatalogRef | null {
+  for (const { pattern, slugFragment } of CATALOG_KEYWORD_MAP) {
+    if (pattern.test(idea)) {
+      const found = catalogs.find(c => c.slug.includes(slugFragment) || c.name.includes(slugFragment))
+      if (found) return found
+    }
+  }
+  for (const cat of catalogs) {
+    if (cat.name.length > 1 && idea.includes(cat.name)) return cat
+  }
+  return null
+}
+
 const ENGINE_LABEL: Record<string, string> = { checklist: 'Checklist', pipeline: 'Planner', planner: 'Planner', form: 'Form', report: 'Report' }
 const ENGINE_COLOR: Record<string, string> = {
   checklist: 'border-indigo-200 bg-indigo-50 text-indigo-900',
@@ -119,7 +147,7 @@ export default async function AdminMarketIntelPage() {
   await requireAdminSession('/admin/login')
 
   // ── Phase 1 (parallel) ───────────────────────────────────────────────────
-  const [baseSuggestRaw, allTemplates, kpiRow, byType, daily, ranking, gapData, alphaRaw] =
+  const [baseSuggestRaw, allTemplates, kpiRow, byType, daily, ranking, gapData, alphaRaw, catalogPerf, allCategories] =
     await Promise.all([
       Promise.all(SEED_KEYWORDS.map(async kw => ({ kw, suggestions: await fetchSuggestions(kw.key) }))),
 
@@ -197,6 +225,24 @@ export default async function AdminMarketIntelPage() {
           }))
         )
       ),
+
+      db<CatalogPerfRow[]>`
+        SELECT tc.slug, tc.name, tc.emoji,
+          COUNT(DISTINCT t.id)::text AS template_count,
+          COUNT(DISTINCT oi.order_id) FILTER (WHERE o.status = 'paid')::text AS paid_orders,
+          COALESCE(SUM(o.total_baht::numeric / NULLIF((SELECT COUNT(*) FROM order_items x WHERE x.order_id = o.id)::numeric, 0)) FILTER (WHERE o.status = 'paid'), 0)::text AS revenue
+        FROM template_categories tc
+        LEFT JOIN template_category_links tcl ON tcl.category_id = tc.id
+        LEFT JOIN templates t ON t.id = tcl.template_id AND t.status = 'published'
+        LEFT JOIN order_items oi ON oi.template_id = t.id
+        LEFT JOIN orders o ON o.id = oi.order_id
+        GROUP BY tc.id, tc.slug, tc.name, tc.emoji
+        ORDER BY paid_orders::int DESC, template_count::int DESC
+      `.catch(() => [] as CatalogPerfRow[]),
+
+      db<CatalogRef[]>`
+        SELECT slug, name, emoji FROM template_categories ORDER BY sort_order, name
+      `.catch(() => [] as CatalogRef[]),
     ])
 
   const kpi = kpiRow[0] ?? { total_revenue: '0', paid_orders: '0', pending_orders: '0', total_downloads: '0', unique_buyers: '0' }
@@ -283,6 +329,32 @@ export default async function AdminMarketIntelPage() {
     }
   }
   const topBuildNext = priorityList.sort((a, b) => b.score - a.score).slice(0, 20)
+  const topBuildNextWithCatalog = topBuildNext.map(item => ({
+    ...item,
+    catalog: suggestCatalog(item.idea, allCategories),
+  }))
+
+  // ── Catalog demand heatmap ────────────────────────────────────────────────
+  const catalogDemandMap = new Map<string, { slug: string; name: string; emoji: string; demand: number; covered: number }>()
+  for (const cat of allCategories) {
+    catalogDemandMap.set(cat.slug, { ...cat, demand: 0, covered: 0 })
+  }
+  for (const item of priorityList) {
+    const cat = suggestCatalog(item.idea, allCategories)
+    if (cat && catalogDemandMap.has(cat.slug)) catalogDemandMap.get(cat.slug)!.demand++
+  }
+  for (const rows of coverageMap.values()) {
+    for (const row of rows) {
+      if (row.match) {
+        const cat = suggestCatalog(row.idea, allCategories)
+        if (cat && catalogDemandMap.has(cat.slug)) catalogDemandMap.get(cat.slug)!.covered++
+      }
+    }
+  }
+  const catalogDemandList = [...catalogDemandMap.values()]
+    .filter(c => c.demand + c.covered > 0)
+    .sort((a, b) => b.demand - a.demand)
+  const catPerfMap = new Map(catalogPerf.map(c => [c.slug, c]))
 
   // ── Sales ─────────────────────────────────────────────────────────────────
   const ALL_TYPES   = ['checklist', 'pipeline', 'form', 'report'] as const
@@ -355,6 +427,87 @@ export default async function AdminMarketIntelPage() {
           </div>
         </section>
 
+        {/* ── S2a: Catalog Performance ──────────────────────────────────────── */}
+        <section>
+          <h2 className="mb-1 text-xs font-black uppercase tracking-widest text-neutral-400">ผลการขายแยกตาม Catalog</h2>
+          <p className="mb-4 text-xs text-neutral-400">แต่ละหมวด: template ที่มี, ยอดขาย, รายได้</p>
+          {catalogPerf.length === 0 ? (
+            <div className="rounded-2xl border border-neutral-200 bg-white px-5 py-6 text-sm text-neutral-400 text-center">— ยังไม่มีข้อมูล catalog</div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {catalogPerf.map(cat => {
+                const hasOrders   = Number(cat.paid_orders) > 0
+                const hasTemplate = Number(cat.template_count) > 0
+                const status = hasOrders
+                  ? { label: '🔥 ขายแล้ว',  color: 'bg-green-100 text-green-700' }
+                  : hasTemplate
+                    ? { label: '🕐 รอยอด',  color: 'bg-amber-100 text-amber-700' }
+                    : { label: '🆕 ว่างเปล่า', color: 'bg-neutral-100 text-neutral-500' }
+                return (
+                  <div key={cat.slug} className="rounded-xl border border-neutral-200 bg-white px-4 py-4 shadow-sm">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-xl">{cat.emoji}</span>
+                      <p className="text-xs font-black text-neutral-800 leading-snug truncate">{cat.name}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-neutral-400">Templates</span>
+                        <span className="font-black text-neutral-700">{cat.template_count}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-neutral-400">Orders</span>
+                        <span className={`font-black ${hasOrders ? 'text-emerald-600' : 'text-neutral-400'}`}>{cat.paid_orders}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-neutral-400">รายได้</span>
+                        <span className={`font-black ${hasOrders ? 'text-emerald-600' : 'text-neutral-400'}`}>฿{Number(cat.revenue).toLocaleString('th-TH')}</span>
+                      </div>
+                    </div>
+                    <div className="mt-3 flex items-center justify-between">
+                      <span className={`rounded-full px-2 py-0.5 text-[9px] font-black ${status.color}`}>{status.label}</span>
+                      <Link href={`/admin/templates/new?category=${cat.slug}`} className="text-[9px] font-black text-amber-600 hover:text-amber-800">+ เพิ่ม →</Link>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </section>
+
+        {/* ── S2b: Catalog Demand Heatmap ───────────────────────────────────── */}
+        <section>
+          <h2 className="mb-1 text-xs font-black uppercase tracking-widest text-neutral-400">Catalog Demand Heatmap</h2>
+          <p className="mb-4 text-xs text-neutral-400">Google Suggest → จับคู่กับ catalog → หมวดไหนมี gap มากที่สุด</p>
+          {catalogDemandList.length === 0 ? (
+            <div className="rounded-2xl border border-neutral-200 bg-white px-5 py-6 text-sm text-neutral-400 text-center">— map ไม่ได้ในขณะนี้ (catalog อาจยังไม่มีข้อมูล)</div>
+          ) : (
+            <div className="rounded-2xl border border-neutral-200 bg-white shadow-sm overflow-hidden divide-y divide-neutral-50">
+              {catalogDemandList.map(cat => {
+                const total      = cat.demand + cat.covered
+                const covPct     = total > 0 ? Math.round((cat.covered / total) * 100) : 0
+                const templates  = Number(catPerfMap.get(cat.slug)?.template_count ?? 0)
+                const gapStatus  = cat.demand > 0 && templates === 0
+                  ? { label: '📈 Gap สูง',  color: 'bg-red-100 text-red-600' }
+                  : cat.demand > 0
+                    ? { label: '🟠 บางส่วน', color: 'bg-amber-100 text-amber-700' }
+                    : { label: '✅ ครบแล้ว', color: 'bg-green-100 text-green-700' }
+                return (
+                  <div key={cat.slug} className="flex items-center gap-3 px-5 py-3">
+                    <span className="shrink-0 text-lg">{cat.emoji}</span>
+                    <span className="flex-1 min-w-0 text-xs font-bold text-neutral-800 truncate">{cat.name}</span>
+                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-black whitespace-nowrap ${gapStatus.color}`}>{gapStatus.label}</span>
+                    <span className="shrink-0 text-[9px] text-neutral-400 whitespace-nowrap">demand {cat.demand} · covered {cat.covered} ({covPct}%)</span>
+                    <Link href={`/admin/templates/new?category=${cat.slug}`}
+                      className="shrink-0 rounded-lg border border-amber-300 bg-amber-50 px-2 py-0.5 text-[9px] font-black text-amber-700 hover:bg-amber-100 transition whitespace-nowrap">
+                      + เพิ่ม
+                    </Link>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </section>
+
         {/* ── S3: สร้างอะไรก่อน (C: Priority) ─────────────────────────────── */}
         <section>
           <h2 className="mb-1 text-xs font-black uppercase tracking-widest text-neutral-400">สร้างอะไรก่อน</h2>
@@ -362,21 +515,29 @@ export default async function AdminMarketIntelPage() {
             Idea ที่ยังไม่มี template · เรียงตาม <span className="font-bold text-neutral-600">Priority = level × (100 − coverage%)</span>
           </p>
           <div className="rounded-2xl border border-neutral-200 bg-white shadow-sm divide-y divide-neutral-50">
-            {topBuildNext.length === 0 ? (
+            {topBuildNextWithCatalog.length === 0 ? (
               <p className="px-5 py-6 text-sm font-bold text-emerald-600 text-center">🎉 ครอบคลุมทุก idea แล้ว!</p>
-            ) : topBuildNext.map((item, i) => {
+            ) : topBuildNextWithCatalog.map((item, i) => {
               const badge  = priorityBadge(item.score)
               const lBadge = LEVEL_BADGE[item.level]
               const engCol = ENGINE_COLOR[item.engineType] ?? 'border-neutral-200 bg-neutral-50 text-neutral-900'
+              const catLink = item.catalog
+                ? `/admin/templates/new?title=${encodeURIComponent(item.idea)}&category=${item.catalog.slug}&engine=${item.engineType}`
+                : `/admin/templates/new?title=${encodeURIComponent(item.idea)}&engine=${item.engineType}`
               return (
                 <div key={i} className="flex items-center gap-2 px-5 py-3">
                   <span className="shrink-0 w-5 text-right text-[10px] font-black text-neutral-300">{i + 1}</span>
                   <span className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-black whitespace-nowrap ${badge.color}`}>{badge.label}</span>
                   <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[9px] font-black whitespace-nowrap ${engCol}`}>{ENGINE_LABEL[item.engineType] ?? item.engineType}</span>
                   <span className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-black whitespace-nowrap ${lBadge.color}`}>{lBadge.label}</span>
+                  {item.catalog && (
+                    <span className="shrink-0 rounded-full px-2 py-0.5 text-[9px] font-black bg-neutral-100 text-neutral-600 whitespace-nowrap">
+                      📂 {item.catalog.emoji} {item.catalog.name}
+                    </span>
+                  )}
                   <span className="flex-1 min-w-0 text-xs font-medium text-neutral-800 truncate">{item.idea}</span>
                   <span className="shrink-0 font-mono text-[9px] text-neutral-300">{item.score}pt</span>
-                  <Link href="/admin/templates/new" className="shrink-0 rounded-lg border border-amber-300 bg-amber-50 px-2.5 py-1 text-[9px] font-black text-amber-700 hover:bg-amber-100 transition">
+                  <Link href={catLink} className="shrink-0 rounded-lg border border-amber-300 bg-amber-50 px-2.5 py-1 text-[9px] font-black text-amber-700 hover:bg-amber-100 transition">
                     + สร้าง
                   </Link>
                 </div>
@@ -408,6 +569,27 @@ export default async function AdminMarketIntelPage() {
                       </span>
                     </div>
                   </div>
+                  {(() => {
+                    const catHits = new Map<string, { cat: CatalogRef; count: number }>()
+                    for (const row of rows.filter(r => !r.match)) {
+                      const cat = suggestCatalog(row.idea, allCategories)
+                      if (cat) catHits.set(cat.slug, { cat, count: (catHits.get(cat.slug)?.count ?? 0) + 1 })
+                    }
+                    const topCats = [...catHits.values()].sort((a, b) => b.count - a.count).slice(0, 3)
+                    if (topCats.length === 0) return null
+                    return (
+                      <div className="flex flex-wrap items-center gap-2 px-5 py-2 bg-white border-b border-neutral-50">
+                        <span className="text-[9px] font-black text-neutral-400">📂 Gap หมวด:</span>
+                        {topCats.map(({ cat, count }) => (
+                          <Link key={cat.slug}
+                            href={`/admin/templates/new?category=${cat.slug}&engine=${kw.engineType}`}
+                            className="rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-[9px] font-bold text-amber-700 hover:bg-amber-100 transition">
+                            {cat.emoji} {cat.name} ({count})
+                          </Link>
+                        ))}
+                      </div>
+                    )
+                  })()}
                   {rows.length === 0 ? (
                     <p className="px-5 py-4 text-xs text-neutral-400 italic">— ไม่มีข้อมูล</p>
                   ) : (

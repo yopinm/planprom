@@ -13,13 +13,27 @@ export const metadata: Metadata = {
 
 export const dynamic = 'force-dynamic'
 
-export default async function NewTemplatePage() {
+export default async function NewTemplatePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ title?: string; category?: string; engine?: string }>
+}) {
   await requireAdminSession('/admin/login')
+
+  const params = await searchParams
 
   const [categories, cloneSources] = await Promise.all([
     db<Category[]>`SELECT slug, name, emoji FROM template_categories ORDER BY sort_order`.catch(() => [] as Category[]),
     db<CloneSource[]>`SELECT id, slug, title, tier, description FROM templates WHERE status = 'published' ORDER BY title`.catch(() => [] as CloneSource[]),
   ])
+
+  const engineParam = params.engine
+  type WizardMode = 'upload' | 'docx' | 'clone' | 'engine-checklist' | 'engine-planner' | 'engine-pipeline' | 'engine-report'
+  const initialMode: WizardMode | undefined =
+    engineParam === 'checklist' ? 'engine-checklist' :
+    engineParam === 'pipeline'  ? 'engine-pipeline'  :
+    engineParam === 'report'    ? 'engine-report'     :
+    engineParam === 'form'      ? 'engine-checklist'  : undefined
 
   return (
     <main className="min-h-screen bg-neutral-50 pb-20">
@@ -32,7 +46,13 @@ export default async function NewTemplatePage() {
         </div>
       </div>
 
-      <WizardClient categories={categories} cloneSources={cloneSources} />
+      <WizardClient
+        categories={categories}
+        cloneSources={cloneSources}
+        initialTitle={params.title}
+        initialCatSlug={params.category}
+        initialMode={initialMode}
+      />
     </main>
   )
 }
