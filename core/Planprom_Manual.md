@@ -842,11 +842,56 @@ server {
 
 ## หมายเหตุเพิ่มเติม
 
-### Admin Authentication
+### Admin Authentication (ADM-RBAC-1)
 
-- Login: `/admin/login`
-- Session-based (cookie HttpOnly)
-- ทุก admin route มี `requireAdminSession()` guard
+ระบบ Hybrid 2-Tier Auth สำหรับ Admin Area:
+
+#### Tier 1 — Supabase (Owner / Admin หลัก)
+- ใช้ Supabase email/password (`supabase.auth.signInWithPassword`)
+- ต้องมี `user_profiles.role = 'admin'` ใน DB
+- เหมาะสำหรับ Owner ที่ใช้งานประจำ
+
+#### Tier 2 — RBAC Custom Auth (Admin / Clerk fallback)
+- ใช้ตาราง `admin_users` (bcrypt password_hash + JWT cookie)
+- Login → `POST /api/admin/auth/login` → ตั้ง `_admin_token` cookie (HttpOnly, 8h)
+- Logout → `POST /api/admin/auth/logout` → ล้าง cookie
+- Role: `admin` (เข้าถึงทุกเมนู) | `clerk` (เฉพาะ Template group)
+- ใช้ได้แม้ Supabase ล่ม
+
+#### Login Flow
+```
+AdminLoginForm → Supabase signInWithPassword
+  ├─ ✅ success → redirect
+  └─ ❌ fail → POST /api/admin/auth/login (bcrypt check)
+                  ├─ ✅ success → _admin_token cookie → redirect
+                  └─ ❌ fail → แสดง error
+```
+
+#### Role Permissions
+| Feature | admin | clerk |
+|---|---|---|
+| Template Group (nav) | ✅ | ✅ |
+| Promo Group (nav) | ✅ | ❌ ซ่อน |
+| Report Group (nav) | ✅ | ❌ ซ่อน |
+| /admin/users | ✅ | ❌ redirect |
+| Publish blog | ✅ | ❌ (Draft เท่านั้น — enforced server-side) |
+
+#### จัดการ Clerk Accounts
+- ไปที่ `/admin/users` (เข้าได้เฉพาะ admin role เท่านั้น)
+- ปุ่ม "Users" ใน AdminNav header (มองเห็นเฉพาะ admin)
+- สร้าง/ลบ account ได้เลย — ไม่ต้องผ่าน Supabase
+
+#### Files ที่เกี่ยวข้อง
+| File | หน้าที่ |
+|---|---|
+| `src/lib/admin-rbac.ts` | JWT sign/verify, AdminRole type, COOKIE_NAME |
+| `src/lib/admin-auth.ts` | resolveSession (Tier1+Tier2), requireAdminSession, getAdminRole, requireAdminRole |
+| `app/api/admin/auth/login/route.ts` | POST — bcrypt verify → JWT cookie |
+| `app/api/admin/auth/logout/route.ts` | POST — clear cookie |
+| `app/admin/users/page.tsx` | หน้า list + add admin_users |
+| `app/admin/users/actions.ts` | createAdminUserAction, deleteAdminUserAction |
+| `components/admin/AdminNav.tsx` | รับ role prop, ซ่อน group สำหรับ clerk |
+| `app/admin/layout.tsx` | อ่าน role → pass ให้ AdminNav |
 
 ### Environment Variables สำคัญ
 
@@ -859,7 +904,7 @@ server {
 | `LINE_CHANNEL_SECRET` | LINE webhook verify |
 | `OWNER_LINE_USER_ID` | notify owner เมื่อมี order |
 | `OWNER_PROMPTPAY` | เบอร์ PromptPay (0948859962) |
-| `ADMIN_PASSWORD` | admin login |
+| `ADMIN_JWT_SECRET` | ลง sign JWT _admin_token สำหรับ RBAC Tier 2 |
 | `NEXT_PUBLIC_BASE_URL` | base URL สำหรับ QR + links |
 | `UPLOAD_DIR` | path สำหรับ PDF บน VPS (`/var/www/planprom/uploads/templates/`) |
 
