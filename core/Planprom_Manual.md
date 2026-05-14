@@ -75,7 +75,10 @@ URL: `https://planprom.com/`
   - Fallback: ถ้าไม่มี featured_weekly → แสดง template ที่ sale_count สูงสุด 1 รายการ
 
 - **Promo Code Banner** — การ์ดขวามือแสดงโค้ดส่วนลด active ที่ไม่ใช่ Unlock Code
-  - Layout: header → label กระพริบ (promo-blink animation) → countdown → โค้ดตรงกลาง + ปุ่ม Copy
+  - Layout: header → label กระพริบ (promo-blink animation) → savings hint → progress bar → countdown + slots → โค้ดตรงกลาง + ปุ่ม Copy
+  - **Savings hint:** "ซื้อ 1 ชิ้น ฿30 → ฿XX (ประหยัด X%)" คำนวณจาก discount_type/value × TIER_1
+  - **Progress bar:** แสดง % เวลาที่ผ่านไปจาก starts_at → expires_at (สีชมพูเมื่อ urgent)
+  - **Slots เหลือ:** แสดง "เหลือ X สิทธิ์" ถ้า max_uses ไม่ใช่ null
   - Countdown: ปกติแสดงเป็นวัน · เมื่อเหลือ <24 ชั่วโมง → แสดงเป็น "หมดใน X ชั่วโมง" (red + ⚠️, urgent state)
   - Urgent state: card bg/border เปลี่ยนเป็น rose-50/rose-300
   - ถ้าไม่มีโค้ด active: แสดง placeholder
