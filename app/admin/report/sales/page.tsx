@@ -85,14 +85,15 @@ export default async function SalesReportPage({
 
   const [kpi] = await db<{
     total_orders: string; paid_orders: string; revenue: string
-    avg_order: string; pending_orders: string
+    avg_order: string; pending_orders: string; omise_revenue: string
   }[]>`
     SELECT
-      COUNT(*)                                                        AS total_orders,
-      COUNT(*) FILTER (WHERE status = 'paid')                        AS paid_orders,
-      COALESCE(SUM(total_baht) FILTER (WHERE status = 'paid'), 0)   AS revenue,
-      COALESCE(AVG(total_baht) FILTER (WHERE status = 'paid'), 0)   AS avg_order,
-      COUNT(*) FILTER (WHERE status = 'pending_payment')             AS pending_orders
+      COUNT(*)                                                                                          AS total_orders,
+      COUNT(*) FILTER (WHERE status = 'paid')                                                          AS paid_orders,
+      COALESCE(SUM(total_baht) FILTER (WHERE status = 'paid'), 0)                                     AS revenue,
+      COALESCE(AVG(total_baht) FILTER (WHERE status = 'paid'), 0)                                     AS avg_order,
+      COUNT(*) FILTER (WHERE status = 'pending_payment')                                               AS pending_orders,
+      COALESCE(SUM(total_baht) FILTER (WHERE status = 'paid' AND omise_charge_id IS NOT NULL), 0)     AS omise_revenue
     FROM orders
     WHERE created_at >= ${start} AND created_at <= ${end}
   `
@@ -174,12 +175,14 @@ export default async function SalesReportPage({
 
   // ── Derived values ─────────────────────────────────────────────────────────
 
-  const totalRevenue  = Number(kpi?.revenue      ?? 0)
+  const totalRevenue  = Number(kpi?.revenue       ?? 0)
   const totalOrders   = Number(kpi?.total_orders  ?? 0)
   const paidOrders    = Number(kpi?.paid_orders   ?? 0)
   const avgOrder      = Number(kpi?.avg_order     ?? 0)
   const pendingOrders = Number(kpi?.pending_orders ?? 0)
-  const fee           = Math.round(totalRevenue * 0.015 < 5 ? 0 : totalRevenue * 0.015)
+  const omiseRevenue  = Number(kpi?.omise_revenue ?? 0)
+  // Omise PromptPay: 1.65% transaction fee + 7% VAT = 1.7655% of Omise-charged orders only
+  const fee           = Math.round(omiseRevenue * 0.017655)
   const netRevenue    = totalRevenue - fee
   const typeMap       = new Map(byEngineType.map(r => [r.type_group, r]))
 
