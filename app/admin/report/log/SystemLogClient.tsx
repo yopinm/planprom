@@ -144,6 +144,19 @@ export function SystemLogClient({ data }: { data: SystemLogData }) {
           </div>
         </div>
 
+        {/* Usage hint */}
+        <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4">
+          <p className="text-xs font-black text-amber-800 mb-2">วิธีส่ง log ให้ Claude Code วิเคราะห์</p>
+          <ol className="text-xs text-amber-700 space-y-1 list-none">
+            <li><span className="font-black">1.</span> กด <span className="font-black">"📋 Export JSON"</span> ด้านบนขวา → ข้อมูลทั้งหมดถูก copy แล้ว</li>
+            <li><span className="font-black">2.</span> เปิด Claude Code session ใหม่ → พิมพ์อธิบายปัญหา เช่น <span className="italic">"ระบบมีปัญหา X"</span></li>
+            <li><span className="font-black">3.</span> Paste JSON ต่อท้ายข้อความ → Claude จะวิเคราะห์ DB + logs ได้ทันที</li>
+          </ol>
+          <p className="mt-2 text-[10px] text-amber-500">
+            ต้องการเฉพาะ log ไฟล์เดียว → ไปที่ tab ที่ต้องการ → กด Copy ใต้ log นั้น
+          </p>
+        </div>
+
         {/* DB snapshot summary */}
         <div className="mb-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
           {[

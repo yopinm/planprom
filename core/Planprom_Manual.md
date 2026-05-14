@@ -531,14 +531,37 @@ Today / 7d / 30d / Custom — query ข้อมูลจริงทุก filt
 
 **Badge "N KEYWORDS · N ALPHA · CACHE 1H":** hover เพื่อดูรายละเอียด — บอกจำนวน queries และอายุ cache ปัจจุบัน
 
-### 15.2 Log Pages
+### 15.2 System Log (Unified)
 
-| Route | เนื้อหา |
+URL: `/admin/report/log`
+
+หน้าเดียวครอบคลุมทุก log source + export สำหรับส่งให้ Claude Code วิเคราะห์
+
+#### วิธีส่ง log ให้ Claude Code
+
+1. กด **"📋 Export JSON"** ด้านบนขวา → ข้อมูลถูก copy ไปยัง clipboard ทันที
+2. เปิด Claude Code session → พิมพ์อธิบายปัญหา เช่น `"ระบบมีปัญหา X"`
+3. Paste JSON ต่อท้าย → Claude วิเคราะห์ DB snapshot + logs ได้ทันที
+
+> ต้องการเฉพาะ log ไฟล์เดียว → เลือก tab ที่ต้องการ → กด **Copy** ใต้ log นั้น
+
+#### Tabs
+
+| Tab | เนื้อหา |
 |---|---|
-| `/admin/report/log/pm2` | PM2 stdout + stderr tail |
-| `/admin/report/log/nginx-access` | Access log · top paths · 4xx/5xx |
-| `/admin/report/log/nginx-error` | Error log · 502/504 |
-| `/admin/report/log/errors` | Error digest รวม (copy ให้ Claude วิเคราะห์) |
+| 🖥 PM2 Log | stdout / stderr toggle · แสดง path ไฟล์จริง |
+| 🌐 Nginx Access | summary (4xx/5xx count + top 10 paths) + raw lines |
+| ⚠️ Nginx Error | 502/504/upstream counter + raw lines |
+| 📋 Error Digest | รวม error lines จาก PM2 stdout + PM2 stderr + Nginx error |
+
+#### Window Filter
+
+`~1ชม.` / `~6ชม.` (default) / `~24ชม.` / `ทั้งหมด` — กรองปริมาณ lines ที่ดึงจาก log ทุก tab
+
+#### Export JSON ครอบคลุม
+
+- DB snapshot: templates · categories · orders 30 วัน · cart stats
+- Logs: PM2 stdout + stderr · Nginx access + error · สรุป top paths
 
 ### 15.3 Data Reports
 
