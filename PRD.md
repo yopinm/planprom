@@ -30,7 +30,8 @@
 | **Scope Gate** | ก่อนเริ่ม implement ทุก task → ต้องมี scope + flow ใน `core/planprom.md` ก่อน → commit docs → รอ owner confirm → ค่อย implement |
 | **Blockers** | Lazada pool=49 fixed · Affiliate tasks ❌ CLOSED 2026-05-13 (owner decision) |
 | **Next task** | **UI-I** Pricing Restructure ฿30/฿20/฿10 → **PROMO-5** Promo UI Refresh → **UI-H** Analytics match catalog → **INTEL-E** Catalog-Matched Analytics → RE-1 → ADM-FALLBACK-1 → E9/E10 → J19 |
-| **Pending (code)** | **UI-I** 🔴 · **PROMO-5** 🔴 (หลัง UI-I) · **UI-H** 🔴 · **INTEL-E** 🔲 (หลัง INTEL-C/D UAT) · **RE-1** · **ADM-FALLBACK-1** · J19 · E9/E10 · UI-G(defer) |
+| **Pending (code)** | **PROMO-5** 🔴 (หลัง UI-I UAT) · **UI-H** 🔴 · **INTEL-E** 🔲 4-feature catalog intelligence (หลัง INTEL-C/D UAT) · **RE-1** · **ADM-FALLBACK-1** · J19 · E9/E10 · UI-G(defer) |
+| **Pending (UAT)** added | **UI-I** 🟡 Pricing ฿30/฿20/฿10 — deploy live รอ owner test |
 | **Pending (UAT)** | INTEL-C/D · DC-1 · DC-2 · DC-8 · DC-16 · E9/E10 · J9(รอ live keys) |
 | **Pending (decision)** | Homepage UX: D (social proof bar) + B (featured badge pulse) — mock ready รอ confirm |
 | **Last session** | **Session 60 (2026-05-13)** — EF-8 ✅ ปิดสมบูรณ์ · multi-page carousel (2 pages) · fix preview_pages ::jsonb · fix preview API regex · viewport 3200→792 (blank pages แก้แล้ว) · DB migration report row |
