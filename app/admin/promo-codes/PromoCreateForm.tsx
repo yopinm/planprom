@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createPromoCodeAction } from './actions'
 import type { PrefillData } from './PromoEngineCards'
+import { PRICE_TIERS } from '@/lib/pricing'
 
 const INPUT = 'w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-2.5 text-sm outline-none transition focus:border-amber-400 focus:bg-white'
 const LABEL = 'mb-1 block text-[11px] font-black uppercase tracking-widest text-neutral-400'
@@ -10,6 +11,22 @@ const LABEL = 'mb-1 block text-[11px] font-black uppercase tracking-widest text-
 function genCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
   return Array.from({ length: 8 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
+}
+
+function calcPricingHint(type: string, value: number): string {
+  if (!value || value <= 0) return ''
+  const t1 = PRICE_TIERS.TIER_1
+  if (type === 'fixed') {
+    const after = t1 - value
+    if (after <= 0) return `ฟรี! เมื่อซื้อ 1 ชิ้น (ราคา ฿${t1})`
+    const pct = Math.round((value / t1) * 100)
+    return `ลด ฿${value} จากราคา ฿${t1} (ชิ้นแรก) → จ่าย ฿${after} (-${pct}%)`
+  }
+  if (type === 'percent') {
+    const after = Math.ceil(t1 * (1 - value / 100))
+    return `ลด ${value}% จากราคา ฿${t1} (ชิ้นแรก) → จ่าย ฿${after}`
+  }
+  return ''
 }
 
 function calcMinCart(type: string, value: number): string {
@@ -48,7 +65,8 @@ export function PromoCreateForm({ suggested, prefill }: { suggested: string; pre
     setExpiresAt(prefill.expires_at)
   }, [prefill])
 
-  const hint = calcMinCart(discountType, parseFloat(discountValue))
+  const hint        = calcMinCart(discountType, parseFloat(discountValue))
+  const pricingHint = calcPricingHint(discountType, parseFloat(discountValue))
 
   return (
     <form action={createPromoCodeAction} className="mt-4 rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm space-y-4">
@@ -123,6 +141,12 @@ export function PromoCreateForm({ suggested, prefill }: { suggested: string; pre
           />
         </div>
       </div>
+
+      {pricingHint && (
+        <div className="rounded-xl border border-sky-200 bg-sky-50 px-4 py-2 text-xs font-semibold text-sky-700">
+          💡 {pricingHint}
+        </div>
+      )}
 
       {hint && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-semibold text-amber-700">

@@ -8,9 +8,10 @@ interface Props {
   onApply: (discountApplied: number, codeText: string, label: string) => void
   onRemove: () => void
   appliedCode: string | null
+  appliedDiscount?: number
 }
 
-export function PromoCodeInput({ cartTotal, paidItemCount, onApply, onRemove, appliedCode }: Props) {
+export function PromoCodeInput({ cartTotal, paidItemCount, onApply, onRemove, appliedCode, appliedDiscount = 0 }: Props) {
   const [input,   setInput]   = useState('')
   const [loading, setLoading] = useState(false)
   const [error,   setError]   = useState('')
@@ -44,8 +45,15 @@ export function PromoCodeInput({ cartTotal, paidItemCount, onApply, onRemove, ap
 
   if (appliedCode) {
     return (
-      <div className="flex items-center justify-between rounded-xl bg-emerald-50 border border-emerald-200 px-3 py-2 text-sm">
-        <span className="text-emerald-700 font-bold">🏷️ {appliedCode}</span>
+      <div className="flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm">
+        <div className="flex items-center gap-2">
+          <span className="text-emerald-700 font-bold">🏷️ {appliedCode}</span>
+          {appliedDiscount > 0 && (
+            <span className="animate-pulse rounded-full bg-emerald-500 px-2 py-0.5 text-[11px] font-black text-white">
+              -฿{appliedDiscount}
+            </span>
+          )}
+        </div>
         <button onClick={onRemove} className="text-xs text-neutral-400 hover:text-red-500 transition">ลบโค้ด</button>
       </div>
     )

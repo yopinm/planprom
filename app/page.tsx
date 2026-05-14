@@ -41,7 +41,8 @@ type CatalogGroup = {
 
 async function fetchActivePromo(): Promise<PromoData | null> {
   const [row] = await db<PromoData[]>`
-    SELECT code, label, expires_at, comeback_text
+    SELECT code, label, starts_at, expires_at, comeback_text,
+           discount_type, discount_value, max_uses, used_count
     FROM promo_codes
     WHERE is_active = true
       AND is_secret = false

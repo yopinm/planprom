@@ -202,6 +202,7 @@ export default function CheckoutPage() {
               cartTotal={cartTotal}
               paidItemCount={paidCount}
               appliedCode={promoCode}
+              appliedDiscount={promoDiscount}
               onApply={(discount, code, _label) => {
                 setPromoDiscount(discount)
                 setPromoCode(code)
