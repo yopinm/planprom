@@ -57,28 +57,33 @@ async function fetchActivePromo(): Promise<PromoData | null> {
   return row ?? null
 }
 
-async function fetchFeaturedTemplate(): Promise<FeaturedTemplate | null> {
+async function fetchFeaturedTemplates(): Promise<FeaturedTemplate[]> {
   try {
-    const [row] = await db<FeaturedTemplate[]>`
+    const rows = await db<FeaturedTemplate[]>`
+      SELECT t.id, t.slug, t.title, t.tier, t.preview_path, t.preview_pages, t.is_request_only,
+             c.name AS category_name, c.emoji AS category_emoji
+      FROM templates t
+      LEFT JOIN template_category_links l ON l.template_id = t.id
+      LEFT JOIN template_categories c ON c.id = l.category_id
+      WHERE t.status = 'published' AND t.is_featured_weekly = true
+      ORDER BY t.updated_at DESC
+      LIMIT 3
+    `
+    if (rows.length > 0) return rows
+    // fallback: top sale_count
+    const [fallback] = await db<FeaturedTemplate[]>`
       SELECT t.id, t.slug, t.title, t.tier, t.preview_path, t.preview_pages, t.is_request_only,
              c.name AS category_name, c.emoji AS category_emoji
       FROM templates t
       LEFT JOIN template_category_links l ON l.template_id = t.id
       LEFT JOIN template_categories c ON c.id = l.category_id
       WHERE t.status = 'published'
-        AND (t.is_featured_weekly = true
-             OR t.id = (
-               SELECT id FROM templates
-               WHERE status = 'published'
-               ORDER BY sale_count DESC, created_at DESC
-               LIMIT 1
-             ))
-      ORDER BY t.is_featured_weekly DESC
+      ORDER BY t.sale_count DESC, t.created_at DESC
       LIMIT 1
     `
-    return row ?? null
+    return fallback ? [fallback] : []
   } catch {
-    return null
+    return []
   }
 }
 
@@ -113,9 +118,9 @@ const MOCK_TEMPLATE_CARDS = [
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default async function HomePage(): Promise<ReactElement> {
-  const [catalogGroups, featuredTemplate, activePromo] = await Promise.all([
+  const [catalogGroups, featuredTemplates, activePromo] = await Promise.all([
     fetchCatalogGroups(),
-    fetchFeaturedTemplate(),
+    fetchFeaturedTemplates(),
     fetchActivePromo(),
   ])
 
@@ -210,8 +215,8 @@ export default async function HomePage(): Promise<ReactElement> {
 
               {/* Featured + Promo row */}
               <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                {featuredTemplate ? (
-                  <FeaturedTemplateCard template={featuredTemplate} />
+                {featuredTemplates.length > 0 ? (
+                  <FeaturedTemplateCard templates={featuredTemplates} />
                 ) : (
                   <div className="rounded-xl border border-amber-200 bg-white px-4 py-4 shadow-sm" />
                 )}

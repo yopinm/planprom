@@ -40,6 +40,11 @@ export default async function EditTemplatePage({ params }: { params: Promise<{ i
       `.catch(() => [{ rev_count: '0' }])
     : [{ rev_count: '0' }]
 
+  const [{ featured_count }] = await db<{ featured_count: string }[]>`
+    SELECT COUNT(*)::text AS featured_count FROM templates WHERE is_featured_weekly = true
+  `.catch(() => [{ featured_count: '0' }])
+  const featuredCount = Number(featured_count)
+
   if (!t) notFound()
 
   return (
@@ -191,7 +196,9 @@ export default async function EditTemplatePage({ params }: { params: Promise<{ i
               <p className="text-sm font-bold text-neutral-700">
                 {t.is_featured_weekly ? '⭐ กำลังแสดงในการ์ด "แนะนำสัปดาห์นี้"' : '☆ ไม่ได้ถูกเลือกเป็น Featured'}
               </p>
-              <p className="text-xs text-neutral-400 mt-0.5">มีได้แค่ 1 template — กด Set จะยกเลิก template เดิมอัตโนมัติ</p>
+              <p className="text-xs text-neutral-400 mt-0.5">
+                มีได้สูงสุด 3 template · ปัจจุบัน <span className={featuredCount >= 3 ? 'text-rose-500 font-bold' : 'text-neutral-600 font-bold'}>{featuredCount}/3</span>
+              </p>
             </div>
             {t.is_featured_weekly ? (
               <form action={clearFeaturedWeeklyAction}>
@@ -203,8 +210,10 @@ export default async function EditTemplatePage({ params }: { params: Promise<{ i
             ) : (
               <form action={setFeaturedWeeklyAction}>
                 <input type="hidden" name="id" value={t.id} />
-                <button type="submit" className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-black text-white hover:bg-amber-600 transition">
-                  ⭐ Set Featured
+                <button type="submit"
+                  disabled={featuredCount >= 3}
+                  className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-black text-white hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed transition">
+                  {featuredCount >= 3 ? 'เต็มแล้ว (3/3)' : '⭐ Set Featured'}
                 </button>
               </form>
             )}

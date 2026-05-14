@@ -253,9 +253,12 @@ export async function createTemplateWizardAction(data: {
 export async function setFeaturedWeeklyAction(formData: FormData) {
   await requireAdminSession('/admin/login')
   const id = str(formData, 'id')
-  // clear all → set this one (only one featured at a time)
-  await db`UPDATE templates SET is_featured_weekly = false WHERE is_featured_weekly = true`
-  await db`UPDATE templates SET is_featured_weekly = true, updated_at = NOW() WHERE id = ${id}`
+  const [{ cnt }] = await db<{ cnt: string }[]>`
+    SELECT COUNT(*)::text AS cnt FROM templates WHERE is_featured_weekly = true AND id != ${id}
+  `
+  if (Number(cnt) < 3) {
+    await db`UPDATE templates SET is_featured_weekly = true, updated_at = NOW() WHERE id = ${id}`
+  }
   revalidatePath('/')
   revalidatePath('/admin/templates')
 }
