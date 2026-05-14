@@ -99,6 +99,26 @@ URL: `https://planprom.com/`
 - ปุ่มเขียว LINE มุมล่างขวา
 - Speech bubble "หาฟอร์มไม่เจอ? 📌 / Request ด่วน 50฿ ✅" กระพริบทุก 7 วินาที (CSS keyframe)
 
+### 2.5 Navigation Bar
+
+| Tab | ลิงก์ |
+|---|---|
+| หน้าแรก | `/` |
+| เทมเพลตทั้งหมด | `/templates` |
+| บทความ | `/blog` |
+| Planner หรือ Checklist? | `/blog/planner-กับ-checklist-ต่างกันยังไง` |
+| คำถามที่พบบ่อย | `/blog/คำถามที่พบบ่อย-faq` |
+
+### 2.6 Footer
+
+ไฟล์: `src/components/layout/Footer.tsx`
+
+| รายการ | ข้อความ |
+|---|---|
+| Slogan | แพลนพร้อม — เช็คทุกขั้น แพลนทุกวัน ใช้ได้ทุกงาน |
+| ลิงก์ | ข้อกฎหมาย (`/legal`) · นโยบายความเป็นส่วนตัว (`/privacy`) · เงื่อนไขการใช้งาน (`/terms`) |
+| Copyright | © {ปี} แพลนพร้อม. สงวนลิขสิทธิ์ |
+
 ---
 
 ## 3. หน้าเทมเพลต (/templates)

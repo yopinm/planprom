@@ -33,7 +33,7 @@
 | **Pending (code)** | **ADM-FALLBACK-1** 🔴 · E9/E10 · UI-G(defer) |
 | **Pending (UAT)** | **INTEL-SMART** 🟡 (trend arrows รอ 1 วัน) · **฿30 tier admin wizard** 🟡 (UAT pending) · INTEL-C/D · DC-1 · DC-2 · DC-8 · DC-16 · E9/E10 · J9(รอ live keys) |
 | **Pending (decision)** | Homepage UX: D (social proof bar) + B (featured badge pulse) — mock ready รอ confirm |
-| **Last session** | **Session 70 (2026-05-14)** — Security audit fixes (VULN-001~004): requireAdminRole · IP mask · path hide · spawnSync · Admin Dashboard 3 sections (Report/Health/Promo) |
+| **Last session** | **Session 71 (2026-05-14)** — i18n footer (Legal/Privacy/Terms/All rights reserved → ไทย) · nav label "Planner หรือ Checklist?" |
 | **ห้าม** | ไม่แตะ Later task ขณะที่ Now ยังค้างอยู่ · ไม่แตะ secrets โดยตรง · ไม่ทำให้ revenue channel หายไประหว่าง pivot |
 | **Security rule** | ทุก admin feature ต้องตรวจ: role check · PII mask · no path disclosure · spawnSync array args (ดู §23 Manual) |
 
@@ -203,6 +203,7 @@
 
 | Session | สถานะ |
 |---|---|
+| **Session 71 (2026-05-14) — i18n Footer + Nav** | ✅ Live — Footer: Legal→ข้อกฎหมาย · Privacy→นโยบายความเป็นส่วนตัว · Terms→เงื่อนไขการใช้งาน · All rights reserved→สงวนลิขสิทธิ์ · Nav: "Planner vs Checklist"→"Planner หรือ Checklist?" |
 | **Session 70 (2026-05-14) — Security Audit + Admin Dashboard** | ✅ Live — VULN-001: requireAdminRole('admin') · VULN-002: maskIpLines + privacy notice · VULN-003: basename only · VULN-004: spawnSync array args · Admin Dashboard 3 new sections (Report/SystemHealth/Promo) |
 | **Session 69 (2026-05-14) — J19 System Log** | ✅ Live — System Log unified `/admin/report/log`: 4 log tabs (PM2/Nginx-Access/Nginx-Error/Error-Digest) + Export JSON + Thai alert cards (5xx/error/4xx/template/cart) + expandable card detail (เงื่อนไข / ความหมาย / วิธีแก้) |
 | **Session 68 (2026-05-14) — ADM-RBAC-1 + Pricing + Bug Fixes** | 🟡 ฿30 tier Pending UAT — ADM-RBAC-1: Supabase+bcrypt hybrid auth · clerk module permissions (checkbox) · middleware Edge route guard · /admin/users · ฿30 Standard tier ทุก engine wizard + public UI · force delete FK fix (promo_codes deactivate) · request template price badge hide |
