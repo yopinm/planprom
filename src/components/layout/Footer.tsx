@@ -40,14 +40,14 @@ export function Footer(): ReactElement {
         </div>
 
         <p className="mt-4">
-          <Link href="/legal" className="underline underline-offset-2 hover:text-orange-600">Legal</Link>
+          <Link href="/legal" className="underline underline-offset-2 hover:text-orange-600">ข้อกฎหมาย</Link>
           {' '}·{' '}
-          <Link href="/privacy" className="underline underline-offset-2 hover:text-orange-600">Privacy</Link>
+          <Link href="/privacy" className="underline underline-offset-2 hover:text-orange-600">นโยบายความเป็นส่วนตัว</Link>
           {' '}·{' '}
-          <Link href="/terms" className="underline underline-offset-2 hover:text-orange-600">Terms</Link>
+          <Link href="/terms" className="underline underline-offset-2 hover:text-orange-600">เงื่อนไขการใช้งาน</Link>
         </p>
         <p className="mt-4">
-          © {new Date().getFullYear()} แพลนพร้อม. All rights reserved.
+          © {new Date().getFullYear()} แพลนพร้อม. สงวนลิขสิทธิ์
         </p>
       </div>
     </footer>
