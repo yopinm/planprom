@@ -31,9 +31,9 @@
 | **Blockers** | Lazada pool=49 fixed · Affiliate tasks ❌ CLOSED 2026-05-13 (owner decision) |
 | **Next task** | **PROMO-5** Promo UI Refresh · **UI-H** Analytics match catalog → **RE-1** → **ADM-FALLBACK-1** → E9/E10 → J19 |
 | **Pending (code)** | **PROMO-5** 🔴 · **UI-H** 🔴 · **RE-1** · **ADM-FALLBACK-1** · J19 · E9/E10 · UI-G(defer) |
-| **Pending (UAT)** | **UI-I** 🟡 ฿30/฿20/฿10 · **INTEL-E** 🟡 Catalog intelligence · INTEL-C/D · DC-1 · DC-2 · DC-8 · DC-16 · E9/E10 · J9(รอ live keys) |
+| **Pending (UAT)** | INTEL-C/D · DC-1 · DC-2 · DC-8 · DC-16 · E9/E10 · J9(รอ live keys) |
 | **Pending (decision)** | Homepage UX: D (social proof bar) + B (featured badge pulse) — mock ready รอ confirm |
-| **Last session** | **Session 62 (2026-05-14)** — UI-I ✅ UAT ผ่าน · fix badge -50%→-33% + label ครึ่งราคา→ประหยัด |
+| **Last session** | **Session 62 (2026-05-14)** — UI-I ✅ + INTEL-E ✅ UAT ผ่าน · fix CATALOG_KEYWORD_MAP + badge hint · ลูกค้ารีเควส tab |
 | **ห้าม** | ไม่แตะ Later task ขณะที่ Now ยังค้างอยู่ · ไม่แตะ secrets โดยตรง · ไม่ทำให้ revenue channel หายไประหว่าง pivot |
 
 ---
@@ -189,7 +189,7 @@
 | กลุ่ม | รายการ | สถานะ |
 |---|---|---|
 | **UI-I** | Pricing ฿30/฿20/฿10 ทั้ง 10 ไฟล์ — fix 2 bugs (stale TIER_2 ฿8, request-only unit_price) | ✅ **UAT ผ่าน (Session 62)** |
-| **INTEL-E** | Catalog intelligence — S2a perf cards · S2b heatmap · S3 badge+pre-fill · S4 gap chips | 🟡 **UAT Pending (Session 61)** |
+| **INTEL-E** | Catalog intelligence — S2a perf cards · S2b heatmap · S3 badge+pre-fill · S4 gap chips | ✅ **UAT ผ่าน (Session 62)** |
 | **INTEL-C/D** | 3-Level Coverage Card + Smart Engine Expansion | 🟡 **UAT Pending (Session 53)** |
 | **DC-1** | Standard PDF Generator (.docx → A4) — checklist/planner UAT | 🟡 **Code Done · UAT Pending** |
 | **DC-2** | TOC Preview สารบัญ — toggle /templates · always-expanded /templates/[slug] | 🟡 **Code Done · UAT Pending** |
@@ -201,6 +201,7 @@
 
 | Session | สถานะ |
 |---|---|
+| **Session 62 (2026-05-14) — INTEL-E UAT** | ✅ UAT ผ่าน — INTEL-E: fix CATALOG_KEYWORD_MAP (14 entries, cover all Thai DB categories) + ทีม→ทีมงาน false positive fix + badge tooltip · ลูกค้ารีเควส tab (/admin/templates) · seed 8 คำ = 120 Google Suggest queries |
 | **Session 61 (2026-05-14) — UI-I + INTEL-E** | ✅ Live — UI-I: ฿20→฿30 / ฿10→฿20 / ฿7→฿10 ครบ 10 ไฟล์ + fix stale TIER_2 bug + fix request-only unit_price bug · INTEL-E: 5 features catalog analytics + WizardClient pre-fill |
 | **J18. Cart + Volume Pricing** | ✅ UAT ผ่าน 2026-05-08 (Session 28) |
 | **DC-3. DB Sequence Order ID** | ✅ Done · Live (Session 29) |
