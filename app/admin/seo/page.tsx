@@ -4,7 +4,7 @@ import { requireAdminSession } from '@/lib/admin-auth'
 import { getAllPosts } from '@/lib/blog'
 import { getAllDbPosts } from '@/lib/blog-db'
 import { UploadDocx } from './UploadDocx'
-import { togglePinAction, togglePostPublishAction } from './actions'
+import { togglePinAction, togglePostPublishAction, importStaticPostAction } from './actions'
 import { DeletePostButton } from './DeletePostButton'
 
 export const metadata: Metadata = {
@@ -138,34 +138,51 @@ export default async function AdminSeoPage() {
           )}
         </div>
 
-        {/* Static built-in posts — read-only */}
+        {/* Static built-in posts — import to DB to edit */}
         <div>
           <h2 className="mb-3 text-sm font-black uppercase tracking-widest text-neutral-500">
             บทความ Built-in (Static · {staticPosts.length})
           </h2>
-          <div className="divide-y divide-neutral-100 overflow-hidden rounded-2xl border border-neutral-200 bg-white opacity-70">
-            {staticPosts.map(post => (
-              <div key={post.slug} className="flex items-center gap-3 px-5 py-3.5">
-                <span className="shrink-0 text-base text-neutral-300">📄</span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-neutral-700">{post.title}</p>
-                  <p className="font-mono text-xs text-neutral-400">/blog/{post.slug}</p>
+          <div className="divide-y divide-neutral-100 overflow-hidden rounded-2xl border border-neutral-200 bg-white">
+            {staticPosts.map(post => {
+              const inDb = dbPosts.some(d => d.slug === post.slug)
+              return (
+                <div key={post.slug} className="flex items-center gap-3 px-5 py-3.5">
+                  <span className="shrink-0 text-base text-neutral-300">📄</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-neutral-700">{post.title}</p>
+                    <p className="font-mono text-xs text-neutral-400">/blog/{post.slug}</p>
+                  </div>
+                  {inDb && (
+                    <span className="shrink-0 rounded-full bg-sky-100 px-2.5 py-0.5 text-[10px] font-bold text-sky-600">
+                      ใน DB แล้ว
+                    </span>
+                  )}
+                  <span className="shrink-0 rounded-full bg-neutral-100 px-2.5 py-0.5 text-[10px] font-bold text-neutral-500">
+                    Built-in
+                  </span>
+                  <span className="shrink-0 text-xs text-neutral-400">{post.readingTimeMin} นาที</span>
+                  <Link
+                    href={`/blog/${post.slug}`}
+                    target="_blank"
+                    className="shrink-0 rounded-lg bg-neutral-100 px-2.5 py-1.5 text-xs font-bold text-neutral-500 hover:bg-neutral-200"
+                  >
+                    ดู
+                  </Link>
+                  <form action={importStaticPostAction}>
+                    <input type="hidden" name="slug" value={post.slug} />
+                    <button
+                      type="submit"
+                      className="shrink-0 rounded-lg bg-amber-100 px-2.5 py-1.5 text-xs font-bold text-amber-700 hover:bg-amber-200 transition"
+                    >
+                      แก้ไข
+                    </button>
+                  </form>
                 </div>
-                <span className="shrink-0 rounded-full bg-neutral-100 px-2.5 py-0.5 text-[10px] font-bold text-neutral-500">
-                  Built-in
-                </span>
-                <span className="shrink-0 text-xs text-neutral-400">{post.readingTimeMin} นาที</span>
-                <Link
-                  href={`/blog/${post.slug}`}
-                  target="_blank"
-                  className="shrink-0 rounded-lg bg-neutral-100 px-2.5 py-1.5 text-xs font-bold text-neutral-500 hover:bg-neutral-200"
-                >
-                  ดู
-                </Link>
-              </div>
-            ))}
+              )
+            })}
           </div>
-          <p className="mt-2 text-xs text-neutral-400">บทความ Built-in แก้ไขได้ใน src/lib/blog.ts</p>
+          <p className="mt-2 text-xs text-neutral-400">กด &quot;แก้ไข&quot; เพื่อ import บทความเข้า DB แล้วแก้ไขได้ทันที (DB version จะ override static)</p>
         </div>
 
       </div>

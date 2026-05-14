@@ -2,6 +2,7 @@
 import { db } from '@/lib/db'
 import { requireAdminSession } from '@/lib/admin-auth'
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 
 function titleToSlug(title: string): string {
   return title
@@ -127,4 +128,48 @@ export async function deletePostAction(formData: FormData) {
   await db`DELETE FROM blog_posts WHERE id = ${id}`
   revalidatePath('/admin/seo')
   revalidatePath('/blog')
+}
+
+export async function importStaticPostAction(formData: FormData) {
+  await requireAdminSession('/admin/seo')
+  const slug = formData.get('slug') as string
+
+  const existing = await db<{ id: string }[]>`SELECT id FROM blog_posts WHERE slug = ${slug} LIMIT 1`
+  if (existing.length > 0) {
+    redirect(`/admin/seo/${existing[0].id}/edit`)
+  }
+
+  const { getPostBySlug } = await import('@/lib/blog')
+  const post = getPostBySlug(slug)
+  if (!post) return
+
+  const [{ id }] = await db<{ id: string }[]>`
+    INSERT INTO blog_posts (slug, title, description, content, reading_time_min, status, published_at)
+    VALUES (${post.slug}, ${post.title}, ${post.description}, ${post.content}, ${post.readingTimeMin}, 'published', NOW())
+    RETURNING id
+  `
+
+  revalidatePath('/admin/seo')
+  revalidatePath('/blog')
+  redirect(`/admin/seo/${id}/edit`)
+}
+
+export async function updatePostAction(formData: FormData) {
+  await requireAdminSession('/admin/seo')
+  const id = formData.get('id') as string
+  const title = (formData.get('title') as string).trim()
+  const description = (formData.get('description') as string).trim()
+  const content = (formData.get('content') as string)
+  const readingTimeMin = Math.max(1, parseInt(formData.get('reading_time_min') as string) || 1)
+
+  await db`
+    UPDATE blog_posts
+    SET title = ${title}, description = ${description}, content = ${content},
+        reading_time_min = ${readingTimeMin}, updated_at = NOW()
+    WHERE id = ${id}
+  `
+
+  revalidatePath('/admin/seo')
+  revalidatePath('/blog')
+  redirect('/admin/seo')
 }
