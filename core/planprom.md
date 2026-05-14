@@ -499,6 +499,16 @@ Page 2: render fields แบบเปล่า (_____ แทน value)
 
 ---
 
+## Session 63 Changes (2026-05-14) — Fee Formula Fix + Hint
+
+| # | Change | Status |
+|---|---|---|
+| 1 | **Fix ค่าธรรมเนียม `/admin/report/sales`** — เปลี่ยนจาก 1.5% flat → Omise PromptPay 1.65%×1.07 VAT = 1.7655% · ใช้ `omise_charge_id IS NOT NULL` filter เฉพาะ Omise-paid orders | ✅ Live |
+| 2 | **Fix ค่าธรรมเนียม `/admin/report/payments`** — เปลี่ยนจาก `GREATEST(*0.015, 5)` (ขั้นต่ำ ฿5/order ผิด) → 1.7655% เช่นกัน · fix CSV net_baht column ด้วย | ✅ Live |
+| 3 | **Tooltip hint สูตรค่าธรรมเนียม** — card ค่าธรรมเนียมใน `/admin/report/sales` + `/admin/report/payments` มี tooltip แสดงสูตร "PromptPay 1.65% + VAT 7% = 1.7655% (เฉพาะ Omise charges)" | ✅ Live |
+
+---
+
 ## Session 60 Changes (2026-05-13) — EF-8 Multi-page Preview Carousel
 
 | # | Change | Status |

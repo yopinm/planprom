@@ -255,12 +255,14 @@ export default async function SalesReportPage({
               { label: 'Orders จ่ายแล้ว', value: String(paidOrders),                          color: paidOrders > 0    ? 'text-green-600'   : 'text-neutral-300' },
               { label: 'Avg / Order',    value: `฿${avgOrder.toFixed(0)}`,                   color: avgOrder > 0      ? 'text-amber-600'   : 'text-neutral-300' },
               { label: 'Pending',        value: String(pendingOrders),                        color: pendingOrders > 0 ? 'text-orange-500'  : 'text-neutral-300' },
-              { label: 'ยอดรับจริง',    value: `฿${netRevenue.toLocaleString('th-TH')}`,    color: netRevenue > 0    ? 'text-emerald-700' : 'text-neutral-300' },
-              { label: 'ค่าธรรมเนียม',  value: `฿${fee.toLocaleString('th-TH')}`,           color: fee > 0           ? 'text-rose-500'    : 'text-neutral-300' },
+              { label: 'ยอดรับจริง',    value: `฿${netRevenue.toLocaleString('th-TH')}`,    color: netRevenue > 0    ? 'text-emerald-700' : 'text-neutral-300', hint: undefined },
+              { label: 'ค่าธรรมเนียม',  value: `฿${fee.toLocaleString('th-TH')}`,           color: fee > 0           ? 'text-rose-500'    : 'text-neutral-300', hint: 'PromptPay via Omise: 1.65% + VAT 7% = 1.7655%\n(คิดจากยอด paid ที่มี omise_charge_id เท่านั้น)' },
             ].map(k => (
-              <div key={k.label} className="rounded-2xl border border-neutral-200 bg-white px-4 py-5 text-center shadow-sm">
+              <div key={k.label} title={k.hint} className={`rounded-2xl border border-neutral-200 bg-white px-4 py-5 text-center shadow-sm ${k.hint ? 'cursor-help' : ''}`}>
                 <p className={`text-2xl font-black ${k.color}`}>{k.value}</p>
-                <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">{k.label}</p>
+                <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                  {k.label}{k.hint && <span className="ml-1 text-neutral-300">ⓘ</span>}
+                </p>
               </div>
             ))}
           </div>

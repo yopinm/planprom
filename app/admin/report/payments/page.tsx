@@ -128,15 +128,17 @@ export default async function PaymentLogPage({
         {/* KPI */}
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-5">
           {[
-            { label: 'Revenue',       value: `฿${revenue.toLocaleString('th-TH')}`,                   color: 'text-indigo-600' },
-            { label: 'ยอดรับจริง',    value: `฿${(revenue - fee).toLocaleString('th-TH')}`,            color: 'text-emerald-600' },
-            { label: 'ค่าธรรมเนียม', value: `฿${fee.toLocaleString('th-TH')}`,                        color: 'text-rose-500' },
-            { label: 'จ่ายแล้ว',     value: summary?.paid ?? '0',                                      color: 'text-green-600' },
-            { label: 'Pending',       value: summary?.pending ?? '0',                                   color: 'text-orange-500' },
+            { label: 'Revenue',       value: `฿${revenue.toLocaleString('th-TH')}`,                   color: 'text-indigo-600',  hint: undefined },
+            { label: 'ยอดรับจริง',    value: `฿${(revenue - fee).toLocaleString('th-TH')}`,            color: 'text-emerald-600', hint: undefined },
+            { label: 'ค่าธรรมเนียม', value: `฿${fee.toLocaleString('th-TH')}`,                        color: 'text-rose-500',    hint: 'PromptPay via Omise: 1.65% + VAT 7% = 1.7655%\n(คิดจากยอด paid ที่มี omise_charge_id เท่านั้น)' },
+            { label: 'จ่ายแล้ว',     value: summary?.paid ?? '0',                                      color: 'text-green-600',   hint: undefined },
+            { label: 'Pending',       value: summary?.pending ?? '0',                                   color: 'text-orange-500',  hint: undefined },
           ].map(k => (
-            <div key={k.label} className="rounded-2xl border border-neutral-200 bg-white px-4 py-4 text-center shadow-sm">
+            <div key={k.label} title={k.hint} className={`rounded-2xl border border-neutral-200 bg-white px-4 py-4 text-center shadow-sm ${k.hint ? 'cursor-help' : ''}`}>
               <p className={`text-xl font-black ${k.color}`}>{k.value}</p>
-              <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">{k.label}</p>
+              <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                {k.label}{k.hint && <span className="ml-1 text-neutral-300">ⓘ</span>}
+              </p>
             </div>
           ))}
         </div>
