@@ -108,16 +108,23 @@ function priorityBadge(score: number): { label: string; color: string } {
 }
 
 // ideaPattern = keywords ใน idea text / catPattern = match กับ category.slug หรือ category.name จริงๆ ใน DB
+// เรียงจาก specific → general เพื่อให้ first-match ถูกต้อง
 const CATALOG_KEYWORD_MAP: Array<{ ideaPattern: RegExp; catPattern: RegExp }> = [
-  { ideaPattern: /เที่ยว|ท่องเที่ยว|ต่างประเทศ|บิน|สนามบิน|โรงแรม|ทริป/,                         catPattern: /ท่องเที่ยว|travel/ },
-  { ideaPattern: /ร้าน|ธุรกิจ|ขาย|invoice|บริษัท|ลูกค้า|ใบเสนอ|ใบส่ง|ประกอบการ|ประชุม|ว่างงาน|รายงานตัว|ปฏิบัติงาน|ราชการ|ประกันสังคม|หน่วยงาน|มอบอำนาจ/, catPattern: /ธุรกิจ|business/ },
-  { ideaPattern: /เงิน|ออม|budget|บัญชี|งบประมาณ|ค่าใช้จ่าย|รายรับ|รายจ่าย|การเงิน|ลงทุน|หุ้น|งบ/, catPattern: /การเงิน|finance/ },
-  { ideaPattern: /สุขภาพ|ออกกำลัง|ไดเอท|ยา|คลินิก|หมอ/,                                          catPattern: /สุขภาพ|health/ },
-  { ideaPattern: /บ้าน|ห้อง|ซ่อม|ตกแต่ง/,                                                         catPattern: /บ้าน|home/ },
-  { ideaPattern: /นักเรียน|มหา|สอบ|เรียน|วิชา|วิทยาลัย/,                                         catPattern: /การศึกษา|edu/ },
-  { ideaPattern: /งานแต่ง|งานบวช|อีเวนต์|งานเลี้ยง/,                                              catPattern: /อีเวนต์|event/ },
-  { ideaPattern: /โครงการ|ก่อสร้าง|milestone/,                                                     catPattern: /โครงการ|project/ },
-  { ideaPattern: /พนักงาน|สัมภาษณ์|ประเมิน|ทีม/,                                                  catPattern: /HR|พนักงาน|hr/ },
+  { ideaPattern: /กฎหมาย|สัญญา|นิติ|ข้อตกลง/,                                                  catPattern: /กฎหมาย|สัญญา/ },
+  { ideaPattern: /อสังหา|ซื้อบ้าน|คอนโด|ที่ดิน/,                                              catPattern: /อสังหา/ },
+  { ideaPattern: /ภาษี|ยื่นภาษี|ลดหย่อน|กรมสรรพากร|บัญชี|งบการเงิน/,                         catPattern: /ภาษี|บัญชี/ },
+  { ideaPattern: /พัฒนาตัวเอง|เรียนรู้|เป้าหมาย|นิสัย|ทักษะ|habit|goal/,                      catPattern: /เรียนรู้|พัฒนา/ },
+  { ideaPattern: /ครอบครัว|ลูก|พ่อแม่|ลูกน้อย|บ้าน|ห้อง|ซ่อม|ตกแต่ง/,                        catPattern: /ครอบครัว|ไลฟ์/ },
+  { ideaPattern: /นักเรียน|นักศึกษ|มหาวิทยาลัย|สอบ|วิชา|วิทยาลัย|คณะ/,                       catPattern: /นักเรียน|นักศึกษ/ },
+  { ideaPattern: /สมัครงาน|หางาน|ออฟฟิศ|เส้นทางอาชีพ|ผลงาน/,                                 catPattern: /อาชีพ|ออฟฟิศ/ },
+  { ideaPattern: /ราชการ|รายงานตัว|ปฏิบัติงาน|ประกันสังคม|มอบอำนาจ|หน่วยงาน|ว่างงาน/,        catPattern: /บริษัท|องค์กร/ },
+  { ideaPattern: /เที่ยว|ท่องเที่ยว|ต่างประเทศ|บิน|สนามบิน|โรงแรม|ทริป/,                      catPattern: /ท่องเที่ยว|travel/ },
+  { ideaPattern: /ร้าน|ธุรกิจ|ขาย|invoice|ลูกค้า|ใบเสนอ|ใบส่ง|ประกอบการ|ประชุม|บริษัท/,     catPattern: /ธุรกิจ|เปิดร้าน/ },
+  { ideaPattern: /เงิน|ออม|budget|งบประมาณ|ค่าใช้จ่าย|รายรับ|รายจ่าย|การเงิน|ลงทุน|หุ้น/,   catPattern: /การเงิน|finance/ },
+  { ideaPattern: /สุขภาพ|ออกกำลัง|ไดเอท|ยา|คลินิก|หมอ|ฟิตเนส/,                              catPattern: /สุขภาพ|health/ },
+  { ideaPattern: /งานแต่ง|งานบวช|อีเวนต์|งานเลี้ยง/,                                         catPattern: /อีเวนต์|event/ },
+  { ideaPattern: /โครงการ|ก่อสร้าง|milestone/,                                                catPattern: /โครงการ|project/ },
+  { ideaPattern: /พนักงาน|สัมภาษณ์|ประเมิน|ทีม/,                                             catPattern: /อาชีพ|ออฟฟิศ|HR|พนักงาน/ },
 ]
 
 function suggestCatalog(idea: string, catalogs: CatalogRef[]): CatalogRef | null {
