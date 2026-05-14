@@ -90,10 +90,12 @@ function FeaturedRow({ template }: { template: FeaturedTemplate }) {
     <>
       <div className="flex flex-wrap items-center gap-2 py-2.5">
         <div className="flex-1 min-w-0">
-          <p className="font-black text-neutral-900 text-sm truncate">{template.title}</p>
-          {template.category_emoji && (
-            <p className="text-xs text-neutral-400 mt-0.5">{template.category_emoji} {template.category_name}</p>
-          )}
+          <p className="font-black text-neutral-900 text-sm truncate">
+            {template.title}
+            {template.category_emoji && (
+              <span className="ml-1.5 font-normal text-neutral-400 text-xs">· {template.category_emoji} {template.category_name}</span>
+            )}
+          </p>
         </div>
         <button onClick={() => setOpen(true)}
           className="shrink-0 rounded-lg border border-neutral-200 px-2.5 py-1 text-xs font-semibold text-neutral-600 hover:border-neutral-400 transition">
