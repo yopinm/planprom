@@ -295,7 +295,9 @@ export default async function PageviewsPage({
               {topPages.map(p => (
                 <div key={p.path} className="flex items-center gap-4 px-5 py-3">
                   <div className="flex-1 min-w-0">
-                    <p className="font-mono text-xs text-neutral-700 truncate">{p.path}</p>
+                    <p className="font-mono text-xs text-neutral-700 truncate">
+                      {(() => { try { return decodeURIComponent(p.path) } catch { return p.path } })()}
+                    </p>
                     <div className="mt-1.5 h-1.5 rounded-full bg-neutral-100">
                       <div
                         className="h-1.5 rounded-full bg-indigo-400"
