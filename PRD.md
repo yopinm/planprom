@@ -29,11 +29,11 @@
 | **Doc Sync** | task เสร็จ → อัพเดต PRD.md + `core/planprom.md` เสมอ |
 | **Scope Gate** | ก่อนเริ่ม implement ทุก task → ต้องมี scope + flow ใน `core/planprom.md` ก่อน → commit docs → รอ owner confirm → ค่อย implement |
 | **Blockers** | Lazada pool=49 fixed · Affiliate tasks ❌ CLOSED 2026-05-13 (owner decision) |
-| **Next task** | **ADM-FALLBACK-1** 🔴 → E9/E10 |
-| **Pending (code)** | **ADM-FALLBACK-1** 🔴 · E9/E10 · UI-G(defer) |
-| **Pending (UAT)** | **INTEL-SMART** 🟡 (trend arrows รอ 1 วัน) · **฿30 tier admin wizard** 🟡 (UAT pending) · INTEL-C/D · DC-1 · DC-2 · DC-8 · DC-16 · E9/E10 · J9(รอ live keys) |
+| **Next task** | **INTEL-SMART UAT** 🟡 → **INTEL-SCORE** → **INTEL-SEO-PANEL** → E9/E10 |
+| **Pending (code)** | E9/E10 · INTEL-SCORE · INTEL-SEO-PANEL · UI-G(defer) |
+| **Pending (UAT)** | **INTEL-SMART** 🟡 (trend arrows — ข้อมูล snapshot พร้อมแล้ว) · **฿30 tier admin wizard** 🟡 · INTEL-C/D · DC-1 · DC-2 · DC-8 · DC-16 · E9/E10 · J9(รอ live keys) |
 | **Pending (decision)** | Homepage UX: D (social proof bar) + B (featured badge pulse) — mock ready รอ confirm |
-| **Last session** | **Session 71 (2026-05-14)** — i18n footer (Legal/Privacy/Terms/All rights reserved → ไทย) · nav label "Planner หรือ Checklist?" |
+| **Last session** | **Session 72 (2026-05-14)** — scope INTEL-SCORE (Template Health Check) + INTEL-SEO-PANEL (SEO Keyword Panel) · J13 ❌ CANCELLED (ใช้ LINE ฿50 แทน) |
 | **ห้าม** | ไม่แตะ Later task ขณะที่ Now ยังค้างอยู่ · ไม่แตะ secrets โดยตรง · ไม่ทำให้ revenue channel หายไประหว่าง pivot |
 | **Security rule** | ทุก admin feature ต้องตรวจ: role check · PII mask · no path disclosure · spawnSync array args (ดู §23 Manual) |
 
@@ -176,7 +176,7 @@
 | 11 | **J11** Free tier download flow (ข้าม payment) | 🟡 Medium | ✅ Done (Session 46) |
 | 12 | **ADMIN-CLEAN-1** Admin wallet dead code | 🟡 | ✅ Done (Session 45) |
 | 13 | **ADMIN-CLEAN-2** Admin cleanup ชุด 2 | 🟡 | ✅ Done (Session 46) |
-| 14 | **J13** Customer Request Form `/templates/request` | 🟡 Medium | 🔲 Planned |
+| 14 | **J13** Customer Request Form `/templates/request` | ❌ CANCELLED | ❌ Cancelled (2026-05-14 owner decision) — ใช้ LINE ส่วนตัว ฿50/template แทน web form |
 | 15 | **J14** ระบบสมาชิก + Auto Push LINE | ❌ CANCELLED | ❌ Cancelled (2026-05-13 owner decision) |
 | 16 | **J17** Subscription รายเดือน (Standard/Pro) | ❌ CANCELLED | ❌ Cancelled (2026-05-13 owner decision) |
 | 17 | **J19** System Log Unified `/admin/report/log` | 🟡 Medium | ✅ Done · Live (Session 69 · 2026-05-14) |
