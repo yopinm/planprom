@@ -31,9 +31,9 @@
 | **Blockers** | Lazada pool=49 fixed · Affiliate tasks ❌ CLOSED 2026-05-13 (owner decision) |
 | **Next task** | **ADM-FALLBACK-1** 🔴 → E9/E10 → J19 |
 | **Pending (code)** | **ADM-FALLBACK-1** 🔴 · J19 · E9/E10 · UI-G(defer) |
-| **Pending (UAT)** | **INTEL-SMART** 🟡 (trend arrows รอ 1 วัน) · INTEL-C/D · DC-1 · DC-2 · DC-8 · DC-16 · E9/E10 · J9(รอ live keys) |
+| **Pending (UAT)** | **INTEL-SMART** 🟡 (trend arrows รอ 1 วัน) · **฿30 tier admin wizard** 🟡 (UAT pending) · INTEL-C/D · DC-1 · DC-2 · DC-8 · DC-16 · E9/E10 · J9(รอ live keys) |
 | **Pending (decision)** | Homepage UX: D (social proof bar) + B (featured badge pulse) — mock ready รอ confirm |
-| **Last session** | **Session 67 (2026-05-14)** — SEO-ENGINE pivot → admin manual blog · Template picker DB-based · Search Console + sitemap live · Blog Manager search+filter |
+| **Last session** | **Session 68 (2026-05-14)** — ADM-RBAC-1: hybrid 2-tier auth + clerk permissions + middleware guard · ฿30 pricing admin wizards + public UI · Force delete FK fix · Request template price badge |
 | **ห้าม** | ไม่แตะ Later task ขณะที่ Now ยังค้างอยู่ · ไม่แตะ secrets โดยตรง · ไม่ทำให้ revenue channel หายไประหว่าง pivot |
 
 ---
@@ -202,6 +202,7 @@
 
 | Session | สถานะ |
 |---|---|
+| **Session 68 (2026-05-14) — ADM-RBAC-1 + Pricing + Bug Fixes** | 🟡 ฿30 tier Pending UAT — ADM-RBAC-1: Supabase+bcrypt hybrid auth · clerk module permissions (checkbox) · middleware Edge route guard · /admin/users · ฿30 Standard tier ทุก engine wizard + public UI · force delete FK fix (promo_codes deactivate) · request template price badge hide |
 | **Session 67 (2026-05-14) — SEO Manual Blog + Search Console** | ✅ Live — Admin manual blog creation: template picker (DB-based, 10 topics, inline CRUD) · createPostAction (draft/publish) · Google Search Console verified + sitemap 22 pages · robots.txt domain fix · Blog Manager search+filter (BlogListClient) |
 | **Session 66 (2026-05-14) — BLOG-EDIT + SEO-ENGINE scaffold** | ✅ Live — BLOG-EDIT: import built-in→DB + edit page + delete button · SEO-ENGINE: pending_review status + approveDraftAction + GenerateDraftButton (removed — Gemini quota 0) |
 | **Session 65 (2026-05-14) — PROMO-5** | ✅ UAT ผ่าน — PromoCodeBanner: progress bar + savings hint + slots · Checkout badge -฿XX pulse · Admin 💡 pricing hint |

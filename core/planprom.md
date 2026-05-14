@@ -571,6 +571,45 @@ CREATE TABLE admin_users (
 
 ---
 
+## Session 68 Changes (2026-05-14) — ADM-RBAC-1 + ฿30 Tier + Bug Fixes
+
+| # | Change | Status |
+|---|---|---|
+| 1 | **ADM-RBAC-1** — Supabase+bcrypt hybrid 2-tier auth · `admin_users` table + JWT `_admin_token` cookie 8h · clerk role with module permissions (`templates`, `catalog`, `analytics`, `blog_seo`, `form_builder`) | ✅ Done |
+| 2 | **Middleware Edge Route Guard** — `middleware.ts` blocks unauthorized URLs for clerk even when typed directly · ADMIN_ONLY routes → admin-only · CLERK_PERMISSION_MAP → per-module check | ✅ Done |
+| 3 | **`/admin/users` page** — list/add/delete admin accounts · checkbox permission editor per clerk · `requireAdminRole('admin')` guard | ✅ Done |
+| 4 | **฿30 Standard tier** — `TIER_PRICE` standard 20→30 ทุก wizard (WizardClient, FormBuilder, form-builder save/update routes, edit page, actions.ts) + public UI (template detail, blog CTA, `src/lib/blog.ts`) | 🟡 Pending UAT |
+| 5 | **Force delete bug fix** — `promo_codes` FK constraint → `SET is_active=false, template_id=NULL` ก่อน DELETE template | ✅ Done |
+| 6 | **Request-only price badge** — hide `฿{price_baht}` for `is_request_only` templates in admin list | ✅ Done |
+
+### Files Changed
+| File | Change |
+|---|---|
+| `src/lib/admin-rbac.ts` | NEW — JWT sign/verify, AdminRole, AdminTokenPayload, PERMISSION_MODULES |
+| `src/lib/admin-auth.ts` | Updated — `resolveSession()` Tier1+Tier2, `getAdminSession`, `requireAdminRole` |
+| `app/api/admin/auth/login/route.ts` | NEW — bcrypt verify → signAdminToken → set cookie |
+| `app/api/admin/auth/logout/route.ts` | NEW — clear `_admin_token` cookie |
+| `app/admin/login/AdminLoginForm.tsx` | Updated — auto-fallback to RBAC API |
+| `app/admin/layout.tsx` | Updated — async, passes role+permissions to AdminNav |
+| `components/admin/AdminNav.tsx` | Updated — `canSeeLink()`, per-permission filtering, clerk sees only Template group |
+| `app/admin/users/page.tsx` | NEW — admin user management + checkbox permissions |
+| `app/admin/users/actions.ts` | NEW — create/delete/updatePermissions actions |
+| `middleware.ts` | NEW — Edge Runtime route guard |
+| `app/admin/templates/actions.ts` | `TIER_PRICE` standard→30 · force delete: deactivate promo_codes |
+| `app/admin/templates/new/WizardClient.tsx` | TIER_PRICE standard→30, label "Standard — ฿30" |
+| `app/admin/form-builder/FormBuilderClient.tsx` | Price label ฿30 |
+| `app/api/admin/form-builder/save/route.ts` | TIER_PRICE standard→30 |
+| `app/api/admin/form-builder/update/route.ts` | TIER_PRICE standard→30 |
+| `app/admin/templates/[id]/edit/page.tsx` | Option label "Standard — ฿30" |
+| `app/admin/templates/page.tsx` | Hide price badge for is_request_only |
+| `app/templates/[slug]/page.tsx` | ฿20→฿30 (price display, buy button, related card) |
+| `app/blog/page.tsx` + `app/blog/[slug]/page.tsx` | CTA "ราคาเริ่มต้น ฿30" |
+| `src/lib/blog.ts` | ฿20→฿30 (3 occurrences) |
+| `.env.local` | Added `ADMIN_JWT_SECRET` |
+| DB | `admin_users` table created on VPS · rows: yopin (admin) + clerk1 (clerk) |
+
+---
+
 ## Session 67 Changes (2026-05-14) — SEO Manual Blog + Search Console
 
 | # | Change | Status |
