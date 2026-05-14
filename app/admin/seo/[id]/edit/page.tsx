@@ -73,7 +73,7 @@ export default async function EditPostPage({ params }: { params: Promise<{ id: s
             />
           </div>
 
-          <div className="flex items-center gap-3 pt-1">
+          <div className="flex gap-3 pt-1">
             <button
               type="submit"
               className="rounded-xl bg-amber-500 px-6 py-2.5 text-sm font-black text-white transition hover:bg-amber-600"
@@ -86,11 +86,12 @@ export default async function EditPostPage({ params }: { params: Promise<{ id: s
             >
               ยกเลิก
             </Link>
-            <div className="ml-auto">
-              <DeletePostButton id={post.id} title={post.title} />
-            </div>
           </div>
         </form>
+
+        <div className="mt-4 flex justify-end">
+          <DeletePostButton id={post.id} title={post.title} />
+        </div>
 
       </div>
     </main>
