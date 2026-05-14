@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { requireAdminSession } from '@/lib/admin-auth'
 import { db } from '@/lib/db'
 import { updatePostAction } from '../../actions'
+import { DeletePostButton } from '../../DeletePostButton'
 
 export const metadata: Metadata = {
   title: 'แก้ไขบทความ · Admin — Planprom',
@@ -72,7 +73,7 @@ export default async function EditPostPage({ params }: { params: Promise<{ id: s
             />
           </div>
 
-          <div className="flex gap-3 pt-1">
+          <div className="flex items-center gap-3 pt-1">
             <button
               type="submit"
               className="rounded-xl bg-amber-500 px-6 py-2.5 text-sm font-black text-white transition hover:bg-amber-600"
@@ -85,6 +86,9 @@ export default async function EditPostPage({ params }: { params: Promise<{ id: s
             >
               ยกเลิก
             </Link>
+            <div className="ml-auto">
+              <DeletePostButton id={post.id} title={post.title} />
+            </div>
           </div>
         </form>
 
