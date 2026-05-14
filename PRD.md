@@ -188,6 +188,7 @@
 
 | กลุ่ม | รายการ | สถานะ |
 |---|---|---|
+| **UI-H** | Analytics Page — Match Catalog Design (`/admin/template-analytics`) | ✅ **Done (INTEL-E/SMART · Session 61-62)** |
 | **UI-I** | Pricing ฿30/฿20/฿10 ทั้ง 10 ไฟล์ — fix 2 bugs (stale TIER_2 ฿8, request-only unit_price) | ✅ **UAT ผ่าน (Session 62)** |
 | **INTEL-E** | Catalog intelligence — S2a perf cards · S2b heatmap · S3 badge+pre-fill · S4 gap chips | ✅ **UAT ผ่าน (Session 62)** |
 | **INTEL-C/D** | 3-Level Coverage Card + Smart Engine Expansion | 🟡 **UAT Pending (Session 53)** |
