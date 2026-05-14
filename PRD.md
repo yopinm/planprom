@@ -29,11 +29,11 @@
 | **Doc Sync** | task เสร็จ → อัพเดต PRD.md + `core/planprom.md` เสมอ |
 | **Scope Gate** | ก่อนเริ่ม implement ทุก task → ต้องมี scope + flow ใน `core/planprom.md` ก่อน → commit docs → รอ owner confirm → ค่อย implement |
 | **Blockers** | Lazada pool=49 fixed · Affiliate tasks ❌ CLOSED 2026-05-13 (owner decision) |
-| **Next task** | **SEO-ENGINE** 🔄 AI Draft Generator (in progress) → **ADM-FALLBACK-1** → E9/E10 → J19 |
-| **Pending (code)** | **SEO-ENGINE** 🔄 · **ADM-FALLBACK-1** 🔴 · J19 · E9/E10 · UI-G(defer) |
-| **Pending (UAT)** | **INTEL-SMART** 🟡 (พรุ่งนี้ — trend arrows ต้องรอ 1 วัน) · INTEL-C/D · DC-1 · DC-2 · DC-8 · DC-16 · E9/E10 · J9(รอ live keys) |
+| **Next task** | **ADM-FALLBACK-1** 🔴 → E9/E10 → J19 |
+| **Pending (code)** | **ADM-FALLBACK-1** 🔴 · J19 · E9/E10 · UI-G(defer) |
+| **Pending (UAT)** | **INTEL-SMART** 🟡 (trend arrows รอ 1 วัน) · INTEL-C/D · DC-1 · DC-2 · DC-8 · DC-16 · E9/E10 · J9(รอ live keys) |
 | **Pending (decision)** | Homepage UX: D (social proof bar) + B (featured badge pulse) — mock ready รอ confirm |
-| **Last session** | **Session 66 (2026-05-14)** — BLOG-EDIT: import built-in → DB + edit page + delete · SEO-ENGINE: AI draft generator (in progress) |
+| **Last session** | **Session 67 (2026-05-14)** — SEO-ENGINE pivot → admin manual blog · Template picker DB-based · Search Console + sitemap live · Blog Manager search+filter |
 | **ห้าม** | ไม่แตะ Later task ขณะที่ Now ยังค้างอยู่ · ไม่แตะ secrets โดยตรง · ไม่ทำให้ revenue channel หายไประหว่าง pivot |
 
 ---
@@ -202,6 +202,8 @@
 
 | Session | สถานะ |
 |---|---|
+| **Session 67 (2026-05-14) — SEO Manual Blog + Search Console** | ✅ Live — Admin manual blog creation: template picker (DB-based, 10 topics, inline CRUD) · createPostAction (draft/publish) · Google Search Console verified + sitemap 22 pages · robots.txt domain fix · Blog Manager search+filter (BlogListClient) |
+| **Session 66 (2026-05-14) — BLOG-EDIT + SEO-ENGINE scaffold** | ✅ Live — BLOG-EDIT: import built-in→DB + edit page + delete button · SEO-ENGINE: pending_review status + approveDraftAction + GenerateDraftButton (removed — Gemini quota 0) |
 | **Session 65 (2026-05-14) — PROMO-5** | ✅ UAT ผ่าน — PromoCodeBanner: progress bar + savings hint + slots · Checkout badge -฿XX pulse · Admin 💡 pricing hint |
 | **Session 64 (2026-05-13) — RE-1 Report Engine** | ✅ Live — Report Engine ครบ 4 engine loop · 8-section PDF · ReportEngineForm · generate-report route · preview card sky · Revise support |
 | **Session 63 (2026-05-14) — Fee Fix + Banner + Featured + Blog Pinned** | ✅ Live — Fix ค่าธรรมเนียม 1.7655% Omise-only · Tooltip ⓘ · DAY1-UAT task · PromoCodeBanner redesign · FeaturedTemplateCard 3-template · บทความแนะนำ (pinned posts) บน homepage |

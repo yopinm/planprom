@@ -500,12 +500,35 @@ Page 2: render fields แบบเปล่า (_____ แทน value)
 
 ---
 
+## Session 67 Changes (2026-05-14) — SEO Manual Blog + Search Console
+
+| # | Change | Status |
+|---|---|---|
+| 1 | **SEO-ENGINE pivot → Admin Manual Blog** — Template picker `/admin/seo/new` · 10 SEO topics pre-loaded · DB-based (`blog_templates` table) · auto-seed จาก constants · inline CRUD (add/edit/delete topic) | ✅ Live |
+| 2 | **createPostAction** — save as draft หรือ publish ทันที · auto slug + reading time · redirect → edit page | ✅ Live |
+| 3 | **Google Search Console** — planprom.com verified via Cloudflare DNS TXT · sitemap.xml ส่งแล้ว 22 หน้า accepted | ✅ Done |
+| 4 | **robots.txt fix** — `NEXT_PUBLIC_BASE_URL` (couponkum.com fallback ผิด) → `NEXT_PUBLIC_SITE_URL` (planprom.com) | ✅ Live |
+| 5 | **Blog Manager UX** — `BlogListClient` search bar + tabs (ทั้งหมด/Published/Draft/รออนุมัติ) · ลบ GenerateDraftButton ที่ broken ออก | ✅ Live |
+
+### Files Changed
+| File | Change |
+|---|---|
+| `app/admin/seo/new/page.tsx` | Rewrite → DB-based template picker + inline CRUD + blog writing form |
+| `app/admin/seo/new/templates.ts` | Seed data 10 topics (still used for auto-seed) |
+| `app/admin/seo/actions.ts` | เพิ่ม `createBlogTemplateAction` · `updateBlogTemplateAction` · `deleteBlogTemplateAction` · `createPostAction` |
+| `app/admin/seo/page.tsx` | ใช้ `BlogListClient` · ลบ `GenerateDraftButton` |
+| `app/admin/seo/BlogListClient.tsx` | NEW — client component: search + filter tabs |
+| `app/robots.ts` | Fix domain: couponkum.com → planprom.com |
+| DB | `blog_templates` table สร้างแล้วบน VPS |
+
+---
+
 ## Session 66 Changes (2026-05-14) — SEO-ENGINE + BLOG-EDIT
 
 | # | Change | Status |
 |---|---|---|
 | 1 | **BLOG-EDIT** — import built-in posts → DB (same slug = DB overrides static) · "แก้ไข" button → `/admin/seo/[id]/edit` · edit form (title/description/content/reading_time) · ปุ่มลบใน edit page + ใน built-in row (เฉพาะ "ใน DB แล้ว") | ✅ Live |
-| 2 | **SEO-ENGINE** — AI draft generator วันละ 1 บทความ + admin review queue | 🔄 In Progress |
+| 2 | **SEO-ENGINE** — AI draft generator (Gemini quota=0 ทุก model) → pivot เป็น admin manual blog ใน Session 67 | ✅ Pivoted |
 
 ---
 
