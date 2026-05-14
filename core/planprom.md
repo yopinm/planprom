@@ -500,13 +500,16 @@ Page 2: render fields แบบเปล่า (_____ แทน value)
 
 ---
 
-## Session 63 Changes (2026-05-14) — Fee Formula Fix + Hint
+## Session 63 Changes (2026-05-14) — Fee Fix + Banner Redesign + Featured 3-Template
 
 | # | Change | Status |
 |---|---|---|
 | 1 | **Fix ค่าธรรมเนียม `/admin/report/sales`** — เปลี่ยนจาก 1.5% flat → Omise PromptPay 1.65%×1.07 VAT = 1.7655% · ใช้ `omise_charge_id IS NOT NULL` filter เฉพาะ Omise-paid orders | ✅ Live |
 | 2 | **Fix ค่าธรรมเนียม `/admin/report/payments`** — เปลี่ยนจาก `GREATEST(*0.015, 5)` (ขั้นต่ำ ฿5/order ผิด) → 1.7655% เช่นกัน · fix CSV net_baht column ด้วย | ✅ Live |
-| 3 | **Tooltip hint สูตรค่าธรรมเนียม** — card ค่าธรรมเนียมใน `/admin/report/sales` + `/admin/report/payments` มี tooltip แสดงสูตร "PromptPay 1.65% + VAT 7% = 1.7655% (เฉพาะ Omise charges)" | ✅ Live |
+| 3 | **Tooltip hint ⓘ สูตรค่าธรรมเนียม** — card ค่าธรรมเนียมใน `/admin/report/sales` + `/admin/report/payments` มี tooltip "PromptPay 1.65% + VAT 7% = 1.7655% (เฉพาะ Omise charges)" | ✅ Live |
+| 4 | **DAY1-UAT task** — สร้าง task ใหม่ในซีรีส์ J: SQL cleanup commands (delete test orders/resets/intel tables) + UAT checklist pre-go-live | ✅ Docs |
+| 5 | **PromoCodeBanner redesign** — label ตรงกลาง + promo-blink animation (CSS keyframe) · countdown แสดงเป็น "ชั่วโมง" เมื่อ <24h (red + ⚠️) · countdown ขยับขึ้นมาเหนือโค้ด · โค้ดอยู่กลางการ์ด | ✅ Live |
+| 6 | **FeaturedTemplateCard 3-template** — รองรับ 1–3 template พร้อมกัน (compact row list) · Admin ตั้ง featured ได้สูงสุด 3 ตัว (เดิม 1) · category inline ต่อท้ายชื่อ template เพื่อลดระยะห่าง | ✅ Live |
 
 ---
 

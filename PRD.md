@@ -201,6 +201,7 @@
 
 | Session | สถานะ |
 |---|---|
+| **Session 63 (2026-05-14) — Fee Fix + Banner + Featured** | ✅ Live — Fix ค่าธรรมเนียม 1.7655% Omise-only (sales+payments) · Tooltip ⓘ hint สูตรค่าธรรมเนียม · DAY1-UAT task · PromoCodeBanner: blink label + hours countdown <24h + position swap · FeaturedTemplateCard: 3 templates + compact rows + category inline |
 | **Session 62 (2026-05-14) — INTEL-SMART** | 🟡 Pending UAT พรุ่งนี้ — Dedup+Cluster (×N score×count) · Fulfilled Tracking (intel_fulfilled table + recordFulfilledAction) · Trend Score (intel_snapshots daily · 📈/📉 โชว์วันที่ 2+) · INTEL-E ✅ UAT ผ่าน |
 | **Session 61 (2026-05-14) — UI-I + INTEL-E** | ✅ Live — UI-I: ฿20→฿30 / ฿10→฿20 / ฿7→฿10 ครบ 10 ไฟล์ + fix stale TIER_2 bug + fix request-only unit_price bug · INTEL-E: 5 features catalog analytics + WizardClient pre-fill |
 | **J18. Cart + Volume Pricing** | ✅ UAT ผ่าน 2026-05-08 (Session 28) |

@@ -68,14 +68,17 @@ URL: `https://planprom.com/`
 ### 2.2 Section Template Store
 
 - **Featured Template Card** — การ์ด "✨ แนะนำสัปดาห์นี้" พร้อม:
-  - ชื่อ Template + หมวดหมู่
-  - ปุ่ม "ดูพรีวิวสินค้า" (เปิด Modal รูปตัวอย่าง)
-  - ปุ่ม "หยิบใส่ตะกร้า" หรือ "รับฟรี" (แล้วแต่ tier)
-  - กำหนดใน Admin: `/admin/templates/[id]/edit` → ⭐ Set Featured
+  - รองรับ 1–3 template พร้อมกัน แสดงเป็น compact row list (divide-y)
+  - แต่ละ row: ชื่อ Template + category inline ต่อท้าย (· emoji ชื่อ) · ปุ่ม "ดูพรีวิว" · ปุ่ม "หยิบใส่ตะกร้า" หรือ "รับฟรี"
+  - กด "ดูพรีวิว" เปิด Modal รูปตัวอย่าง (multi-page carousel ถ้ามีหลายหน้า)
+  - กำหนดใน Admin: `/admin/templates/[id]/edit` → ⭐ Set Featured (มีได้สูงสุด 3 template · แสดง X/3 badge)
+  - Fallback: ถ้าไม่มี featured_weekly → แสดง template ที่ sale_count สูงสุด 1 รายการ
 
 - **Promo Code Banner** — การ์ดขวามือแสดงโค้ดส่วนลด active ที่ไม่ใช่ Unlock Code
-  - มีปุ่ม Copy + countdown หมดอายุ
-  - ถ้าไม่มีโค้ด: แสดง placeholder
+  - Layout: header → label กระพริบ (promo-blink animation) → countdown → โค้ดตรงกลาง + ปุ่ม Copy
+  - Countdown: ปกติแสดงเป็นวัน · เมื่อเหลือ <24 ชั่วโมง → แสดงเป็น "หมดใน X ชั่วโมง" (red + ⚠️, urgent state)
+  - Urgent state: card bg/border เปลี่ยนเป็น rose-50/rose-300
+  - ถ้าไม่มีโค้ด active: แสดง placeholder
 
 - **Category chips** — ทางลัดไปหมวดหมู่ต่างๆ
 - **LINE Request CTA** — การ์ด amber "หาฟอร์มไม่เจอ? ➕ LINE → 💬 บอกฟอร์ม → ✅ ใน 24ชม. · 50฿"
@@ -460,6 +463,7 @@ URL: `/admin/report/sales` (redirect จาก /admin/orders)
 ### 14.1 Dashboard
 
 - **KPI 6 cards:** revenue · orders · avg/order · discount · platform fee · pending
+  - **ค่าธรรมเนียม (platform fee):** คำนวณ Omise PromptPay 1.65% × 1.07 VAT = **1.7655%** · คิดเฉพาะ orders ที่มี `omise_charge_id IS NOT NULL` (Omise-charged orders only) · card มี tooltip ⓘ แสดงสูตร
 - **Revenue by Type:** checklist / planner / form / report (4 rows fixed)
 - **Promo Performance:** โค้ดที่ใช้ + ส่วนลดรวม
 - **Daily breakdown:** 14 วันล่าสุด
