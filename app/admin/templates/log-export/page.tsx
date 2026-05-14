@@ -11,14 +11,35 @@ export const metadata: Metadata = {
 
 export const dynamic = 'force-dynamic'
 
-const PM2_ERR = '/root/.pm2/logs/planprom-error.log'
+const PM2_OUT  = '/root/.pm2/logs/planprom-out.log'
+const PM2_ERR  = '/root/.pm2/logs/planprom-error.log'
+const NGX_ACC  = '/var/log/nginx/access.log'
+const NGX_ERR  = '/var/log/nginx/error.log'
 
-function tailLog(path: string, lines: number): string {
+function tailLines(path: string, n: number): string[] {
   try {
-    return execSync(`tail -n ${lines} "${path}" 2>/dev/null`, { encoding: 'utf8', timeout: 5000 }).trim()
+    const out = execSync(`tail -n ${n} "${path}" 2>/dev/null`, { encoding: 'utf8', timeout: 5000 })
+    return out.split('\n').filter(Boolean)
   } catch {
-    return '(log ไม่พบ หรืออยู่บน local dev)'
+    return []
   }
+}
+
+function isErrorLine(line: string): boolean {
+  return /error|Error|ERROR|warn|WARN|fail|Fail|FAIL|exception|Exception|crash|502|504|unhandled|uncaught/i.test(line)
+}
+
+function parseNginxAccessSummary(lines: string[]) {
+  const status4xx = lines.filter(l => / 4\d\d /.test(l)).length
+  const status5xx = lines.filter(l => / 5\d\d /.test(l)).length
+  const paths: Record<string, number> = {}
+  for (const line of lines) {
+    const m = line.match(/"(?:GET|POST|PUT|DELETE|PATCH) ([^\s"]+)/)
+    if (m) paths[m[1]] = (paths[m[1]] ?? 0) + 1
+  }
+  const top_paths = Object.entries(paths).sort((a, b) => b[1] - a[1]).slice(0, 10)
+    .map(([path, count]) => ({ path, count }))
+  return { total_lines: lines.length, status_4xx: status4xx, status_5xx: status5xx, top_paths }
 }
 
 export default async function TemplateLogExportPage() {
@@ -81,8 +102,13 @@ export default async function TemplateLogExportPage() {
     `.catch(() => []),
   ])
 
+  // Read logs (parallel, non-blocking)
+  const pm2OutLines  = tailLines(PM2_OUT, 200)
+  const pm2ErrLines  = tailLines(PM2_ERR, 100)
+  const ngxAccLines  = tailLines(NGX_ACC, 200)
+  const ngxErrLines  = tailLines(NGX_ERR, 100)
+
   const exportedAt = new Date().toISOString()
-  const pm2Errors = tailLog(PM2_ERR, 50)
 
   const snapshot = {
     exported_at: exportedAt,
@@ -94,20 +120,26 @@ export default async function TemplateLogExportPage() {
       categories: categories.length,
     },
     orders_30d: {
-      paid_orders:   Number(orderRows[0]?.paid_orders ?? 0),
-      pending_orders: Number(orderRows[0]?.pending_orders ?? 0),
+      paid_orders:        Number(orderRows[0]?.paid_orders ?? 0),
+      pending_orders:     Number(orderRows[0]?.pending_orders ?? 0),
       total_revenue_baht: orderRows[0]?.total_revenue ? Number(orderRows[0].total_revenue) : 0,
-      unique_buyers: Number(orderRows[0]?.unique_buyers ?? 0),
+      unique_buyers:      Number(orderRows[0]?.unique_buyers ?? 0),
     },
     cart_stats: {
-      active_carts:      Number(cartRows[0]?.active_carts ?? 0),
-      total_cart_items:  Number(cartRows[0]?.total_cart_items ?? 0),
+      active_carts:     Number(cartRows[0]?.active_carts ?? 0),
+      total_cart_items: Number(cartRows[0]?.total_cart_items ?? 0),
     },
     templates,
     categories,
     category_links: categoryLinks,
     template_performance: orderItemRows,
-    pm2_errors_recent_50_lines: pm2Errors,
+    logs: {
+      pm2_stdout_errors:   pm2OutLines.filter(isErrorLine),
+      pm2_stderr_last100:  pm2ErrLines,
+      nginx_access_summary: parseNginxAccessSummary(ngxAccLines),
+      nginx_access_last200: ngxAccLines,
+      nginx_error_last100:  ngxErrLines,
+    },
   }
 
   const json = JSON.stringify(snapshot, null, 2)
