@@ -1,49 +1,57 @@
-// Admin Authentication — Security Fix #1 + #2
-//
-// Replaces the insecure ?key=ADMIN_KEY pattern with Supabase session checks.
-// Every admin page and API route must call one of these helpers.
-//
-// requireAdminSession() — Server Components / pages (redirects on failure)
-// getAdminUser()        — API routes (returns null on failure, caller handles 403)
-
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { buildAdminLoginRedirectPath } from '@/lib/auth-redirect'
 import { db } from '@/lib/db'
 import { createServerClient } from '@/lib/supabase/server'
+import { verifyAdminToken, COOKIE_NAME, type AdminRole } from '@/lib/admin-rbac'
 
-interface UserRoleRow {
-  role: string | null
+interface UserRoleRow { role: string | null }
+
+// ---------------------------------------------------------------------------
+// Resolve session — Tier 1: Supabase, Tier 2: _admin_token cookie
+// ---------------------------------------------------------------------------
+
+interface ResolvedSession {
+  userId: string
+  role: AdminRole
+}
+
+async function resolveSession(): Promise<ResolvedSession | null> {
+  // Tier 1: Supabase
+  try {
+    const supabase = await createServerClient()
+    const { data: { user }, error } = await supabase.auth.getUser()
+    if (!error && user) {
+      const [profile] = await db<UserRoleRow[]>`
+        SELECT role FROM user_profiles WHERE id = ${user.id} LIMIT 1
+      `
+      if (profile?.role === 'admin') {
+        return { userId: user.id, role: 'admin' }
+      }
+    }
+  } catch {
+    // Supabase unavailable — fall through to Tier 2
+  }
+
+  // Tier 2: RBAC JWT cookie
+  const jar = await cookies()
+  const token = jar.get(COOKIE_NAME)?.value
+  if (token) {
+    const payload = await verifyAdminToken(token)
+    if (payload) return { userId: payload.id, role: payload.role }
+  }
+
+  return null
 }
 
 // ---------------------------------------------------------------------------
-// Core check — shared by both helpers
-// ---------------------------------------------------------------------------
-
-async function resolveAdminUserId(): Promise<string | null> {
-  const supabase = await createServerClient()
-
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) return null
-
-  const [profile] = await db<UserRoleRow[]>`
-    SELECT role
-    FROM user_profiles
-    WHERE id = ${user.id}
-    LIMIT 1
-  `
-
-  if (profile?.role !== 'admin') return null
-  return user.id
-}
-
-// ---------------------------------------------------------------------------
-// For Server Components and Pages — throws redirect on failure
+// For Server Components / Pages — redirects on failure
 // ---------------------------------------------------------------------------
 
 export async function requireAdminSession(nextPath?: string): Promise<string> {
-  const userId = await resolveAdminUserId()
-  if (!userId) redirect(buildAdminLoginRedirectPath(nextPath))
-  return userId
+  const session = await resolveSession()
+  if (!session) redirect(buildAdminLoginRedirectPath(nextPath))
+  return session.userId
 }
 
 // ---------------------------------------------------------------------------
@@ -51,5 +59,25 @@ export async function requireAdminSession(nextPath?: string): Promise<string> {
 // ---------------------------------------------------------------------------
 
 export async function getAdminUser(): Promise<string | null> {
-  return resolveAdminUserId()
+  const session = await resolveSession()
+  return session?.userId ?? null
+}
+
+// ---------------------------------------------------------------------------
+// Role helpers
+// ---------------------------------------------------------------------------
+
+export async function getAdminRole(): Promise<AdminRole | null> {
+  const session = await resolveSession()
+  return session?.role ?? null
+}
+
+export async function requireAdminRole(
+  required: AdminRole,
+  nextPath?: string
+): Promise<string> {
+  const session = await resolveSession()
+  if (!session) redirect(buildAdminLoginRedirectPath(nextPath))
+  if (required === 'admin' && session!.role !== 'admin') redirect('/admin')
+  return session!.userId
 }

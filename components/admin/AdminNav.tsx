@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
+import type { AdminRole } from '@/lib/admin-rbac'
 
 type GroupKey = 'template' | 'report' | 'promo'
 
@@ -47,36 +48,46 @@ const GROUPS: Record<GroupKey, NavGroup> = {
     sublabel: 'Analytics · Logs',
     color: 'bg-indigo-600',
     links: [
-      { label: '📈 ยอดขาย',        path: '/admin/report/sales',         pattern: /^\/admin\/report\/sales/ },
-      { label: '👁️ Pageviews',     path: '/admin/report/pageviews',     pattern: /^\/admin\/report\/pageviews/ },
-      { label: '💳 Payment Log',   path: '/admin/report/payments',      pattern: /^\/admin\/report\/payments/ },
-      { label: '📥 Download Log',  path: '/admin/report/downloads',     pattern: /^\/admin\/report\/downloads/ },
-      { label: '🖥 PM2 Log',       path: '/admin/report/log/pm2',       pattern: /^\/admin\/report\/log\/pm2/ },
+      { label: '📈 ยอดขาย',        path: '/admin/report/sales',            pattern: /^\/admin\/report\/sales/ },
+      { label: '👁️ Pageviews',     path: '/admin/report/pageviews',        pattern: /^\/admin\/report\/pageviews/ },
+      { label: '💳 Payment Log',   path: '/admin/report/payments',         pattern: /^\/admin\/report\/payments/ },
+      { label: '📥 Download Log',  path: '/admin/report/downloads',        pattern: /^\/admin\/report\/downloads/ },
+      { label: '🖥 PM2 Log',       path: '/admin/report/log/pm2',          pattern: /^\/admin\/report\/log\/pm2/ },
       { label: '🌐 Nginx Access',  path: '/admin/report/log/nginx-access', pattern: /^\/admin\/report\/log\/nginx-access/ },
       { label: '⚠️ Nginx Error',   path: '/admin/report/log/nginx-error',  pattern: /^\/admin\/report\/log\/nginx-error/ },
-      { label: '📋 Error Digest',  path: '/admin/report/log/errors',    pattern: /^\/admin\/report\/log\/errors/ },
+      { label: '📋 Error Digest',  path: '/admin/report/log/errors',       pattern: /^\/admin\/report\/log\/errors/ },
     ],
   },
 }
 
-const GROUP_KEYS = Object.keys(GROUPS) as GroupKey[]
+// Clerk only sees template group (no promo / report)
+const CLERK_GROUPS: GroupKey[] = ['template']
+const ALL_GROUPS:   GroupKey[] = ['template', 'promo', 'report']
 
 function detectGroup(pathname: string): GroupKey {
-  for (const key of GROUP_KEYS) {
+  for (const key of ALL_GROUPS) {
     if (GROUPS[key].links.some(l => l.pattern.test(pathname))) return key
   }
   return 'template'
 }
 
-export function AdminNav() {
+interface AdminNavProps {
+  role?: AdminRole | null
+}
+
+export function AdminNav({ role }: AdminNavProps) {
   const pathname = usePathname()
   const detected = detectGroup(pathname)
   const [active, setActive] = useState<GroupKey>(detected)
 
   useEffect(() => { setActive(detected) }, [detected])
 
+  const availableGroups = role === 'clerk' ? CLERK_GROUPS : ALL_GROUPS
   const isDashboard = pathname === '/admin'
-  const group = GROUPS[active]
+
+  // If current group not available for this role, reset to template
+  const safeActive = availableGroups.includes(active) ? active : 'template'
+  const group = GROUPS[safeActive]
 
   return (
     <header className="sticky top-0 z-50 border-b border-neutral-200 bg-white/95 backdrop-blur shadow-sm">
@@ -95,9 +106,9 @@ export function AdminNav() {
 
         {/* Group tabs */}
         <div className="flex items-center gap-1">
-          {GROUP_KEYS.map(key => {
+          {availableGroups.map(key => {
             const g = GROUPS[key]
-            const isActive = active === key && !isDashboard
+            const isActive = safeActive === key && !isDashboard
             return (
               <button
                 key={key}
@@ -115,7 +126,15 @@ export function AdminNav() {
           })}
         </div>
 
-        <div className="ml-auto shrink-0">
+        <div className="ml-auto flex shrink-0 items-center gap-3">
+          {role === 'admin' && (
+            <Link
+              href="/admin/users"
+              className="text-[10px] font-black uppercase tracking-widest text-neutral-400 hover:text-black transition"
+            >
+              Users
+            </Link>
+          )}
           <Link href="/" className="text-[10px] font-black uppercase tracking-widest text-neutral-400 hover:text-amber-600 transition">
             ← Home
           </Link>

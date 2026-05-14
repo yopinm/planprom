@@ -22,21 +22,28 @@ export function AdminLoginForm() {
     setError(null)
     setLoading(true)
 
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
+    // Tier 1 — try Supabase (owner account)
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
 
-    if (signInError) {
-      setError('อีเมลหรือรหัสผ่านไม่ถูกต้อง')
-      setLoading(false)
+    if (!signInError) {
+      window.location.href = next
       return
     }
 
-    // Full page reload ensures cookies are sent with the next server request.
-    // router.push() + router.refresh() has a race condition on mobile where the
-    // auth cookie may not be read before the Server Component runs.
-    window.location.href = next
+    // Tier 2 — try RBAC custom auth (admin / clerk accounts)
+    const res = await fetch('/api/admin/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    })
+
+    if (res.ok) {
+      window.location.href = next
+      return
+    }
+
+    setError('อีเมลหรือรหัสผ่านไม่ถูกต้อง')
+    setLoading(false)
   }
 
   return (
