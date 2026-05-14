@@ -28,12 +28,13 @@ const GROUPS: Record<GroupKey, NavGroup> = {
     color: 'bg-amber-600',
     links: [
       { label: '+ New Template',    path: '/admin/templates/new',      pattern: /^\/admin\/templates\/new/,    permission: 'templates' },
-      { label: '📋 Templates',      path: '/admin/templates',          pattern: /^\/admin\/templates(?!\/new)/, permission: 'templates' },
+      { label: '📋 Templates',      path: '/admin/templates',          pattern: /^\/admin\/templates(?!\/(new|log-export))/, permission: 'templates' },
       { label: '🗂 Catalog',        path: '/admin/catalogs',           pattern: /^\/admin\/catalogs/,           permission: 'catalog' },
       { label: '📊 Analytics',      path: '/admin/template-analytics', pattern: /^\/admin\/template-analytics/, permission: 'analytics' },
       { label: '📝 Blog SEO',       path: '/admin/seo',                pattern: /^\/admin\/seo/,                permission: 'blog_seo' },
       { label: '📋 Form Builder',   path: '/admin/form-builder',       pattern: /^\/admin\/form-builder/,       permission: 'form_builder' },
       { label: '🧩 Field Templates',path: '/admin/field-templates',    pattern: /^\/admin\/field-templates/,    permission: 'templates' },
+      { label: '📤 Log Export',     path: '/admin/templates/log-export', pattern: /^\/admin\/templates\/log-export/ },
     ],
   },
   promo: {
