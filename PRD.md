@@ -201,6 +201,7 @@
 
 | Session | สถานะ |
 |---|---|
+| **Session 64 (2026-05-13) — RE-1 Report Engine** | ✅ Live — Report Engine ครบ 4 engine loop · 8-section PDF · ReportEngineForm · generate-report route · preview card sky · Revise support |
 | **Session 63 (2026-05-14) — Fee Fix + Banner + Featured + Blog Pinned** | ✅ Live — Fix ค่าธรรมเนียม 1.7655% Omise-only · Tooltip ⓘ · DAY1-UAT task · PromoCodeBanner redesign · FeaturedTemplateCard 3-template · บทความแนะนำ (pinned posts) บน homepage |
 | **Session 62 (2026-05-14) — INTEL-SMART** | 🟡 Pending UAT พรุ่งนี้ — Dedup+Cluster (×N score×count) · Fulfilled Tracking (intel_fulfilled table + recordFulfilledAction) · Trend Score (intel_snapshots daily · 📈/📉 โชว์วันที่ 2+) · INTEL-E ✅ UAT ผ่าน |
 | **Session 61 (2026-05-14) — UI-I + INTEL-E** | ✅ Live — UI-I: ฿20→฿30 / ฿10→฿20 / ฿7→฿10 ครบ 10 ไฟล์ + fix stale TIER_2 bug + fix request-only unit_price bug · INTEL-E: 5 features catalog analytics + WizardClient pre-fill |

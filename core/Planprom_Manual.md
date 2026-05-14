@@ -298,6 +298,18 @@ Wizard 3 mode:
 - กด "Form Builder" → ไปหน้า `/admin/form-builder`
 - สร้าง form → กลับมา approve
 
+**Mode 5 — Engine: Report (RE-1):**
+- กรอก ReportEngineForm (8 section)
+  - S1 Cover: ชื่อรายงาน · subtitle · ชื่อองค์กร
+  - S3 Executive Summary: สรุป + ข้อค้นพบ + เสนอแนะ
+  - S4 Introduction & Scope: วัตถุประสงค์/ขอบเขต/methodology
+  - S5 Core Content: ตาราง (Module C) + เนื้อหา text (Module F)
+  - S6 Conclusion: บทสรุป/ความเสี่ยง/คาดการณ์
+  - S7 Appendix: raw data/อ้างอิง/glossary
+- Generate PDF → Approve → publish
+- แก้ไขหลัง publish ได้ผ่านหน้า Revise (ReportReviseForm)
+- Customer preview: sky-color card บน `/templates/[slug]`
+
 ### 10.3 แก้ไข Template (/admin/templates/[id]/edit)
 
 ฟิลด์ที่แก้ได้:
