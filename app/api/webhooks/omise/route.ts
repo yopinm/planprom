@@ -31,6 +31,8 @@ function verifySignature(rawBody: string, signature: string): boolean {
 export async function POST(req: NextRequest) {
   const rawBody = await req.text()
   const sig     = req.headers.get('x-omise-signature') ?? ''
+  const sigAlt  = req.headers.get('omise-signature') ?? ''
+  console.log('[WEBHOOK-DEBUG] x-omise-signature len:', sig.length, '| omise-signature len:', sigAlt.length, '| sig value:', sig || sigAlt || '(empty)')
 
   if (!verifySignature(rawBody, sig)) {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
