@@ -5,6 +5,7 @@ import { requireAdminSession } from '@/lib/admin-auth'
 import { db } from '@/lib/db'
 import { recordFulfilledAction, rejectIdeaAction, revertRejectedAction, restoreStaleAction } from './actions'
 import { CopyButton } from './CopyButton'
+import { SubmitButton } from './SubmitButton'
 
 export const metadata: Metadata = {
   title: 'Market Intelligence — Admin',
@@ -212,8 +213,8 @@ const CATALOG_KEYWORD_MAP: Array<{ ideaPattern: RegExp; catPattern: RegExp }> = 
   // parenting แยกจาก family (ลูก/พ่อแม่ → parenting · บ้าน/ซ่อม → home-lifestyle · ครอบครัว → family)
   { ideaPattern: /พ่อแม่|เลี้ยงลูก|ลูกน้อย|ทารก|เด็กแรกเกิด|ลูกวัย/,                         catPattern: /parenting|เลี้ยงลูก/ },
   { ideaPattern: /บ้าน|งานบ้าน|ห้อง|ซ่อมบ้าน|ทำความสะอาด|ตกแต่งบ้าน/,                        catPattern: /home-lifestyle|งานบ้าน/ },
-  { ideaPattern: /ครอบครัว|ชีวิตคู่|ไลฟ์สไตล์/,                                               catPattern: /family|ครอบครัว/ },
-  { ideaPattern: /นักเรียน|นักศึกษ|มหาวิทยาลัย|สอบ|วิชา|วิทยาลัย|คณะ/,                       catPattern: /นักเรียน|นักศึกษ|school/ },
+  { ideaPattern: /ครอบครัว|ชีวิตคู่|ไลฟ์สไตล์|ใช้ชีวิต|วางแผนชีวิต/,                          catPattern: /family|ครอบครัว|ไลฟ์สไตล์/ },
+  { ideaPattern: /นักเรียน|นักศึกษ|มหาวิทยาลัย|ข้อสอบ|สอบเข้า|สอบกลาง|สอบปลาย|ชีทสอบ|ติวสอบ|เตรียมสอบ|วิชา|วิทยาลัย|คณะ/, catPattern: /นักเรียน|นักศึกษ|school/ },
   // career: สมัครงาน / ราชการ / พนักงาน → slug 'career'
   { ideaPattern: /สมัครงาน|หางาน|เส้นทางอาชีพ|ผลงาน|เงินเดือน|มนุษย์เงินเดือน/,               catPattern: /career/ },
   { ideaPattern: /ราชการ|รายงานตัว|ปฏิบัติงาน|ประกันสังคม|มอบอำนาจ|หน่วยงาน|ว่างงาน/,        catPattern: /career/ },
@@ -591,7 +592,7 @@ export default async function AdminMarketIntelPage() {
     return perf ?? { slug: cat.slug, name: cat.name, emoji: cat.emoji, template_count: '0', paid_orders: '0', revenue: '0' }
   })
 
-  // S2a Action: top 3 ideas per catalog จาก priorityList ทั้งหมด (exclude rejected + stale)
+  // S2a Action: top ideas per catalog — เก็บ 6 (buffer หลัง reject), แสดง 3 ใน Card 03
   type IdeaAction = { idea: string; engineType: string; score: number }
   const catalogIdeaMap = new Map<string, IdeaAction[]>()
   for (const item of priorityList) {
@@ -600,7 +601,7 @@ export default async function AdminMarketIntelPage() {
     const cat = suggestCatalog(item.idea, allCategories)
     if (!cat) continue
     const list = catalogIdeaMap.get(cat.slug) ?? []
-    if (list.length < 3) { list.push({ idea: item.idea, engineType: item.engineType, score: item.score }); catalogIdeaMap.set(cat.slug, list) }
+    if (list.length < 6) { list.push({ idea: item.idea, engineType: item.engineType, score: item.score }); catalogIdeaMap.set(cat.slug, list) }
   }
 
   // ── Sales ─────────────────────────────────────────────────────────────────
@@ -621,6 +622,48 @@ export default async function AdminMarketIntelPage() {
   const uniqueKwCards = SEED_KEYWORDS.filter(
     (kw, idx, arr) => arr.findIndex(k => k.engineType === kw.engineType) === idx
   )
+
+  // Card 06: merge 12 keyword cards → 4 engine groups
+  const ENGINE_ORDER = ['checklist', 'pipeline', 'form', 'report'] as const
+  type DemandCard = {
+    engineType: string; label: string; color: string; border: string; headerBg: string
+    demand: 'สูง' | 'กลาง' | 'ต่ำ'; demandColor: string
+    ideas: string[]
+    audiences: typeof AUDIENCE_RULES
+  }
+  const DEMAND_RANK: Record<string, number> = { สูง: 3, กลาง: 2, ต่ำ: 1 }
+  const mergedDemandCards: DemandCard[] = ENGINE_ORDER.map(et => {
+    const kwGroup = keywordData.filter(k => k.engineType === et)
+    const primary = SEED_KEYWORDS.find(k => k.engineType === et)!
+    const seenIdeas = new Set<string>()
+    const ideas: string[] = []
+    for (const kw of kwGroup) {
+      for (const idea of kw.ideas) {
+        const lo = idea.toLowerCase()
+        if (!seenIdeas.has(lo) && !rejectedSet.has(lo) && !staleSet.has(lo)) {
+          seenIdeas.add(lo)
+          ideas.push(idea)
+        }
+        if (ideas.length >= 5) break
+      }
+      if (ideas.length >= 5) break
+    }
+    const topDemand = kwGroup.reduce<'สูง' | 'กลาง' | 'ต่ำ'>((best, kw) =>
+      DEMAND_RANK[kw.demand] > DEMAND_RANK[best] ? kw.demand : best, 'ต่ำ')
+    const topDemandColor = topDemand === 'สูง' ? 'bg-green-100 text-green-700' : topDemand === 'กลาง' ? 'bg-amber-100 text-amber-700' : 'bg-neutral-100 text-neutral-500'
+    const seenAud = new Set<string>()
+    const audiences: typeof AUDIENCE_RULES = []
+    for (const kw of kwGroup) {
+      for (const a of kw.audiences) {
+        if (!seenAud.has(a.tag)) { seenAud.add(a.tag); audiences.push(a) }
+      }
+    }
+    return {
+      engineType: et, label: ENGINE_LABEL[et] ?? et,
+      color: primary.color, border: primary.border, headerBg: primary.headerBg,
+      demand: topDemand, demandColor: topDemandColor, ideas, audiences,
+    }
+  })
 
   return (
     <main className="min-h-screen bg-neutral-50 pb-20">
@@ -703,7 +746,7 @@ export default async function AdminMarketIntelPage() {
           ) : (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {displayCatalogPerf.map(cat => {
-                const ideas = catalogIdeaMap.get(cat.slug) ?? []
+                const ideas = (catalogIdeaMap.get(cat.slug) ?? []).slice(0, 3)
                 return (
                   <div key={cat.slug} className="rounded-xl border border-neutral-200 bg-white px-4 py-4 shadow-sm">
                     <div className="flex items-center gap-2 mb-3">
@@ -726,7 +769,7 @@ export default async function AdminMarketIntelPage() {
                             </Link>
                             <form action={rejectIdeaAction}>
                               <input type="hidden" name="idea" value={item.idea} />
-                              <button type="submit" title="ไม่ใช่ template" className="shrink-0 text-[10px] text-neutral-300 hover:text-red-500 transition leading-none">✕</button>
+                              <SubmitButton title="ไม่ใช่ template" className="shrink-0 text-[10px] text-neutral-300 hover:text-red-500 transition leading-none">✕</SubmitButton>
                             </form>
                           </div>
                         ))}
@@ -840,7 +883,7 @@ export default async function AdminMarketIntelPage() {
                   </form>
                   <form action={rejectIdeaAction}>
                     <input type="hidden" name="idea" value={item.idea} />
-                    <button type="submit" title="ไม่ใช่ template" className="shrink-0 text-[11px] text-neutral-300 hover:text-red-500 transition">✕</button>
+                    <SubmitButton title="ไม่ใช่ template" className="shrink-0 text-[11px] text-neutral-300 hover:text-red-500 transition">✕</SubmitButton>
                   </form>
                 </div>
               )
@@ -861,7 +904,7 @@ export default async function AdminMarketIntelPage() {
                     <form action={restoreStaleAction}>
                       <input type="hidden" name="idea"        value={item.idea} />
                       <input type="hidden" name="engine_type" value={item.engineType} />
-                      <button type="submit" title="คืนกลับ active list (นับ 30 วันใหม่)" className="shrink-0 rounded-lg border border-neutral-200 px-2 py-0.5 text-[9px] font-black text-neutral-500 hover:border-emerald-400 hover:text-emerald-600 transition">↩ คืน</button>
+                      <SubmitButton title="คืนกลับ active list (นับ 30 วันใหม่)" className="shrink-0 rounded-lg border border-neutral-200 px-2 py-0.5 text-[9px] font-black text-neutral-500 hover:border-emerald-400 hover:text-emerald-600 transition">↩ คืน</SubmitButton>
                     </form>
                     <form action={recordFulfilledAction}>
                       <input type="hidden" name="idea_text"    value={item.idea} />
@@ -890,7 +933,7 @@ export default async function AdminMarketIntelPage() {
                     </span>
                     <form action={revertRejectedAction}>
                       <input type="hidden" name="idea" value={r.idea_text} />
-                      <button type="submit" className="shrink-0 rounded-lg border border-neutral-200 px-2 py-0.5 text-[9px] font-black text-neutral-500 hover:border-emerald-400 hover:text-emerald-600 transition">↩ กู้คืน</button>
+                      <SubmitButton className="shrink-0 rounded-lg border border-neutral-200 px-2 py-0.5 text-[9px] font-black text-neutral-500 hover:border-emerald-400 hover:text-emerald-600 transition">↩ กู้คืน</SubmitButton>
                     </form>
                   </div>
                 ))}
@@ -929,37 +972,34 @@ export default async function AdminMarketIntelPage() {
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {keywordData.map(kw => (
-              <div key={kw.key} className={`rounded-2xl border bg-white shadow-sm overflow-hidden ${kw.border}`}>
+            {mergedDemandCards.map(grp => (
+              <div key={grp.engineType} className={`rounded-2xl border bg-white shadow-sm overflow-hidden ${grp.border}`}>
                 {/* Header */}
-                <div className={`px-4 py-3 flex flex-wrap items-center gap-2 border-b ${kw.color} ${kw.border}`}>
-                  <span className="font-mono font-black text-sm uppercase tracking-wider">{kw.label}</span>
-                  <span className={`ml-auto rounded-full px-2.5 py-0.5 text-[10px] font-black ${kw.demandColor}`}>demand {kw.demand}</span>
-                  {kw.audiences.map(a => (
+                <div className={`px-4 py-3 flex flex-wrap items-center gap-2 border-b ${grp.color} ${grp.border}`}>
+                  <span className="font-mono font-black text-sm uppercase tracking-wider">{grp.label}</span>
+                  <span className={`ml-auto rounded-full px-2.5 py-0.5 text-[10px] font-black ${grp.demandColor}`}>demand {grp.demand}</span>
+                  {grp.audiences.map(a => (
                     <span key={a.tag} className={`rounded-full px-2.5 py-0.5 text-[10px] font-black ${a.color}`}>{a.tag}</span>
                   ))}
                 </div>
-                {/* Template ideas only (no raw Google Suggest table) */}
+                {/* Template ideas */}
                 <div className="p-4">
-                  {(() => {
-                    const visibleIdeas = kw.ideas.filter(idea => !rejectedSet.has(idea.toLowerCase()) && !staleSet.has(idea.toLowerCase()))
-                    return visibleIdeas.length === 0 ? (
-                      <p className="text-xs text-neutral-300 italic">— Google Suggest ไม่มี idea ที่ actionable</p>
-                    ) : (
-                      <ul className="space-y-1.5">
-                        {visibleIdeas.map((idea, i) => (
-                          <li key={i} className="flex items-center gap-2">
-                            <span className="text-amber-500 text-xs shrink-0">→</span>
-                            <span className="flex-1 text-xs font-bold text-neutral-800">{idea}</span>
-                            <form action={rejectIdeaAction}>
-                              <input type="hidden" name="idea" value={idea} />
-                              <button type="submit" title="ไม่ใช่ template" className="shrink-0 text-[10px] text-neutral-300 hover:text-red-500 transition leading-none">✕</button>
-                            </form>
-                          </li>
-                        ))}
-                      </ul>
-                    )
-                  })()}
+                  {grp.ideas.length === 0 ? (
+                    <p className="text-xs text-neutral-300 italic">— Google Suggest ไม่มี idea ที่ actionable</p>
+                  ) : (
+                    <ul className="space-y-1.5">
+                      {grp.ideas.map((idea, i) => (
+                        <li key={i} className="flex items-center gap-2">
+                          <span className="text-amber-500 text-xs shrink-0">→</span>
+                          <span className="flex-1 text-xs font-bold text-neutral-800">{idea}</span>
+                          <form action={rejectIdeaAction}>
+                            <input type="hidden" name="idea" value={idea} />
+                            <SubmitButton title="ไม่ใช่ template" className="shrink-0 text-[10px] text-neutral-300 hover:text-red-500 transition leading-none">✕</SubmitButton>
+                          </form>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                   <Link href="/admin/templates/new" className="mt-3 inline-flex items-center gap-1.5 rounded-xl border border-neutral-200 px-3 py-1.5 text-[10px] font-black text-neutral-500 hover:border-amber-400 hover:text-amber-600 transition">
                     + สร้าง template →
                   </Link>
@@ -1134,7 +1174,7 @@ export default async function AdminMarketIntelPage() {
                                 <span className="text-[10px] text-neutral-300 line-through">rejected</span>
                                 <form action={revertRejectedAction}>
                                   <input type="hidden" name="idea" value={row.idea} />
-                                  <button type="submit" className="text-[9px] text-neutral-300 hover:text-emerald-500 transition">↩</button>
+                                  <SubmitButton className="text-[9px] text-neutral-300 hover:text-emerald-500 transition">↩</SubmitButton>
                                 </form>
                               </div>
                             ) : (
@@ -1143,7 +1183,7 @@ export default async function AdminMarketIntelPage() {
                                 <Link href="/admin/templates/new" className="rounded-lg border border-amber-300 bg-amber-50 px-2 py-0.5 text-[9px] font-black text-amber-700 hover:bg-amber-100 transition">+ สร้าง</Link>
                                 <form action={rejectIdeaAction}>
                                   <input type="hidden" name="idea" value={row.idea} />
-                                  <button type="submit" title="ไม่ใช่ template" className="text-[10px] text-neutral-300 hover:text-red-500 transition leading-none">✕</button>
+                                  <SubmitButton title="ไม่ใช่ template" className="text-[10px] text-neutral-300 hover:text-red-500 transition leading-none">✕</SubmitButton>
                                 </form>
                               </div>
                             )}
