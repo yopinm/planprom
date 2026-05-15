@@ -412,10 +412,9 @@ export function generatePlannerPipelineHtmlV4(data: PlannerPipelineDataV4, water
             ${blankLines(2)}
           </div>`}
         <div class="sub">งานหลัก 3 อย่าง</div>
-        ${mp.mainTasks.slice(0,3).map((t, n) => `
-          <div style="display:flex;gap:10px;align-items:center;padding:5px 0;border-bottom:1px solid #f3f4f6">
-            <span style="font-weight:900;color:${c.accent};font-size:14pt;line-height:1;flex-shrink:0">${n+1}</span>
-            <span style="font-size:10pt;color:#374151;flex:1;word-break:break-word">${t.trim() ? esc(t) : '—'}</span>
+        ${mp.mainTasks.slice(0,3).map((t) => `
+          <div style="padding:5px 0;border-bottom:1px solid #f3f4f6">
+            <span style="font-size:10pt;color:#374151;word-break:break-word">${t.trim() ? esc(t) : '—'}</span>
           </div>`).join('')}
         <div style="margin-top:10px">
           <div class="sub">บันทึก</div>
