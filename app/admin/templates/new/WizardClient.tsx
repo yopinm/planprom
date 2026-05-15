@@ -144,7 +144,7 @@ export function WizardClient({ categories, cloneSources, initialTitle, initialCa
   }, [])
 
   const isEngine  = mode === 'engine-checklist' || mode === 'engine-planner' || mode === 'engine-pipeline' || mode === 'engine-report'
-  const priceBaht = TIER_PRICE[tier] ?? 20
+  const priceBaht = TIER_PRICE[tier] ?? 30
   const catName   = categories.find(c => c.slug === catSlug)?.name ?? ''
 
   function handleTitleChange(val: string) {
