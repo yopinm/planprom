@@ -26,9 +26,10 @@ const SEED_KEYWORDS = [
   { key: 'แผนงาน',   label: 'แผนงาน',   engineType: 'pipeline',  color: 'bg-purple-50 text-purple-700', border: 'border-purple-200', headerBg: 'bg-purple-50' },
   { key: 'บัญชี',    label: 'บัญชี',    engineType: 'report',    color: 'bg-amber-50 text-amber-700',   border: 'border-amber-200',  headerBg: 'bg-amber-50'  },
   // Topic-based (B: ครอบ catalog career / parenting / home-lifestyle)
-  { key: 'งาน',       label: 'งาน',       engineType: 'checklist', color: 'bg-indigo-50 text-indigo-700',  border: 'border-indigo-200',  headerBg: 'bg-indigo-50'  },
-  { key: 'เลี้ยงลูก', label: 'เลี้ยงลูก', engineType: 'checklist', color: 'bg-pink-50 text-pink-700',     border: 'border-pink-200',    headerBg: 'bg-pink-50'    },
-  { key: 'งานบ้าน',  label: 'งานบ้าน',  engineType: 'checklist', color: 'bg-orange-50 text-orange-700', border: 'border-orange-200',  headerBg: 'bg-orange-50'  },
+  { key: 'งาน',        label: 'งาน',        engineType: 'checklist', color: 'bg-indigo-50 text-indigo-700',  border: 'border-indigo-200',  headerBg: 'bg-indigo-50'  },
+  { key: 'เลี้ยงลูก',  label: 'เลี้ยงลูก',  engineType: 'checklist', color: 'bg-pink-50 text-pink-700',     border: 'border-pink-200',    headerBg: 'bg-pink-50'    },
+  { key: 'งานบ้าน',   label: 'งานบ้าน',   engineType: 'checklist', color: 'bg-orange-50 text-orange-700', border: 'border-orange-200',  headerBg: 'bg-orange-50'  },
+  { key: 'ครอบครัว',  label: 'ครอบครัว',  engineType: 'checklist', color: 'bg-rose-50 text-rose-700',     border: 'border-rose-200',    headerBg: 'bg-rose-50'    },
 ] as const
 
 // A: expanded from 6 → 15 most-common Thai consonants
