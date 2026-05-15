@@ -1286,60 +1286,13 @@ export default async function AdminMarketIntelPage() {
               <p className="text-[10px] text-neutral-400">template ขายดีสุด (top 20) vs ยังไม่มีการซื้อ · แยกตามประเภท · กดหัวกลุ่มเพื่อพับ/ขยาย</p>
             </div>
           </div>
-          {CARD11_GROUPS.map(({ key, emoji, label, pillCls }) => {
-            const groupRows = ranking.filter(r => toTypeGroup(r.engine_type) === key)
-            if (groupRows.length === 0) return null
-            const sellers  = groupRows.filter(r => Number(r.paid_count) > 0).slice(0, 20)
-            const zeros    = groupRows.filter(r => Number(r.paid_count) === 0 && r.status === 'published')
-            const groupMax = Math.max(...sellers.map(r => Number(r.paid_count)), 1)
-            return (
-              <details key={key} open className="group rounded-2xl border border-neutral-200 bg-white shadow-sm overflow-hidden">
-                <summary className="flex cursor-pointer list-none select-none items-center gap-3 px-5 py-3.5 hover:bg-neutral-50">
-                  <span className="text-base leading-none">{emoji}</span>
-                  <span className="font-black text-sm text-neutral-800">{label}</span>
-                  <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-black ${pillCls}`}>
-                    {sellers.length > 0 ? `🏆 ${sellers.length} ขาย` : 'ยังไม่มียอด'}
-                    {zeros.length > 0 && ` · ⚠ ${zeros.length} รอขาย`}
-                  </span>
-                  <span className="ml-auto text-neutral-300 text-xs group-open:rotate-180 transition-transform">▼</span>
-                </summary>
-                <div className="border-t border-neutral-100">
-                  {sellers.length > 0 && (
-                    <div className="divide-y divide-neutral-50">
-                      {sellers.map((t, i) => (
-                        <div key={t.id} className="flex items-center gap-3 px-5 py-3">
-                          <div className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-black ${i === 0 ? 'bg-amber-100 text-amber-700' : i === 1 ? 'bg-neutral-100 text-neutral-600' : i === 2 ? 'bg-orange-100 text-orange-700' : 'bg-neutral-50 text-neutral-400'}`}>{i + 1}</div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-neutral-800 truncate">{t.title}</p>
-                            <div className="mt-1 flex items-center gap-2">
-                              <div className="h-1 w-16 rounded-full bg-neutral-100">
-                                <div className="h-1 rounded-full bg-indigo-400" style={{ width: `${Math.round((Number(t.paid_count) / groupMax) * 100)}%` }} />
-                              </div>
-                              <span className="text-[10px] text-neutral-400">{t.paid_count} orders · ฿{Number(t.revenue).toLocaleString()} · {t.downloads} DL</span>
-                            </div>
-                          </div>
-                          <Link href={`/admin/templates/${t.id}/edit`} className="shrink-0 rounded-xl border border-neutral-200 px-3 py-1.5 text-[10px] font-black text-neutral-500 hover:border-indigo-400 hover:text-indigo-600 transition">แก้ไข</Link>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {zeros.length > 0 && (
-                    <div className="bg-red-50/50 px-5 py-3">
-                      <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-red-400">⚠️ ยังไม่มียอด ({zeros.length})</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {zeros.map(t => (
-                          <Link key={t.id} href={`/admin/templates/${t.id}/edit`} className="rounded-full border border-red-200 bg-white px-2.5 py-1 text-[10px] font-bold text-red-600 hover:bg-red-50 transition">{t.title}</Link>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {sellers.length === 0 && zeros.length === 0 && (
-                    <p className="px-5 py-4 text-[11px] text-neutral-400">— ยังไม่มี template ในกลุ่มนี้</p>
-                  )}
-                </div>
-              </details>
-            )
-          })}
+          {/* STATIC TEST — 4 hardcoded empty cards to verify rendering */}
+          {(['📋 เช็คลิสต์', '📅 แพลนเนอร์', '📝 ฟอร์ม', '📊 รีพอร์ต'] as const).map(lbl => (
+            <div key={lbl} className="rounded-2xl border border-neutral-200 bg-white shadow-sm px-5 py-4">
+              <p className="font-black text-sm text-neutral-800">{lbl}</p>
+              <p className="text-[10px] text-neutral-400 mt-1">— static test card</p>
+            </div>
+          ))}
         </section>
 
         {/* ── S9: INTEL-SCORE Template Health Check ────────────────────────── */}
