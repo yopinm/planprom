@@ -18,11 +18,17 @@ function verifySignature(rawBody: string, signature: string): boolean {
     console.error('[WEBHOOK] OMISE_WEBHOOK_SECRET not configured — rejecting all requests')
     return false
   }
-  const keyRaw   = Buffer.from(secret, 'base64')
-  const hmacRaw  = crypto.createHmac('sha256', keyRaw).update(rawBody).digest('hex')
-  const hmacStr  = crypto.createHmac('sha256', secret).update(rawBody).digest('hex')
-  console.log('[WEBHOOK-DEBUG2] sig:', signature.slice(0,16), '| hmac(decoded):', hmacRaw.slice(0,16), '| hmac(string):', hmacStr.slice(0,16), '| body len:', rawBody.length)
-  const expected = hmacRaw
+  const keyRaw    = Buffer.from(secret, 'base64')
+  const hmacSHA256str = crypto.createHmac('sha256', secret).update(rawBody).digest('hex')
+  const hmacSHA256raw = crypto.createHmac('sha256', keyRaw).update(rawBody).digest('hex')
+  const hmacSHA1str   = crypto.createHmac('sha1',   secret).update(rawBody).digest('hex')
+  const hmacSHA1raw   = crypto.createHmac('sha1',   keyRaw).update(rawBody).digest('hex')
+  console.log('[WEBHOOK-DEBUG3] omise-sig  :', signature)
+  console.log('[WEBHOOK-DEBUG3] sha256/str :', hmacSHA256str)
+  console.log('[WEBHOOK-DEBUG3] sha256/raw :', hmacSHA256raw)
+  console.log('[WEBHOOK-DEBUG3] sha1/str   :', hmacSHA1str)
+  console.log('[WEBHOOK-DEBUG3] sha1/raw   :', hmacSHA1raw)
+  const expected = hmacSHA256raw
   try {
     if (Buffer.byteLength(expected) !== Buffer.byteLength(signature)) return false
     return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature))
