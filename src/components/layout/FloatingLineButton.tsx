@@ -4,7 +4,7 @@ const LINE_OA_URL = 'https://line.me/ti/p/~yopinm'
 
 export function FloatingLineButton() {
   return (
-    <div className="fixed bottom-6 right-5 z-50 flex flex-col items-end gap-2">
+    <div className="fixed bottom-6 left-5 z-50 flex flex-col items-start gap-2">
       {/* Speech bubble */}
       <div
         style={{ animation: 'lineBubble 7s ease-in-out infinite' }}
@@ -12,7 +12,7 @@ export function FloatingLineButton() {
       >
         <p className="text-xs font-bold text-neutral-800 whitespace-nowrap">หาฟอร์มไม่เจอ? 📌</p>
         <p className="text-[11px] text-neutral-500 whitespace-nowrap">Request ด่วน 50฿ ✅</p>
-        <div className="absolute -bottom-1.5 right-5 h-3 w-3 rotate-45 bg-white" />
+        <div className="absolute -bottom-1.5 left-5 h-3 w-3 rotate-45 bg-white" />
       </div>
 
       {/* LINE button */}
