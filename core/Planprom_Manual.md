@@ -1,6 +1,6 @@
 # Planprom_Manual.md — คู่มือการใช้งาน แพลนพร้อม (planprom.com)
 
-> อัพเดตล่าสุด: 2026-05-15 · Session 72 · ครอบคลุมทุกฟีเจอร์ที่ Live + Technical Reference (DB, API, Engine, Infra) จาก Blueprint
+> อัพเดตล่าสุด: 2026-05-15 · Session 75 · ครอบคลุมทุกฟีเจอร์ที่ Live + Technical Reference (DB, API, Engine, Infra) จาก Blueprint
 > ภาษา: ไทย · เขียนสำหรับ admin และ owner ของระบบ
 
 ---
@@ -1116,7 +1116,7 @@ pm2 logs planprom --lines 30
 
 #### Tier 2 — RBAC Custom Auth (Admin / Clerk fallback)
 - ใช้ตาราง `admin_users` (bcrypt password_hash + JWT cookie)
-- Login → `POST /api/admin/auth/login` → ตั้ง `_admin_token` cookie (HttpOnly, 8h)
+- Login → `POST /api/admin/auth/login` → ตั้ง `_admin_token` cookie (HttpOnly, 2h)
 - Logout → `POST /api/admin/auth/logout` → ล้าง cookie
 - Role: `admin` (เข้าถึงทุกเมนู) | `clerk` (เฉพาะ module ที่ได้รับ permission)
 - ใช้ได้แม้ Supabase ล่ม
@@ -1260,7 +1260,45 @@ execSync(`tail -n ${n} "${path}"`)
 
 สำหรับ glob expansion ที่ต้องผ่าน shell (เช่น `ls -t *.log`) ให้ใช้ `spawnSync('sh', ['-c', cmd])` โดย cmd ต้องเป็น hardcoded string เท่านั้น ห้ามใส่ตัวแปรจาก user input.
 
-### 23.5 Pre-deploy Checklist
+### 23.5 Pre-Launch Security Audit — ผลการ Scan (2026-05-15 · Session 72-75)
+
+> ทำ full scan ก่อน go-live ครอบคลุม code · UI · infra — **Security Score: ~80/100**
+
+| ID | ระดับ | ช่องโหว่ | สถานะ |
+|---|---|---|---|
+| **C-001** | Critical | Login response ส่ง `role` กลับ client → ข้อมูลรั่ว | ✅ Fixed — ลบ `role` ออกจาก JSON |
+| **C-002** | Critical | Logout cookie ขาด `httpOnly`, `secure`, `sameSite` → ถูก steal ได้ | ✅ Fixed — เพิ่ม security flags ครบ |
+| **H-001** | High | `/admin/report/export` page ไม่มี auth guard → ใครก็เข้าได้ | ✅ Fixed — เพิ่ม `requireAdminSession` |
+| **H-003** | High | Cart webhook race — token generate ซ้ำซ้อน | ✅ Already fixed — `AND download_token IS NULL` |
+| **H-004** | High | Webhook signature fail-open (empty secret → accept all) | ✅ Fixed — fail-closed ถ้า `OMISE_WEBHOOK_SECRET` ไม่ตั้งค่า |
+| **H-002** | High | Download token plain-text ใน URL → brute-force/leak ได้ | 🔵 Partial — เพิ่ม `Referrer-Policy: no-referrer` header · bcrypt hash = post-launch |
+| **M-001** | Medium | Admin JWT expiry 8h → session window ใหญ่เกิน | ✅ Fixed — ลดเหลือ **2h** |
+| **M-002** | Medium | Webhook ไม่ re-validate promo code ตอน payment confirm | ✅ Fixed — query + `console.warn` ถ้า revoked |
+| **M-003** | Medium | `tailLines()` silent fail → log error ไม่แสดงใน UI | ✅ Fixed — return `[LOG_READ_ERROR]` marker |
+
+#### Files ที่แก้ไข
+
+| File | การเปลี่ยนแปลง |
+|---|---|
+| `app/api/admin/auth/login/route.ts` | ลบ `role` ออกจาก JSON response (C-001) |
+| `app/api/admin/auth/logout/route.ts` | เพิ่ม `httpOnly`, `secure`, `sameSite` บน cookie (C-002) |
+| `app/admin/report/export/page.tsx` | เพิ่ม `requireAdminSession('/admin/login')` (H-001) |
+| `app/api/webhooks/omise/route.ts` | Signature fail-closed + promo re-validate + `console.warn` (H-004, M-002) |
+| `app/api/download/[token]/route.ts` | เพิ่ม `Referrer-Policy: no-referrer` header (H-002 partial) |
+| `components/CookieConsent.tsx` | NEW — PDPA cookie consent banner (localStorage, ปิดครั้งเดียวถาวร) |
+| `app/layout.tsx` | เพิ่ม `<CookieConsent />` |
+| `app/privacy/page.tsx` | เพิ่ม Omise/OPN processor disclosure + data retention 5yr |
+| `app/terms/page.tsx` | ระบุ Omise PromptPay QR + ข้อยกเว้น refund "ไฟล์เสียหาย ≤ 7 วัน" |
+| `src/lib/admin-rbac.ts` | `EXPIRES_IN` 8h → **2h** (M-001) |
+| `app/admin/report/log/page.tsx` | `tailLines()` error → `['[LOG_READ_ERROR — ตรวจสอบ permission หรือ path]']` (M-003) |
+
+#### ที่เหลือ (post-launch)
+- **H-002 full** — hash download tokens ด้วย bcrypt + DB migration (ไม่กระทบ UX แต่ต้อง migration)
+- **Cloudflare Full (Strict)** — สลับจาก Full แล้ว · ใช้ Let's Encrypt cert · ไม่มี code impact
+
+---
+
+### 23.6 Pre-deploy Checklist
 
 ก่อน deploy feature ใหม่ที่แตะ admin หรือข้อมูล user:
 

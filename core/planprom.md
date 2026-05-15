@@ -568,8 +568,43 @@ CREATE TABLE admin_users (
 ### Security
 - Route guard ทำงานที่ Edge (middleware) — ก่อนถึง server component
 - Supabase-only session (ไม่มี `_admin_token`) ผ่าน middleware เสมอ — page จัดการเอง
-- `_admin_token` httpOnly, sameSite=lax, secure (8h)
+- `_admin_token` httpOnly, sameSite=lax, secure (2h — ลดจาก 8h ใน Session 75)
 - Clerk ไม่มี Supabase account — ใช้ Tier 2 เสมอ
+
+---
+
+## Session 75 Changes (2026-05-15) — Pre-Launch Security Scan + Fixes
+
+| # | Change | Status |
+|---|---|---|
+| 1 | **Pre-launch full security scan** — ครอบคลุม code / UI / infra · Score **~80/100** | ✅ Done |
+| 2 | **C-001** Login response ลบ `role` field → ไม่รั่ว role ไป client | ✅ Fixed |
+| 3 | **C-002** Logout cookie เพิ่ม `httpOnly` + `secure` + `sameSite` | ✅ Fixed |
+| 4 | **H-001** `/admin/report/export` เพิ่ม `requireAdminSession` auth guard | ✅ Fixed |
+| 5 | **H-004** Webhook signature fail-closed — reject ถ้า `OMISE_WEBHOOK_SECRET` ไม่ตั้งค่า | ✅ Fixed |
+| 6 | **H-002 partial** Download route เพิ่ม `Referrer-Policy: no-referrer` — กัน token leak via Referer header | ✅ Fixed |
+| 7 | **PDPA** `CookieConsent.tsx` (NEW) — banner แสดงครั้งแรก · กด "ยอมรับ" เก็บ localStorage ถาวร · UAT ผ่าน Incognito | ✅ Live |
+| 8 | **PDPA** Privacy Policy เพิ่ม Omise/OPN processor disclosure + data retention 5 ปี | ✅ Live |
+| 9 | **PDPA** Terms เพิ่ม Omise PromptPay + refund exception "ไฟล์เสียหาย ≤ 7 วัน" | ✅ Live |
+| 10 | **M-001** Admin JWT expiry 8h → **2h** (`src/lib/admin-rbac.ts`) | ✅ Fixed |
+| 11 | **M-002** Webhook cart handler re-validate promo — `console.warn` ถ้าโค้ดถูก revoke หลังจ่ายเงิน | ✅ Fixed |
+| 12 | **M-003** `tailLines()` silent fail → return `[LOG_READ_ERROR]` marker ใน System Log | ✅ Fixed |
+| 13 | **Cloudflare SSL** Full → Full (Strict) — VPS ใช้ Let's Encrypt ✅ · ไม่มี code impact | ✅ Config |
+
+### Files Changed
+| File | Change |
+|---|---|
+| `app/api/admin/auth/login/route.ts` | ลบ `role` จาก JSON (C-001) |
+| `app/api/admin/auth/logout/route.ts` | cookie security flags (C-002) |
+| `app/admin/report/export/page.tsx` | requireAdminSession guard (H-001) |
+| `app/api/webhooks/omise/route.ts` | fail-closed signature + promo re-validate (H-004, M-002) |
+| `app/api/download/[token]/route.ts` | Referrer-Policy: no-referrer (H-002 partial) |
+| `components/CookieConsent.tsx` | NEW — PDPA cookie banner |
+| `app/layout.tsx` | `<CookieConsent />` |
+| `app/privacy/page.tsx` | Omise processor disclosure |
+| `app/terms/page.tsx` | Omise payment + refund exception |
+| `src/lib/admin-rbac.ts` | EXPIRES_IN 8h → 2h (M-001) |
+| `app/admin/report/log/page.tsx` | tailLines() error marker (M-003) |
 
 ---
 
