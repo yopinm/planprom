@@ -582,14 +582,19 @@ CREATE TABLE admin_users (
 | 3 | **WizardClient fallback fix** — `priceBaht = TIER_PRICE[tier] ?? 20` → `?? 30` | ✅ Live |
 | 4 | **INTEL-SCORE rendering fix** — ลบ `scoredTemplates.length > 0 &&` guard → section แสดงเสมอ (empty state ถ้าไม่มี published template) | ✅ Live |
 | 5 | **Checklist template UAT** — สร้าง template ใหม่ · Save Draft · Edit · Add to Cart · Payment ผ่านครบ | ✅ UAT ผ่าน |
-| 6 | **Planner / Form / Report UAT** | ⏳ Pending |
+| 6 | **RSC runtime crash** — `onClick` ใน Server Component `page.tsx` → crash production · ลบ handler + เพิ่ม ESLint guard | ✅ Live |
+| 7 | **ESLint RSC guard** — `no-restricted-syntax` rule ใน `eslint.config.mjs` targets `app/admin/**/page.tsx` + `app/admin/**/layout.tsx` · UAT: เพิ่ม onClick → lint error · ลบออก → 0 errors | ✅ UAT ผ่าน |
+| 8 | **CLAUDE.md hard rule** — เพิ่ม RSC rule: ห้าม `on*={fn}` ใน admin page.tsx | ✅ Done |
+| 9 | **Planner / Form / Report UAT** | ⏳ Pending |
 
 ### Files Changed
 | File | Change |
 |---|---|
-| `app/admin/template-analytics/page.tsx` | Section dividers 12 pills + INTEL-SCORE guard removed |
+| `app/admin/template-analytics/page.tsx` | Section dividers 12 pills + INTEL-SCORE guard removed + onClick ลบออก |
 | `app/admin/templates/new/WizardClient.tsx` | fallback ?? 30 |
 | `migrations/20260515_price_baht_30.sql` | NEW — constraint (0,30,50) |
+| `eslint.config.mjs` | NEW RSC guard rule — no event handlers in admin page.tsx |
+| `CLAUDE.md` | NEW hard rule — RSC constraint documented |
 
 ---
 
