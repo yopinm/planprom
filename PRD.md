@@ -29,11 +29,11 @@
 | **Doc Sync** | task เสร็จ → อัพเดต PRD.md + `core/planprom.md` เสมอ |
 | **Scope Gate** | ก่อนเริ่ม implement ทุก task → ต้องมี scope + flow ใน `core/planprom.md` ก่อน → commit docs → รอ owner confirm → ค่อย implement |
 | **Blockers** | Lazada pool=49 fixed · Affiliate tasks ❌ CLOSED 2026-05-13 (owner decision) |
-| **Next task** | **INTEL-SMART UAT** 🟡 → **Planner/Form/Report engine UAT** |
+| **Next task** | **Planner/Form/Report engine UAT** ⏳ → INTEL-SMART UAT 🟡 |
 | **Pending (code)** | E9/E10 · UI-G(defer) |
-| **Pending (UAT)** | **INTEL-SMART** 🟡 (trend arrows — ข้อมูล snapshot พร้อมแล้ว) · **Engine UAT** 🟡 (Planner/Form/Report — Checklist ✅) · INTEL-C/D · DC-1 · DC-2 · DC-8 · DC-16 · E9/E10 · J9(รอ live keys) |
+| **Pending (UAT)** | **Engine UAT** 🟡 (Planner/Form/Report — Checklist ✅ · Upload PDF ✅) · **INTEL-SMART** 🟡 (trend arrows) · INTEL-BLOG-SCORE 🔲 · INTEL-C/D · DC-1 · DC-2 · DC-8 · DC-16 · E9/E10 · J9(รอ live keys) |
 | **Pending (decision)** | Homepage UX: D (social proof bar) + B (featured badge pulse) — mock ready รอ confirm |
-| **Last session** | **Session 75 (2026-05-15)** — Omise webhook fix: HMAC signature → API verification · `verifyCharge()` GET Omise API โดยตรง · webhook 200 OK ยืนยันใน dashboard แล้ว |
+| **Last session** | **Session 76 (2026-05-15)** — Card 11 bug fix (sub.created_at ขาดใน subquery SELECT) · Blog SEO Health Score ใน /admin/seo · Blog edit page plain text · Upload PDF UAT ✅ |
 | **ห้าม** | ไม่แตะ Later task ขณะที่ Now ยังค้างอยู่ · ไม่แตะ secrets โดยตรง · ไม่ทำให้ revenue channel หายไประหว่าง pivot |
 | **Security rule** | ทุก admin feature ต้องตรวจ: role check · PII mask · no path disclosure · spawnSync array args (ดู §23 Manual) |
 

@@ -609,6 +609,29 @@ CREATE TABLE admin_users (
 
 ---
 
+## Session 76 Changes (2026-05-15) — Card 11 Fix + Blog SEO Health + Edit UX
+
+| # | Change | Status |
+|---|---|---|
+| 1 | **Card 11 root cause fix** — `t.created_at` ขาดใน subquery SELECT → `ORDER BY sub.created_at` fail silently → ranking=[] → ทุก group return null · แก้: เพิ่ม `t.created_at` ใน inner SELECT | ✅ Live |
+| 2 | **Card 11 4 แถบพับได้** — Checklist/Planner/Form/Report แยกกลุ่ม · top 20 bestseller per group + ⚠ ยังไม่มียอด · UAT ผ่าน | ✅ Live |
+| 3 | **Upload PDF UAT** — ไม่มีเมนู "แก้ไขเนื้อหา" = ถูกต้อง (ไฟล์มาจากภายนอก engine ระบบ) | ✅ UAT ผ่าน |
+| 4 | **INTEL-BLOG-SCORE scoped** — task ใหม่: Blog SEO Health 5 มิติ/100 (Title/Description/Content/Internal Links/Tags) | ✅ Scope done |
+| 5 | **Blog SEO Health Score** — section ใน `/admin/seo` · เรียงแย่→ดี · expand row ดู breakdown + hint + "แก้ไข →" | ✅ Live |
+| 6 | **Blog edit plain text** — `htmlToPlain()` แปลง HTML → ข้อความปกติ · `plainToHtml()` แปลงกลับตอน save | ✅ Live |
+| 7 | **Engine UAT Planner/Form/Report** — ยังสร้างไฟล์จริงไม่ครบ | ⏳ Pending |
+
+### Files Changed
+| File | Change |
+|---|---|
+| `app/admin/template-analytics/page.tsx` | Card 11 subquery + `t.created_at` fix · 4 group details |
+| `app/admin/seo/page.tsx` | Blog SEO Health Score section + `scoreBlogPost()` |
+| `app/admin/seo/[id]/edit/page.tsx` | `htmlToPlain()` · textarea plain text |
+| `app/admin/seo/actions.ts` | `plainToHtml()` ใน `updatePostAction` |
+| `core/planprom.md` | INTEL-BLOG-SCORE scoped |
+
+---
+
 ## Session 75 Changes (2026-05-15) — Omise Webhook Fix: API Verification
 
 | # | Change | Status |
