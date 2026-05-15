@@ -46,6 +46,10 @@ const AUDIENCE_RULES: { tag: string; color: string; pattern: RegExp }[] = [
 
 const NOISE = /^(แปลว่า|คือ|ภาษาอังกฤษ|pdf|ฟรี|goodnote|sut|a problem|speech|สรุป|one piece|marvel|resident evil|ฟอร์มาลิน|ฟอร์มาลดีไฮด์|ฟอร์มูลาวัน|formula 1|format factory|format$|formula$)$/i
 
+// FULL_NOISE: applied to full suggestion string — catches context-dependent noise that NOISE misses
+// because NOISE only sees the stripped suffix (e.g. "ตารางบอล" stripped="บอล" which isn't in NOISE)
+const FULL_NOISE = /ตารางบอล|ตารางฟุตบอล|ตารางคะแนน|ตารางแข่ง|ตารางลีก|ตารางพรีเมียร์|ตารางไทยลีก|ตารางลาลีกา|ตารางบุนเดส|ตารางเอฟเอ|ตารางแชมเปียนส์|ตารางรถไฟ|ตารางบิน|ตารางเดินรถ|ตารางธาตุ|ตารางหุ้น|เลี้ยงลูกนก|เลี้ยงลูกกระรอก|เลี้ยงลูกแมว|เลี้ยงลูกสุนัข|เลี้ยงลูกหมา|เลี้ยงลูกปลา|เลี้ยงลูกเต่า|เลี้ยงลูกกบ|เลี้ยงลูกหมู|เลี้ยงลูกไก่|เลี้ยงลูกกระต่าย|เลี้ยงลูกวัว|เลี้ยงลูกแพะ|เลี้ยงลูกลิง|งานบ้านและสวน|งานมหกรรม|มอเตอร์โชว์|motor show|สัปดาห์หนังสือ|ภิรมภักดิ์|ภิรมภักดี|หมดประเสร็จ|ฟอร์มาลิน|ฟอร์มาลดีไฮด์|ฟอร์มูลาวัน|ฟอร์มูล่าวัน|formula 1|formula one/i
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 type TemplateRef = { id: string; title: string; slug: string; orders: number }
 type IdeaRow = {
@@ -102,11 +106,11 @@ function analyzeKeyword(keyword: string, suggestions: string[]) {
   const ideas: string[] = []
   for (const s of suggestions) {
     const stripped = stripPrefix(s, keyword)
-    if (!stripped || NOISE.test(stripped)) continue
+    if (!stripped || NOISE.test(stripped) || FULL_NOISE.test(s)) continue
     ideas.push(`${keyword} ${stripped}`)
     if (ideas.length >= 5) break
   }
-  const actionable  = suggestions.filter(s => { const st = stripPrefix(s, keyword); return st && !NOISE.test(st) }).length
+  const actionable  = suggestions.filter(s => { const st = stripPrefix(s, keyword); return st && !NOISE.test(st) && !FULL_NOISE.test(s) }).length
   const demand: 'สูง' | 'กลาง' | 'ต่ำ' = actionable >= 5 ? 'สูง' : actionable >= 3 ? 'กลาง' : 'ต่ำ'
   const demandColor = demand === 'สูง' ? 'bg-green-100 text-green-700' : demand === 'กลาง' ? 'bg-amber-100 text-amber-700' : 'bg-neutral-100 text-neutral-500'
   return { audiences, ideas, demand, demandColor }
@@ -369,7 +373,7 @@ export default async function AdminMarketIntelPage() {
     const rows = level1Map.get(kw.engineType)!
     for (const s of suggestions) {
       const stripped = stripPrefix(s, kw.key)
-      if (!stripped || NOISE.test(stripped) || seen.has(stripped)) continue
+      if (!stripped || NOISE.test(stripped) || FULL_NOISE.test(s) || seen.has(stripped)) continue
       seen.add(stripped)
       const match = findMatch(stripped, allTemplates)
       rows.push({ idea: s, stripped, level: 1, match })
@@ -391,7 +395,7 @@ export default async function AdminMarketIntelPage() {
     const rows = level2Map.get(dr.engineType) ?? []
     for (const s of dr.suggestions) {
       const stripped = stripPrefix(s, dr.keyword)
-      if (!stripped || NOISE.test(stripped) || seen.has(stripped)) continue
+      if (!stripped || NOISE.test(stripped) || FULL_NOISE.test(s) || seen.has(stripped)) continue
       seen.add(stripped)
       rows.push({ idea: s, stripped, level: 2, source: dr.idea, match: findMatch(stripped, allTemplates) })
     }
@@ -406,7 +410,7 @@ export default async function AdminMarketIntelPage() {
     const rows = level3Map.get(ar.engineType) ?? []
     for (const s of ar.suggestions) {
       const stripped = stripPrefix(s, ar.keyword)
-      if (!stripped || NOISE.test(stripped) || seen.has(stripped)) continue
+      if (!stripped || NOISE.test(stripped) || FULL_NOISE.test(s) || seen.has(stripped)) continue
       seen.add(stripped)
       rows.push({ idea: s, stripped, level: 3, char: ar.char, match: findMatch(stripped, allTemplates) })
     }
@@ -809,62 +813,34 @@ export default async function AdminMarketIntelPage() {
               <p className="text-[10px] text-neutral-400">Google Suggest จริง — คนไทยค้นหาอะไร แยกตามประเภท engine</p>
             </div>
           </div>
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {keywordData.map(kw => (
               <div key={kw.key} className={`rounded-2xl border bg-white shadow-sm overflow-hidden ${kw.border}`}>
-                <div className={`px-5 py-3 flex flex-wrap items-center gap-2 border-b ${kw.color} ${kw.border}`}>
+                {/* Header */}
+                <div className={`px-4 py-3 flex flex-wrap items-center gap-2 border-b ${kw.color} ${kw.border}`}>
                   <span className="font-mono font-black text-sm uppercase tracking-wider">{kw.label}</span>
                   <span className={`ml-auto rounded-full px-2.5 py-0.5 text-[10px] font-black ${kw.demandColor}`}>demand {kw.demand}</span>
                   {kw.audiences.map(a => (
                     <span key={a.tag} className={`rounded-full px-2.5 py-0.5 text-[10px] font-black ${a.color}`}>{a.tag}</span>
                   ))}
                 </div>
-                <div className="grid grid-cols-2 divide-x divide-neutral-100">
-                  <div className="p-4">
-                    <p className="mb-2 text-[10px] font-black uppercase tracking-wider text-neutral-400">Google Suggest</p>
-                    <ol className="space-y-1.5">
-                      {kw.suggestions.map((s, i) => {
-                        const stripped = stripPrefix(s, kw.key)
-                        const isNoise  = !stripped || NOISE.test(stripped)
-                        return (
-                          <li key={i} className={`flex items-start gap-2 text-xs ${isNoise ? 'opacity-30' : ''}`}>
-                            <span className="shrink-0 w-4 text-right text-neutral-300 font-bold">{i + 1}</span>
-                            <span className="text-neutral-700 leading-snug">{s}</span>
-                          </li>
-                        )
-                      })}
-                    </ol>
-                  </div>
-                  <div className="p-4 space-y-4">
-                    <div>
-                      <p className="mb-2 text-[10px] font-black uppercase tracking-wider text-neutral-400">💡 Template ที่ควรสร้าง</p>
-                      {kw.ideas.length === 0 ? (
-                        <p className="text-xs text-neutral-300 italic">— วิเคราะห์ไม่ได้จาก suggestions นี้</p>
-                      ) : (
-                        <ul className="space-y-1.5">
-                          {kw.ideas.map((idea, i) => (
-                            <li key={i} className="flex items-center gap-2">
-                              <span className="text-amber-500 text-xs shrink-0">→</span>
-                              <span className="text-xs font-bold text-neutral-800">{idea}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                    {kw.audiences.length > 0 && (
-                      <div>
-                        <p className="mb-2 text-[10px] font-black uppercase tracking-wider text-neutral-400">🎯 กลุ่มเป้าหมาย</p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {kw.audiences.map(a => (
-                            <span key={a.tag} className={`rounded-full px-2.5 py-1 text-[10px] font-black ${a.color}`}>{a.tag}</span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    <Link href="/admin/templates/new" className="inline-flex items-center gap-1.5 rounded-xl border border-neutral-200 px-3 py-1.5 text-[10px] font-black text-neutral-500 hover:border-amber-400 hover:text-amber-600 transition">
-                      + สร้าง template →
-                    </Link>
-                  </div>
+                {/* Template ideas only (no raw Google Suggest table) */}
+                <div className="p-4">
+                  {kw.ideas.length === 0 ? (
+                    <p className="text-xs text-neutral-300 italic">— Google Suggest ไม่มี idea ที่ actionable</p>
+                  ) : (
+                    <ul className="space-y-1.5">
+                      {kw.ideas.map((idea, i) => (
+                        <li key={i} className="flex items-center gap-2">
+                          <span className="text-amber-500 text-xs shrink-0">→</span>
+                          <span className="text-xs font-bold text-neutral-800">{idea}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <Link href="/admin/templates/new" className="mt-3 inline-flex items-center gap-1.5 rounded-xl border border-neutral-200 px-3 py-1.5 text-[10px] font-black text-neutral-500 hover:border-amber-400 hover:text-amber-600 transition">
+                    + สร้าง template →
+                  </Link>
                 </div>
               </div>
             ))}
