@@ -326,14 +326,16 @@ export default async function AdminMarketIntelPage() {
       `.catch(() => [] as DailyRow[]),
 
       db<RankRow[]>`
-        SELECT t.id, t.title, t.slug, COALESCE(t.engine_type,'') AS engine_type, t.price_baht, t.status,
-          COUNT(DISTINCT oi.order_id) FILTER (WHERE o.status = 'paid')::text AS paid_count,
-          COALESCE(SUM(o.total_baht / (SELECT COUNT(*) FROM order_items x WHERE x.order_id = o.id)::numeric) FILTER (WHERE o.status = 'paid'), 0)::text AS revenue,
-          COALESCE(SUM(oi.download_count), 0)::text AS downloads
-        FROM templates t
-        LEFT JOIN order_items oi ON oi.template_id = t.id
-        LEFT JOIN orders o ON o.id = oi.order_id
-        GROUP BY t.id ORDER BY paid_count::int DESC, t.created_at DESC
+        SELECT * FROM (
+          SELECT t.id, t.title, t.slug, COALESCE(t.engine_type,'') AS engine_type, t.price_baht, t.status,
+            COUNT(DISTINCT oi.order_id) FILTER (WHERE o.status = 'paid')::text AS paid_count,
+            COALESCE(SUM(o.total_baht / (SELECT COUNT(*) FROM order_items x WHERE x.order_id = o.id)::numeric) FILTER (WHERE o.status = 'paid'), 0)::text AS revenue,
+            COALESCE(SUM(oi.download_count), 0)::text AS downloads
+          FROM templates t
+          LEFT JOIN order_items oi ON oi.template_id = t.id
+          LEFT JOIN orders o ON o.id = oi.order_id
+          GROUP BY t.id
+        ) sub ORDER BY sub.paid_count::int DESC, sub.created_at DESC
       `.catch(() => [] as RankRow[]),
 
       db<GapRow[]>`
