@@ -24,12 +24,16 @@ function verifySignature(rawBody: string, signature: string): boolean {
   const hmacSHA1str   = crypto.createHmac('sha1',   secret).update(rawBody).digest('hex')
   const hmacSHA1raw   = crypto.createHmac('sha1',   keyRaw).update(rawBody).digest('hex')
   const bodyHash = crypto.createHash('sha256').update(rawBody).digest('hex')
-  console.log('[WEBHOOK-DEBUG4] sig        :', signature)
-  console.log('[WEBHOOK-DEBUG4] sha256/str :', hmacSHA256str)
-  console.log('[WEBHOOK-DEBUG4] sha256/raw :', hmacSHA256raw)
-  console.log('[WEBHOOK-DEBUG4] body-len   :', rawBody.length)
-  console.log('[WEBHOOK-DEBUG4] body-sha256:', bodyHash)
-  console.log('[WEBHOOK-DEBUG4] body-200   :', rawBody.slice(0, 200))
+  console.log('[WEBHOOK-DEBUG5] sig        :', signature)
+  console.log('[WEBHOOK-DEBUG5] sha256/str :', hmacSHA256str)
+  console.log('[WEBHOOK-DEBUG5] sha256/raw :', hmacSHA256raw)
+  console.log('[WEBHOOK-DEBUG5] body-len   :', rawBody.length)
+  console.log('[WEBHOOK-DEBUG5] body-sha256:', bodyHash)
+  // save body to /tmp for manual HMAC verification
+  try {
+    const fs = await import('fs')
+    fs.writeFileSync(`/tmp/omise-body-${Date.now()}.json`, rawBody, 'utf8')
+  } catch {}
   const expected = hmacSHA256raw
   try {
     if (Buffer.byteLength(expected) !== Buffer.byteLength(signature)) return false
