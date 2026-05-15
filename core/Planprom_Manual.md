@@ -951,12 +951,21 @@ server {
 }
 ```
 
-### Cloudflare
+### Cloudflare — Pre-Go-Live Checklist (ทำแล้วทั้งหมด · 2026-05-15)
 
-- SSL/TLS: **Full (Strict)** ✅
-- Bot Fight Mode / DDoS Protection / Block AI Bots / Email Obfuscation ✅
-- WAF: `/admin/*` restrict · bad UA block · rate limit API routes
+| # | เมนู | Setting | สถานะ |
+|---|---|---|---|
+| 1 | SSL/TLS → Overview | Mode: **Full (Strict)** | ✅ |
+| 2 | SSL/TLS → Edge Certificates | Always Use HTTPS: **On** | ✅ |
+| 3 | SSL/TLS → Edge Certificates | Minimum TLS Version: **1.2** + TLS 1.3 Enabled | ✅ |
+| 4 | SSL/TLS → Edge Certificates | Automatic HTTPS Rewrites: **On** | ✅ |
+| 5 | DNS → Records | A record `@` และ `www` → **Proxied** (สีส้ม) | ✅ |
+| 6 | Security → Settings | Security Level: **Always Protected** (auto-adaptive — แทน Medium/High เดิม) | ✅ |
+| 7 | Security → Bots | Bot Fight Mode: **On** | ✅ |
+| 8 | DDoS | HTTP DDoS Attack Protection: **Auto** | ✅ |
+
 - Let's Encrypt cert: `certbot-renew.timer` enabled (auto-renew)
+- WAF: Cloudflare WAF bypass สำหรับ `/api/webhooks/omise` (whitelist จาก Omise IP)
 
 ### Infra Risk
 
