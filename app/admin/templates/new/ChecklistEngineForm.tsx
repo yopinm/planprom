@@ -66,6 +66,8 @@ export function ChecklistEngineForm({ onChange }: Props) {
   const [s2pre,     setS2pre]     = useState('')
   // Section 3
   const [items, setItems] = useState(['','',''])
+  // Section 4
+  const [s4remarks, setS4remarks] = useState('')
   // Section 5
   const [exec, setExec] = useState('ผู้ปฏิบัติงาน')
   const [review, setReview] = useState('ผู้ตรวจสอบ / หัวหน้างาน')
@@ -75,9 +77,10 @@ export function ChecklistEngineForm({ onChange }: Props) {
       s1: { title:s1title, docCode:'', version:'1.0', createdDate:s1date, author:s1author },
       s2: { purpose:s2purpose, context:s2ctx, prerequisites:s2pre },
       s3: { items: items.filter(i=>i.trim()) },
+      s4: { remarks: s4remarks },
       s5: { executorRole:exec, reviewerRole:review },
     })
-  }, [s1title,s1date,s1author,s2purpose,s2ctx,s2pre,items,exec,review,onChange])
+  }, [s1title,s1date,s1author,s2purpose,s2ctx,s2pre,items,s4remarks,exec,review,onChange])
 
   return (
     <div className="space-y-3">
@@ -139,11 +142,16 @@ export function ChecklistEngineForm({ onChange }: Props) {
         />
       </SectionCard>
 
-      {/* S4 — info only */}
+      {/* S4 */}
       <SectionCard num="4" title="หมายเหตุและข้อสังเกต (Remarks)" color="bg-neutral-50 text-neutral-600">
-        <p className="text-sm text-neutral-500">
-          ระบบจะสร้างช่องว่าง 8 บรรทัดสำหรับจดบันทึกปัญหา ข้อสังเกต และหลักฐานประกอบให้อัตโนมัติ
-          — ไม่ต้องกรอกข้อมูล
+        <div>
+          <label className={LABEL}>หมายเหตุทั่วไป (ไม่บังคับ)</label>
+          <textarea value={s4remarks} onChange={e=>setS4remarks(e.target.value)} rows={3}
+            placeholder="เช่น ใช้สำหรับโครงการก่อสร้างเฟส 2 เท่านั้น"
+            className={INPUT} />
+        </div>
+        <p className="text-xs text-neutral-400">
+          ระบบจะแสดงหมายเหตุข้างต้น (ถ้ามี) แล้วตามด้วยช่องว่าง 8 บรรทัดสำหรับจดบันทึกเพิ่มเติมในเอกสาร PDF
         </p>
       </SectionCard>
 

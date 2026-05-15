@@ -5,7 +5,7 @@ const esc = (s: string) =>
   String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
 export function generateChecklistHtml(data: ChecklistEngineData, watermarkText?: string, categoryName?: string): string {
-  const { s1, s2, s3, s5 } = data
+  const { s1, s2, s3, s4, s5 } = data
   const wm = (watermarkText ?? '').replace(/\\/g, '\\\\').replace(/"/g, '\\"')
   const validItems = s3.items.filter(i => i.trim())
 
@@ -97,6 +97,7 @@ tr:nth-child(even) td{background:#f9fafb}
 
 <div class="sec">
   <div class="sec-hdr">ส่วนที่ 4 — หมายเหตุและข้อสังเกต</div>
+  ${s4?.remarks?.trim() ? `<div class="pf" style="margin-bottom:10px"><div class="pl">หมายเหตุทั่วไป</div><div class="pv">${esc(s4.remarks)}</div></div>` : ''}
   ${Array.from({length:8}).map(()=>'<div class="rl"></div>').join('')}
 </div>
 

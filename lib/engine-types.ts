@@ -4,6 +4,7 @@ export type ChecklistEngineData = {
   s1: { title: string; docCode: string; version: string; createdDate: string; author: string }
   s2: { purpose: string; context: string; prerequisites: string }
   s3: { items: string[] }
+  s4?: { remarks: string }
   s5: { executorRole: string; reviewerRole: string }
 }
 
