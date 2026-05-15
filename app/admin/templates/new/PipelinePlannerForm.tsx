@@ -61,6 +61,8 @@ export function PipelinePlannerForm({ onChange }: Props) {
   const [toMonth,   setToMonth]   = useState(12)
   // Stage 2 — monthly week count
   const [monthlyWeekCount, setMonthlyWeekCount] = useState(4)
+  // Stage 4 — yearly: weeks per month (for auto-grouping)
+  const [weeksPerMonth, setWeeksPerMonth] = useState(4)
   // Stage 2 — summary (แสดงใน modal preview ลูกค้า)
   const [s2Summary, setS2Summary] = useState('')
   // Stage 2 — project mode only
@@ -101,7 +103,24 @@ export function PipelinePlannerForm({ onChange }: Props) {
     setWeeklyPlans(prev => Array.from({ length: monthlyWeekCount }, (_, i) =>
       prev[i] ?? { weekLabel: `สัปดาห์ที่ ${i + 1}`, goal: '', main1: '', secondary: ['', '', ''], small: ['', '', '', '', '', ''] }
     ))
-  }, [horizon, monthlyWeekCount])  
+  }, [horizon, monthlyWeekCount])
+
+  // Sync weeklyTasks to month range × weeksPerMonth (yearly) — keyed by label to preserve typed content
+  useEffect(() => {
+    if (horizon !== 'yearly') return
+    setWeeklyTasks(prev => {
+      const byLabel = new Map(prev.map(wt => [wt.weekLabel, wt]))
+      const tasks: WeeklyTaskItem[] = []
+      for (let m = fromMonth; m <= toMonth; m++) {
+        const abbr = MONTH_ABBR[m - 1] ?? `ม.${m}`
+        for (let w = 1; w <= weeksPerMonth; w++) {
+          const label = `${abbr} สัปดาห์ ${w}`
+          tasks.push(byLabel.get(label) ?? { weekLabel: label, goal: '', main1: '', secondary: ['', '', ''], small: ['', '', '', '', '', ''] })
+        }
+      }
+      return tasks
+    })
+  }, [horizon, fromMonth, toMonth, weeksPerMonth]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const s2: PlannerPipelineDataV4['s2_timeplan'] = horizon === 'yearly'
@@ -556,64 +575,94 @@ export function PipelinePlannerForm({ onChange }: Props) {
             </span>
           </div>
 
-          {/* Yearly: dynamic weekly task blocks (1-3-6) */}
-          {horizon === 'yearly' && (
-            <div className="px-4 py-4 space-y-4">
-              <p className="text-xs text-neutral-500">ระบุชื่อสัปดาห์เองได้ — กรอกงาน 1-3-6 เพิ่มได้ไม่จำกัด</p>
-              {weeklyTasks.map((wt, i) => (
-                <div key={i} className="rounded-lg border border-amber-100 p-3 space-y-3">
-                  <div className="flex gap-2">
-                    <input value={wt.weekLabel}
-                      onChange={e => setWeeklyTasks(prev => prev.map((x, j) => j === i ? { ...x, weekLabel: e.target.value } : x))}
-                      placeholder={`สัปดาห์ที่ ${i + 1} (ระบุชื่อเอง)`} className={`${INPUT} font-bold`} />
-                    {weeklyTasks.length > 1 && (
-                      <button type="button" onClick={() => setWeeklyTasks(prev => prev.filter((_, j) => j !== i))}
-                        className="text-red-400 text-sm px-1">✕</button>
-                    )}
-                  </div>
-                  <div>
-                    <label className={LABEL}>งานหลัก 1 อย่าง (ต้องทำ)</label>
-                    <input value={wt.main1}
-                      onChange={e => setWeeklyTasks(prev => prev.map((x, j) => j === i ? { ...x, main1: e.target.value } : x))}
-                      placeholder="งานที่สำคัญที่สุดสัปดาห์นี้" className={INPUT} />
-                  </div>
-                  <div>
-                    <label className={LABEL}>งานรอง 3 อย่าง (พยายามทำ)</label>
-                    {wt.secondary.map((s, si) => (
-                      <input key={si} value={s}
-                        onChange={e => setWeeklyTasks(prev => prev.map((x, j) => j === i
-                          ? { ...x, secondary: x.secondary.map((v, k) => k === si ? e.target.value : v) } : x))}
-                        placeholder={`งานรอง ${si + 1}`} className={`${INPUT} mt-1`} />
+          {/* Yearly: weekly task blocks grouped by month */}
+          {horizon === 'yearly' && (() => {
+            const MONTH_FULL = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม']
+            const monthCount = Math.max(0, toMonth - fromMonth + 1)
+            return (
+              <div className="px-4 py-4 space-y-5">
+                <div>
+                  <label className={LABEL}>จำนวนสัปดาห์ต่อเดือน</label>
+                  <div className="flex items-center gap-2">
+                    {[3, 4, 5].map(n => (
+                      <button key={n} type="button" onClick={() => setWeeksPerMonth(n)}
+                        className={`w-10 h-10 rounded-lg border-2 text-sm font-black transition ${
+                          weeksPerMonth === n ? 'border-amber-600 bg-amber-600 text-white' : 'border-neutral-200 text-neutral-600 hover:border-amber-400'
+                        }`}>{n}</button>
                     ))}
-                  </div>
-                  <div>
-                    <label className={LABEL}>งานเล็ก 6 อย่าง (อย่างน้อยถ้ามีเวลา)</label>
-                    <div className="space-y-1.5 mt-1">
-                      {wt.small.map((s, si) => (
-                        <div key={si} className="flex gap-2">
-                          <input value={s}
-                            onChange={e => setWeeklyTasks(prev => prev.map((x, j) => j === i
-                              ? { ...x, small: x.small.map((v, k) => k === si ? e.target.value : v) } : x))}
-                            placeholder={`งานเล็ก ${si + 1}`} className={INPUT} />
-                          {wt.small.length > 1 && (
-                            <button type="button" onClick={() => setWeeklyTasks(prev => prev.map((x, j) => j === i
-                              ? { ...x, small: x.small.filter((_, k) => k !== si) } : x))}
-                              className="px-2 text-red-400 hover:text-red-600 text-sm">✕</button>
-                          )}
-                        </div>
-                      ))}
-                      <button type="button" onClick={() => setWeeklyTasks(prev => prev.map((x, j) => j === i
-                        ? { ...x, small: [...x.small, ''] } : x))}
-                        className="text-xs font-black text-amber-600 hover:text-amber-700">+ เพิ่มงานเล็ก</button>
-                    </div>
+                    <span className="text-[11px] text-neutral-400">= รวม {monthCount * weeksPerMonth} สัปดาห์</span>
                   </div>
                 </div>
-              ))}
-              <button type="button"
-                onClick={() => setWeeklyTasks(prev => [...prev, { weekLabel: '', goal: '', main1: '', secondary: ['', '', ''], small: ['', '', '', '', '', ''] }])}
-                className="text-xs font-black text-amber-600 hover:text-amber-700">+ เพิ่มแผนสัปดาห์</button>
-            </div>
-          )}
+
+                {Array.from({ length: monthCount }, (_, mi) => {
+                  const mNum = fromMonth - 1 + mi
+                  const abbr = MONTH_ABBR[mNum] ?? `ม.${mNum + 1}`
+                  const fullName = MONTH_FULL[mNum] ?? `เดือน ${mNum + 1}`
+                  return (
+                    <div key={mi} className="space-y-3">
+                      <div className="flex items-center gap-2 pt-1">
+                        <span className="text-xs font-black bg-amber-600 text-white rounded-full px-2.5 py-0.5">{fullName}</span>
+                        <div className="flex-1 border-t border-amber-200" />
+                      </div>
+                      {Array.from({ length: weeksPerMonth }, (_, wi) => {
+                        const gi = mi * weeksPerMonth + wi
+                        const wt = weeklyTasks[gi]
+                        if (!wt) return null
+                        return (
+                          <div key={wi} className="rounded-lg border border-amber-100 p-3 space-y-3">
+                            <div className="flex items-center gap-2">
+                              <span className="shrink-0 text-[11px] font-black bg-amber-100 text-amber-700 rounded px-2 py-0.5">
+                                {abbr} ส.{wi + 1}
+                              </span>
+                              <input value={wt.weekLabel}
+                                onChange={e => setWeeklyTasks(prev => prev.map((x, j) => j === gi ? { ...x, weekLabel: e.target.value } : x))}
+                                placeholder="ชื่อสัปดาห์ (แก้ได้)" className={`${INPUT} font-bold`} />
+                            </div>
+                            <div>
+                              <label className={LABEL}>งานหลัก 1 อย่าง (ต้องทำ)</label>
+                              <input value={wt.main1}
+                                onChange={e => setWeeklyTasks(prev => prev.map((x, j) => j === gi ? { ...x, main1: e.target.value } : x))}
+                                placeholder="งานที่สำคัญที่สุดสัปดาห์นี้" className={INPUT} />
+                            </div>
+                            <div>
+                              <label className={LABEL}>งานรอง 3 อย่าง (พยายามทำ)</label>
+                              {wt.secondary.map((s, si) => (
+                                <input key={si} value={s}
+                                  onChange={e => setWeeklyTasks(prev => prev.map((x, j) => j === gi
+                                    ? { ...x, secondary: x.secondary.map((v, k) => k === si ? e.target.value : v) } : x))}
+                                  placeholder={`งานรอง ${si + 1}`} className={`${INPUT} mt-1`} />
+                              ))}
+                            </div>
+                            <div>
+                              <label className={LABEL}>งานเล็ก 6 อย่าง (อย่างน้อยถ้ามีเวลา)</label>
+                              <div className="space-y-1.5 mt-1">
+                                {wt.small.map((s, si) => (
+                                  <div key={si} className="flex gap-2">
+                                    <input value={s}
+                                      onChange={e => setWeeklyTasks(prev => prev.map((x, j) => j === gi
+                                        ? { ...x, small: x.small.map((v, k) => k === si ? e.target.value : v) } : x))}
+                                      placeholder={`งานเล็ก ${si + 1}`} className={INPUT} />
+                                    {wt.small.length > 1 && (
+                                      <button type="button" onClick={() => setWeeklyTasks(prev => prev.map((x, j) => j === gi
+                                        ? { ...x, small: x.small.filter((_, k) => k !== si) } : x))}
+                                        className="px-2 text-red-400 hover:text-red-600 text-sm">✕</button>
+                                    )}
+                                  </div>
+                                ))}
+                                <button type="button" onClick={() => setWeeklyTasks(prev => prev.map((x, j) => j === gi
+                                  ? { ...x, small: [...x.small, ''] } : x))}
+                                  className="text-xs font-black text-amber-600 hover:text-amber-700">+ เพิ่มงานเล็ก</button>
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )
+                })}
+              </div>
+            )
+          })()}
 
           {/* Monthly / Project: daily routine rows */}
           {(horizon === 'monthly' || horizon === 'project') && (
