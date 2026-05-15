@@ -23,6 +23,10 @@ function verifySignature(rawBody: string, signature: string, timestamp: string):
   const key = Buffer.from(secret, 'base64')
   const signedPayload = `${timestamp}.${rawBody}`
   const expected = crypto.createHmac('sha256', key).update(signedPayload).digest()
+  const expectedHex = expected.toString('hex')
+  console.log('[WEBHOOK-DBG] ts      :', timestamp)
+  console.log('[WEBHOOK-DBG] computed:', expectedHex)
+  console.log('[WEBHOOK-DBG] received:', signature)
 
   const signatures = signature.split(',').map(s => s.trim()).filter(Boolean)
   for (const sig of signatures) {
