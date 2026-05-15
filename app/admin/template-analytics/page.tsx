@@ -241,6 +241,28 @@ function suggestCatalog(idea: string, catalogs: CatalogRef[]): CatalogRef | null
 }
 
 const ENGINE_LABEL: Record<string, string> = { checklist: 'Checklist', pipeline: 'Planner', planner: 'Planner', form: 'Form', report: 'Report' }
+
+// Card 11 — group helpers
+const CARD11_GROUPS = [
+  { key: 'checklist', emoji: '📋', label: 'Checklist', pillCls: 'bg-emerald-100 text-emerald-700' },
+  { key: 'form',      emoji: '📝', label: 'Form',      pillCls: 'bg-blue-100 text-blue-700'    },
+  { key: 'planner',   emoji: '📅', label: 'Planner',   pillCls: 'bg-violet-100 text-violet-700' },
+  { key: 'report',    emoji: '📊', label: 'Report',    pillCls: 'bg-sky-100 text-sky-700'      },
+] as const
+function toTypeGroup(et: string): string {
+  if (et === 'checklist') return 'checklist'
+  if (et === 'form')      return 'form'
+  if (et === 'report')    return 'report'
+  if (et === 'planner' || et === 'planner-pipeline' || et === 'pipeline') return 'planner'
+  return 'other'
+}
+// Card 12 — map issue text → edit form anchor
+function issueToHash(issue: string): string {
+  if (issue.startsWith('description') || issue === 'description < 80 chars') return 'field-description'
+  if (issue.startsWith('หน้า')) return 'field-page-count'
+  if (issue === 'ไม่มีรูปปก') return 'field-thumbnail'
+  return ''
+}
 const ENGINE_COLOR: Record<string, string> = {
   checklist: 'border-indigo-200 bg-indigo-50 text-indigo-900',
   pipeline:  'border-purple-200 bg-purple-50 text-purple-900',
@@ -1253,60 +1275,69 @@ export default async function AdminMarketIntelPage() {
           </section>
         )}
 
-        {/* ── S8: Bestseller + Zero-sale ───────────────────────────────────── */}
-        <section className="space-y-6">
+        {/* ── S11: Bestseller แยกกลุ่ม ────────────────────────────────────── */}
+        <section className="space-y-3">
           <div className="flex items-center gap-3 pb-3 border-b border-amber-100">
             <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-500 text-[11px] font-black text-white">11</span>
             <div>
               <p className="text-sm font-bold text-neutral-800">Bestseller & ยังไม่มียอด</p>
-              <p className="text-[10px] text-neutral-400">template ขายดีสุด vs template ที่ยังไม่มีการซื้อเลย</p>
+              <p className="text-[10px] text-neutral-400">template ขายดีสุด (top 20) vs ยังไม่มีการซื้อ · แยกตามประเภท · กดหัวกลุ่มเพื่อพับ/ขยาย</p>
             </div>
           </div>
-          {bestsellers.length > 0 && (
-            <div>
-              <h2 className="mb-3 text-xs font-black uppercase tracking-widest text-neutral-400">🏆 ขายดีสุด</h2>
-              <div className="rounded-2xl border border-neutral-200 bg-white shadow-sm divide-y divide-neutral-50">
-                {bestsellers.map((t, i) => (
-                  <div key={t.id} className="flex items-center gap-4 px-5 py-3.5">
-                    <div className={`shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-black ${i === 0 ? 'bg-amber-100 text-amber-700' : i === 1 ? 'bg-neutral-100 text-neutral-600' : i === 2 ? 'bg-orange-100 text-orange-700' : 'bg-neutral-50 text-neutral-400'}`}>{i + 1}</div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-neutral-800 truncate">{t.title}</p>
-                      <div className="mt-1.5 h-1 rounded-full bg-neutral-100">
-                        <div className="h-1 rounded-full bg-indigo-400" style={{ width: `${Math.round((Number(t.orders) / maxOrders) * 100)}%` }} />
+          {CARD11_GROUPS.map(({ key, emoji, label, pillCls }) => {
+            const groupRows = ranking.filter(r => toTypeGroup(r.engine_type) === key)
+            if (groupRows.length === 0) return null
+            const sellers  = groupRows.filter(r => Number(r.orders) > 0).slice(0, 20)
+            const zeros    = groupRows.filter(r => Number(r.orders) === 0 && r.status === 'published')
+            const groupMax = Math.max(...sellers.map(r => Number(r.orders)), 1)
+            return (
+              <details key={key} open={sellers.length > 0} className="group rounded-2xl border border-neutral-200 bg-white shadow-sm overflow-hidden">
+                <summary className="flex cursor-pointer list-none select-none items-center gap-3 px-5 py-3.5 hover:bg-neutral-50">
+                  <span className="text-base leading-none">{emoji}</span>
+                  <span className="font-black text-sm text-neutral-800">{label}</span>
+                  <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-black ${pillCls}`}>
+                    {sellers.length > 0 ? `🏆 ${sellers.length} ขาย` : 'ยังไม่มียอด'}
+                    {zeros.length > 0 && ` · ⚠ ${zeros.length} รอขาย`}
+                  </span>
+                  <span className="ml-auto text-neutral-300 text-xs group-open:rotate-180 transition-transform">▼</span>
+                </summary>
+                <div className="border-t border-neutral-100">
+                  {sellers.length > 0 && (
+                    <div className="divide-y divide-neutral-50">
+                      {sellers.map((t, i) => (
+                        <div key={t.id} className="flex items-center gap-3 px-5 py-3">
+                          <div className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-black ${i === 0 ? 'bg-amber-100 text-amber-700' : i === 1 ? 'bg-neutral-100 text-neutral-600' : i === 2 ? 'bg-orange-100 text-orange-700' : 'bg-neutral-50 text-neutral-400'}`}>{i + 1}</div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-neutral-800 truncate">{t.title}</p>
+                            <div className="mt-1 flex items-center gap-2">
+                              <div className="h-1 w-16 rounded-full bg-neutral-100">
+                                <div className="h-1 rounded-full bg-indigo-400" style={{ width: `${Math.round((Number(t.orders) / groupMax) * 100)}%` }} />
+                              </div>
+                              <span className="text-[10px] text-neutral-400">{t.orders} orders · ฿{Number(t.revenue).toLocaleString()} · {t.downloads} DL</span>
+                            </div>
+                          </div>
+                          <Link href={`/admin/templates/${t.id}/edit`} className="shrink-0 rounded-xl border border-neutral-200 px-3 py-1.5 text-[10px] font-black text-neutral-500 hover:border-indigo-400 hover:text-indigo-600 transition">แก้ไข</Link>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {zeros.length > 0 && (
+                    <div className="bg-red-50/50 px-5 py-3">
+                      <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-red-400">⚠️ ยังไม่มียอด ({zeros.length})</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {zeros.map(t => (
+                          <Link key={t.id} href={`/admin/templates/${t.id}/edit`} className="rounded-full border border-red-200 bg-white px-2.5 py-1 text-[10px] font-bold text-red-600 hover:bg-red-50 transition">{t.title}</Link>
+                        ))}
                       </div>
                     </div>
-                    <div className="shrink-0 text-right">
-                      <p className="font-black text-sm text-indigo-600">{t.orders} orders</p>
-                      <p className="text-[10px] text-neutral-400">฿{Number(t.revenue).toLocaleString()} · {t.downloads} DL</p>
-                    </div>
-                    <Link href={`/admin/templates/${t.id}/edit`} className="shrink-0 rounded-xl border border-neutral-200 px-3 py-1.5 text-[10px] font-black text-neutral-500 hover:border-indigo-400 hover:text-indigo-600 transition">แก้ไข</Link>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-          {zeroSale.length > 0 && (
-            <div>
-              <div className="mb-3 flex items-center gap-3">
-                <h2 className="text-xs font-black uppercase tracking-widest text-neutral-400">⚠️ ยังไม่มียอดขาย</h2>
-                <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-[10px] font-black text-red-600">{zeroSale.length} template</span>
-              </div>
-              <div className="rounded-2xl border border-neutral-200 bg-white shadow-sm divide-y divide-neutral-50">
-                {zeroSale.map(t => (
-                  <div key={t.id} className="flex items-center gap-4 px-5 py-3.5">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-neutral-700 truncate">{t.title}</p>
-                      <div className="mt-1 flex items-center gap-2">
-                        <span className="rounded-full bg-green-100 px-2 py-0.5 text-[9px] font-black uppercase text-green-700">published</span>
-                        <span className="text-[10px] text-neutral-400">฿{t.price_baht} · {ENGINE_LABEL[t.engine_type] ?? t.engine_type}</span>
-                      </div>
-                    </div>
-                    <Link href={`/admin/templates/${t.id}/edit`} className="shrink-0 rounded-xl border border-red-200 bg-red-50 px-3 py-1.5 text-[10px] font-black text-red-600 hover:bg-red-100 transition">ปรับปรุง →</Link>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+                  )}
+                  {sellers.length === 0 && zeros.length === 0 && (
+                    <p className="px-5 py-4 text-[11px] text-neutral-400">— ยังไม่มี template ในกลุ่มนี้</p>
+                  )}
+                </div>
+              </details>
+            )
+          })}
         </section>
 
         {/* ── S9: INTEL-SCORE Template Health Check ────────────────────────── */}
@@ -1329,6 +1360,7 @@ export default async function AdminMarketIntelPage() {
                 const barColor      = t.health.grade === '🟢' ? 'bg-green-400' : t.health.grade === '🟡' ? 'bg-amber-400' : 'bg-red-400'
                 const topFailing    = [...t.health.dims].filter(d => d.issues.length > 0).sort((a, b) => (b.max - b.score) - (a.max - a.score))[0]
                 const potentialGain = topFailing ? topFailing.max - topFailing.score : 0
+                const focusHash     = topFailing?.issues[0] ? issueToHash(topFailing.issues[0]) : ''
                 return (
                   <details key={t.id} className="group">
                     <summary className="flex cursor-pointer list-none items-center gap-3 px-5 py-3 hover:bg-neutral-50 select-none">
@@ -1344,10 +1376,10 @@ export default async function AdminMarketIntelPage() {
                         </div>
                       </div>
                       <Link
-                        href={`/admin/templates/${t.id}/edit`}
+                        href={`/admin/templates/${t.id}/edit${focusHash ? '#' + focusHash : ''}`}
                         className="shrink-0 rounded-xl border border-neutral-200 px-3 py-1.5 text-[9px] font-black text-neutral-500 hover:border-indigo-400 hover:text-indigo-600 transition"
                       >
-                        แก้ไข
+                        แก้ไข {focusHash ? '→' : ''}
                       </Link>
                     </summary>
                     <div className="border-t border-neutral-50 px-5 py-4 bg-neutral-50/80">

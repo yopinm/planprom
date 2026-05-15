@@ -49,6 +49,8 @@ export default async function EditTemplatePage({ params }: { params: Promise<{ i
 
   return (
     <main className="min-h-screen bg-neutral-50 pb-20">
+      {/* :target highlight — scrolls into view + amber ring when navigated via #field-xxx */}
+      <style>{`[id^="field-"]:target{outline:2px solid #f59e0b;outline-offset:4px;border-radius:12px;background:#fffbeb;scroll-margin-top:80px}`}</style>
       <div className="mx-auto max-w-2xl px-4 py-8">
         <Link href="/admin/templates" className="text-xs font-bold text-neutral-400 hover:text-black">← Template Manager</Link>
         <h1 className="mt-2 text-2xl font-black text-black">แก้ไข Template</h1>
@@ -68,22 +70,24 @@ export default async function EditTemplatePage({ params }: { params: Promise<{ i
             <p className="mt-1 text-[11px] text-neutral-400">Slug ไม่สามารถแก้ได้หลังสร้างแล้ว (เพื่อ SEO)</p>
           </div>
 
-          <div>
+          <div id="field-description">
             <label className={LABEL}>คำอธิบาย</label>
             <textarea name="description" rows={3} defaultValue={t.description ?? ''} className={INPUT} />
+            <p className="mt-1 text-[11px] text-neutral-400">แนะนำ ≥ 80 ตัวอักษร เพื่อ Health Score เต็ม</p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div>
+            <div id="field-tier">
               <label className={LABEL}>Tier *</label>
               <select name="tier" required defaultValue={t.tier} className={INPUT}>
                 <option value="free">Free — ฿0</option>
                 <option value="standard">Standard — ฿30</option>
               </select>
             </div>
-            <div>
+            <div id="field-page-count">
               <label className={LABEL}>จำนวนหน้า</label>
               <input name="page_count" type="number" min="1" defaultValue={t.page_count ?? ''} className={INPUT} />
+              <p className="mt-1 text-[11px] text-neutral-400">≥ 2 หน้า เพื่อ Health Score เต็ม</p>
             </div>
           </div>
 
@@ -102,7 +106,7 @@ export default async function EditTemplatePage({ params }: { params: Promise<{ i
             <input name="pdf_path" defaultValue={t.pdf_path} className={`${INPUT} font-mono text-xs`} />
           </div>
 
-          <div>
+          <div id="field-thumbnail">
             <label className={LABEL}>Thumbnail Path (optional)</label>
             <input name="thumbnail_path" defaultValue={t.thumbnail_path ?? ''} className={`${INPUT} font-mono text-xs`} />
           </div>
