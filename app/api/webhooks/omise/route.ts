@@ -8,49 +8,30 @@ import { NextRequest, NextResponse } from 'next/server'
 import { randomBytes } from 'crypto'
 import { db } from '@/lib/db'
 import { pushLine } from '@/lib/line-messaging'
-import crypto from 'crypto'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://planprom.com'
 
-// Omise signs: HMAC-SHA256(base64Decode(secret), "<timestamp>.<rawBody>")
-// ref: https://docs.omise.co/en/api-webhooks/international
-function verifySignature(rawBody: string, signature: string, timestamp: string): boolean {
-  const secret = process.env.OMISE_WEBHOOK_SECRET
-  if (!secret) {
-    console.error('[WEBHOOK] OMISE_WEBHOOK_SECRET not configured — rejecting all requests')
+// Verify charge status directly via Omise API — more reliable than signature
+// (signature verification blocked by Cloudflare header modification)
+async function verifyCharge(chargeId: string): Promise<boolean> {
+  const secretKey = process.env.OMISE_SECRET_KEY
+  if (!secretKey) return false
+  try {
+    const res = await fetch(`https://api.omise.co/charges/${chargeId}`, {
+      headers: {
+        Authorization: 'Basic ' + Buffer.from(secretKey + ':').toString('base64'),
+      },
+    })
+    if (!res.ok) return false
+    const charge = await res.json()
+    return charge.status === 'successful'
+  } catch {
     return false
   }
-  const key = Buffer.from(secret, 'base64')
-  const signedPayload = `${timestamp}.${rawBody}`
-  const expected = crypto.createHmac('sha256', key).update(signedPayload).digest()
-  const expectedHex = expected.toString('hex')
-  console.log('[WEBHOOK-DBG] ts      :', timestamp)
-  console.log('[WEBHOOK-DBG] computed:', expectedHex)
-  console.log('[WEBHOOK-DBG] received:', signature)
-
-  const signatures = signature.split(',').map(s => s.trim()).filter(Boolean)
-  for (const sig of signatures) {
-    try {
-      const sigBuf = Buffer.from(sig, 'hex')
-      if (sigBuf.length === expected.length && crypto.timingSafeEqual(sigBuf, expected)) {
-        return true
-      }
-    } catch {}
-  }
-  return false
 }
 
 export async function POST(req: NextRequest) {
-  const rawBody   = await req.text()
-  const sig       = req.headers.get('omise-signature') ?? ''
-  const timestamp = req.headers.get('omise-signature-timestamp') ?? ''
-
-  console.log('[WEBHOOK] sig:', sig.slice(0,16), '| ts:', timestamp, '| bodyLen:', rawBody.length)
-
-  if (!verifySignature(rawBody, sig, timestamp)) {
-    console.warn('[WEBHOOK] Invalid signature — rejecting')
-    return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
-  }
+  const rawBody = await req.text()
 
   let event: {
     key:  string
@@ -60,8 +41,15 @@ export async function POST(req: NextRequest) {
 
   if (event.key !== 'charge.complete') return NextResponse.json({ ok: true })
 
-  const { status, metadata, id: chargeId } = event.data
-  if (status !== 'successful') return NextResponse.json({ ok: true })
+  const { metadata, id: chargeId } = event.data
+
+  // Verify charge is genuinely successful via Omise API (bypasses signature issue)
+  const isVerified = await verifyCharge(chargeId)
+  if (!isVerified) {
+    console.warn('[WEBHOOK] charge', chargeId, 'not verified as successful — skipping')
+    return NextResponse.json({ ok: true })
+  }
+  console.log('[WEBHOOK] charge', chargeId, 'verified via API ✓')
 
   const type = metadata?.type
 
