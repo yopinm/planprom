@@ -1161,7 +1161,6 @@ export default async function AdminMarketIntelPage() {
                       </div>
                       <Link
                         href={`/admin/templates/${t.id}/edit`}
-                        onClick={e => e.stopPropagation()}
                         className="shrink-0 rounded-xl border border-neutral-200 px-3 py-1.5 text-[9px] font-black text-neutral-500 hover:border-indigo-400 hover:text-indigo-600 transition"
                       >
                         แก้ไข
