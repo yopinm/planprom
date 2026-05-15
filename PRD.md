@@ -33,7 +33,7 @@
 | **Pending (code)** | E9/E10 · UI-G(defer) |
 | **Pending (UAT)** | **Engine UAT** 🟡 (Planner/Form/Report — Checklist ✅ · Upload PDF ✅) · **INTEL-SMART** 🟡 (trend arrows) · INTEL-BLOG-SCORE 🔲 · INTEL-C/D · DC-1 · DC-2 · DC-8 · DC-16 · E9/E10 · J9(รอ live keys) |
 | **Pending (decision)** | Homepage UX: D (social proof bar) + B (featured badge pulse) — mock ready รอ confirm |
-| **Last session** | **Session 78 (2026-05-15)** — Planner Pipeline Yearly UX: month-grouped weekly tasks + weeksPerMonth selector · 1-3-6 → 1-3-5 (engine + form + ReviseClient) |
+| **Last session** | **Session 79 (2026-05-15)** — LINE floating button ย้าย bottom-right → bottom-left (ไม่ทับ modal ตะกร้าบนมือถือ) |
 | **ห้าม** | ไม่แตะ Later task ขณะที่ Now ยังค้างอยู่ · ไม่แตะ secrets โดยตรง · ไม่ทำให้ revenue channel หายไประหว่าง pivot |
 | **Security rule** | ทุก admin feature ต้องตรวจ: role check · PII mask · no path disclosure · spawnSync array args (ดู §23 Manual) |
 
@@ -203,6 +203,7 @@
 
 | Session | สถานะ |
 |---|---|
+| **Session 79 (2026-05-15) — LINE Floating Button UX fix** | ✅ Live — ย้าย `FloatingLineButton` จาก `bottom-right` → `bottom-left` · speech bubble arrow ย้ายตาม · แก้ปัญหาทับ add-to-cart modal บน mobile |
 | **Session 78 (2026-05-15) — Planner Pipeline UX + 1-3-5** | ✅ Live — Yearly: weekly task form grouped by month (header มกราคม/กุมภาพันธ์…) + weeksPerMonth selector (3/4/5) + auto-sync slots · 1-3-6 → 1-3-5 ทุกจุด (engine PDF label + slice(0,5) · form default small 6→5 · ReviseClient card titles) |
 | **Session 77 (2026-05-15) — Nav Bar UX + sale_count fix** | ✅ Live — Nav: 🔥 ขายดี (`/templates?sort=bestseller`) + 🆓 ฟรี (`/templates?price=0`) · emoji ทุก item ชุด A (🏠📋🔥🆓📖📅❓) · Suspense wrapper ป้องกัน SSR crash · sale_count sync จาก 14 orders จริง · auto-increment on paid (status polling + webhook) |
 | **Session 71 (2026-05-14) — i18n Footer + Nav** | ✅ Live — Footer: Legal→ข้อกฎหมาย · Privacy→นโยบายความเป็นส่วนตัว · Terms→เงื่อนไขการใช้งาน · All rights reserved→สงวนลิขสิทธิ์ · Nav: "Planner vs Checklist"→"Planner หรือ Checklist?" |

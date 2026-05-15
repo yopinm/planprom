@@ -609,6 +609,19 @@ CREATE TABLE admin_users (
 
 ---
 
+## Session 79 Changes (2026-05-15) — LINE Floating Button Position Fix
+
+| # | Change | Status |
+|---|---|---|
+| 1 | **LINE floating button ย้าย bottom-right → bottom-left** — ก่อนหน้าปิดทับ modal หยิบใส่ตะกร้าบนมือถือ · ย้าย `right-5` → `left-5` + `items-end` → `items-start` + bubble arrow `right-5` → `left-5` | ✅ Live |
+
+### Files Changed
+| File | Change |
+|---|---|
+| `src/components/layout/FloatingLineButton.tsx` | `right-5` → `left-5` · `items-end` → `items-start` · bubble arrow position |
+
+---
+
 ## Session 78 Changes (2026-05-15) — Planner Pipeline Yearly UX + 1-3-5 Rule
 
 | # | Change | Status |
