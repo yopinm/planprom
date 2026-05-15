@@ -33,9 +33,9 @@ function tailLines(path: string, n: number): string[] {
   if (!path) return []
   try {
     const r = spawnSync('tail', ['-n', String(n), path], { encoding: 'utf8', timeout: 5000 })
-    if (r.status !== 0 || r.error) return []
+    if (r.status !== 0 || r.error) return ['[LOG_READ_ERROR — ตรวจสอบ permission หรือ path]']
     return r.stdout.split('\n').filter(Boolean)
-  } catch { return [] }
+  } catch { return ['[LOG_READ_ERROR — ตรวจสอบ permission หรือ path]'] }
 }
 
 // VULN-002: mask last IPv4 octet before data reaches the client

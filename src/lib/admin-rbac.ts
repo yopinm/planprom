@@ -24,7 +24,7 @@ const SECRET = new TextEncoder().encode(
 )
 
 const COOKIE_NAME = '_admin_token'
-const EXPIRES_IN  = 60 * 60 * 8 // 8 hours
+const EXPIRES_IN  = 60 * 60 * 2 // 2 hours
 
 export async function signAdminToken(payload: AdminTokenPayload): Promise<string> {
   return new SignJWT({ ...payload })

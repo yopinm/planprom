@@ -53,10 +53,22 @@ export async function POST(req: NextRequest) {
     const orderUid = metadata?.order_uid
     if (!orderUid) return NextResponse.json({ ok: true })
 
-    const [order] = await db<{ id: string; status: string; total_baht: number; customer_line_id: string | null }[]>`
-      SELECT id, status, total_baht, customer_line_id FROM orders WHERE order_uid = ${orderUid} LIMIT 1
+    const [order] = await db<{ id: string; status: string; total_baht: number; customer_line_id: string | null; promo_code_id: string | null; discount_baht: number | null }[]>`
+      SELECT id, status, total_baht, customer_line_id, promo_code_id, discount_baht FROM orders WHERE order_uid = ${orderUid} LIMIT 1
     `
     if (!order || order.status !== 'pending_payment') return NextResponse.json({ ok: true })
+
+    // M-002: re-validate promo code is still active at payment confirmation time
+    if (order.promo_code_id) {
+      const [pc] = await db<{ is_active: boolean; expires_at: string; max_uses: number | null; used_count: number }[]>`
+        SELECT is_active, expires_at, max_uses, used_count FROM promo_codes WHERE id = ${order.promo_code_id} LIMIT 1
+      `.catch(() => [])
+      const promoRevoked = !pc || !pc.is_active || new Date() > new Date(pc.expires_at)
+        || (pc.max_uses !== null && pc.used_count > pc.max_uses)
+      if (promoRevoked) {
+        console.warn(`[WEBHOOK] promo ${order.promo_code_id} revoked/expired after payment — order ${orderUid} discount_baht=${order.discount_baht}`)
+      }
+    }
 
     const expires = new Date(Date.now() + 24 * 60 * 60 * 1000)
     const items   = await db<{ id: string }[]>`SELECT id FROM order_items WHERE order_id = ${order.id}`
