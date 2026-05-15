@@ -65,7 +65,7 @@ export default async function AdminCatalogsPage() {
 
   return (
     <main className="min-h-screen bg-neutral-50 pb-20">
-      <div className="mx-auto max-w-4xl px-4 py-8">
+      <div className="mx-auto max-w-6xl px-4 py-8">
 
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -77,7 +77,7 @@ export default async function AdminCatalogsPage() {
         </div>
 
         {/* Existing categories */}
-        <div className="space-y-4 mb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
           {categories.map(cat => {
             const catTemplates = byCategory[cat.id] ?? []
             return (
