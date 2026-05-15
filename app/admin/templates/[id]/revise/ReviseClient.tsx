@@ -69,6 +69,7 @@ function ChecklistReviseForm({ initial, onChange }: {
   const [s2ctx,     setS2ctx]     = useState(initial.s2.context)
   const [s2pre,     setS2pre]     = useState(initial.s2.prerequisites)
   const [items,     setItems]     = useState(initial.s3.items.length ? initial.s3.items : [''])
+  const [s4remarks, setS4remarks] = useState(initial.s4?.remarks ?? '')
   const [exec,      setExec]      = useState(initial.s5.executorRole)
   const [review,    setReview]    = useState(initial.s5.reviewerRole)
 
@@ -78,9 +79,10 @@ function ChecklistReviseForm({ initial, onChange }: {
       s1: { title: s1title, docCode: initial.s1.docCode, version: initial.s1.version, createdDate: s1date, author: s1author },
       s2: { purpose: s2purpose, context: s2ctx, prerequisites: s2pre },
       s3: { items: items.filter(i => i.trim()) },
+      s4: { remarks: s4remarks },
       s5: { executorRole: exec, reviewerRole: review },
     })
-  }, [s1title, s1date, s1author, s2purpose, s2ctx, s2pre, items, exec, review,
+  }, [s1title, s1date, s1author, s2purpose, s2ctx, s2pre, items, s4remarks, exec, review,
       onChange, initial.s1.docCode, initial.s1.version])
 
   return (
@@ -130,7 +132,15 @@ function ChecklistReviseForm({ initial, onChange }: {
       </Card>
 
       <Card title="ส่วนที่ 4 — หมายเหตุและข้อสังเกต" color="bg-neutral-50 text-neutral-600">
-        <p className="text-sm text-neutral-400">ระบบสร้างช่องว่าง 8 บรรทัดให้อัตโนมัติ</p>
+        <div>
+          <label className={LABEL}>หมายเหตุทั่วไป (ไม่บังคับ)</label>
+          <textarea value={s4remarks} onChange={e => setS4remarks(e.target.value)} rows={3}
+            placeholder="เช่น ใช้สำหรับโครงการก่อสร้างเฟส 2 เท่านั้น"
+            className={INPUT} />
+        </div>
+        <p className="text-xs text-neutral-400">
+          ระบบจะแสดงหมายเหตุข้างต้น (ถ้ามี) แล้วตามด้วยช่องว่าง 8 บรรทัดในเอกสาร PDF
+        </p>
       </Card>
 
       <Card title="ส่วนที่ 5 — การยืนยันและอนุมัติ" color="bg-violet-50 text-violet-800">
