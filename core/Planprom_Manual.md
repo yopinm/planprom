@@ -970,6 +970,59 @@ server {
 
 ---
 
+## 23. Omise Go-Live Checklist
+
+> อ้างอิง: `core/Capture UI/omise-golive-checklist.md` · ดำเนินการในนาม **บุคคลธรรมดา** (ไม่จดทะเบียนบริษัท)
+
+### 23.1 สิ่งที่ทำเสร็จแล้ว (code-side)
+
+| รายการ | สถานะ |
+|---|---|
+| Webhook HMAC-SHA256 verify | ✅ `app/api/webhooks/omise/route.ts` |
+| Idempotency — guard `status !== 'pending_payment'` | ✅ กัน duplicate event |
+| HTTPS / Cloudflare Full Strict | ✅ |
+| API keys ใน `.env.local` ไม่ hardcode | ✅ |
+| Download limit 3x per order | ✅ |
+| Cloudflare WAF bypass `/api/webhooks/omise` | ✅ |
+| `/legal` · `/privacy` · `/terms` | ✅ มีหน้าแล้ว |
+| Refund Policy ระบุ "ยกเว้นไฟล์เสียหาย" | ✅ (เพิ่ม Session 72) |
+| Privacy Policy — Omise processor disclosure | ✅ (เพิ่ม Session 72) |
+| Cookie Consent Banner (PDPA) | ✅ (เพิ่ม Session 72) |
+
+### 23.2 Admin ต้องทำ (รอ owner action)
+
+| ขั้นตอน | รายละเอียด |
+|---|---|
+| สมัคร Live Mode | Omise Dashboard → Submit for approval → รอ **3–7 วันทำการ** |
+| เอกสาร KYC | บัตรประชาชน (เซ็น + รับรองสำเนา) · Selfie+บัตร · หน้าแรกสมุดบัญชี (ชื่อตรงบัตร) · ใบเสร็จโดเมน · Portfolio template |
+| ข้อมูลธุรกิจใน dashboard | ประเภท: Digital Template · URL: planprom.com · avg transaction ฿30–50 |
+| รับ Live API Keys | `pkey_live_xxx` + `skey_live_xxx` หลัง Omise อนุมัติ |
+| อัพ VPS `.env.local` | SSH → แก้ `OMISE_PUBLIC_KEY` + `OMISE_SECRET_KEY` → `pm2 restart planprom` |
+| ตั้ง Webhook URL | Omise Dashboard → `https://planprom.com/api/webhooks/omise` |
+| Live test | ซื้อ template ตัวเอง ยอด ฿30 → ตรวจ QR สแกนได้ → webhook → download link |
+
+### 23.3 ข้อควรรู้ (บุคคลธรรมดา)
+
+| หัวข้อ | รายละเอียด |
+|---|---|
+| **On-hold 7 วัน** | ยอดขายจะ hold ก่อนถอนได้ — วางแผน cash flow |
+| **ค่าธรรมเนียม** | code คำนวณ 1.7655% (1.65% × 1.07 VAT) — เช็คกับ Omise sales ว่า rate บุคคลธรรมดาตรงกัน |
+| **ภาษีสิ้นปี** | รายได้เข้าบัญชีบุคคล = ต้องยื่น **ภงด.90** · เก็บ invoice/order ทุกรายการ |
+| **VAT gate** | รายได้เกิน **1.8 ล้าน/ปี** → จด VAT ภายใน 30 วัน |
+| **Volume limit** | บุคคลธรรมดาอาจถูกจำกัด monthly volume — เช็คกับ Omise ตอนสมัคร |
+| **Chargeback** | สินค้าดิจิทัล chargeback rate สูง — download log (timestamp/IP) มีอยู่แล้ว · Refund Policy ต้องชัด |
+
+### 23.4 Contact Omise
+
+| ช่องทาง | รายละเอียด |
+|---|---|
+| Support | support@omise.co · 02-252-8777 |
+| Privacy | privacy@opn.ooo |
+| Dashboard | https://dashboard.omise.co |
+| Docs | https://docs.opn.ooo |
+
+---
+
 ## หมายเหตุเพิ่มเติม
 
 ### Admin Authentication (ADM-RBAC-1)

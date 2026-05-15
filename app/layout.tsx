@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import { RootShell } from "@/components/layout/RootShell";
+import { CookieConsent } from "@/components/CookieConsent";
 
 import "./globals.css";
 
@@ -61,6 +62,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-orange-50 font-sans">
         <RootShell>{children}</RootShell>
+        <CookieConsent />
       </body>
     </html>
   );

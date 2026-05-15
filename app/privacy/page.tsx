@@ -50,6 +50,20 @@ export default function PrivacyPage() {
                 เราไม่ขายข้อมูลส่วนบุคคลแก่บุคคลภายนอก
                 เราไม่แชร์ข้อมูลส่วนตัวกับบุคคลอื่น ยกเว้นในกรณีที่จำเป็นตามกฎหมายหรือคำสั่งศาล
               </p>
+              <p className="mt-2 font-semibold text-neutral-800">ผู้ประมวลผลข้อมูลบุคคลที่สาม</p>
+              <p className="mt-1">
+                แพลนพร้อมใช้ <span className="font-bold">Omise (OPN Payments / SYNQA)</span> เป็น payment processor
+                สำหรับการชำระเงินผ่าน PromptPay QR ข้อมูลที่เกี่ยวข้องกับการชำระเงินจะถูกส่งไปยัง Omise
+                ซึ่งอาจมีการประมวลผลในต่างประเทศตามนโยบายของ Omise
+                ท่านสามารถศึกษานโยบายความเป็นส่วนตัวของ Omise ได้ที่{' '}
+                <a href="https://www.omise.co/privacy" target="_blank" rel="noopener noreferrer"
+                  className="text-indigo-600 underline">www.omise.co/privacy</a>
+                {' '}และติดต่อได้ที่ privacy@opn.ooo
+              </p>
+              <p className="mt-2">
+                ข้อมูลธุรกรรมการชำระเงินจะถูกเก็บรักษาไว้ <span className="font-bold">5 ปี</span> ตามข้อกำหนดของ Omise
+                และกฎหมายที่เกี่ยวข้อง
+              </p>
             </section>
 
             <section>

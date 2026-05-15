@@ -53,12 +53,17 @@ export default function TermsPage() {
             <section>
               <h2 className="font-extrabold text-black">4. การชำระเงินและการคืนเงิน</h2>
               <p className="mt-2">
-                แพลนพร้อมรับชำระผ่าน PromptPay เท่านั้น การชำระเงินจะได้รับการยืนยันภายใน 24 ชั่วโมงหลังส่งสลิป
+                แพลนพร้อมรับชำระผ่าน <span className="font-bold">PromptPay QR</span> ผ่านระบบ Omise Payment Gateway
+                การชำระเงินได้รับการยืนยันอัตโนมัติโดย Omise — ลิงก์ดาวน์โหลดจะส่งให้ทันทีเมื่อชำระสำเร็จ
               </p>
               <p className="mt-2">
                 เนื่องจาก template เป็นสินค้าดิจิทัลที่สามารถดาวน์โหลดได้ทันทีหลังยืนยัน
                 <span className="font-bold text-neutral-800"> แพลนพร้อมไม่คืนเงินหลังจากยืนยันการชำระและส่งไฟล์แล้ว</span>
-                ในกรณีที่เกิดปัญหาจากระบบของเรา กรุณาติดต่อ contact@planprom.com
+              </p>
+              <p className="mt-2">
+                <span className="font-bold text-neutral-800">ข้อยกเว้น:</span> หากไฟล์เสียหาย เปิดไม่ได้ หรือดาวน์โหลดไม่ได้เนื่องจากปัญหาจากระบบของเรา
+                กรุณาติดต่อ <a href="mailto:contact@planprom.com" className="text-indigo-600 underline">contact@planprom.com</a> ภายใน 7 วันหลังซื้อ
+                เราจะส่งไฟล์ใหม่หรือพิจารณาคืนเงินเป็นรายกรณี
               </p>
             </section>
 
