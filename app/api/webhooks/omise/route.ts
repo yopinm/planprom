@@ -18,8 +18,9 @@ function verifySignature(rawBody: string, signature: string): boolean {
     console.error('[WEBHOOK] OMISE_WEBHOOK_SECRET not configured — rejecting all requests')
     return false
   }
-  const expected = crypto.createHmac('sha256', secret).update(rawBody).digest('hex')
+  const expected = crypto.createHmac('sha256', secret).update(rawBody).digest('base64')
   try {
+    if (Buffer.byteLength(expected) !== Buffer.byteLength(signature)) return false
     return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature))
   } catch (err) {
     console.error('[WEBHOOK] Signature verification error:', err)
