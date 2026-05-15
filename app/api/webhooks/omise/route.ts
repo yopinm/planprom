@@ -13,11 +13,16 @@ import crypto from 'crypto'
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://planprom.com'
 
 function verifySignature(rawBody: string, signature: string): boolean {
-  const secret = process.env.OMISE_WEBHOOK_SECRET ?? process.env.OMISE_SECRET_KEY ?? ''
+  const secret = process.env.OMISE_WEBHOOK_SECRET
+  if (!secret) {
+    console.error('[WEBHOOK] OMISE_WEBHOOK_SECRET not configured — rejecting all requests')
+    return false
+  }
   const expected = crypto.createHmac('sha256', secret).update(rawBody).digest('hex')
   try {
     return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature))
-  } catch {
+  } catch (err) {
+    console.error('[WEBHOOK] Signature verification error:', err)
     return false
   }
 }
@@ -26,7 +31,7 @@ export async function POST(req: NextRequest) {
   const rawBody = await req.text()
   const sig     = req.headers.get('x-omise-signature') ?? ''
 
-  if (sig && !verifySignature(rawBody, sig)) {
+  if (!verifySignature(rawBody, sig)) {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
   }
 

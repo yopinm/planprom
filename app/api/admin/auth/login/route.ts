@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     permissions: user.permissions ?? [],
   })
 
-  const res = NextResponse.json({ ok: true, role: user.role })
+  const res = NextResponse.json({ ok: true })
   res.cookies.set(COOKIE_NAME, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',

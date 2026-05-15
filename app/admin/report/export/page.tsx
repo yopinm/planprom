@@ -1,4 +1,6 @@
 import { redirect } from 'next/navigation'
+import { requireAdminSession } from '@/src/lib/admin-auth'
+
 
 export const dynamic = 'force-dynamic'
 
@@ -7,6 +9,7 @@ export default async function OrderExportPage({
 }: {
   searchParams: Promise<{ range?: string; from?: string; to?: string; status?: string }>
 }) {
+  await requireAdminSession('/admin/login')
   const sp = await searchParams
   const params = new URLSearchParams()
   if (sp.range)  params.set('range',  sp.range)
