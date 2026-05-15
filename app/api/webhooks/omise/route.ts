@@ -9,6 +9,7 @@ import { randomBytes } from 'crypto'
 import { db } from '@/lib/db'
 import { pushLine } from '@/lib/line-messaging'
 import crypto from 'crypto'
+import { writeFileSync } from 'fs'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://planprom.com'
 
@@ -30,10 +31,7 @@ function verifySignature(rawBody: string, signature: string): boolean {
   console.log('[WEBHOOK-DEBUG5] body-len   :', rawBody.length)
   console.log('[WEBHOOK-DEBUG5] body-sha256:', bodyHash)
   // save body to /tmp for manual HMAC verification
-  try {
-    const fs = await import('fs')
-    fs.writeFileSync(`/tmp/omise-body-${Date.now()}.json`, rawBody, 'utf8')
-  } catch {}
+  try { writeFileSync(`/tmp/omise-body-${Date.now()}.json`, rawBody, 'utf8') } catch {}
   const expected = hmacSHA256raw
   try {
     if (Buffer.byteLength(expected) !== Buffer.byteLength(signature)) return false
