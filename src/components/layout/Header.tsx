@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactElement } from 'react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
@@ -17,18 +17,19 @@ const NAV_ITEMS = [
 
 const LINE_OA_URL = 'https://line.me/R/ti/p/%40216xobzv'
 
-export function Header(): ReactElement {
+const NAV_LINK_BASE = 'py-1 text-sm font-medium transition-colors hover:text-neutral-900'
+const NAV_LINK_ACTIVE = 'border-b-2 border-orange-600 text-neutral-900'
+const NAV_LINK_INACTIVE = 'text-neutral-500'
+
+// Separated into its own component so useSearchParams is inside a Suspense boundary
+function NavLinks() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const router = useRouter()
-  const [cartCount, setCartCount] = useState(0)
-  const [query, setQuery] = useState('')
 
   function isActive(href: string): boolean {
     const [hrefPath, hrefQuery] = href.split('?')
     if (pathname !== hrefPath) return false
     if (!hrefQuery) {
-      // /templates plain link → inactive when special filter is active
       if (hrefPath === '/templates') {
         return searchParams.get('sort') !== 'bestseller' && searchParams.get('price') !== '0'
       }
@@ -40,6 +41,40 @@ export function Header(): ReactElement {
     }
     return true
   }
+
+  return (
+    <>
+      {NAV_ITEMS.map(({ label, href }) => (
+        <Link
+          key={href}
+          href={href}
+          className={`${NAV_LINK_BASE} ${isActive(href) ? NAV_LINK_ACTIVE : NAV_LINK_INACTIVE}`}
+        >
+          {label}
+        </Link>
+      ))}
+    </>
+  )
+}
+
+// Fallback: show nav without active state during SSR / Suspense
+function NavLinksFallback() {
+  return (
+    <>
+      {NAV_ITEMS.map(({ label, href }) => (
+        <Link key={href} href={href} className={`${NAV_LINK_BASE} ${NAV_LINK_INACTIVE}`}>
+          {label}
+        </Link>
+      ))}
+    </>
+  )
+}
+
+export function Header(): ReactElement {
+  const pathname = usePathname()
+  const router = useRouter()
+  const [cartCount, setCartCount] = useState(0)
+  const [query, setQuery] = useState('')
 
   // Cart count — re-fetch on navigation (badge clears after checkout) + cart-updated event
   useEffect(() => {
@@ -88,22 +123,9 @@ export function Header(): ReactElement {
       <div className="border-b border-neutral-100 bg-white px-6 py-2 sm:px-8 lg:px-12">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
           <nav className="flex items-center gap-4 sm:gap-[18px]">
-            {NAV_ITEMS.map(({ label, href }) => {
-              const active = isActive(href)
-              return (
-                <Link
-                  key={href}
-                  href={href}
-                  className={`py-1 text-sm font-medium transition-colors hover:text-neutral-900 ${
-                    active
-                      ? 'border-b-2 border-orange-600 text-neutral-900'
-                      : 'text-neutral-500'
-                  }`}
-                >
-                  {label}
-                </Link>
-              )
-            })}
+            <Suspense fallback={<NavLinksFallback />}>
+              <NavLinks />
+            </Suspense>
           </nav>
 
           <div className="flex items-center gap-3 shrink-0">
