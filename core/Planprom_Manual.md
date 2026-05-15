@@ -1,6 +1,6 @@
 # Planprom_Manual.md — คู่มือการใช้งาน แพลนพร้อม (planprom.com)
 
-> อัพเดตล่าสุด: 2026-05-13 · Session 59 · ครอบคลุมทุกฟีเจอร์ที่ Live + Technical Reference (DB, API, Engine, Infra) จาก Blueprint
+> อัพเดตล่าสุด: 2026-05-15 · Session 72 · ครอบคลุมทุกฟีเจอร์ที่ Live + Technical Reference (DB, API, Engine, Infra) จาก Blueprint
 > ภาษา: ไทย · เขียนสำหรับ admin และ owner ของระบบ
 
 ---
@@ -41,7 +41,7 @@
 | URL | https://planprom.com |
 | Server | VPS AlmaLinux 9.7 · PM2 + Nginx + Cloudflare Full |
 | Stack | Next.js 16 (App Router) · TypeScript · PostgreSQL · Omise PromptPay |
-| ราคา | ฿20 ชิ้นแรก → ฿10 ชิ้น 2-5 → ฿7 ชิ้น 6+ |
+| ราคา | ฿30 ชิ้นแรก → ฿20 ชิ้น 2-5 → ฿10 ชิ้น 6+ |
 | Payment | PromptPay QR ผ่าน Omise · ไม่ต้องสมัครสมาชิก |
 
 ### Flow หลักของลูกค้า
@@ -60,10 +60,10 @@ URL: `https://planprom.com/`
 
 - **H1:** "ยิ่งวางแผนเยอะ ยิ่งจ่ายน้อย"
 - **Tier Pricing Card:** แสดงราคา 3 tier แบบ visual
-  - ชิ้นแรก ฿20
-  - 2-5 ชิ้น ฿10/ชิ้น (ลด 50%)
-  - 6 ชิ้นขึ้นไป ฿7/ชิ้น
-- **CTA หลัก:** "เริ่มต้นที่ ฿20 → ดูเทมเพลตทั้งหมด"
+  - ชิ้นแรก ฿30
+  - 2-5 ชิ้น ฿20/ชิ้น (ลด 33%)
+  - 6 ชิ้นขึ้นไป ฿10/ชิ้น
+- **CTA หลัก:** "เริ่มต้นที่ ฿30 → ดูเทมเพลตทั้งหมด"
 
 ### 2.2 Section Template Store
 
@@ -130,7 +130,7 @@ URL: `https://planprom.com/templates`
 | Filter | ตัวเลือก |
 |---|---|
 | หมวดหมู่ | ทุกหมวด + แต่ละ category |
-| ราคา | ทุกราคา / ฟรี / ฿20 |
+| ราคา | ทุกราคา / ฟรี / ฿30 |
 | ประเภท | ทุกประเภท / แพลนเนอร์ / เช็คลิสต์ / ฟอร์ม / รายงาน |
 
 ### 3.2 Search Box
@@ -182,9 +182,9 @@ URL: `https://planprom.com/cart`
 ### 5.2 Tier Progress Banner
 
 แสดงเมื่อไม่มี Request item:
-- **1 ชิ้น:** "เพิ่มอีก 1 ชิ้น ลดเหลือ ฿10/ชิ้น"
+- **1 ชิ้น:** "เพิ่มอีก 1 ชิ้น ลดเหลือ ฿20/ชิ้น"
 - **2-5 ชิ้น:** นับถอยหลังสู่ tier ถัดไป
-- **6+ ชิ้น:** "คุ้มสุด! ราคา ฿7/ชิ้น สำหรับทุกชิ้นถัดไป"
+- **6+ ชิ้น:** "คุ้มสุด! ราคา ฿10/ชิ้น สำหรับทุกชิ้นถัดไป"
 - ซ่อนอัตโนมัติเมื่อมี Request item ในตะกร้า
 
 ### 5.3 ยอดรวม
@@ -280,7 +280,7 @@ Template tier = `free` ใช้ flow พิเศษ:
 ### 9.3 ราคา Request
 
 - **฿50 ต่อชิ้น** (fixed, ไม่ขึ้นกับ volume tier)
-- = ฿20 template + ฿30 ค่าจัดทำ custom
+- = ฿30 template + ฿20 ค่าจัดทำ custom
 - ในตะกร้าแสดง label "🔒 Request พิเศษ" และราคา ฿50
 - ไม่มี upsell banner เมื่อมี request item
 
@@ -531,10 +531,17 @@ Today / 7d / 30d / Custom — query ข้อมูลจริงทุก filt
 **หลักการ:** ระบบวิเคราะห์ความต้องการตลาดจาก Google Suggest แล้วบอก admin ว่าวันนี้ควรสร้าง template อะไร ใน catalog ไหน ประเภทไหน — admin กด "+ สร้าง" ระบบ pre-fill ให้พร้อม ไม่ต้องเดาเอง
 
 **วิธีทำงาน:**
-1. ดึง Google Suggest ด้วย 8 seed keywords (checklist · planner · ฟอร์ม · รายงาน · ตาราง · ใบแจ้ง · แผนงาน · บัญชี) × 15 ตัวอักษรไทย = **120 queries/ชั่วโมง** (cache 1h)
-2. คำนวณ **Priority Score** = level × (100 − coverage%) → เรียงลำดับว่าควรสร้างอะไรก่อน
-3. จับคู่ idea → catalog ด้วย **CATALOG_KEYWORD_MAP** (14 entries ครอบคลุมทุก catalog ใน DB)
-4. แสดง top 3 ideas ต่อ catalog ใน **Catalog Action Cards** พร้อมปุ่ม "+ สร้าง" ที่ pre-fill title/engine/category ให้อัตโนมัติ
+1. ดึง Google Suggest ด้วย **12 seed keywords** × 16 ตัวอักษรไทย = **192 queries/ชั่วโมง** (cache 1h)
+   - **8 type-based seeds:** checklist · planner · ฟอร์ม · รายงาน · ตาราง · ใบแจ้ง · แผนงาน · บัญชี
+   - **4 topic-based seeds:** งาน · เลี้ยงลูก · งานบ้าน · ครอบครัว (ต้องผ่าน TOPIC_ACTIONABLE filter ก่อนแสดง)
+2. กรอง idea ด้วย **4 ชั้น filter** (ลำดับ: NOISE → STRIPPED_NOISE → FULL_NOISE → TOPIC_ACTIONABLE):
+   - **NOISE:** exact-match บน stripped text (`^(ฟรี|template|word|...)$`)
+   - **STRIPPED_NOISE:** substring บน stripped text (`/ฟรี|goodnote|น่ารักๆ|cute|ดาวน์โหลด/i`)
+   - **FULL_NOISE:** substring บน full suggestion string (`/free|ดาวน์โหลดฟรี|.../i`)
+   - **TOPIC_ACTIONABLE:** topic seeds ต้องมี process/domain word (`สำหรับ|วิธี|ระบบ|แบบ|แผน|บันทึก|ช่วย...`) ถึงผ่านได้
+3. คำนวณ **Priority Score** = level × (100 − coverage%) → เรียงลำดับว่าควรสร้างอะไรก่อน
+4. จับคู่ idea → catalog ด้วย **CATALOG_KEYWORD_MAP** (14 entries · first-match wins · specific → general)
+5. แสดง top 3 ideas ต่อ catalog ใน **Catalog Action Cards** พร้อมปุ่ม "+ สร้าง" ที่ pre-fill title/engine/category ให้อัตโนมัติ
 
 **Scale อัตโนมัติ:**
 - เพิ่ม catalog ใหม่ใน Catalog Manager → card ขึ้นทันที (ดึงจาก DB ตรงๆ)
@@ -544,12 +551,55 @@ Today / 7d / 30d / Custom — query ข้อมูลจริงทุก filt
 **Sections ในหน้า:**
 - **S1 — KPI:** revenue · orders · avg · downloads · unique buyers
 - **S2 — Revenue by Engine:** ยอดขายแต่ละประเภท (Checklist/Planner/Form/Report)
-- **S2a — Catalog Action Cards:** top 3 ideas ต่อ catalog + ปุ่ม "+ สร้าง" (pre-fill wizard)
-- **S3 — Priority List:** top 20 uncovered ideas เรียงตาม score · แต่ละ row มี catalog badge + engine badge
+- **S2a — Catalog Action Cards:** top 3 ideas ต่อ catalog + ปุ่ม "+ สร้าง" (pre-fill wizard) · buffer 6 ideas/catalog (แสดง 3) เพื่อรองรับ idea ถูก reject ระหว่างวัน
+- **S3 — Priority List (Card 05):** top 20 uncovered ideas เรียงตาม score · แต่ละ row มี catalog badge + engine badge + ปุ่ม ✕ reject
 - **S4 — Coverage:** ครอบคลุมแค่ไหน (%) ต่อ engine type · gap heatmap
-- **S5 — Bestseller / Zero-sale:** template ขายดีสุด vs ขายไม่ออก · 14-day daily chart
+- **S5 — Market Demand (Card 06):** 4 กลุ่ม demand รวม (Checklist / Planner / Form / Report) — merge ideas จากหลาย keyword ในกลุ่มเดียว ไม่ duplicate · แต่ละ idea มีปุ่ม ✕ reject
+- **S6 — Bestseller / Zero-sale:** template ขายดีสุด vs ขายไม่ออก · 14-day daily chart
 
 **Badge "N KEYWORDS · N ALPHA · CACHE 1H":** hover เพื่อดูรายละเอียด — บอกจำนวน queries และอายุ cache ปัจจุบัน
+
+#### Admin Feedback Loop (ปุ่มจัดการ idea)
+
+ทุก idea card มีปุ่มควบคุม 3 ระดับ:
+
+| ปุ่ม | ผล | คืนกลับได้? |
+|---|---|---|
+| **✕** (บน Priority List / Market Demand) | reject ชั่วคราว — idea หายไปจากทุก card ทันที | ✅ กู้คืนได้จาก Recovery Section |
+| **↩ กู้คืน** (ใน Rejected Section) | ลบ record ออกจาก intel_rejected → idea กลับมาใน cycle ถัดไป | — |
+| **🗑️** (per-row ใน Rejected Section) | permanent reject — idea หายถาวร ไม่โผล่ใน Recovery List อีก | ❌ ถาวร |
+| **🗑️ ล้างทั้งหมดถาวร** (header ของ Rejected Section) | bulk permanent reject — ล้าง recovery list ทั้งหมดในครั้งเดียว | ❌ ถาวร |
+
+**Rejected Section** (collapsible ใต้ Priority List):
+- แสดง ideas ที่ถูก reject แบบชั่วคราว (`is_permanent = false`) พร้อม rejected_at
+- ซ่อน ideas ที่ permanent reject (`is_permanent = true`) — ถูก filter ออกทั้งระบบเงียบๆ
+
+#### Auto-blacklist: Stale Ideas (30+ วัน)
+
+idea ที่ปรากฏใน Google Suggest มา ≥ 30 วันแต่ยังไม่ถูก fulfill จะถูก soft-hide อัตโนมัติ:
+- ไม่โผล่ใน Priority List / Catalog Cards อีก
+- โผล่ใน **Stale Section** (collapsible) พร้อมวันที่เก่าสุด
+
+**ปุ่มใน Stale Section:**
+| ปุ่ม | ผล |
+|---|---|
+| **↩ คืน** | reset clock — insert today's snapshot ลง intel_snapshots → idea กลับมาใน Priority List ใน cycle ถัดไป |
+| **+ สร้าง** | redirect ไป `/admin/templates/new` พร้อม pre-fill เหมือนปกติ (บันทึกลง intel_fulfilled ด้วย) |
+
+> **ทำไม recoverable?** กรณีที่ admin ทำงานไม่ทัน เกิน 30 วันก่อนสร้าง template ควรมีโอกาสดึง idea กลับมาได้ แทนที่จะสูญหายไปเงียบๆ
+
+#### Server Actions (ใน actions.ts)
+
+| Action | ตาราง DB | หมายเหตุ |
+|---|---|---|
+| `recordFulfilledAction` | intel_fulfilled | INSERT + redirect ไป /admin/templates/new |
+| `rejectIdeaAction` | intel_rejected | INSERT is_permanent=false ON CONFLICT DO NOTHING |
+| `revertRejectedAction` | intel_rejected | DELETE WHERE idea_text = ? |
+| `permanentRejectAction` | intel_rejected | INSERT/UPDATE SET is_permanent=true |
+| `bulkPermanentRejectAction` | intel_rejected | UPDATE SET is_permanent=true WHERE is_permanent=false |
+| `restoreStaleAction` | intel_snapshots | INSERT TODAY's snapshot → reset 30-day clock |
+
+ทุก action ใช้ `revalidatePath('/admin/template-analytics')` เพื่อ refresh หน้าโดยไม่ต้อง reload
 
 ### 15.2 System Log (Unified)
 
@@ -615,8 +665,8 @@ URL: `/admin/catalogs`
 
 ### 16.1 Category List
 
-- แสดง category ทั้งหมด + จำนวน template
-- emoji + ชื่อ + slug
+- Layout: **2-column grid** (max-w-6xl) — แต่ละ card แสดง emoji + ชื่อ + slug + จำนวน template
+- แสดงทุก category เรียงตาม slug
 
 ### 16.2 สร้าง Category ใหม่
 
@@ -635,6 +685,11 @@ URL: `/admin/catalogs`
 - กด ลบ → confirm → ลบออก
 - ระวัง: template ที่เชื่อมอยู่จะไม่มี category
 
+### 16.5 Market Intelligence Integration
+
+- เมื่อเพิ่ม catalog ใหม่ → **Catalog Action Cards** ใน `/admin/template-analytics` ขึ้นทันที (query จาก DB ตรงๆ)
+- CATALOG_KEYWORD_MAP ใน analytics จับคู่ idea → catalog ด้วย slug/ชื่อ — ไม่ต้องตั้งค่าเพิ่มถ้า slug ตรงกับ keyword ที่มีอยู่แล้ว
+
 ---
 
 ## 17. ราคาและการคิดเงิน
@@ -643,13 +698,13 @@ URL: `/admin/catalogs`
 
 | ตำแหน่งชิ้นในตะกร้า | ราคา |
 |---|---|
-| ชิ้นที่ 1 | ฿20 |
-| ชิ้นที่ 2-5 | ฿10/ชิ้น |
-| ชิ้นที่ 6+ | ฿7/ชิ้น |
+| ชิ้นที่ 1 | ฿30 |
+| ชิ้นที่ 2-5 | ฿20/ชิ้น |
+| ชิ้นที่ 6+ | ฿10/ชิ้น |
 
 ราคาคิดแบบ marginal (แต่ละชิ้นคิดตามตำแหน่ง):
-- 2 ชิ้น = ฿20 + ฿10 = ฿30
-- 3 ชิ้น = ฿20 + ฿10 + ฿10 = ฿40
+- 2 ชิ้น = ฿30 + ฿20 = ฿50
+- 3 ชิ้น = ฿30 + ฿20 + ฿20 = ฿70
 
 ### 17.2 Request Only Pricing
 
@@ -720,12 +775,18 @@ URL: `/admin/catalogs`
 | `template_revisions` | [DC-8 planned] revision_number, engine_data JSONB, pdf_path, change_note |
 | `free_template_grants` | LINE add friend → free template (pending) |
 | `template_searches` | search analytics |
+| `intel_fulfilled` | idea_text + catalog_slug + engine_type — บันทึกเมื่อ admin กด "+ สร้าง" เพื่อ filter ออกจาก priority list |
+| `intel_snapshots` | idea_text + engine_type + catalog_slug + score + demand_count + snapshot_date — ใช้ track อายุ idea (stale = last_snapshot > 30 วัน) |
+| `intel_rejected` | idea_text + is_permanent + rejected_at — Admin Feedback Loop: is_permanent=false = soft reject (recoverable) · is_permanent=true = permanent reject (ไม่โผล่ใน recovery list) |
 
 ### กฎ DB
 - `order_number` ใช้ sequence `order_seq` (ไม่ใช่ random)
 - `download_token` = signed UUID · expire 24h · max 3 downloads
 - `promo_codes.template_id IS NULL` = public promo · `IS NOT NULL` = unlock code (J13)
 - `templates.is_request_only = true` → ราคา ฿50 เสมอ (override tier price)
+- `intel_rejected.is_permanent = false` → soft reject (แสดงใน recovery list, กู้คืนได้) · `= true` → permanent (ถูก filter เงียบๆ ทั้งระบบ ไม่โผล่ทั้งใน card และ recovery)
+- `intel_rejected` ใช้ UNIQUE(idea_text) — upsert ด้วย ON CONFLICT DO UPDATE/DO NOTHING แล้วแต่ action
+- `intel_snapshots` ใช้ UNIQUE(idea_text, engine_type, snapshot_date) — restoreStaleAction insert TODAY เพื่อ reset 30-day clock
 
 ---
 
@@ -736,7 +797,7 @@ URL: `/admin/catalogs`
 | Route | บทบาท |
 |---|---|
 | `/` | Homepage — catalog sections, promo banner |
-| `/templates` | Template list + pricing callout (marginal ฿20→฿10→฿7) |
+| `/templates` | Template list + pricing callout (marginal ฿30→฿20→฿10) |
 | `/templates/[slug]` | Template detail + engine preview |
 | `/catalog/[slug]` | หมวดหมู่ template |
 | `/cart` | ตะกร้าสินค้า (session-based) |
@@ -751,7 +812,7 @@ URL: `/admin/catalogs`
 | `/admin/templates/[id]/revise` | แก้ engine content + re-generate PDF (DC-8) |
 | `/admin/catalogs` | จัดการหมวดหมู่ |
 | `/admin/orders` | รายการ order + verify + revoke + LINE notify |
-| `/admin/template-analytics` | KPI + 14-day daily sales + per-template revenue |
+| `/admin/template-analytics` | KPI + Revenue by Engine + Catalog Action Cards + Priority List (Feedback Loop) + Market Demand (4 groups) + Stale/Rejected recovery sections + Bestseller/Zero-sale |
 | `/admin/form-builder` | Form Builder สร้าง interactive form |
 
 ### API Endpoints
@@ -770,6 +831,17 @@ URL: `/admin/catalogs`
 | GET/POST | `/api/admin/templates/[id]/unlock-code` | ดู / สร้าง unlock code (J13) |
 | POST | `/api/admin/orders/[id]/verify` | verify + issue download token |
 | POST | `/api/admin/orders/[id]/revoke` | revoke download token |
+
+### Server Actions (Market Intelligence)
+
+| Action | File | บทบาท |
+|---|---|---|
+| `recordFulfilledAction` | `app/admin/template-analytics/actions.ts` | บันทึก intel_fulfilled + redirect สร้าง template |
+| `rejectIdeaAction` | `app/admin/template-analytics/actions.ts` | reject idea ชั่วคราว (is_permanent=false) |
+| `revertRejectedAction` | `app/admin/template-analytics/actions.ts` | กู้คืน idea ที่ reject |
+| `permanentRejectAction` | `app/admin/template-analytics/actions.ts` | permanent reject ต่อ row |
+| `bulkPermanentRejectAction` | `app/admin/template-analytics/actions.ts` | bulk permanent reject ทั้ง recovery list |
+| `restoreStaleAction` | `app/admin/template-analytics/actions.ts` | reset 30-day stale clock สำหรับ idea ที่ค้างนาน |
 
 ---
 
