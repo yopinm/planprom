@@ -84,6 +84,7 @@ export async function GET(
       'Content-Disposition': `attachment; filename="${safeName}"; filename*=UTF-8''${safeName}`,
       'Content-Length':      String(buffer.length),
       'Cache-Control':       'no-store',
+      'Referrer-Policy':     'no-referrer',
       'X-File-Name':         filename,
     },
   })
