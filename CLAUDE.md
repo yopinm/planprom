@@ -51,6 +51,7 @@
 | Task ใน V15 sprint → update `core/planprom.md` Task Backlog | V15 stays in sync |
 | ห้าม break revenue channel ใดๆ ระหว่าง pivot | Cashflow ต้องไม่หาย |
 | Slogan canonical = "คุ้มทุกการใช้จ่าย · ง่ายทุกการวางแผน" — ห้ามใช้ slogan เก่า "คิดแทนทุกโค้ดดีล" | Brand consistency |
+| **RSC Rule:** `app/admin/**/page.tsx` เป็น Server Component — ห้ามเขียน `onClick`, `onChange`, `on*={fn}` ตรงในไฟล์ · ถ้าต้องการ interactivity → แยกเป็น `'use client'` component ใหม่ · ESLint จะ error ถ้าฝ่าฝืน | Prevent RSC crash |
 
 ## Acceptance
 
