@@ -34,6 +34,10 @@ export async function GET(
       if (charge.status === 'successful') {
         await db`UPDATE orders SET status = 'paid', paid_at = NOW() WHERE id = ${order.id}`
         await issueTokens(order.id)
+        await db`
+          UPDATE templates t SET sale_count = sale_count + 1
+          WHERE t.id IN (SELECT template_id FROM order_items WHERE order_id = ${order.id})
+        `
         const cookieStore = await cookies()
         const sessionId = cookieStore.get(CART_COOKIE)?.value
         if (sessionId) await db`DELETE FROM carts WHERE session_id = ${sessionId}`

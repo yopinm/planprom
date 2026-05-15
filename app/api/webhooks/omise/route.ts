@@ -85,6 +85,10 @@ export async function POST(req: NextRequest) {
       `
     }
     await db`UPDATE orders SET status = 'paid', paid_at = NOW() WHERE id = ${order.id}`
+    await db`
+      UPDATE templates t SET sale_count = sale_count + 1
+      WHERE t.id IN (SELECT template_id FROM order_items WHERE order_id = ${order.id})
+    `
 
     const titles = await db<{ title: string }[]>`
       SELECT t.title FROM order_items oi
