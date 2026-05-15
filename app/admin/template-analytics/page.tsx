@@ -3,7 +3,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { requireAdminSession } from '@/lib/admin-auth'
 import { db } from '@/lib/db'
-import { recordFulfilledAction } from './actions'
+import { recordFulfilledAction, rejectIdeaAction, revertRejectedAction } from './actions'
 import { CopyButton } from './CopyButton'
 
 export const metadata: Metadata = {
@@ -76,6 +76,8 @@ type CatalogPerfRow = { slug: string; name: string; emoji: string; template_coun
 type CatalogRef     = { slug: string; name: string; emoji: string }
 type FulfilledRow   = { idea_text: string; fulfilled_at: string }
 type SnapshotRow    = { idea_text: string; engine_type: string; score: number }
+type RejectedRow    = { idea_text: string; rejected_at: string }
+type StaleIdeaRow   = { idea_text: string; engine_type: string; oldest_date: string }
 type ScoreRow = {
   id: string; title: string; slug: string
   engine_type: string | null; tier: string; price_baht: number
@@ -247,7 +249,7 @@ export default async function AdminMarketIntelPage() {
   await requireAdminSession('/admin/login')
 
   // ── Phase 1 (parallel) ───────────────────────────────────────────────────
-  const [baseSuggestRaw, allTemplates, kpiRow, byType, daily, ranking, gapData, alphaRaw, catalogPerf, allCategories, fulfilledRaw, yesterdaySnaps, healthRows] =
+  const [baseSuggestRaw, allTemplates, kpiRow, byType, daily, ranking, gapData, alphaRaw, catalogPerf, allCategories, fulfilledRaw, yesterdaySnaps, healthRows, rejectedRaw, staleRaw] =
     await Promise.all([
       Promise.all(SEED_KEYWORDS.map(async kw => ({ kw, suggestions: await fetchSuggestions(kw.key) }))),
 
@@ -368,12 +370,32 @@ export default async function AdminMarketIntelPage() {
         WHERE t.status = 'published'
         GROUP BY t.id
       `.catch(() => [] as ScoreRow[]),
+
+      // Admin Feedback Loop: ideas rejected by admin
+      db<RejectedRow[]>`
+        SELECT idea_text, rejected_at::text FROM intel_rejected ORDER BY rejected_at DESC
+      `.catch(() => [] as RejectedRow[]),
+
+      // Auto-blacklist: ideas seen 30+ days ago without being fulfilled — soft-hide only
+      db<StaleIdeaRow[]>`
+        SELECT idea_text, engine_type, MIN(snapshot_date)::text AS oldest_date
+        FROM intel_snapshots
+        WHERE snapshot_date <= CURRENT_DATE - INTERVAL '30 days'
+          AND idea_text NOT IN (SELECT idea_text FROM intel_fulfilled)
+        GROUP BY idea_text, engine_type
+      `.catch(() => [] as StaleIdeaRow[]),
     ])
 
   const kpi = kpiRow[0] ?? { total_revenue: '0', paid_orders: '0', pending_orders: '0', total_downloads: '0', unique_buyers: '0' }
-  const keywordData = baseSuggestRaw.map(({ kw, suggestions }) => ({
-    ...kw, suggestions, ...analyzeKeyword(kw.key, suggestions),
-  }))
+  const keywordData = baseSuggestRaw.map(({ kw, suggestions }) => {
+    const analysis = analyzeKeyword(kw.key, suggestions)
+    return {
+      ...kw, suggestions,
+      ...analysis,
+      // filter rejected/stale from ideas list shown in Card 06
+      ideas: analysis.ideas.filter(idea => !rejectedSet.has(idea.toLowerCase()) && !staleSet.has(idea.toLowerCase())),
+    }
+  })
 
   // ── Build Level 1 — merged by engineType (B+D) ───────────────────────────
   const uniqueEngineTypes = [...new Set(SEED_KEYWORDS.map(kw => kw.engineType))]
@@ -465,13 +487,20 @@ export default async function AdminMarketIntelPage() {
   // ── Feature 1: Cluster · Feature 2: Fulfilled filter · Feature 3: Trend ────
   const fulfilledSet = new Set(fulfilledRaw.map(f => f.idea_text.toLowerCase()))
   const snapMap      = new Map(yesterdaySnaps.map(s => [`${s.idea_text}::${s.engine_type}`, s.score]))
+  // Admin Feedback Loop: ideas explicitly rejected by admin
+  const rejectedSet  = new Set(rejectedRaw.map(r => r.idea_text.toLowerCase()))
+  // Auto-blacklist: stale ideas (30+ days old, unfulfilled) — soft-hide, reversible
+  const staleSet     = new Set(staleRaw.map(r => r.idea_text.toLowerCase()))
 
   type ClusteredItem = {
     idea: string; level: 1|2|3; engineType: string; score: number
     demandCount: number; catalog: CatalogRef | null; trend: number | null
   }
   const clusteredList: ClusteredItem[] = (() => {
-    const unfulfilled = priorityList.filter(item => !fulfilledSet.has(item.idea.toLowerCase()))
+    const unfulfilled = priorityList.filter(item => {
+      const lo = item.idea.toLowerCase()
+      return !fulfilledSet.has(lo) && !rejectedSet.has(lo) && !staleSet.has(lo)
+    })
     const clusters    = new Map<string, { item: typeof priorityList[0]; count: number }>()
     for (const item of unfulfilled) {
       const key      = normalizeIdea(item.idea)
@@ -488,6 +517,11 @@ export default async function AdminMarketIntelPage() {
       .sort((a, b) => b.score - a.score)
       .slice(0, 20)
   })()
+
+  // Build stale display list — prioritized by score from priorityList (for restore section)
+  const staleDisplayList = priorityList
+    .filter(item => staleSet.has(item.idea.toLowerCase()) && !rejectedSet.has(item.idea.toLowerCase()))
+    .slice(0, 10)
 
   // INTEL-SCORE: compute health scores
   const priorityIdeas = priorityList.map(p => p.idea)
@@ -559,10 +593,12 @@ export default async function AdminMarketIntelPage() {
     return perf ?? { slug: cat.slug, name: cat.name, emoji: cat.emoji, template_count: '0', paid_orders: '0', revenue: '0' }
   })
 
-  // S2a Action: top 3 ideas per catalog จาก priorityList ทั้งหมด
+  // S2a Action: top 3 ideas per catalog จาก priorityList ทั้งหมด (exclude rejected + stale)
   type IdeaAction = { idea: string; engineType: string; score: number }
   const catalogIdeaMap = new Map<string, IdeaAction[]>()
   for (const item of priorityList) {
+    const lo = item.idea.toLowerCase()
+    if (rejectedSet.has(lo) || staleSet.has(lo) || fulfilledSet.has(lo)) continue
     const cat = suggestCatalog(item.idea, allCategories)
     if (!cat) continue
     const list = catalogIdeaMap.get(cat.slug) ?? []
@@ -690,6 +726,10 @@ export default async function AdminMarketIntelPage() {
                             >
                               + สร้าง
                             </Link>
+                            <form action={rejectIdeaAction}>
+                              <input type="hidden" name="idea" value={item.idea} />
+                              <button type="submit" title="ไม่ใช่ template" className="shrink-0 text-[10px] text-neutral-300 hover:text-red-500 transition leading-none">✕</button>
+                            </form>
                           </div>
                         ))}
                       </div>
@@ -800,10 +840,60 @@ export default async function AdminMarketIntelPage() {
                       + สร้าง
                     </button>
                   </form>
+                  <form action={rejectIdeaAction}>
+                    <input type="hidden" name="idea" value={item.idea} />
+                    <button type="submit" title="ไม่ใช่ template" className="shrink-0 text-[11px] text-neutral-300 hover:text-red-500 transition">✕</button>
+                  </form>
                 </div>
               )
             })}
           </div>
+
+          {/* Stale ideas (30+ วัน) — ซ่อนชั่วคราว admin กู้คืนได้ */}
+          {staleDisplayList.length > 0 && (
+            <details className="mt-3">
+              <summary className="cursor-pointer text-[10px] font-black text-neutral-400 hover:text-amber-600 select-none">
+                ⏳ stale {staleDisplayList.length} ideas (30+ วัน ยังไม่ได้ทำ) — คลิกดู/กู้คืน ▼
+              </summary>
+              <div className="mt-2 rounded-2xl border border-amber-100 bg-white shadow-sm divide-y divide-neutral-50">
+                {staleDisplayList.map((item, i) => (
+                  <div key={i} className="flex items-center gap-2 px-5 py-2.5 opacity-60">
+                    <span className="flex-1 min-w-0 text-xs text-neutral-700 truncate">{item.idea}</span>
+                    <span className="shrink-0 text-[9px] text-amber-500 font-bold">⏳ stale</span>
+                    <form action={recordFulfilledAction}>
+                      <input type="hidden" name="idea_text"   value={item.idea} />
+                      <input type="hidden" name="engine_type" value={item.engineType} />
+                      <input type="hidden" name="redirect_url" value={`/admin/templates/new?title=${encodeURIComponent(item.idea)}&engine=${item.engineType}`} />
+                      <button type="submit" className="shrink-0 rounded-lg border border-amber-300 bg-amber-50 px-2 py-0.5 text-[9px] font-black text-amber-700 hover:bg-amber-100 transition">+ สร้าง</button>
+                    </form>
+                  </div>
+                ))}
+              </div>
+            </details>
+          )}
+
+          {/* Rejected ideas (admin marked ✕) — กู้คืนได้ */}
+          {rejectedRaw.length > 0 && (
+            <details className="mt-3">
+              <summary className="cursor-pointer text-[10px] font-black text-neutral-400 hover:text-red-600 select-none">
+                ❌ rejected {rejectedRaw.length} ideas (admin กด ✕) — คลิกดู/กู้คืน ▼
+              </summary>
+              <div className="mt-2 rounded-2xl border border-red-100 bg-white shadow-sm divide-y divide-neutral-50">
+                {rejectedRaw.map((r, i) => (
+                  <div key={i} className="flex items-center gap-3 px-5 py-2.5">
+                    <span className="flex-1 min-w-0 text-xs text-neutral-400 line-through truncate">{r.idea_text}</span>
+                    <span className="shrink-0 text-[9px] text-neutral-400">
+                      {new Date(r.rejected_at).toLocaleDateString('th-TH')}
+                    </span>
+                    <form action={revertRejectedAction}>
+                      <input type="hidden" name="idea" value={r.idea_text} />
+                      <button type="submit" className="shrink-0 rounded-lg border border-neutral-200 px-2 py-0.5 text-[9px] font-black text-neutral-500 hover:border-emerald-400 hover:text-emerald-600 transition">↩ กู้คืน</button>
+                    </form>
+                  </div>
+                ))}
+              </div>
+            </details>
+          )}
 
           {/* Fulfilled history (collapsible) */}
           {fulfilledRaw.length > 0 && (
@@ -855,7 +945,11 @@ export default async function AdminMarketIntelPage() {
                       {kw.ideas.map((idea, i) => (
                         <li key={i} className="flex items-center gap-2">
                           <span className="text-amber-500 text-xs shrink-0">→</span>
-                          <span className="text-xs font-bold text-neutral-800">{idea}</span>
+                          <span className="flex-1 text-xs font-bold text-neutral-800">{idea}</span>
+                          <form action={rejectIdeaAction}>
+                            <input type="hidden" name="idea" value={idea} />
+                            <button type="submit" title="ไม่ใช่ template" className="shrink-0 text-[10px] text-neutral-300 hover:text-red-500 transition leading-none">✕</button>
+                          </form>
                         </li>
                       ))}
                     </ul>
@@ -1029,10 +1123,22 @@ export default async function AdminMarketIntelPage() {
                                 )}
                                 <Link href={`/admin/templates/${row.match.id}/edit`} className="text-[9px] text-neutral-400 hover:text-black">แก้ไข →</Link>
                               </div>
+                            ) : rejectedSet.has(row.idea.toLowerCase()) ? (
+                              <div className="shrink-0 flex items-center gap-2">
+                                <span className="text-[10px] text-neutral-300 line-through">rejected</span>
+                                <form action={revertRejectedAction}>
+                                  <input type="hidden" name="idea" value={row.idea} />
+                                  <button type="submit" className="text-[9px] text-neutral-300 hover:text-emerald-500 transition">↩</button>
+                                </form>
+                              </div>
                             ) : (
                               <div className="shrink-0 flex items-center gap-2">
                                 <span className="text-[10px] text-orange-500 font-bold">🟠 ยังไม่มี</span>
                                 <Link href="/admin/templates/new" className="rounded-lg border border-amber-300 bg-amber-50 px-2 py-0.5 text-[9px] font-black text-amber-700 hover:bg-amber-100 transition">+ สร้าง</Link>
+                                <form action={rejectIdeaAction}>
+                                  <input type="hidden" name="idea" value={row.idea} />
+                                  <button type="submit" title="ไม่ใช่ template" className="text-[10px] text-neutral-300 hover:text-red-500 transition leading-none">✕</button>
+                                </form>
                               </div>
                             )}
                           </div>
