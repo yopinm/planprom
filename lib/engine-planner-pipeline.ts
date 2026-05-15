@@ -294,7 +294,7 @@ export function generatePlannerPipelineHtmlV4(data: PlannerPipelineDataV4, water
           ${blankLines(2)}
           <div class="sub" style="margin-top:10px">วันสำคัญ / นัดหมาย</div>
           ${blankLines(3)}
-          <div class="sub" style="margin-top:10px">งานหลัก 3 อย่างที่ต้องทำ</div>
+          <div class="sub" style="margin-top:10px">งานหลักอย่างน้อย 3 อย่างที่ต้องทำ</div>
           ${[1,2,3].map(n => `
             <div style="display:flex;gap:8px;align-items:center;padding:4px 0">
               <span style="font-weight:900;color:${c.accent};font-size:13pt;line-height:1;flex-shrink:0">${n}</span>
@@ -411,7 +411,7 @@ export function generatePlannerPipelineHtmlV4(data: PlannerPipelineDataV4, water
             <div class="sub">วันสำคัญ / นัดหมาย</div>
             ${blankLines(2)}
           </div>`}
-        <div class="sub">งานหลัก 3 อย่าง</div>
+        <div class="sub">งานหลักอย่างน้อย 3 อย่าง</div>
         ${mp.mainTasks.slice(0,3).map((t) => `
           <div style="padding:5px 0;border-bottom:1px solid #f3f4f6">
             <span style="font-size:10pt;color:#374151;word-break:break-word">${t.trim() ? esc(t) : '—'}</span>

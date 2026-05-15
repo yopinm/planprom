@@ -349,7 +349,7 @@ export function PipelinePlannerForm({ onChange }: Props) {
                   </div>
                 </div>
                 <div className="rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-2.5 text-sm text-emerald-800">
-                  จะสร้าง <strong>{count} หน้า</strong> ({MONTHS[fromMonth - 1]} – {MONTHS[toMonth - 1]}{horizonValue ? ` ${horizonValue}` : ''}) · แต่ละหน้ามีช่อง: เป้าเดือน / วันสำคัญ / งานหลัก 3 อย่าง
+                  จะสร้าง <strong>{count} หน้า</strong> ({MONTHS[fromMonth - 1]} – {MONTHS[toMonth - 1]}{horizonValue ? ` ${horizonValue}` : ''}) · แต่ละหน้ามีช่อง: เป้าเดือน / วันสำคัญ / งานหลักอย่างน้อย 3 อย่าง
                 </div>
               </div>
             )
@@ -466,13 +466,24 @@ export function PipelinePlannerForm({ onChange }: Props) {
                       placeholder="เช่น 15 มิ.ย. — นัดลูกค้า, 28 มิ.ย. — ส่งงาน" className={INPUT} />
                   </div>
                   <div>
-                    <label className={LABEL}>งานหลัก 3 อย่าง</label>
+                    <label className={LABEL}>งานหลักอย่างน้อย 3 อย่าง</label>
                     {mp.mainTasks.map((t, ti) => (
-                      <input key={ti} value={t}
-                        onChange={e => setMonthlyPlans(prev => prev.map((x, j) => j === i
-                          ? { ...x, mainTasks: x.mainTasks.map((m, k) => k === ti ? e.target.value : m) } : x))}
-                        placeholder={`งานที่ ${ti + 1}`} className={`${INPUT} mt-1`} />
+                      <div key={ti} className="flex gap-1 mt-1">
+                        <input value={t}
+                          onChange={e => setMonthlyPlans(prev => prev.map((x, j) => j === i
+                            ? { ...x, mainTasks: x.mainTasks.map((m, k) => k === ti ? e.target.value : m) } : x))}
+                          placeholder={`งานที่ ${ti + 1}`} className={`${INPUT} flex-1`} />
+                        <button type="button"
+                          disabled={mp.mainTasks.length <= 3}
+                          onClick={() => setMonthlyPlans(prev => prev.map((x, j) => j === i
+                            ? { ...x, mainTasks: x.mainTasks.filter((_, k) => k !== ti) } : x))}
+                          className="px-2 rounded border border-red-200 text-red-400 hover:bg-red-50 disabled:opacity-30 disabled:cursor-not-allowed text-lg leading-none">−</button>
+                      </div>
                     ))}
+                    <button type="button"
+                      onClick={() => setMonthlyPlans(prev => prev.map((x, j) => j === i
+                        ? { ...x, mainTasks: [...x.mainTasks, ''] } : x))}
+                      className="mt-2 text-xs text-emerald-600 hover:text-emerald-800 border border-emerald-200 rounded px-2 py-1 hover:bg-emerald-50">+ เพิ่มงาน</button>
                   </div>
                 </div>
               ))}
