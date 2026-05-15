@@ -43,3 +43,19 @@ export async function revertRejectedAction(formData: FormData) {
   }
   revalidatePath('/admin/template-analytics')
 }
+
+// Restore stale: reset the 30-day clock by inserting today's snapshot
+// Idea will reappear in main list for another 30 days without being fulfilled
+export async function restoreStaleAction(formData: FormData) {
+  await requireAdminSession('/admin/login')
+  const ideaText   = formData.get('idea')        as string
+  const engineType = formData.get('engine_type') as string
+  if (ideaText?.trim()) {
+    await db`
+      INSERT INTO intel_snapshots (idea_text, engine_type, catalog_slug, score, demand_count, snapshot_date)
+      VALUES (${ideaText.trim()}, ${engineType || null}, NULL, 0, 1, CURRENT_DATE)
+      ON CONFLICT (idea_text, engine_type, snapshot_date) DO NOTHING
+    `.catch(() => null)
+  }
+  revalidatePath('/admin/template-analytics')
+}

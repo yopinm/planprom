@@ -3,7 +3,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { requireAdminSession } from '@/lib/admin-auth'
 import { db } from '@/lib/db'
-import { recordFulfilledAction, rejectIdeaAction, revertRejectedAction } from './actions'
+import { recordFulfilledAction, rejectIdeaAction, revertRejectedAction, restoreStaleAction } from './actions'
 import { CopyButton } from './CopyButton'
 
 export const metadata: Metadata = {
@@ -45,6 +45,10 @@ const AUDIENCE_RULES: { tag: string; color: string; pattern: RegExp }[] = [
 ]
 
 const NOISE = /^(แปลว่า|คือ|ภาษาอังกฤษ|pdf|ฟรี|goodnote|sut|a problem|speech|สรุป|one piece|marvel|resident evil|ฟอร์มาลิน|ฟอร์มาลดีไฮด์|ฟอร์มูลาวัน|formula 1|format factory|format$|formula$)$/i
+
+// STRIPPED_NOISE: contains-check บน stripped — สัญญาณว่าคนต้องการของฟรี ไม่ใช่คนซื้อ
+// ใช้คู่กับ NOISE (NOISE = exact-match, STRIPPED_NOISE = substring)
+const STRIPPED_NOISE = /ฟรี|goodnote|น่ารักๆ|น่ารัก\s|cute|ดาวน์โหลด|download/i
 
 // FULL_NOISE: applied to full suggestion string — catches context-dependent noise that NOISE misses
 const FULL_NOISE = /ตารางบอล|ตารางฟุตบอล|ตารางคะแนน|ตารางแข่ง|ตารางลีก|ตารางพรีเมียร์|ตารางไทยลีก|ตารางลาลีกา|ตารางบุนเดส|ตารางเอฟเอ|ตารางแชมเปียนส์|ตารางรถไฟ|ตารางบิน|ตารางเดินรถ|ตารางธาตุ|ตารางหุ้น|เลี้ยงลูกนก|เลี้ยงลูกกระรอก|เลี้ยงลูกแมว|เลี้ยงลูกสุนัข|เลี้ยงลูกหมา|เลี้ยงลูกปลา|เลี้ยงลูกเต่า|เลี้ยงลูกกบ|เลี้ยงลูกหมู|เลี้ยงลูกไก่|เลี้ยงลูกกระต่าย|เลี้ยงลูกวัว|เลี้ยงลูกแพะ|เลี้ยงลูกลิง|งานบ้านและสวน|งานมหกรรม|มอเตอร์โชว์|motor show|สัปดาห์หนังสือ|ภิรมภักดิ์|ภิรมภักดี|ภิรมย์ภักดิ์|ภิรมย์ภักดี|หมดประเสร็จ|ฟอร์มาลิน|ฟอร์มาลดีไฮด์|ฟอร์มูลาวัน|ฟอร์มูล่าวัน|formula 1|formula one/i
@@ -117,14 +121,14 @@ function analyzeKeyword(keyword: string, suggestions: string[]) {
   for (const s of suggestions) {
     const stripped = stripPrefix(s, keyword)
     if (!stripped || stripped.length > 40) continue
-    if (NOISE.test(stripped) || FULL_NOISE.test(s)) continue
+    if (NOISE.test(stripped) || STRIPPED_NOISE.test(stripped) || FULL_NOISE.test(s)) continue
     if (isTopic && !TOPIC_ACTIONABLE.test(s)) continue
     ideas.push(`${keyword} ${stripped}`)
     if (ideas.length >= 5) break
   }
   const actionable  = suggestions.filter(s => {
     const st = stripPrefix(s, keyword)
-    return st && st.length <= 40 && !NOISE.test(st) && !FULL_NOISE.test(s) && (!isTopic || TOPIC_ACTIONABLE.test(s))
+    return st && st.length <= 40 && !NOISE.test(st) && !STRIPPED_NOISE.test(st) && !FULL_NOISE.test(s) && (!isTopic || TOPIC_ACTIONABLE.test(s))
   }).length
   const demand: 'สูง' | 'กลาง' | 'ต่ำ' = actionable >= 5 ? 'สูง' : actionable >= 3 ? 'กลาง' : 'ต่ำ'
   const demandColor = demand === 'สูง' ? 'bg-green-100 text-green-700' : demand === 'กลาง' ? 'bg-amber-100 text-amber-700' : 'bg-neutral-100 text-neutral-500'
@@ -404,7 +408,7 @@ export default async function AdminMarketIntelPage() {
     for (const s of suggestions) {
       const stripped = stripPrefix(s, kw.key)
       if (!stripped || stripped.length > 40) continue
-      if (NOISE.test(stripped) || FULL_NOISE.test(s) || seen.has(stripped)) continue
+      if (NOISE.test(stripped) || STRIPPED_NOISE.test(stripped) || FULL_NOISE.test(s) || seen.has(stripped)) continue
       if (isTopic && !TOPIC_ACTIONABLE.test(s)) continue
       seen.add(stripped)
       const match = findMatch(stripped, allTemplates)
@@ -429,7 +433,7 @@ export default async function AdminMarketIntelPage() {
     for (const s of dr.suggestions) {
       const stripped = stripPrefix(s, dr.keyword)
       if (!stripped || stripped.length > 40) continue
-      if (NOISE.test(stripped) || FULL_NOISE.test(s) || seen.has(stripped)) continue
+      if (NOISE.test(stripped) || STRIPPED_NOISE.test(stripped) || FULL_NOISE.test(s) || seen.has(stripped)) continue
       if (isTopicDr && !TOPIC_ACTIONABLE.test(s)) continue
       seen.add(stripped)
       rows.push({ idea: s, stripped, level: 2, source: dr.idea, match: findMatch(stripped, allTemplates) })
@@ -447,7 +451,7 @@ export default async function AdminMarketIntelPage() {
     for (const s of ar.suggestions) {
       const stripped = stripPrefix(s, ar.keyword)
       if (!stripped || stripped.length > 40) continue
-      if (NOISE.test(stripped) || FULL_NOISE.test(s) || seen.has(stripped)) continue
+      if (NOISE.test(stripped) || STRIPPED_NOISE.test(stripped) || FULL_NOISE.test(s) || seen.has(stripped)) continue
       if (isTopicAr && !TOPIC_ACTIONABLE.test(s)) continue
       seen.add(stripped)
       rows.push({ idea: s, stripped, level: 3, char: ar.char, match: findMatch(stripped, allTemplates) })
@@ -854,9 +858,14 @@ export default async function AdminMarketIntelPage() {
                   <div key={i} className="flex items-center gap-2 px-5 py-2.5 opacity-60">
                     <span className="flex-1 min-w-0 text-xs text-neutral-700 truncate">{item.idea}</span>
                     <span className="shrink-0 text-[9px] text-amber-500 font-bold">⏳ stale</span>
-                    <form action={recordFulfilledAction}>
-                      <input type="hidden" name="idea_text"   value={item.idea} />
+                    <form action={restoreStaleAction}>
+                      <input type="hidden" name="idea"        value={item.idea} />
                       <input type="hidden" name="engine_type" value={item.engineType} />
+                      <button type="submit" title="คืนกลับ active list (นับ 30 วันใหม่)" className="shrink-0 rounded-lg border border-neutral-200 px-2 py-0.5 text-[9px] font-black text-neutral-500 hover:border-emerald-400 hover:text-emerald-600 transition">↩ คืน</button>
+                    </form>
+                    <form action={recordFulfilledAction}>
+                      <input type="hidden" name="idea_text"    value={item.idea} />
+                      <input type="hidden" name="engine_type"  value={item.engineType} />
                       <input type="hidden" name="redirect_url" value={`/admin/templates/new?title=${encodeURIComponent(item.idea)}&engine=${item.engineType}`} />
                       <button type="submit" className="shrink-0 rounded-lg border border-amber-300 bg-amber-50 px-2 py-0.5 text-[9px] font-black text-amber-700 hover:bg-amber-100 transition">+ สร้าง</button>
                     </form>
