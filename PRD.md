@@ -29,11 +29,11 @@
 | **Doc Sync** | task เสร็จ → อัพเดต PRD.md + `core/planprom.md` เสมอ |
 | **Scope Gate** | ก่อนเริ่ม implement ทุก task → ต้องมี scope + flow ใน `core/planprom.md` ก่อน → commit docs → รอ owner confirm → ค่อย implement |
 | **Blockers** | Lazada pool=49 fixed · Affiliate tasks ❌ CLOSED 2026-05-13 (owner decision) |
-| **Next task** | **INTEL-SMART UAT** 🟡 → **E9/E10** |
+| **Next task** | **INTEL-SMART UAT** 🟡 → **Planner/Form/Report engine UAT** |
 | **Pending (code)** | E9/E10 · UI-G(defer) |
-| **Pending (UAT)** | **INTEL-SMART** 🟡 (trend arrows — ข้อมูล snapshot พร้อมแล้ว) · **฿30 tier admin wizard** 🟡 · INTEL-C/D · DC-1 · DC-2 · DC-8 · DC-16 · E9/E10 · J9(รอ live keys) |
+| **Pending (UAT)** | **INTEL-SMART** 🟡 (trend arrows — ข้อมูล snapshot พร้อมแล้ว) · **Engine UAT** 🟡 (Planner/Form/Report — Checklist ✅) · INTEL-C/D · DC-1 · DC-2 · DC-8 · DC-16 · E9/E10 · J9(รอ live keys) |
 | **Pending (decision)** | Homepage UX: D (social proof bar) + B (featured badge pulse) — mock ready รอ confirm |
-| **Last session** | **Session 73 (2026-05-15)** — INTEL-SCORE (S9 Template Health Check · 5-dim · 100pt · expand) + INTEL-SEO-PANEL (S5.5 SEO keyword panel · 3 keywords/engine · copy button) ✅ Live |
+| **Last session** | **Session 74 (2026-05-15)** — Section dividers 12 สี · price_baht constraint (0,30,50) · Checklist template UAT ✅ (Save Draft · Edit · Cart · Payment) |
 | **ห้าม** | ไม่แตะ Later task ขณะที่ Now ยังค้างอยู่ · ไม่แตะ secrets โดยตรง · ไม่ทำให้ revenue channel หายไประหว่าง pivot |
 | **Security rule** | ทุก admin feature ต้องตรวจ: role check · PII mask · no path disclosure · spawnSync array args (ดู §23 Manual) |
 

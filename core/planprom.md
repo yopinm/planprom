@@ -573,6 +573,26 @@ CREATE TABLE admin_users (
 
 ---
 
+## Session 74 Changes (2026-05-15) — Analytics Dividers + price_baht Fix + Checklist UAT
+
+| # | Change | Status |
+|---|---|---|
+| 1 | **Analytics Section Dividers** — 12 numbered accent pill headers ใน `/admin/template-analytics` · แต่ละ section มีสีต่างกัน (01 emerald → 12 red) · ชื่อ + คำอธิบายใต้หัว | ✅ Live |
+| 2 | **price_baht constraint fix** — DB constraint เดิม `(0,20,50,100)` → `(0,30,50)` ตาม pricing จริง (free/standard/request) · Migration `20260515_price_baht_30.sql` รันบน VPS แล้ว | ✅ Live |
+| 3 | **WizardClient fallback fix** — `priceBaht = TIER_PRICE[tier] ?? 20` → `?? 30` | ✅ Live |
+| 4 | **INTEL-SCORE rendering fix** — ลบ `scoredTemplates.length > 0 &&` guard → section แสดงเสมอ (empty state ถ้าไม่มี published template) | ✅ Live |
+| 5 | **Checklist template UAT** — สร้าง template ใหม่ · Save Draft · Edit · Add to Cart · Payment ผ่านครบ | ✅ UAT ผ่าน |
+| 6 | **Planner / Form / Report UAT** | ⏳ Pending |
+
+### Files Changed
+| File | Change |
+|---|---|
+| `app/admin/template-analytics/page.tsx` | Section dividers 12 pills + INTEL-SCORE guard removed |
+| `app/admin/templates/new/WizardClient.tsx` | fallback ?? 30 |
+| `migrations/20260515_price_baht_30.sql` | NEW — constraint (0,30,50) |
+
+---
+
 ## Session 68 Changes (2026-05-14) — ADM-RBAC-1 + ฿30 Tier + Bug Fixes
 
 | # | Change | Status |
@@ -580,7 +600,7 @@ CREATE TABLE admin_users (
 | 1 | **ADM-RBAC-1** — Supabase+bcrypt hybrid 2-tier auth · `admin_users` table + JWT `_admin_token` cookie 8h · clerk role with module permissions (`templates`, `catalog`, `analytics`, `blog_seo`, `form_builder`) | ✅ Done |
 | 2 | **Middleware Edge Route Guard** — `middleware.ts` blocks unauthorized URLs for clerk even when typed directly · ADMIN_ONLY routes → admin-only · CLERK_PERMISSION_MAP → per-module check | ✅ Done |
 | 3 | **`/admin/users` page** — list/add/delete admin accounts · checkbox permission editor per clerk · `requireAdminRole('admin')` guard | ✅ Done |
-| 4 | **฿30 Standard tier** — `TIER_PRICE` standard 20→30 ทุก wizard (WizardClient, FormBuilder, form-builder save/update routes, edit page, actions.ts) + public UI (template detail, blog CTA, `src/lib/blog.ts`) | 🟡 Pending UAT |
+| 4 | **฿30 Standard tier** — `TIER_PRICE` standard 20→30 ทุก wizard (WizardClient, FormBuilder, form-builder save/update routes, edit page, actions.ts) + public UI (template detail, blog CTA, `src/lib/blog.ts`) · DB constraint แก้เป็น (0,30,50) ใน Session 74 | 🟡 Checklist ✅ · Planner/Form/Report ⏳ |
 | 5 | **Force delete bug fix** — `promo_codes` FK constraint → `SET is_active=false, template_id=NULL` ก่อน DELETE template | ✅ Done |
 | 6 | **Request-only price badge** — hide `฿{price_baht}` for `is_request_only` templates in admin list | ✅ Done |
 
