@@ -25,6 +25,10 @@ const SEED_KEYWORDS = [
   { key: 'ใบแจ้ง',   label: 'ใบแจ้ง',   engineType: 'form',      color: 'bg-teal-50 text-teal-700',     border: 'border-teal-200',   headerBg: 'bg-teal-50'   },
   { key: 'แผนงาน',   label: 'แผนงาน',   engineType: 'pipeline',  color: 'bg-purple-50 text-purple-700', border: 'border-purple-200', headerBg: 'bg-purple-50' },
   { key: 'บัญชี',    label: 'บัญชี',    engineType: 'report',    color: 'bg-amber-50 text-amber-700',   border: 'border-amber-200',  headerBg: 'bg-amber-50'  },
+  // Topic-based (B: ครอบ catalog career / parenting / home-lifestyle)
+  { key: 'งาน',       label: 'งาน',       engineType: 'checklist', color: 'bg-indigo-50 text-indigo-700',  border: 'border-indigo-200',  headerBg: 'bg-indigo-50'  },
+  { key: 'เลี้ยงลูก', label: 'เลี้ยงลูก', engineType: 'checklist', color: 'bg-pink-50 text-pink-700',     border: 'border-pink-200',    headerBg: 'bg-pink-50'    },
+  { key: 'งานบ้าน',  label: 'งานบ้าน',  engineType: 'checklist', color: 'bg-orange-50 text-orange-700', border: 'border-orange-200',  headerBg: 'bg-orange-50'  },
 ] as const
 
 // A: expanded from 6 → 15 most-common Thai consonants
@@ -180,18 +184,22 @@ const CATALOG_KEYWORD_MAP: Array<{ ideaPattern: RegExp; catPattern: RegExp }> = 
   { ideaPattern: /กฎหมาย|สัญญา|นิติ|ข้อตกลง/,                                                  catPattern: /กฎหมาย|สัญญา/ },
   { ideaPattern: /อสังหา|ซื้อบ้าน|คอนโด|ที่ดิน/,                                              catPattern: /อสังหา/ },
   { ideaPattern: /ภาษี|ยื่นภาษี|ลดหย่อน|กรมสรรพากร|บัญชี|งบการเงิน/,                         catPattern: /ภาษี|บัญชี/ },
-  { ideaPattern: /พัฒนาตัวเอง|เรียนรู้|เป้าหมาย|นิสัย|ทักษะ|habit|goal|จดบันทึก|อ่านหนังสือ|ฝึกฝน|เรียนภาษา|แผนพัฒนา|ปรับปรุงตัว/, catPattern: /เรียนรู้|พัฒนา/ },
-  { ideaPattern: /ครอบครัว|ลูก|พ่อแม่|ลูกน้อย|บ้าน|ห้อง|ซ่อม|ตกแต่ง/,                        catPattern: /ครอบครัว|ไลฟ์/ },
-  { ideaPattern: /นักเรียน|นักศึกษ|มหาวิทยาลัย|สอบ|วิชา|วิทยาลัย|คณะ/,                       catPattern: /นักเรียน|นักศึกษ/ },
-  { ideaPattern: /สมัครงาน|หางาน|ออฟฟิศ|เส้นทางอาชีพ|ผลงาน/,                                 catPattern: /อาชีพ|ออฟฟิศ/ },
-  { ideaPattern: /ราชการ|รายงานตัว|ปฏิบัติงาน|ประกันสังคม|มอบอำนาจ|หน่วยงาน|ว่างงาน/,        catPattern: /บริษัท|องค์กร/ },
+  { ideaPattern: /พัฒนาตัวเอง|เรียนรู้|เป้าหมาย|นิสัย|ทักษะ|habit|goal|จดบันทึก|อ่านหนังสือ|ฝึกฝน|เรียนภาษา|แผนพัฒนา|ปรับปรุงตัว/, catPattern: /เรียนรู้|พัฒนา|learning/ },
+  // parenting แยกจาก family (ลูก/พ่อแม่ → parenting · บ้าน/ซ่อม → home-lifestyle · ครอบครัว → family)
+  { ideaPattern: /พ่อแม่|เลี้ยงลูก|ลูกน้อย|ทารก|เด็กแรกเกิด|ลูกวัย/,                         catPattern: /parenting|เลี้ยงลูก/ },
+  { ideaPattern: /บ้าน|งานบ้าน|ห้อง|ซ่อมบ้าน|ทำความสะอาด|ตกแต่งบ้าน/,                        catPattern: /home-lifestyle|งานบ้าน/ },
+  { ideaPattern: /ครอบครัว|ชีวิตคู่|ไลฟ์สไตล์/,                                               catPattern: /family|ครอบครัว/ },
+  { ideaPattern: /นักเรียน|นักศึกษ|มหาวิทยาลัย|สอบ|วิชา|วิทยาลัย|คณะ/,                       catPattern: /นักเรียน|นักศึกษ|school/ },
+  // career: สมัครงาน / ราชการ / พนักงาน → slug 'career'
+  { ideaPattern: /สมัครงาน|หางาน|เส้นทางอาชีพ|ผลงาน|เงินเดือน|มนุษย์เงินเดือน/,               catPattern: /career/ },
+  { ideaPattern: /ราชการ|รายงานตัว|ปฏิบัติงาน|ประกันสังคม|มอบอำนาจ|หน่วยงาน|ว่างงาน/,        catPattern: /career/ },
+  { ideaPattern: /พนักงาน|สัมภาษณ์|ประเมิน|ทีมงาน|ออฟฟิศ/,                                   catPattern: /career/ },
   { ideaPattern: /เที่ยว|ท่องเที่ยว|ต่างประเทศ|บิน|สนามบิน|โรงแรม|ทริป/,                      catPattern: /ท่องเที่ยว|travel/ },
-  { ideaPattern: /ร้าน|ธุรกิจ|ขาย|invoice|ลูกค้า|ใบเสนอ|ใบส่ง|ประกอบการ|ประชุม|บริษัท/,     catPattern: /ธุรกิจ|เปิดร้าน/ },
+  { ideaPattern: /ร้าน|ธุรกิจ|ขาย|invoice|ลูกค้า|ใบเสนอ|ใบส่ง|ประกอบการ|ประชุม|บริษัท/,     catPattern: /ธุรกิจ|เปิดร้าน|business/ },
   { ideaPattern: /เงิน|ออม|budget|งบประมาณ|ค่าใช้จ่าย|รายรับ|รายจ่าย|การเงิน|ลงทุน|หุ้น/,   catPattern: /การเงิน|finance/ },
   { ideaPattern: /สุขภาพ|ออกกำลัง|ไดเอท|ยา|คลินิก|หมอ|ฟิตเนส/,                              catPattern: /สุขภาพ|health/ },
   { ideaPattern: /งานแต่ง|งานบวช|อีเวนต์|งานเลี้ยง/,                                         catPattern: /อีเวนต์|event/ },
   { ideaPattern: /โครงการ|ก่อสร้าง|milestone/,                                                catPattern: /โครงการ|project/ },
-  { ideaPattern: /พนักงาน|สัมภาษณ์|ประเมิน|ทีมงาน/,                                           catPattern: /อาชีพ|ออฟฟิศ|HR|พนักงาน/ },
 ]
 
 function suggestCatalog(idea: string, catalogs: CatalogRef[]): CatalogRef | null {
@@ -515,8 +523,7 @@ export default async function AdminMarketIntelPage() {
     }
   }
   const catalogDemandList = [...catalogDemandMap.values()]
-    .filter(c => c.demand + c.covered > 0)
-    .sort((a, b) => b.demand - a.demand)
+    .sort((a, b) => (b.demand + b.covered) - (a.demand + a.covered))
   const catPerfMap = new Map(catalogPerf.map(c => [c.slug, c]))
 
   // S2a: merge allCategories + catalogPerf → แสดงทุก category แม้ query จะ fail
@@ -686,11 +693,13 @@ export default async function AdminMarketIntelPage() {
                 const total      = cat.demand + cat.covered
                 const covPct     = total > 0 ? Math.round((cat.covered / total) * 100) : 0
                 const templates  = Number(catPerfMap.get(cat.slug)?.template_count ?? 0)
-                const gapStatus  = cat.demand > 0 && templates === 0
-                  ? { label: '📈 Gap สูง',  color: 'bg-red-100 text-red-600' }
-                  : cat.demand > 0
-                    ? { label: '🟠 บางส่วน', color: 'bg-amber-100 text-amber-700' }
-                    : { label: '✅ ครบแล้ว', color: 'bg-green-100 text-green-700' }
+                const gapStatus  = total === 0
+                  ? { label: '⚪ ยังไม่มีข้อมูล', color: 'bg-neutral-100 text-neutral-500' }
+                  : cat.demand > 0 && templates === 0
+                    ? { label: '📈 Gap สูง',  color: 'bg-red-100 text-red-600' }
+                    : cat.demand > 0
+                      ? { label: '🟠 บางส่วน', color: 'bg-amber-100 text-amber-700' }
+                      : { label: '✅ ครบแล้ว', color: 'bg-green-100 text-green-700' }
                 return (
                   <div key={cat.slug} className="flex items-center gap-3 px-5 py-3">
                     <span className="shrink-0 text-lg">{cat.emoji}</span>
