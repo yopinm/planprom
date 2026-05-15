@@ -609,6 +609,23 @@ CREATE TABLE admin_users (
 
 ---
 
+## Session 78 Changes (2026-05-15) — Planner Pipeline Yearly UX + 1-3-5 Rule
+
+| # | Change | Status |
+|---|---|---|
+| 1 | **Yearly weekly task UX** — Stage 4 (yearly horizon) แสดง weekly task cards แบ่งกลุ่มตามเดือน มี header **มกราคม / กุมภาพันธ์…** + badge **ม.ค. ส.1** ต่อ card · ก่อนหน้า admin เห็นแค่ "สัปดาห์ที่ 1…52" ไม่รู้ว่าอยู่เดือนไหน | ✅ Live |
+| 2 | **weeksPerMonth selector** — Stage 4 (yearly) เพิ่ม selector 3/4/5 สัปดาห์/เดือน (default 4) · auto-sync `weeklyTasks[]` จาก monthRange × weeksPerMonth · preserve typed content ด้วย weekLabel key | ✅ Live |
+| 3 | **1-3-6 → 1-3-5** — PDF engine: label "งานเล็ก 6" → "5" + `small.slice(0,5)` · Form: default small array 6→5 ช่อง · label ทุกจุด · ReviseClient: Card title แกนที่ 3+4 | ✅ Live |
+
+### Files Changed
+| File | Change |
+|---|---|
+| `app/admin/templates/new/PipelinePlannerForm.tsx` | weeksPerMonth state + useEffect sync + Stage 4 month-grouped render + 1-3-5 labels + default small 5 |
+| `lib/engine-planner-pipeline.ts` | label "งานเล็ก 5" + `slice(0,5)` + comment 1-3-5 |
+| `app/admin/templates/[id]/revise/ReviseClient.tsx` | Card title แกนที่ 3 (monthly) + แกนที่ 4 (yearly) → 1-3-5 |
+
+---
+
 ## Session 77 Changes (2026-05-15) — Nav Bar UX + sale_count Fix
 
 | # | Change | Status |
