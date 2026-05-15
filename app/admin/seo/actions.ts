@@ -240,12 +240,21 @@ export async function createPostAction(formData: FormData) {
   redirect(`/admin/seo/${id}/edit`)
 }
 
+function plainToHtml(text: string): string {
+  return text
+    .split(/\n\n+/)
+    .map(p => p.trim())
+    .filter(Boolean)
+    .map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`)
+    .join('\n')
+}
+
 export async function updatePostAction(formData: FormData) {
   await requireAdminSession('/admin/seo')
   const id = formData.get('id') as string
   const title = (formData.get('title') as string).trim()
   const description = (formData.get('description') as string).trim()
-  const content = (formData.get('content') as string)
+  const content = plainToHtml((formData.get('content') as string))
   const readingTimeMin = Math.max(1, parseInt(formData.get('reading_time_min') as string) || 1)
 
   await db`

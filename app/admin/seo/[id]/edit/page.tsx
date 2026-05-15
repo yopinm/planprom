@@ -16,6 +16,26 @@ export const dynamic = 'force-dynamic'
 const INPUT = 'w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-2.5 text-sm outline-none transition focus:border-amber-400 focus:bg-white'
 const LABEL = 'mb-1 block text-[11px] font-black uppercase tracking-widest text-neutral-400'
 
+function htmlToPlain(html: string): string {
+  return html
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/h[1-6]>/gi, '\n\n')
+    .replace(/<\/li>/gi, '\n')
+    .replace(/<li[^>]*>/gi, '• ')
+    .replace(/<\/ul>/gi, '')
+    .replace(/<\/ol>/gi, '')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+}
+
 export default async function EditPostPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAdminSession('/admin/seo')
   const { id } = await params
@@ -63,14 +83,15 @@ export default async function EditPostPage({ params }: { params: Promise<{ id: s
           </div>
 
           <div>
-            <label className={LABEL}>Content (Markdown / HTML)</label>
+            <label className={LABEL}>Content</label>
             <textarea
               name="content"
               required
-              defaultValue={post.content}
+              defaultValue={htmlToPlain(post.content)}
               rows={24}
-              className={`${INPUT} font-mono text-xs leading-relaxed`}
+              className={`${INPUT} text-sm leading-relaxed`}
             />
+            <p className="mt-1 text-[10px] text-neutral-400">เว้นบรรทัดว่าง 1 บรรทัดเพื่อขึ้นย่อหน้าใหม่</p>
           </div>
 
           <div className="flex gap-3 pt-1">
