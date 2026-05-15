@@ -320,7 +320,7 @@ export function PipelinePlannerForm({ onChange }: Props) {
           <div className="px-4 pt-4 pb-2">
             <label className={LABEL}>สรุปเทมเพลตนี้ให้ลูกค้า *</label>
             <textarea value={s2Summary} onChange={e => setS2Summary(e.target.value)} rows={3}
-              placeholder="เช่น แพลนเนอร์ครบ 3 เดือน (ต.ค.–ธ.ค. 2026) สำหรับเจ้าของร้านที่ต้องการวางแผนเปิดสาขาใหม่ ประกอบด้วย: แผนรายเดือน 3 หน้า + แผนสัปดาห์ 1-3-6 + ตารางทบทวน"
+              placeholder="เช่น แพลนเนอร์ครบ 3 เดือน (ต.ค.–ธ.ค. 2026) สำหรับเจ้าของร้านที่ต้องการวางแผนเปิดสาขาใหม่ ประกอบด้วย: แผนรายเดือน 3 หน้า + แผนสัปดาห์ 1-3-5 + ตารางทบทวน"
               className={INPUT} />
             <p className="mt-1.5 text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5 leading-relaxed">
               ⚡ ข้อความนี้จะแสดงใน PDF หน้า 1 และหน้าตัวอย่างสินค้าที่ลูกค้าเห็นก่อนตัดสินใจซื้อ — กรอกให้ครบและน่าสนใจที่สุด
@@ -479,10 +479,10 @@ export function PipelinePlannerForm({ onChange }: Props) {
             </div>
           )}
 
-          {/* Monthly: weekly plan forms (1-3-6) */}
+          {/* Monthly: weekly plan forms (1-3-5) */}
           {horizon === 'monthly' && (
             <div className="px-4 py-4 space-y-4">
-              <p className="text-xs text-neutral-500">กรอกแผน 1-3-6 สำหรับแต่ละสัปดาห์</p>
+              <p className="text-xs text-neutral-500">กรอกแผน 1-3-5 สำหรับแต่ละสัปดาห์</p>
               {weeklyPlans.map((wp, i) => (
                 <div key={i} className="rounded-lg border border-sky-100 p-3 space-y-3">
                   <div>

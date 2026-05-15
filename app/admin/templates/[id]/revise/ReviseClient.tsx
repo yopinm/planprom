@@ -1211,7 +1211,7 @@ function PipelineReviseFormV4({ initial, onChange }: {
           className="text-xs font-black text-sky-600">+ เพิ่มเดือน</button>
       </Card>
 
-      <Card title="แกนที่ 3 — Content แผนรายสัปดาห์ (monthly / 1-3-6)" color="bg-sky-50 text-sky-800">
+      <Card title="แกนที่ 3 — Content แผนรายสัปดาห์ (monthly / 1-3-5)" color="bg-sky-50 text-sky-800">
         {weeklyPlans.map((wp, i) => (
           <div key={i} className="rounded-lg border border-sky-100 p-3 space-y-2">
             <div className="flex gap-2">
@@ -1281,7 +1281,7 @@ function PipelineReviseFormV4({ initial, onChange }: {
       </Card>
 
       {/* s4_content — weekly tasks (yearly) */}
-      <Card title="แกนที่ 4 — Content แผนสัปดาห์ (yearly / 1-3-6)" color="bg-amber-50 text-amber-800">
+      <Card title="แกนที่ 4 — Content แผนสัปดาห์ (yearly / 1-3-5)" color="bg-amber-50 text-amber-800">
         {weeklyTasks.map((wt, i) => (
           <div key={i} className="rounded-lg border border-amber-100 p-3 space-y-2">
             <div className="flex gap-2">
