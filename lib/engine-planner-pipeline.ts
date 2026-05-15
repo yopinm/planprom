@@ -138,7 +138,7 @@ export function generatePlannerPipelineHtml(data: PlannerPipelineData, watermark
   ).join('')
 
   const adjHtml = (s3.adjustmentRules ?? []).filter(r => r.trim()).map(r =>
-    `<div style="background:${c.light};border-left:3px solid ${c.accent};padding:6px 10px;margin:4px 0;font-size:9pt;color:#374151;border-radius:3px;word-break:break-word;overflow-wrap:anywhere">${esc(r)}</div>`
+    `<div style="background:${c.light};padding:6px 10px;margin:4px 0;font-size:9pt;color:#374151;border-radius:3px;word-break:break-word;overflow-wrap:anywhere">${esc(r)}</div>`
   ).join('')
 
   // ── Notes ────────────────────────────────────────────────────────────────
@@ -363,7 +363,7 @@ export function generatePlannerPipelineHtmlV4(data: PlannerPipelineDataV4, water
     return `
       <div class="sec" style="page-break-before:${breakBefore ? 'always' : 'auto'}">
         <div class="sec-hdr">${wt.weekLabel.trim() ? esc(wt.weekLabel) : `สัปดาห์ที่ ${idx + 1}`}</div>
-        ${wt.goal.trim() ? `<div style="font-size:9pt;color:#6b7280;margin-bottom:8px;border-left:3px solid ${c.accent};padding-left:8px">เป้า: ${esc(wt.goal)}</div>` : ''}
+        ${wt.goal.trim() ? `<div style="font-size:9pt;color:#6b7280;margin-bottom:8px;padding-left:8px">เป้า: ${esc(wt.goal)}</div>` : ''}
         <div style="margin-bottom:10px">
           <div style="font-size:9pt;font-weight:700;color:${c.text};margin-bottom:4px">งานหลัก 1 อย่าง — ต้องทำให้ได้</div>
           <div style="border:2px solid ${c.accent};border-radius:6px;padding:8px 12px;font-size:10pt;font-weight:700;color:#1a1a1a;word-break:break-word;min-height:36px">${wt.main1.trim() ? esc(wt.main1) : '&nbsp;'}</div>
@@ -406,7 +406,7 @@ export function generatePlannerPipelineHtmlV4(data: PlannerPipelineDataV4, water
             <div class="sub">เป้าหมายเดือนนี้</div>
             ${blankLines(2)}
           </div>`}
-        ${mp.keyDates.trim() ? `<div style="font-size:9pt;color:#6b7280;margin-bottom:10px;padding:5px 10px;background:#f9fafb;border-radius:4px;border-left:3px solid ${c.accent}">📅 ${esc(mp.keyDates)}</div>` : `
+        ${mp.keyDates.trim() ? `<div style="font-size:9pt;color:#6b7280;margin-bottom:10px;padding:5px 10px;background:#f9fafb;border-radius:4px">📅 ${esc(mp.keyDates)}</div>` : `
           <div style="margin-bottom:10px">
             <div class="sub">วันสำคัญ / นัดหมาย</div>
             ${blankLines(2)}
