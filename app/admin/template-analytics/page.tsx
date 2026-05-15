@@ -327,7 +327,7 @@ export default async function AdminMarketIntelPage() {
 
       db<RankRow[]>`
         SELECT * FROM (
-          SELECT t.id, t.title, t.slug, COALESCE(t.engine_type,'') AS engine_type, t.price_baht, t.status,
+          SELECT t.id, t.title, t.slug, COALESCE(t.engine_type,'') AS engine_type, t.price_baht, t.status, t.created_at,
             COUNT(DISTINCT oi.order_id) FILTER (WHERE o.status = 'paid')::text AS paid_count,
             COALESCE(SUM(o.total_baht / (SELECT COUNT(*) FROM order_items x WHERE x.order_id = o.id)::numeric) FILTER (WHERE o.status = 'paid'), 0)::text AS revenue,
             COALESCE(SUM(oi.download_count), 0)::text AS downloads
