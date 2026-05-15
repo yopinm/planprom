@@ -575,7 +575,13 @@ export default async function AdminMarketIntelPage() {
 
         {/* ── S1: KPI ─────────────────────────────────────────────────────── */}
         <section>
-          <h2 className="mb-3 text-xs font-black uppercase tracking-widest text-neutral-400">ภาพรวมยอดขาย</h2>
+          <div className="flex items-center gap-3 pb-3 mb-6 border-b border-emerald-100">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-500 text-[11px] font-black text-white">01</span>
+            <div>
+              <p className="text-sm font-bold text-neutral-800">ภาพรวมธุรกิจ</p>
+              <p className="text-[10px] text-neutral-400">ยอดขายรวม · จำนวน order · downloads · ลูกค้าที่ไม่ซ้ำ</p>
+            </div>
+          </div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
             {[
               { label: 'รายได้รวม',     value: `฿${Number(kpi.total_revenue).toLocaleString('th-TH')}`, color: 'text-emerald-700' },
@@ -594,7 +600,13 @@ export default async function AdminMarketIntelPage() {
 
         {/* ── S2: Revenue by Engine ────────────────────────────────────────── */}
         <section>
-          <h2 className="mb-3 text-xs font-black uppercase tracking-widest text-neutral-400">ยอดขายแยกตาม Engine</h2>
+          <div className="flex items-center gap-3 pb-3 mb-6 border-b border-teal-100">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-teal-500 text-[11px] font-black text-white">02</span>
+            <div>
+              <p className="text-sm font-bold text-neutral-800">รายได้แยก Engine</p>
+              <p className="text-[10px] text-neutral-400">เปรียบรายได้ระหว่าง Checklist · Planner · Form · Report</p>
+            </div>
+          </div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {ALL_TYPES.map(type => {
               const row = typeMap.get(type)
@@ -611,8 +623,13 @@ export default async function AdminMarketIntelPage() {
 
         {/* ── S2a: Catalog Action Cards ─────────────────────────────────────── */}
         <section>
-          <h2 className="mb-1 text-xs font-black uppercase tracking-widest text-neutral-400">สร้างอะไรใน Catalog นี้</h2>
-          <p className="mb-4 text-xs text-neutral-400">แต่ละ catalog: idea ที่ตลาดต้องการ · เลือกสร้างได้เลย</p>
+          <div className="flex items-center gap-3 pb-3 mb-6 border-b border-cyan-100">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-cyan-500 text-[11px] font-black text-white">03</span>
+            <div>
+              <p className="text-sm font-bold text-neutral-800">Catalog — สิ่งที่ควรทำต่อ</p>
+              <p className="text-[10px] text-neutral-400">top 3 keyword ที่ตลาดต้องการแต่ยังไม่มี template แยกตาม category</p>
+            </div>
+          </div>
           {displayCatalogPerf.length === 0 ? (
             <div className="rounded-2xl border border-neutral-200 bg-white px-5 py-6 text-sm text-neutral-400 text-center">— ยังไม่มีข้อมูล catalog</div>
           ) : (
@@ -654,8 +671,13 @@ export default async function AdminMarketIntelPage() {
 
         {/* ── S2b: Catalog Demand Heatmap ───────────────────────────────────── */}
         <section>
-          <h2 className="mb-1 text-xs font-black uppercase tracking-widest text-neutral-400">Catalog Demand Heatmap</h2>
-          <p className="mb-4 text-xs text-neutral-400">Google Suggest → จับคู่กับ catalog → หมวดไหนมี gap มากที่สุด</p>
+          <div className="flex items-center gap-3 pb-3 mb-6 border-b border-blue-100">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-500 text-[11px] font-black text-white">04</span>
+            <div>
+              <p className="text-sm font-bold text-neutral-800">Catalog Heatmap</p>
+              <p className="text-[10px] text-neutral-400">ความร้อนแรงของ category เทียบกับ template ที่มีอยู่</p>
+            </div>
+          </div>
           {catalogDemandList.length === 0 ? (
             <div className="rounded-2xl border border-neutral-200 bg-white px-5 py-6 text-sm text-neutral-400 text-center">— map ไม่ได้ในขณะนี้ (catalog อาจยังไม่มีข้อมูล)</div>
           ) : (
@@ -688,17 +710,18 @@ export default async function AdminMarketIntelPage() {
 
         {/* ── S3: สร้างอะไรก่อน (C: Priority + Cluster + Fulfilled + Trend) ── */}
         <section>
-          <div className="flex items-center justify-between mb-1">
-            <h2 className="text-xs font-black uppercase tracking-widest text-neutral-400">สร้างอะไรก่อน</h2>
+          <div className="flex items-center gap-3 pb-3 mb-6 border-b border-sky-100">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-sky-500 text-[11px] font-black text-white">05</span>
+            <div className="flex-1">
+              <p className="text-sm font-bold text-neutral-800">สร้างอะไรก่อน</p>
+              <p className="text-[10px] text-neutral-400">keyword uncovered ที่คนค้นหาเยอะ — เรียงตาม Priority = level × (100 − coverage%) × demand</p>
+            </div>
             {fulfilledRaw.length > 0 && (
-              <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 rounded-full px-2.5 py-0.5">
+              <span className="shrink-0 text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 rounded-full px-2.5 py-0.5">
                 ✅ {fulfilledRaw.length} fulfilled (30 วัน)
               </span>
             )}
           </div>
-          <p className="mb-4 text-xs text-neutral-400">
-            Idea ที่ยังไม่มี template · เรียงตาม <span className="font-bold text-neutral-600">Priority = level × (100 − coverage%) × demand count</span>
-          </p>
           <div className="rounded-2xl border border-neutral-200 bg-white shadow-sm divide-y divide-neutral-50">
             {clusteredList.length === 0 ? (
               <p className="px-5 py-6 text-sm font-bold text-emerald-600 text-center">🎉 ครอบคลุมทุก idea แล้ว!</p>
@@ -769,8 +792,13 @@ export default async function AdminMarketIntelPage() {
 
         {/* ── S5: Market Demand (Google Suggest) ───────────────────────────── */}
         <section>
-          <h2 className="mb-1 text-xs font-black uppercase tracking-widest text-neutral-400">ความต้องการตลาด (Google Suggest)</h2>
-          <p className="mb-4 text-xs text-neutral-400">สิ่งที่คนไทยพิมพ์ค้นหาบน Google → โอกาสที่ควรสร้าง template</p>
+          <div className="flex items-center gap-3 pb-3 mb-6 border-b border-indigo-100">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-500 text-[11px] font-black text-white">06</span>
+            <div>
+              <p className="text-sm font-bold text-neutral-800">Market Demand</p>
+              <p className="text-[10px] text-neutral-400">Google Suggest จริง — คนไทยค้นหาอะไร แยกตามประเภท engine</p>
+            </div>
+          </div>
           <div className="space-y-4">
             {keywordData.map(kw => (
               <div key={kw.key} className={`rounded-2xl border bg-white shadow-sm overflow-hidden ${kw.border}`}>
@@ -835,11 +863,13 @@ export default async function AdminMarketIntelPage() {
 
         {/* ── S5.5: INTEL-SEO-PANEL ────────────────────────────────────────── */}
         <section>
-          <h2 className="mb-1 text-xs font-black uppercase tracking-widest text-neutral-400">SEO Keyword Panel</h2>
-          <p className="mb-4 text-xs text-neutral-400">
-            Keyword demand จาก Google Suggest · copy ออกไปกรอก{' '}
-            <Link href="/admin/seo/new" className="text-indigo-500 hover:underline">/admin/seo/new</Link> ได้เลย
-          </p>
+          <div className="flex items-center gap-3 pb-3 mb-6 border-b border-violet-100">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-violet-500 text-[11px] font-black text-white">07</span>
+            <div>
+              <p className="text-sm font-bold text-neutral-800">SEO Keyword Panel</p>
+              <p className="text-[10px] text-neutral-400">keyword idea + blog title + meta description พร้อม copy → <Link href="/admin/seo/new" className="text-indigo-500 hover:underline">/admin/seo/new</Link></p>
+            </div>
+          </div>
           <div className="space-y-4">
             {seoGroups.map(grp => grp.items.length === 0 ? null : (
               <div key={grp.engineType} className={`rounded-2xl border bg-white shadow-sm overflow-hidden ${grp.border}`}>
@@ -877,8 +907,13 @@ export default async function AdminMarketIntelPage() {
 
         {/* ── S6: Market Gap Matrix ────────────────────────────────────────── */}
         <section>
-          <h2 className="mb-1 text-xs font-black uppercase tracking-widest text-neutral-400">Market Gap Matrix</h2>
-          <p className="mb-4 text-xs text-neutral-400">เทียบ demand ตลาด vs template ที่มีอยู่ → ช่องว่างที่ควรเติมก่อน</p>
+          <div className="flex items-center gap-3 pb-3 mb-6 border-b border-fuchsia-100">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-fuchsia-500 text-[11px] font-black text-white">08</span>
+            <div>
+              <p className="text-sm font-bold text-neutral-800">Market Gap</p>
+              <p className="text-[10px] text-neutral-400">เทียบ demand ตลาด vs template ที่มีอยู่ → ช่องว่างที่ควรเติมก่อน</p>
+            </div>
+          </div>
           <div className="rounded-2xl border border-neutral-200 bg-white shadow-sm overflow-hidden">
             <table className="w-full text-sm">
               <thead>
@@ -922,10 +957,13 @@ export default async function AdminMarketIntelPage() {
 
         {/* ── S4: ครอบคลุมแค่ไหน ───────────────────────────────────────────── */}
         <section>
-          <h2 className="mb-1 text-xs font-black uppercase tracking-widest text-neutral-400">ครอบคลุมแค่ไหน</h2>
-          <p className="mb-4 text-xs text-neutral-400">
-            จับคู่ Google Suggest → Template ใน DB · 3 ขั้น: <span className="font-bold text-indigo-600">🔍 Base</span> → <span className="font-bold text-purple-600">🔽 Drill-down</span> → <span className="font-bold text-teal-600">🔤 ก-ฮ Alphabet</span>
-          </p>
+          <div className="flex items-center gap-3 pb-3 mb-6 border-b border-pink-100">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-pink-500 text-[11px] font-black text-white">09</span>
+            <div>
+              <p className="text-sm font-bold text-neutral-800">ครอบคลุมแค่ไหน</p>
+              <p className="text-[10px] text-neutral-400">%-coverage keyword แต่ละ engine · 3 ขั้น: Base → Drill-down → Alphabet</p>
+            </div>
+          </div>
           <div className="space-y-4">
             {uniqueKwCards.map(kw => {
               const rows    = coverageMap.get(kw.engineType) ?? []
@@ -1003,7 +1041,13 @@ export default async function AdminMarketIntelPage() {
         {/* ── S7: Daily 14d ────────────────────────────────────────────────── */}
         {daily.length > 0 && (
           <section>
-            <h2 className="mb-3 text-xs font-black uppercase tracking-widest text-neutral-400">ยอดขาย 14 วันล่าสุด</h2>
+            <div className="flex items-center gap-3 pb-3 mb-6 border-b border-orange-100">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-orange-500 text-[11px] font-black text-white">10</span>
+              <div>
+                <p className="text-sm font-bold text-neutral-800">ยอดขาย 14 วัน</p>
+                <p className="text-[10px] text-neutral-400">trend รายวัน orders + revenue ย้อนหลัง 2 สัปดาห์</p>
+              </div>
+            </div>
             <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -1027,6 +1071,13 @@ export default async function AdminMarketIntelPage() {
 
         {/* ── S8: Bestseller + Zero-sale ───────────────────────────────────── */}
         <section className="space-y-6">
+          <div className="flex items-center gap-3 pb-3 border-b border-amber-100">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-500 text-[11px] font-black text-white">11</span>
+            <div>
+              <p className="text-sm font-bold text-neutral-800">Bestseller & ยังไม่มียอด</p>
+              <p className="text-[10px] text-neutral-400">template ขายดีสุด vs template ที่ยังไม่มีการซื้อเลย</p>
+            </div>
+          </div>
           {bestsellers.length > 0 && (
             <div>
               <h2 className="mb-3 text-xs font-black uppercase tracking-widest text-neutral-400">🏆 ขายดีสุด</h2>
@@ -1076,15 +1127,18 @@ export default async function AdminMarketIntelPage() {
 
         {/* ── S9: INTEL-SCORE Template Health Check ────────────────────────── */}
         <section>
-            <div className="flex items-center justify-between mb-1">
-              <h2 className="text-xs font-black uppercase tracking-widest text-neutral-400">Template Health Check</h2>
-              <div className="flex items-center gap-1.5">
-                {redCount    > 0 && <span className="rounded-full bg-red-100    px-2.5 py-0.5 text-[10px] font-black text-red-600">🔴 {redCount}</span>}
-                {yellowCount > 0 && <span className="rounded-full bg-amber-100  px-2.5 py-0.5 text-[10px] font-black text-amber-600">🟡 {yellowCount}</span>}
-                {greenCount  > 0 && <span className="rounded-full bg-green-100  px-2.5 py-0.5 text-[10px] font-black text-green-600">🟢 {greenCount}</span>}
-              </div>
+          <div className="flex items-center gap-3 pb-3 mb-6 border-b border-red-100">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-red-500 text-[11px] font-black text-white">12</span>
+            <div className="flex-1">
+              <p className="text-sm font-bold text-neutral-800">Template Health Check</p>
+              <p className="text-[10px] text-neutral-400">คะแนนความพร้อม 5 มิติ/100 · เรียงจากแย่→ดี · คลิกแถวดู breakdown</p>
             </div>
-            <p className="mb-4 text-xs text-neutral-400">คะแนน 5 มิติ รวม 100 · 🟢≥80 · 🟡50-79 · 🔴&lt;50 · เรียงจากต่ำ→สูง · คลิกแถวเพื่อดู breakdown</p>
+            <div className="flex items-center gap-1.5">
+              {redCount    > 0 && <span className="rounded-full bg-red-100    px-2.5 py-0.5 text-[10px] font-black text-red-600">🔴 {redCount}</span>}
+              {yellowCount > 0 && <span className="rounded-full bg-amber-100  px-2.5 py-0.5 text-[10px] font-black text-amber-600">🟡 {yellowCount}</span>}
+              {greenCount  > 0 && <span className="rounded-full bg-green-100  px-2.5 py-0.5 text-[10px] font-black text-green-600">🟢 {greenCount}</span>}
+            </div>
+          </div>
             <div className="rounded-2xl border border-neutral-200 bg-white shadow-sm divide-y divide-neutral-50">
               {scoredTemplates.map(t => {
                 const topIssue      = t.health.dims.find(d => d.issues.length > 0)?.issues[0]
