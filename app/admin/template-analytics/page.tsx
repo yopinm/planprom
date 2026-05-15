@@ -75,7 +75,7 @@ type IdeaRow = {
 type KpiRow  = { total_revenue: string; paid_orders: string; pending_orders: string; total_downloads: string; unique_buyers: string }
 type TypeRow = { type_group: string; orders: string; paid: string; revenue: string }
 type DailyRow = { day: string; orders: string; revenue: string }
-type RankRow  = { id: string; title: string; slug: string; engine_type: string; price_baht: number; status: string; orders: string; revenue: string; downloads: string }
+type RankRow  = { id: string; title: string; slug: string; engine_type: string; price_baht: number; status: string; paid_count: string; revenue: string; downloads: string }
 type GapRow   = { engine_type: string; template_count: string; total_orders: string }
 type CatalogPerfRow = { slug: string; name: string; emoji: string; template_count: string; paid_orders: string; revenue: string }
 type CatalogRef     = { slug: string; name: string; emoji: string }
@@ -327,13 +327,13 @@ export default async function AdminMarketIntelPage() {
 
       db<RankRow[]>`
         SELECT t.id, t.title, t.slug, COALESCE(t.engine_type,'') AS engine_type, t.price_baht, t.status,
-          COUNT(DISTINCT oi.order_id) FILTER (WHERE o.status = 'paid')::text AS orders,
+          COUNT(DISTINCT oi.order_id) FILTER (WHERE o.status = 'paid')::text AS paid_count,
           COALESCE(SUM(o.total_baht / (SELECT COUNT(*) FROM order_items x WHERE x.order_id = o.id)::numeric) FILTER (WHERE o.status = 'paid'), 0)::text AS revenue,
           COALESCE(SUM(oi.download_count), 0)::text AS downloads
         FROM templates t
         LEFT JOIN order_items oi ON oi.template_id = t.id
         LEFT JOIN orders o ON o.id = oi.order_id
-        GROUP BY t.id ORDER BY orders::int DESC, t.created_at DESC
+        GROUP BY t.id ORDER BY paid_count::int DESC, t.created_at DESC
       `.catch(() => [] as RankRow[]),
 
       db<GapRow[]>`
@@ -636,9 +636,9 @@ export default async function AdminMarketIntelPage() {
   const ALL_TYPES   = ['checklist', 'pipeline', 'form', 'report'] as const
   const typeMap     = new Map(byType.map(r => [r.type_group, r]))
   const gapMap      = new Map(gapData.map(r => [r.engine_type, r]))
-  const bestsellers = ranking.filter(r => Number(r.orders) > 0)
-  const zeroSale    = ranking.filter(r => Number(r.orders) === 0 && r.status === 'published')
-  const maxOrders   = Math.max(...bestsellers.map(r => Number(r.orders)), 1)
+  const bestsellers = ranking.filter(r => Number(r.paid_count) > 0)
+  const zeroSale    = ranking.filter(r => Number(r.paid_count) === 0 && r.status === 'published')
+  const maxOrders   = Math.max(...bestsellers.map(r => Number(r.paid_count)), 1)
 
   const LEVEL_BADGE: Record<1|2|3, { label: string; color: string }> = {
     1: { label: '🔍 Base',  color: 'bg-indigo-100 text-indigo-700' },
@@ -1287,9 +1287,9 @@ export default async function AdminMarketIntelPage() {
           {CARD11_GROUPS.map(({ key, emoji, label, pillCls }) => {
             const groupRows = ranking.filter(r => toTypeGroup(r.engine_type) === key)
             if (groupRows.length === 0) return null
-            const sellers  = groupRows.filter(r => Number(r.orders) > 0).slice(0, 20)
-            const zeros    = groupRows.filter(r => Number(r.orders) === 0 && r.status === 'published')
-            const groupMax = Math.max(...sellers.map(r => Number(r.orders)), 1)
+            const sellers  = groupRows.filter(r => Number(r.paid_count) > 0).slice(0, 20)
+            const zeros    = groupRows.filter(r => Number(r.paid_count) === 0 && r.status === 'published')
+            const groupMax = Math.max(...sellers.map(r => Number(r.paid_count)), 1)
             return (
               <details key={key} open className="group rounded-2xl border border-neutral-200 bg-white shadow-sm overflow-hidden">
                 <summary className="flex cursor-pointer list-none select-none items-center gap-3 px-5 py-3.5 hover:bg-neutral-50">
@@ -1311,9 +1311,9 @@ export default async function AdminMarketIntelPage() {
                             <p className="text-sm font-bold text-neutral-800 truncate">{t.title}</p>
                             <div className="mt-1 flex items-center gap-2">
                               <div className="h-1 w-16 rounded-full bg-neutral-100">
-                                <div className="h-1 rounded-full bg-indigo-400" style={{ width: `${Math.round((Number(t.orders) / groupMax) * 100)}%` }} />
+                                <div className="h-1 rounded-full bg-indigo-400" style={{ width: `${Math.round((Number(t.paid_count) / groupMax) * 100)}%` }} />
                               </div>
-                              <span className="text-[10px] text-neutral-400">{t.orders} orders · ฿{Number(t.revenue).toLocaleString()} · {t.downloads} DL</span>
+                              <span className="text-[10px] text-neutral-400">{t.paid_count} orders · ฿{Number(t.revenue).toLocaleString()} · {t.downloads} DL</span>
                             </div>
                           </div>
                           <Link href={`/admin/templates/${t.id}/edit`} className="shrink-0 rounded-xl border border-neutral-200 px-3 py-1.5 text-[10px] font-black text-neutral-500 hover:border-indigo-400 hover:text-indigo-600 transition">แก้ไข</Link>
