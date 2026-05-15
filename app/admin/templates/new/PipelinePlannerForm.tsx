@@ -75,7 +75,7 @@ export function PipelinePlannerForm({ onChange }: Props) {
   const [flexItems,    setFlexItems]    = useState<{ label: string; tasks: string[] }[]>([{ label: '', tasks: [''] }])
 
   // Stage 4 — content-first
-  const [weeklyTasks,   setWeeklyTasks]   = useState<WeeklyTaskItem[]>([{ weekLabel: '', goal: '', main1: '', secondary: ['', '', ''], small: ['', '', '', '', '', ''] }])
+  const [weeklyTasks,   setWeeklyTasks]   = useState<WeeklyTaskItem[]>([{ weekLabel: '', goal: '', main1: '', secondary: ['', '', ''], small: ['', '', '', '', ''] }])
   const [dailyRoutines, setDailyRoutines] = useState<DailyRoutineItem[]>([{ time: '', activity: '' }])
 
   // Stage 5
@@ -101,7 +101,7 @@ export function PipelinePlannerForm({ onChange }: Props) {
   useEffect(() => {
     if (horizon !== 'monthly') return
     setWeeklyPlans(prev => Array.from({ length: monthlyWeekCount }, (_, i) =>
-      prev[i] ?? { weekLabel: `สัปดาห์ที่ ${i + 1}`, goal: '', main1: '', secondary: ['', '', ''], small: ['', '', '', '', '', ''] }
+      prev[i] ?? { weekLabel: `สัปดาห์ที่ ${i + 1}`, goal: '', main1: '', secondary: ['', '', ''], small: ['', '', '', '', ''] }
     ))
   }, [horizon, monthlyWeekCount])
 
@@ -115,7 +115,7 @@ export function PipelinePlannerForm({ onChange }: Props) {
         const abbr = MONTH_ABBR[m - 1] ?? `ม.${m}`
         for (let w = 1; w <= weeksPerMonth; w++) {
           const label = `${abbr} สัปดาห์ ${w}`
-          tasks.push(byLabel.get(label) ?? { weekLabel: label, goal: '', main1: '', secondary: ['', '', ''], small: ['', '', '', '', '', ''] })
+          tasks.push(byLabel.get(label) ?? { weekLabel: label, goal: '', main1: '', secondary: ['', '', ''], small: ['', '', '', '', ''] })
         }
       }
       return tasks
@@ -440,7 +440,7 @@ export function PipelinePlannerForm({ onChange }: Props) {
           <div className="px-4 py-3 bg-sky-50 text-sky-800 flex items-center gap-2">
             <span className="text-xs font-black bg-sky-200 rounded-full px-2 py-0.5">3</span>
             <span className="font-black text-sm">
-              {horizon === 'yearly' ? 'แผนรายเดือน' : horizon === 'monthly' ? 'แผนรายสัปดาห์ (1-3-6)' : 'แผนงาน'}
+              {horizon === 'yearly' ? 'แผนรายเดือน' : horizon === 'monthly' ? 'แผนรายสัปดาห์ (1-3-5)' : 'แผนงาน'}
             </span>
           </div>
 
@@ -513,7 +513,7 @@ export function PipelinePlannerForm({ onChange }: Props) {
                     ))}
                   </div>
                   <div>
-                    <label className={LABEL}>งานเล็ก 6 อย่าง (อย่างน้อยถ้ามีเวลา)</label>
+                    <label className={LABEL}>งานเล็ก 5 อย่าง (อย่างน้อยถ้ามีเวลา)</label>
                     <div className="space-y-1.5 mt-1">
                       {wp.small.map((s, si) => (
                         <div key={si} className="flex gap-2">
@@ -571,7 +571,7 @@ export function PipelinePlannerForm({ onChange }: Props) {
           <div className="px-4 py-3 bg-amber-50 text-amber-800 flex items-center gap-2">
             <span className="text-xs font-black bg-amber-200 rounded-full px-2 py-0.5">4</span>
             <span className="font-black text-sm">
-              {horizon === 'yearly' ? 'แผนรายสัปดาห์ (1-3-6)' : 'ตารางประจำวัน'}
+              {horizon === 'yearly' ? 'แผนรายสัปดาห์ (1-3-5)' : 'ตารางประจำวัน'}
             </span>
           </div>
 
@@ -634,7 +634,7 @@ export function PipelinePlannerForm({ onChange }: Props) {
                               ))}
                             </div>
                             <div>
-                              <label className={LABEL}>งานเล็ก 6 อย่าง (อย่างน้อยถ้ามีเวลา)</label>
+                              <label className={LABEL}>งานเล็ก 5 อย่าง (อย่างน้อยถ้ามีเวลา)</label>
                               <div className="space-y-1.5 mt-1">
                                 {wt.small.map((s, si) => (
                                   <div key={si} className="flex gap-2">

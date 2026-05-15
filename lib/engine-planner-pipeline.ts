@@ -358,7 +358,7 @@ export function generatePlannerPipelineHtmlV4(data: PlannerPipelineDataV4, water
       </div>`
   }
 
-  // helper: render a 1-3-6 weekly task block from WeeklyTaskItem
+  // helper: render a 1-3-5 weekly task block from WeeklyTaskItem
   function renderWeeklyTaskBlock(wt: { weekLabel: string; goal: string; main1: string; secondary: string[]; small: string[] }, idx: number, breakBefore = true): string {
     return `
       <div class="sec" style="page-break-before:${breakBefore ? 'always' : 'auto'}">
@@ -377,9 +377,9 @@ export function generatePlannerPipelineHtmlV4(data: PlannerPipelineDataV4, water
             </div>`).join('')}
         </div>
         <div>
-          <div style="font-size:9pt;font-weight:700;color:#9ca3af;margin-bottom:4px">งานเล็ก 6 อย่าง (อย่างน้อยถ้ามีเวลา)</div>
+          <div style="font-size:9pt;font-weight:700;color:#9ca3af;margin-bottom:4px">งานเล็ก 5 อย่าง (อย่างน้อยถ้ามีเวลา)</div>
           <div style="display:flex;flex-direction:column;gap:4px">
-            ${wt.small.map((s, n) => `
+            ${wt.small.slice(0,5).map((s, n) => `
               <div style="display:flex;gap:6px;align-items:center;font-size:8.5pt;color:#6b7280;padding:3px 0;border-bottom:1px dotted #f3f4f6">
                 <span style="font-weight:700;color:#9ca3af">${n+1}.</span>
                 <span>${s.trim() ? esc(s) : '—'}</span>
@@ -424,7 +424,7 @@ export function generatePlannerPipelineHtmlV4(data: PlannerPipelineDataV4, water
       </div>`).join('')
 
   } else if (s3c?.weeklyPlans?.length) {
-    // monthly + content: filled weekly plan pages (1-3-6)
+    // monthly + content: filled weekly plan pages (1-3-5)
     weekPages = s3c.weeklyPlans.map((wp, i) => renderWeeklyTaskBlock(wp, i)).join('')
 
   } else if (s3c?.flexItems?.length) {
@@ -503,7 +503,7 @@ export function generatePlannerPipelineHtmlV4(data: PlannerPipelineDataV4, water
   let dayPages = ''
 
   if (s4c?.weeklyTasks?.length) {
-    // yearly + content: filled weekly task blocks (1-3-6, admin-specified weeks)
+    // yearly + content: filled weekly task blocks (1-3-5, admin-specified weeks)
     dayPages = s4c.weeklyTasks.map((wt, i) => renderWeeklyTaskBlock(wt, i)).join('')
 
   } else if (s4c?.dailyRoutines?.length) {
