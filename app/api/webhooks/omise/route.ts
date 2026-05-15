@@ -18,7 +18,7 @@ function verifySignature(rawBody: string, signature: string): boolean {
     console.error('[WEBHOOK] OMISE_WEBHOOK_SECRET not configured — rejecting all requests')
     return false
   }
-  const expected = crypto.createHmac('sha256', secret).update(rawBody).digest('base64')
+  const expected = crypto.createHmac('sha256', secret).update(rawBody).digest('hex')
   try {
     if (Buffer.byteLength(expected) !== Buffer.byteLength(signature)) return false
     return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature))
@@ -30,9 +30,7 @@ function verifySignature(rawBody: string, signature: string): boolean {
 
 export async function POST(req: NextRequest) {
   const rawBody = await req.text()
-  const sig     = req.headers.get('x-omise-signature') ?? ''
-  const sigAlt  = req.headers.get('omise-signature') ?? ''
-  console.log('[WEBHOOK-DEBUG] x-omise-signature len:', sig.length, '| omise-signature len:', sigAlt.length, '| sig value:', sig || sigAlt || '(empty)')
+  const sig     = req.headers.get('omise-signature') ?? ''
 
   if (!verifySignature(rawBody, sig)) {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
