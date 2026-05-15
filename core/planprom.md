@@ -609,6 +609,27 @@ CREATE TABLE admin_users (
 
 ---
 
+## Session 77 Changes (2026-05-15) — Nav Bar UX + sale_count Fix
+
+| # | Change | Status |
+|---|---|---|
+| 1 | **Nav: 🔥 ขายดี + 🆓 ฟรี** — `/templates?sort=bestseller` (filter `sale_count>0`) + `/templates?price=0` · active state smart (plain `/templates` inactive เมื่อ special filter active) | ✅ Live |
+| 2 | **Suspense wrapper** — `NavLinks` แยก sub-component + `<Suspense fallback={<NavLinksFallback />}>` ป้องกัน build crash บน `/_not-found` (useSearchParams SSR) | ✅ Fixed |
+| 3 | **Emoji nav ชุด A** — 🏠 หน้าแรก · 📋 เทมเพลตทั้งหมด · 📖 บทความ · 📅 Planner หรือ Checklist? · ❓ คำถามที่พบบ่อย | ✅ Live |
+| 4 | **sale_count sync** — UPDATE ครั้งเดียวจาก orders จริง → งานแต่งงาน = 14 | ✅ Done |
+| 5 | **sale_count auto-increment** — เพิ่ม UPDATE templates SET sale_count+1 ใน status polling route + omise webhook ทุกครั้งที่ paid | ✅ Live |
+| 6 | **Templates page heading** — แสดงตาม filter: "🔥 เทมเพลตขายดี" / "🆓 เทมเพลตฟรี" / "📋 เทมเพลตทั้งหมด" | ✅ Live |
+
+### Files Changed
+| File | Change |
+|---|---|
+| `src/components/layout/Header.tsx` | NavLinks sub-component + Suspense · emoji nav ชุด A · ขายดี/ฟรี items |
+| `app/templates/page.tsx` | รับ `sort` param · filter `sale_count>0` เมื่อ bestseller · heading context-aware |
+| `app/api/checkout/[orderUid]/status/route.ts` | sale_count +1 เมื่อ polling detect paid |
+| `app/api/webhooks/omise/route.ts` | sale_count +1 เมื่อ webhook paid |
+
+---
+
 ## Session 76 Changes (2026-05-15) — Card 11 Fix + Blog SEO Health + Edit UX
 
 | # | Change | Status |
