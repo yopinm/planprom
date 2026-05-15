@@ -997,9 +997,89 @@ server {
 | เอกสาร KYC | บัตรประชาชน (เซ็น + รับรองสำเนา) · Selfie+บัตร · หน้าแรกสมุดบัญชี (ชื่อตรงบัตร) · ใบเสร็จโดเมน · Portfolio template |
 | ข้อมูลธุรกิจใน dashboard | ประเภท: Digital Template · URL: planprom.com · avg transaction ฿30–50 |
 | รับ Live API Keys | `pkey_live_xxx` + `skey_live_xxx` หลัง Omise อนุมัติ |
-| อัพ VPS `.env.local` | SSH → แก้ `OMISE_PUBLIC_KEY` + `OMISE_SECRET_KEY` → `pm2 restart planprom` |
-| ตั้ง Webhook URL | Omise Dashboard → `https://planprom.com/api/webhooks/omise` |
+| อัพ VPS `.env.local` | ดู **§23.5** ด้านล่าง |
+| ตั้ง Webhook URL | ดู **§23.6** ด้านล่าง |
 | Live test | ซื้อ template ตัวเอง ยอด ฿30 → ตรวจ QR สแกนได้ → webhook → download link |
+
+### 23.5 J9-ADMIN-2 — อัพ Live Keys บน VPS (step by step)
+
+> ทำหลังจาก Omise ส่ง Live API Keys มาทาง email
+
+**ขั้นตอน:**
+
+```bash
+# 1. SSH เข้า VPS
+ssh root@103.52.109.85
+
+# 2. เปิดไฟล์ .env.local
+nano /var/www/planprom/.env.local
+```
+
+ใน nano ให้หาบรรทัดที่มี `OMISE_` แล้วแก้เป็น live keys:
+
+```env
+OMISE_PUBLIC_KEY=pkey_live_xxxxxxxxxxxxxxx
+OMISE_SECRET_KEY=skey_live_xxxxxxxxxxxxxxx
+OMISE_WEBHOOK_SECRET=<ค่าที่ Omise ให้หรือตั้งเองใน dashboard>
+```
+
+> ⚠️ **ห้าม** แก้ key อื่นในไฟล์นี้ — แก้เฉพาะ 3 บรรทัดนี้
+
+```bash
+# 3. บันทึกไฟล์ใน nano
+# กด Ctrl+O → Enter → Ctrl+X
+
+# 4. copy ไฟล์ไปยัง standalone (จำเป็นทุกครั้ง)
+cp /var/www/planprom/.env.local /var/www/planprom/.next/standalone/.env.local
+
+# 5. restart app
+pm2 restart planprom
+
+# 6. ตรวจสอบ
+pm2 status
+curl -s -o /dev/null -w '%{http_code}' https://planprom.com/
+# ต้องได้ 200
+```
+
+**ตรวจว่า key โหลดถูกต้อง:**
+
+```bash
+# ดู log หลัง restart — ต้องไม่มี OMISE_SECRET_KEY error
+pm2 logs planprom --lines 30
+```
+
+---
+
+### 23.6 J9-ADMIN-3 — ตั้ง Webhook URL ใน Omise Dashboard (step by step)
+
+> ทำหลังจากอัพ live keys และ pm2 restart เสร็จแล้ว
+
+**ขั้นตอน:**
+
+1. เปิด **https://dashboard.omise.co** → Login
+2. สลับไปโหมด **Live** (toggle มุมบนขวา — ตรวจว่าไม่ได้อยู่ใน Test)
+3. เมนูซ้าย → **Settings** → **Webhooks**
+4. กด **"+ New webhook"** (หรือ Add Endpoint)
+5. กรอก URL:
+   ```
+   https://planprom.com/api/webhooks/omise
+   ```
+6. เลือก Event: **`charge.complete`** (เลือกเฉพาะตัวนี้พอ)
+7. กด **Save / Create**
+8. Dashboard จะแสดง **Webhook Secret** → คัดลอกค่านี้
+9. นำค่า Webhook Secret ไปใส่ใน `.env.local` บน VPS:
+   ```env
+   OMISE_WEBHOOK_SECRET=whsk_live_xxxxxxxxxxxxxxx
+   ```
+10. รัน `cp .env.local .next/standalone/.env.local && pm2 restart planprom` อีกครั้ง
+
+**ทดสอบ webhook:**
+
+1. ใน Omise Dashboard → Webhooks → กด **"Send test"** หรือ **"Ping"**
+2. ดู response ต้องได้ `200 OK`
+3. ตรวจ log: `pm2 logs planprom --lines 20` — ต้องไม่มี signature error
+
+---
 
 ### 23.3 ข้อควรรู้ (บุคคลธรรมดา)
 
