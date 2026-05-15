@@ -1,6 +1,6 @@
 # Planprom_Manual.md — คู่มือการใช้งาน แพลนพร้อม (planprom.com)
 
-> อัพเดตล่าสุด: 2026-05-15 · Session 75 · ครอบคลุมทุกฟีเจอร์ที่ Live + Technical Reference (DB, API, Engine, Infra) จาก Blueprint
+> อัพเดตล่าสุด: 2026-05-15 · Session 75 · ครอบคลุมทุกฟีเจอร์ที่ Live + Technical Reference (DB, API, Engine, Infra) จาก Blueprint · Security Score ~80/100 · Deploy ✅ Smoke test ✅
 > ภาษา: ไทย · เขียนสำหรับ admin และ owner ของระบบ
 
 ---
