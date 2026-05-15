@@ -210,7 +210,7 @@
 | J6 | ~~Bundle/Credits system ยังไม่มี~~ | ✅ **RESOLVED (Session 22)** — pack_credits table · FIFO · 90 วัน expire · ฿20=2, ฿50=10, ฿100=25 credits | ✅ Done |
 | J7 | /templates/[slug] breadcrumb category → 404 | ขึ้นกับ J4 | 🟡 Low |
 | J8 | Owner สร้าง templates 2-10 | owner task — /templates UAT pending จนกว่าจะมี template ครบ | 🔴 Blocker UAT |
-| J9 | **Omise Go-Live** — สลับ test → live keys + PDPA compliance | **Sub-tasks:** · **J9-CODE-1** ✅ Cookie Consent Banner (PDPA) · **J9-CODE-2** ✅ Privacy Policy เพิ่ม Omise processor disclosure · **J9-CODE-3** ✅ Refund Policy เพิ่ม exception "ยกเว้นไฟล์เสียหาย" · **J9-ADMIN-1** ⏳ สมัคร Live Mode + เตรียมเอกสาร KYC (บัตรประชาชน+selfie+สมุดบัญชี+ใบเสร็จโดเมน) · **J9-ADMIN-2** ⏳ รับ Live API Keys → อัพ VPS `.env.local` → `pm2 restart` · **J9-ADMIN-3** ⏳ ตั้ง Webhook URL ใน Omise Dashboard → planprom.com/api/webhooks/omise · **J9-ADMIN-4** ⏳ Live test ซื้อ template ตัวเอง ฿30 → ตรวจ QR + webhook + download | 🟡 Code ✅ · Admin ⏳ |
+| J9 | **Omise Go-Live** — สลับ test → live keys + PDPA compliance | **Sub-tasks:** · **J9-CODE-1** ✅ Cookie Consent Banner (PDPA) · **J9-CODE-2** ✅ Privacy Policy เพิ่ม Omise processor disclosure · **J9-CODE-3** ✅ Refund Policy เพิ่ม exception "ยกเว้นไฟล์เสียหาย" · **J9-ADMIN-1** ⏳ สมัคร Live Mode + เตรียมเอกสาร KYC (บัตรประชาชน+selfie+สมุดบัญชี+ใบเสร็จโดเมน) · **J9-ADMIN-2** ⏳ รับ Live API Keys → อัพ VPS `.env.local` → `pm2 restart` · **J9-ADMIN-3** ✅ **Test webhook active** — planprom.com/api/webhooks/omise · 200 OK (Session 75) · ต้อง re-set live webhook URL เมื่อสลับ live mode · **J9-ADMIN-4** ⏳ Live test ซื้อ template ตัวเอง ฿30 → ตรวจ QR + webhook + download | 🟡 Code ✅ · Admin ⏳ |
 | J10 | Wallet แสดง login prompt หลัง download ใน tab เดิม | ~~ระบบ Wallet ถูกตัดออกแล้ว — task นี้ไม่มีผล~~ | ✅ **Closed (N/A — wallet removed)** |
 | J11 | Free tier ยังไม่โหลดได้เลย | `POST /api/free-download` → INSERT template_orders (amount=0, status='paid', payment_method='free') → return token · `FreeDownloadButton` client component → router.push('/d/[token]') · แทน href="#line-cta" ทั้ง 3 จุด (CatalogTemplateList modal+row, TemplateListWithPreview modal+row, /templates/[slug]) · ลบปุ่ม "แชร์ให้เพื่อนทาง LINE" จาก DownloadClient | ✅ **Done · Live (Session 46)** |
 | J12 | LINE OAuth ล้มเหลว — "Error getting user profile from external provider" | ~~ตัดระบบ LINE Login ออกแล้ว — ใช้ Cart flow แทน (ไม่ต้อง LINE)~~ | ✅ **Closed (N/A — LINE login removed)** |
@@ -605,6 +605,20 @@ CREATE TABLE admin_users (
 | `app/terms/page.tsx` | Omise payment + refund exception |
 | `src/lib/admin-rbac.ts` | EXPIRES_IN 8h → 2h (M-001) |
 | `app/admin/report/log/page.tsx` | tailLines() error marker (M-003) |
+
+---
+
+## Session 75 Changes (2026-05-15) — Omise Webhook Fix: API Verification
+
+| # | Change | Status |
+|---|---|---|
+| 1 | **Webhook signature → API verification** — HMAC-SHA256 signature verification ล้มเหลวเสมอ (Cloudflare header modification ทำให้ signature ไม่ตรง) · เปลี่ยนเป็น `verifyCharge(chargeId)` → GET `https://api.omise.co/charges/{id}` → ตรวจ `charge.status === 'successful'` โดยตรง · ปลอดภัยกว่าเพราะ check source of truth ที่ Omise | ✅ Live · 200 OK |
+| 2 | **Webhook confirmed working** — Omise dashboard แสดง Recent Deliveries: `charge.complete` → 200 · `charge.create` → 200 (16:09 test) | ✅ UAT ผ่าน |
+
+### Files Changed
+| File | Change |
+|---|---|
+| `app/api/webhooks/omise/route.ts` | ลบ HMAC signature verification · เพิ่ม `verifyCharge()` function · ลบ debug logging + `writeFileSync` |
 
 ---
 
