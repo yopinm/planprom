@@ -20,14 +20,14 @@ export async function recordFulfilledAction(formData: FormData) {
   redirect(redirectUrl || '/admin/templates/new')
 }
 
-// Admin Feedback Loop: mark idea as "ไม่ใช่ template" → hide permanently
+// Admin Feedback Loop: mark idea as "ไม่ใช่ template" → hide (recoverable)
 export async function rejectIdeaAction(formData: FormData) {
   await requireAdminSession('/admin/login')
   const ideaText = formData.get('idea') as string
   if (ideaText?.trim()) {
     await db`
-      INSERT INTO intel_rejected (idea_text)
-      VALUES (${ideaText.trim()})
+      INSERT INTO intel_rejected (idea_text, is_permanent)
+      VALUES (${ideaText.trim()}, false)
       ON CONFLICT (idea_text) DO NOTHING
     `.catch(() => null)
   }
@@ -44,8 +44,30 @@ export async function revertRejectedAction(formData: FormData) {
   revalidatePath('/admin/template-analytics')
 }
 
+// Permanent reject: ไม่แสดงใน recovery list อีก แต่ยังถูก filter ออกจากทุก card ตลอดไป
+export async function permanentRejectAction(formData: FormData) {
+  await requireAdminSession('/admin/login')
+  const ideaText = formData.get('idea') as string
+  if (ideaText?.trim()) {
+    await db`
+      INSERT INTO intel_rejected (idea_text, is_permanent)
+      VALUES (${ideaText.trim()}, true)
+      ON CONFLICT (idea_text) DO UPDATE SET is_permanent = true
+    `.catch(() => null)
+  }
+  revalidatePath('/admin/template-analytics')
+}
+
+// Bulk permanent reject: ล้าง rejected list ทั้งหมดในครั้งเดียว
+export async function bulkPermanentRejectAction() {
+  await requireAdminSession('/admin/login')
+  await db`
+    UPDATE intel_rejected SET is_permanent = true WHERE is_permanent = false
+  `.catch(() => null)
+  revalidatePath('/admin/template-analytics')
+}
+
 // Restore stale: reset the 30-day clock by inserting today's snapshot
-// Idea will reappear in main list for another 30 days without being fulfilled
 export async function restoreStaleAction(formData: FormData) {
   await requireAdminSession('/admin/login')
   const ideaText   = formData.get('idea')        as string

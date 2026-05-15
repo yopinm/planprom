@@ -3,7 +3,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { requireAdminSession } from '@/lib/admin-auth'
 import { db } from '@/lib/db'
-import { recordFulfilledAction, rejectIdeaAction, revertRejectedAction, restoreStaleAction } from './actions'
+import { recordFulfilledAction, rejectIdeaAction, revertRejectedAction, permanentRejectAction, bulkPermanentRejectAction, restoreStaleAction } from './actions'
 import { CopyButton } from './CopyButton'
 import { SubmitButton } from './SubmitButton'
 
@@ -254,7 +254,7 @@ export default async function AdminMarketIntelPage() {
   await requireAdminSession('/admin/login')
 
   // ── Phase 1 (parallel) ───────────────────────────────────────────────────
-  const [baseSuggestRaw, allTemplates, kpiRow, byType, daily, ranking, gapData, alphaRaw, catalogPerf, allCategories, fulfilledRaw, yesterdaySnaps, healthRows, rejectedRaw, staleRaw] =
+  const [baseSuggestRaw, allTemplates, kpiRow, byType, daily, ranking, gapData, alphaRaw, catalogPerf, allCategories, fulfilledRaw, yesterdaySnaps, healthRows, rejectedRaw, staleRaw, recoverableRaw] =
     await Promise.all([
       Promise.all(SEED_KEYWORDS.map(async kw => ({ kw, suggestions: await fetchSuggestions(kw.key) }))),
 
@@ -376,7 +376,7 @@ export default async function AdminMarketIntelPage() {
         GROUP BY t.id
       `.catch(() => [] as ScoreRow[]),
 
-      // Admin Feedback Loop: ideas rejected by admin
+      // Admin Feedback Loop: ALL rejected (for filter set — includes permanent)
       db<RejectedRow[]>`
         SELECT idea_text, rejected_at::text FROM intel_rejected ORDER BY rejected_at DESC
       `.catch(() => [] as RejectedRow[]),
@@ -389,6 +389,12 @@ export default async function AdminMarketIntelPage() {
           AND idea_text NOT IN (SELECT idea_text FROM intel_fulfilled)
         GROUP BY idea_text, engine_type
       `.catch(() => [] as StaleIdeaRow[]),
+
+      // Recoverable rejected only (is_permanent = false) — shown in recovery UI
+      db<RejectedRow[]>`
+        SELECT idea_text, rejected_at::text FROM intel_rejected
+        WHERE is_permanent = false ORDER BY rejected_at DESC
+      `.catch(() => [] as RejectedRow[]),
     ])
 
   const kpi = kpiRow[0] ?? { total_revenue: '0', paid_orders: '0', pending_orders: '0', total_downloads: '0', unique_buyers: '0' }
@@ -918,25 +924,43 @@ export default async function AdminMarketIntelPage() {
             </details>
           )}
 
-          {/* Rejected ideas (admin marked ✕) — กู้คืนได้ */}
-          {rejectedRaw.length > 0 && (
+          {/* Rejected ideas (admin marked ✕) — กู้คืนได้ / ลบถาวรได้ */}
+          {recoverableRaw.length > 0 && (
             <details className="mt-3">
               <summary className="cursor-pointer text-[10px] font-black text-neutral-400 hover:text-red-600 select-none">
-                ❌ rejected {rejectedRaw.length} ideas (admin กด ✕) — คลิกดู/กู้คืน ▼
+                ❌ rejected {recoverableRaw.length} ideas (admin กด ✕) — คลิกดู/กู้คืน ▼
               </summary>
-              <div className="mt-2 rounded-2xl border border-red-100 bg-white shadow-sm divide-y divide-neutral-50">
-                {rejectedRaw.map((r, i) => (
-                  <div key={i} className="flex items-center gap-3 px-5 py-2.5">
-                    <span className="flex-1 min-w-0 text-xs text-neutral-400 line-through truncate">{r.idea_text}</span>
-                    <span className="shrink-0 text-[9px] text-neutral-400">
-                      {new Date(r.rejected_at).toLocaleDateString('th-TH')}
-                    </span>
-                    <form action={revertRejectedAction}>
-                      <input type="hidden" name="idea" value={r.idea_text} />
-                      <SubmitButton className="shrink-0 rounded-lg border border-neutral-200 px-2 py-0.5 text-[9px] font-black text-neutral-500 hover:border-emerald-400 hover:text-emerald-600 transition">↩ กู้คืน</SubmitButton>
-                    </form>
-                  </div>
-                ))}
+              <div className="mt-2 rounded-2xl border border-red-100 bg-white shadow-sm overflow-hidden">
+                {/* Bulk clear header */}
+                <div className="flex items-center justify-between px-5 py-2.5 bg-red-50 border-b border-red-100">
+                  <span className="text-[10px] font-bold text-red-400">{recoverableRaw.length} รายการรอตัดสินใจ</span>
+                  <form action={bulkPermanentRejectAction}>
+                    <SubmitButton
+                      className="rounded-lg border border-red-200 bg-white px-2.5 py-1 text-[9px] font-black text-red-500 hover:bg-red-100 transition"
+                      pendingText="กำลังล้าง…"
+                    >
+                      🗑️ ล้างทั้งหมดถาวร
+                    </SubmitButton>
+                  </form>
+                </div>
+                <div className="divide-y divide-neutral-50">
+                  {recoverableRaw.map((r, i) => (
+                    <div key={i} className="flex items-center gap-2 px-5 py-2.5">
+                      <span className="flex-1 min-w-0 text-xs text-neutral-400 line-through truncate">{r.idea_text}</span>
+                      <span className="shrink-0 text-[9px] text-neutral-400">
+                        {new Date(r.rejected_at).toLocaleDateString('th-TH')}
+                      </span>
+                      <form action={revertRejectedAction}>
+                        <input type="hidden" name="idea" value={r.idea_text} />
+                        <SubmitButton className="shrink-0 rounded-lg border border-neutral-200 px-2 py-0.5 text-[9px] font-black text-neutral-500 hover:border-emerald-400 hover:text-emerald-600 transition">↩ กู้คืน</SubmitButton>
+                      </form>
+                      <form action={permanentRejectAction}>
+                        <input type="hidden" name="idea" value={r.idea_text} />
+                        <SubmitButton title="ลบถาวร ไม่กลับมาอีก" className="shrink-0 rounded-lg border border-red-100 px-2 py-0.5 text-[9px] font-black text-red-400 hover:bg-red-50 hover:border-red-300 transition">🗑️</SubmitButton>
+                      </form>
+                    </div>
+                  ))}
+                </div>
               </div>
             </details>
           )}
