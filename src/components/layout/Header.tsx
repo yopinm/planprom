@@ -6,13 +6,13 @@ import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
 const NAV_ITEMS = [
-  { label: 'หน้าแรก', href: '/' },
-  { label: 'เทมเพลตทั้งหมด', href: '/templates' },
+  { label: '🏠 หน้าแรก', href: '/' },
+  { label: '📋 เทมเพลตทั้งหมด', href: '/templates' },
   { label: '🔥 ขายดี', href: '/templates?sort=bestseller' },
   { label: '🆓 ฟรี', href: '/templates?price=0' },
-  { label: 'บทความ', href: '/blog' },
-  { label: 'Planner หรือ Checklist?', href: '/blog/planner-กับ-checklist-ต่างกันยังไง' },
-  { label: 'คำถามที่พบบ่อย', href: '/blog/คำถามที่พบบ่อย-faq' },
+  { label: '📖 บทความ', href: '/blog' },
+  { label: '📅 Planner หรือ Checklist?', href: '/blog/planner-กับ-checklist-ต่างกันยังไง' },
+  { label: '❓ คำถามที่พบบ่อย', href: '/blog/คำถามที่พบบ่อย-faq' },
 ]
 
 const LINE_OA_URL = 'https://line.me/R/ti/p/%40216xobzv'
