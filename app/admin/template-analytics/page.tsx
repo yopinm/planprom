@@ -1291,7 +1291,7 @@ export default async function AdminMarketIntelPage() {
             const zeros    = groupRows.filter(r => Number(r.orders) === 0 && r.status === 'published')
             const groupMax = Math.max(...sellers.map(r => Number(r.orders)), 1)
             return (
-              <details key={key} open={sellers.length > 0} className="group rounded-2xl border border-neutral-200 bg-white shadow-sm overflow-hidden">
+              <details key={key} open className="group rounded-2xl border border-neutral-200 bg-white shadow-sm overflow-hidden">
                 <summary className="flex cursor-pointer list-none select-none items-center gap-3 px-5 py-3.5 hover:bg-neutral-50">
                   <span className="text-base leading-none">{emoji}</span>
                   <span className="font-black text-sm text-neutral-800">{label}</span>
