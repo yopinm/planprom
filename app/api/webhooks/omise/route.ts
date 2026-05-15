@@ -9,44 +9,42 @@ import { randomBytes } from 'crypto'
 import { db } from '@/lib/db'
 import { pushLine } from '@/lib/line-messaging'
 import crypto from 'crypto'
-import { writeFileSync } from 'fs'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://planprom.com'
 
-function verifySignature(rawBody: string, signature: string): boolean {
+// Omise signs: HMAC-SHA256(base64Decode(secret), "<timestamp>.<rawBody>")
+// ref: https://docs.omise.co/en/api-webhooks/international
+function verifySignature(rawBody: string, signature: string, timestamp: string): boolean {
   const secret = process.env.OMISE_WEBHOOK_SECRET
   if (!secret) {
     console.error('[WEBHOOK] OMISE_WEBHOOK_SECRET not configured — rejecting all requests')
     return false
   }
-  const keyRaw    = Buffer.from(secret, 'base64')
-  const hmacSHA256str = crypto.createHmac('sha256', secret).update(rawBody).digest('hex')
-  const hmacSHA256raw = crypto.createHmac('sha256', keyRaw).update(rawBody).digest('hex')
-  const hmacSHA1str   = crypto.createHmac('sha1',   secret).update(rawBody).digest('hex')
-  const hmacSHA1raw   = crypto.createHmac('sha1',   keyRaw).update(rawBody).digest('hex')
-  const bodyHash = crypto.createHash('sha256').update(rawBody).digest('hex')
-  console.log('[WEBHOOK-DEBUG5] sig        :', signature)
-  console.log('[WEBHOOK-DEBUG5] sha256/str :', hmacSHA256str)
-  console.log('[WEBHOOK-DEBUG5] sha256/raw :', hmacSHA256raw)
-  console.log('[WEBHOOK-DEBUG5] body-len   :', rawBody.length)
-  console.log('[WEBHOOK-DEBUG5] body-sha256:', bodyHash)
-  // save body to /tmp for manual HMAC verification
-  try { writeFileSync(`/tmp/omise-body-${Date.now()}.json`, rawBody, 'utf8') } catch {}
-  const expected = hmacSHA256raw
-  try {
-    if (Buffer.byteLength(expected) !== Buffer.byteLength(signature)) return false
-    return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature))
-  } catch (err) {
-    console.error('[WEBHOOK] Signature verification error:', err)
-    return false
+  const key = Buffer.from(secret, 'base64')
+  const signedPayload = `${timestamp}.${rawBody}`
+  const expected = crypto.createHmac('sha256', key).update(signedPayload).digest()
+
+  const signatures = signature.split(',').map(s => s.trim()).filter(Boolean)
+  for (const sig of signatures) {
+    try {
+      const sigBuf = Buffer.from(sig, 'hex')
+      if (sigBuf.length === expected.length && crypto.timingSafeEqual(sigBuf, expected)) {
+        return true
+      }
+    } catch {}
   }
+  return false
 }
 
 export async function POST(req: NextRequest) {
-  const rawBody = await req.text()
-  const sig     = req.headers.get('omise-signature') ?? ''
+  const rawBody   = await req.text()
+  const sig       = req.headers.get('omise-signature') ?? ''
+  const timestamp = req.headers.get('omise-signature-timestamp') ?? ''
 
-  if (!verifySignature(rawBody, sig)) {
+  console.log('[WEBHOOK] sig:', sig.slice(0,16), '| ts:', timestamp, '| bodyLen:', rawBody.length)
+
+  if (!verifySignature(rawBody, sig, timestamp)) {
+    console.warn('[WEBHOOK] Invalid signature — rejecting')
     return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
   }
 
