@@ -3,12 +3,13 @@
 import type { ReactElement } from 'react'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
 const NAV_ITEMS = [
   { label: 'หน้าแรก', href: '/' },
   { label: 'เทมเพลตทั้งหมด', href: '/templates' },
-
+  { label: '🔥 ขายดี', href: '/templates?sort=bestseller' },
+  { label: '🆓 ฟรี', href: '/templates?price=0' },
   { label: 'บทความ', href: '/blog' },
   { label: 'Planner หรือ Checklist?', href: '/blog/planner-กับ-checklist-ต่างกันยังไง' },
   { label: 'คำถามที่พบบ่อย', href: '/blog/คำถามที่พบบ่อย-faq' },
@@ -18,9 +19,27 @@ const LINE_OA_URL = 'https://line.me/R/ti/p/%40216xobzv'
 
 export function Header(): ReactElement {
   const pathname = usePathname()
+  const searchParams = useSearchParams()
   const router = useRouter()
   const [cartCount, setCartCount] = useState(0)
   const [query, setQuery] = useState('')
+
+  function isActive(href: string): boolean {
+    const [hrefPath, hrefQuery] = href.split('?')
+    if (pathname !== hrefPath) return false
+    if (!hrefQuery) {
+      // /templates plain link → inactive when special filter is active
+      if (hrefPath === '/templates') {
+        return searchParams.get('sort') !== 'bestseller' && searchParams.get('price') !== '0'
+      }
+      return true
+    }
+    const hrefParams = new URLSearchParams(hrefQuery)
+    for (const [key, val] of hrefParams.entries()) {
+      if (searchParams.get(key) !== val) return false
+    }
+    return true
+  }
 
   // Cart count — re-fetch on navigation (badge clears after checkout) + cart-updated event
   useEffect(() => {
@@ -70,13 +89,13 @@ export function Header(): ReactElement {
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
           <nav className="flex items-center gap-4 sm:gap-[18px]">
             {NAV_ITEMS.map(({ label, href }) => {
-              const isActive = pathname === href
+              const active = isActive(href)
               return (
                 <Link
                   key={href}
                   href={href}
                   className={`py-1 text-sm font-medium transition-colors hover:text-neutral-900 ${
-                    isActive
+                    active
                       ? 'border-b-2 border-orange-600 text-neutral-900'
                       : 'text-neutral-500'
                   }`}

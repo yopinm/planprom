@@ -22,9 +22,10 @@ type Template = {
 
 type CategoryRow = { slug: string; name: string; emoji: string | null }
 
-async function fetchAllTemplates(category?: string, price?: string, q?: string, docType?: string): Promise<Template[]> {
+async function fetchAllTemplates(category?: string, price?: string, q?: string, docType?: string, sort?: string): Promise<Template[]> {
   const priceNum = price ? parseInt(price, 10) : null
   const search = q?.trim() ?? ''
+  const bestseller = sort === 'bestseller'
   try {
     if (category) {
       return db<Template[]>`
@@ -37,6 +38,7 @@ async function fetchAllTemplates(category?: string, price?: string, q?: string, 
           ${priceNum !== null ? db` AND t.price_baht = ${priceNum}` : db``}
           ${search ? db` AND (t.title ILIKE ${'%' + search + '%'} OR t.description ILIKE ${'%' + search + '%'})` : db``}
           ${docType ? db` AND t.document_type = ${docType}` : db``}
+          ${bestseller ? db` AND t.sale_count > 0` : db``}
         ORDER BY t.sale_count DESC, t.updated_at DESC
       `
     }
@@ -47,6 +49,7 @@ async function fetchAllTemplates(category?: string, price?: string, q?: string, 
         ${priceNum !== null ? db` AND price_baht = ${priceNum}` : db``}
         ${search ? db` AND (title ILIKE ${'%' + search + '%'} OR description ILIKE ${'%' + search + '%'})` : db``}
         ${docType ? db` AND document_type = ${docType}` : db``}
+        ${bestseller ? db` AND sale_count > 0` : db``}
       ORDER BY sale_count DESC, updated_at DESC
     `
   } catch {
@@ -69,14 +72,14 @@ async function fetchCategories(): Promise<CategoryRow[]> {
 }
 
 interface Props {
-  searchParams: Promise<{ category?: string; price?: string; q?: string; type?: string }>
+  searchParams: Promise<{ category?: string; price?: string; q?: string; type?: string; sort?: string }>
 }
 
 export default async function TemplatesPage({ searchParams }: Props) {
-  const { category, price, q, type } = await searchParams
+  const { category, price, q, type, sort } = await searchParams
   const searchQuery = q?.trim() ?? ''
   const [templates, categories] = await Promise.all([
-    fetchAllTemplates(category, price, searchQuery, type),
+    fetchAllTemplates(category, price, searchQuery, type, sort),
     fetchCategories(),
   ])
 
@@ -89,8 +92,12 @@ export default async function TemplatesPage({ searchParams }: Props) {
           <Link href="/" className="mb-3 inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-700">
             ← กลับหน้าแรก
           </Link>
-          <h1 className="text-3xl font-black text-neutral-900">📋 เทมเพลตทั้งหมด</h1>
-          <p className="mt-1 text-base text-neutral-600">PDF พร้อมใช้งาน · ดาวน์โหลดทันที · ใช้ซ้ำตลอดกาล</p>
+          <h1 className="text-3xl font-black text-neutral-900">
+            {sort === 'bestseller' ? '🔥 เทมเพลตขายดี' : price === '0' ? '🆓 เทมเพลตฟรี' : '📋 เทมเพลตทั้งหมด'}
+          </h1>
+          <p className="mt-1 text-base text-neutral-600">
+            {sort === 'bestseller' ? 'เทมเพลตที่มีคนโหลดมากที่สุด · เรียงตามยอดขาย' : price === '0' ? 'ดาวน์โหลดได้ฟรี ไม่มีค่าใช้จ่าย' : 'PDF พร้อมใช้งาน · ดาวน์โหลดทันที · ใช้ซ้ำตลอดกาล'}
+          </p>
         </div>
 
         {/* Search box */}
