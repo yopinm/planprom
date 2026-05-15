@@ -387,15 +387,9 @@ export default async function AdminMarketIntelPage() {
     ])
 
   const kpi = kpiRow[0] ?? { total_revenue: '0', paid_orders: '0', pending_orders: '0', total_downloads: '0', unique_buyers: '0' }
-  const keywordData = baseSuggestRaw.map(({ kw, suggestions }) => {
-    const analysis = analyzeKeyword(kw.key, suggestions)
-    return {
-      ...kw, suggestions,
-      ...analysis,
-      // filter rejected/stale from ideas list shown in Card 06
-      ideas: analysis.ideas.filter(idea => !rejectedSet.has(idea.toLowerCase()) && !staleSet.has(idea.toLowerCase())),
-    }
-  })
+  const keywordData = baseSuggestRaw.map(({ kw, suggestions }) => ({
+    ...kw, suggestions, ...analyzeKeyword(kw.key, suggestions),
+  }))
 
   // ── Build Level 1 — merged by engineType (B+D) ───────────────────────────
   const uniqueEngineTypes = [...new Set(SEED_KEYWORDS.map(kw => kw.engineType))]
@@ -938,22 +932,25 @@ export default async function AdminMarketIntelPage() {
                 </div>
                 {/* Template ideas only (no raw Google Suggest table) */}
                 <div className="p-4">
-                  {kw.ideas.length === 0 ? (
-                    <p className="text-xs text-neutral-300 italic">— Google Suggest ไม่มี idea ที่ actionable</p>
-                  ) : (
-                    <ul className="space-y-1.5">
-                      {kw.ideas.map((idea, i) => (
-                        <li key={i} className="flex items-center gap-2">
-                          <span className="text-amber-500 text-xs shrink-0">→</span>
-                          <span className="flex-1 text-xs font-bold text-neutral-800">{idea}</span>
-                          <form action={rejectIdeaAction}>
-                            <input type="hidden" name="idea" value={idea} />
-                            <button type="submit" title="ไม่ใช่ template" className="shrink-0 text-[10px] text-neutral-300 hover:text-red-500 transition leading-none">✕</button>
-                          </form>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                  {(() => {
+                    const visibleIdeas = kw.ideas.filter(idea => !rejectedSet.has(idea.toLowerCase()) && !staleSet.has(idea.toLowerCase()))
+                    return visibleIdeas.length === 0 ? (
+                      <p className="text-xs text-neutral-300 italic">— Google Suggest ไม่มี idea ที่ actionable</p>
+                    ) : (
+                      <ul className="space-y-1.5">
+                        {visibleIdeas.map((idea, i) => (
+                          <li key={i} className="flex items-center gap-2">
+                            <span className="text-amber-500 text-xs shrink-0">→</span>
+                            <span className="flex-1 text-xs font-bold text-neutral-800">{idea}</span>
+                            <form action={rejectIdeaAction}>
+                              <input type="hidden" name="idea" value={idea} />
+                              <button type="submit" title="ไม่ใช่ template" className="shrink-0 text-[10px] text-neutral-300 hover:text-red-500 transition leading-none">✕</button>
+                            </form>
+                          </li>
+                        ))}
+                      </ul>
+                    )
+                  })()}
                   <Link href="/admin/templates/new" className="mt-3 inline-flex items-center gap-1.5 rounded-xl border border-neutral-200 px-3 py-1.5 text-[10px] font-black text-neutral-500 hover:border-amber-400 hover:text-amber-600 transition">
                     + สร้าง template →
                   </Link>
