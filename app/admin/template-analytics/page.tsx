@@ -47,8 +47,15 @@ const AUDIENCE_RULES: { tag: string; color: string; pattern: RegExp }[] = [
 const NOISE = /^(แปลว่า|คือ|ภาษาอังกฤษ|pdf|ฟรี|goodnote|sut|a problem|speech|สรุป|one piece|marvel|resident evil|ฟอร์มาลิน|ฟอร์มาลดีไฮด์|ฟอร์มูลาวัน|formula 1|format factory|format$|formula$)$/i
 
 // FULL_NOISE: applied to full suggestion string — catches context-dependent noise that NOISE misses
-// because NOISE only sees the stripped suffix (e.g. "ตารางบอล" stripped="บอล" which isn't in NOISE)
-const FULL_NOISE = /ตารางบอล|ตารางฟุตบอล|ตารางคะแนน|ตารางแข่ง|ตารางลีก|ตารางพรีเมียร์|ตารางไทยลีก|ตารางลาลีกา|ตารางบุนเดส|ตารางเอฟเอ|ตารางแชมเปียนส์|ตารางรถไฟ|ตารางบิน|ตารางเดินรถ|ตารางธาตุ|ตารางหุ้น|เลี้ยงลูกนก|เลี้ยงลูกกระรอก|เลี้ยงลูกแมว|เลี้ยงลูกสุนัข|เลี้ยงลูกหมา|เลี้ยงลูกปลา|เลี้ยงลูกเต่า|เลี้ยงลูกกบ|เลี้ยงลูกหมู|เลี้ยงลูกไก่|เลี้ยงลูกกระต่าย|เลี้ยงลูกวัว|เลี้ยงลูกแพะ|เลี้ยงลูกลิง|งานบ้านและสวน|งานมหกรรม|มอเตอร์โชว์|motor show|สัปดาห์หนังสือ|ภิรมภักดิ์|ภิรมภักดี|หมดประเสร็จ|ฟอร์มาลิน|ฟอร์มาลดีไฮด์|ฟอร์มูลาวัน|ฟอร์มูล่าวัน|formula 1|formula one/i
+const FULL_NOISE = /ตารางบอล|ตารางฟุตบอล|ตารางคะแนน|ตารางแข่ง|ตารางลีก|ตารางพรีเมียร์|ตารางไทยลีก|ตารางลาลีกา|ตารางบุนเดส|ตารางเอฟเอ|ตารางแชมเปียนส์|ตารางรถไฟ|ตารางบิน|ตารางเดินรถ|ตารางธาตุ|ตารางหุ้น|เลี้ยงลูกนก|เลี้ยงลูกกระรอก|เลี้ยงลูกแมว|เลี้ยงลูกสุนัข|เลี้ยงลูกหมา|เลี้ยงลูกปลา|เลี้ยงลูกเต่า|เลี้ยงลูกกบ|เลี้ยงลูกหมู|เลี้ยงลูกไก่|เลี้ยงลูกกระต่าย|เลี้ยงลูกวัว|เลี้ยงลูกแพะ|เลี้ยงลูกลิง|งานบ้านและสวน|งานมหกรรม|มอเตอร์โชว์|motor show|สัปดาห์หนังสือ|ภิรมภักดิ์|ภิรมภักดี|ภิรมย์ภักดิ์|ภิรมย์ภักดี|หมดประเสร็จ|ฟอร์มาลิน|ฟอร์มาลดีไฮด์|ฟอร์มูลาวัน|ฟอร์มูล่าวัน|formula 1|formula one/i
+
+// TOPIC_KEYS: seed keywords ที่เป็น domain/หัวข้อ (ไม่ใช่ประเภทเอกสาร)
+// ต้องผ่าน TOPIC_ACTIONABLE ก่อนถึงจะเป็น template idea ได้
+const TOPIC_KEYS = new Set(['งาน', 'เลี้ยงลูก', 'งานบ้าน', 'ครอบครัว'])
+
+// TOPIC_ACTIONABLE: idea จาก topic keyword ต้องมีคำเหล่านี้ — บ่งบอกว่าเป็น process/task ที่ทำ template ได้จริง
+// ถ้าไม่มี = pop culture / proper noun / นิยาม / event เฉพาะ → filter ออก
+const TOPIC_ACTIONABLE = /วางแผน|แผน|ตรวจ|เช็ค|จัดการ|ดูแล|บันทึก|ติดตาม|เตรียม|ประเมิน|คำนวณ|สรุป|ทำความสะอาด|ซ่อม|จัดระเบียบ|พัฒนา|วัคซีน|โภชนาการ|พัฒนาการ|หมอ|แพทย์|สัมภาษณ์|เงินเดือน|ประจำ|รายวัน|รายสัปดาห์|รายเดือน|รายปี|ปลอดภัย|ออม|งบ|ค่าใช้จ่าย|รายรับ|รายจ่าย|ออกกำลัง|สุขภาพ|การเงิน|เดินทาง|ท่องเที่ยว|ทักษะ|เรียน|ฝึก|สอน|ขั้นตอน|รายการ|วิธี|คู่มือ|แนวทาง|บัญชี|ประกัน|กิจกรรม|จัดทำ|บริหาร|ควบคุม|ลดน้ำหนัก|อาหาร|กิจวัตร|ความปลอดภัย|ซัก|รีด|กวาด|กำจัด|ลดค่า|ประหยัด|ซ่อมแซม|ดูแลรักษา/i
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type TemplateRef = { id: string; title: string; slug: string; orders: number }
@@ -104,13 +111,19 @@ function analyzeKeyword(keyword: string, suggestions: string[]) {
   const joined    = suggestions.join(' ')
   const audiences = AUDIENCE_RULES.filter(r => r.pattern.test(joined))
   const ideas: string[] = []
+  const isTopic = TOPIC_KEYS.has(keyword)
   for (const s of suggestions) {
     const stripped = stripPrefix(s, keyword)
-    if (!stripped || NOISE.test(stripped) || FULL_NOISE.test(s)) continue
+    if (!stripped || stripped.length > 40) continue
+    if (NOISE.test(stripped) || FULL_NOISE.test(s)) continue
+    if (isTopic && !TOPIC_ACTIONABLE.test(s)) continue
     ideas.push(`${keyword} ${stripped}`)
     if (ideas.length >= 5) break
   }
-  const actionable  = suggestions.filter(s => { const st = stripPrefix(s, keyword); return st && !NOISE.test(st) && !FULL_NOISE.test(s) }).length
+  const actionable  = suggestions.filter(s => {
+    const st = stripPrefix(s, keyword)
+    return st && st.length <= 40 && !NOISE.test(st) && !FULL_NOISE.test(s) && (!isTopic || TOPIC_ACTIONABLE.test(s))
+  }).length
   const demand: 'สูง' | 'กลาง' | 'ต่ำ' = actionable >= 5 ? 'สูง' : actionable >= 3 ? 'กลาง' : 'ต่ำ'
   const demandColor = demand === 'สูง' ? 'bg-green-100 text-green-700' : demand === 'กลาง' ? 'bg-amber-100 text-amber-700' : 'bg-neutral-100 text-neutral-500'
   return { audiences, ideas, demand, demandColor }
@@ -371,9 +384,12 @@ export default async function AdminMarketIntelPage() {
   for (const { kw, suggestions } of baseSuggestRaw) {
     const seen = seenMap.get(kw.engineType)!
     const rows = level1Map.get(kw.engineType)!
+    const isTopic = TOPIC_KEYS.has(kw.key)
     for (const s of suggestions) {
       const stripped = stripPrefix(s, kw.key)
-      if (!stripped || NOISE.test(stripped) || FULL_NOISE.test(s) || seen.has(stripped)) continue
+      if (!stripped || stripped.length > 40) continue
+      if (NOISE.test(stripped) || FULL_NOISE.test(s) || seen.has(stripped)) continue
+      if (isTopic && !TOPIC_ACTIONABLE.test(s)) continue
       seen.add(stripped)
       const match = findMatch(stripped, allTemplates)
       rows.push({ idea: s, stripped, level: 1, match })
@@ -393,9 +409,12 @@ export default async function AdminMarketIntelPage() {
   for (const dr of drillResults) {
     const seen = seenMap.get(dr.engineType) ?? new Set<string>()
     const rows = level2Map.get(dr.engineType) ?? []
+    const isTopicDr = TOPIC_KEYS.has(dr.keyword)
     for (const s of dr.suggestions) {
       const stripped = stripPrefix(s, dr.keyword)
-      if (!stripped || NOISE.test(stripped) || FULL_NOISE.test(s) || seen.has(stripped)) continue
+      if (!stripped || stripped.length > 40) continue
+      if (NOISE.test(stripped) || FULL_NOISE.test(s) || seen.has(stripped)) continue
+      if (isTopicDr && !TOPIC_ACTIONABLE.test(s)) continue
       seen.add(stripped)
       rows.push({ idea: s, stripped, level: 2, source: dr.idea, match: findMatch(stripped, allTemplates) })
     }
@@ -408,9 +427,12 @@ export default async function AdminMarketIntelPage() {
   for (const ar of alphaRaw) {
     const seen = seenMap.get(ar.engineType) ?? new Set<string>()
     const rows = level3Map.get(ar.engineType) ?? []
+    const isTopicAr = TOPIC_KEYS.has(ar.keyword)
     for (const s of ar.suggestions) {
       const stripped = stripPrefix(s, ar.keyword)
-      if (!stripped || NOISE.test(stripped) || FULL_NOISE.test(s) || seen.has(stripped)) continue
+      if (!stripped || stripped.length > 40) continue
+      if (NOISE.test(stripped) || FULL_NOISE.test(s) || seen.has(stripped)) continue
+      if (isTopicAr && !TOPIC_ACTIONABLE.test(s)) continue
       seen.add(stripped)
       rows.push({ idea: s, stripped, level: 3, char: ar.char, match: findMatch(stripped, allTemplates) })
     }
