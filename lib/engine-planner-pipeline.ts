@@ -276,6 +276,13 @@ export function generatePlannerPipelineHtmlV4(data: PlannerPipelineDataV4, water
 
     if (s3c?.monthlyPlans?.length) {
       // content-first: s3 handles the monthly pages, s2 shows just a timeline summary
+      const monthGoalRows = s3c.monthlyPlans
+        .filter(mp => mp.goal.trim())
+        .map(mp => `
+          <tr>
+            <td style="font-size:9pt;font-weight:700;color:${c.text};padding:5px 8px;border:1px solid #e5e7eb;background:${c.light};white-space:nowrap;width:48px;vertical-align:top">${esc(mp.monthLabel)}</td>
+            <td style="font-size:9.5pt;color:#374151;padding:5px 10px;border:1px solid #e5e7eb;word-break:break-word;overflow-wrap:anywhere">${esc(mp.goal)}</td>
+          </tr>`).join('')
       s2Html = `
         <div class="sec">
           <div class="sec-hdr">ภาพรวมรายปี${yearLabel ? ` ${yearLabel}` : ''}</div>
@@ -284,6 +291,10 @@ export function generatePlannerPipelineHtmlV4(data: PlannerPipelineDataV4, water
           <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">
             ${monthSlice.map(m => `<span style="border:1px solid ${c.accent};border-radius:4px;padding:2px 8px;font-size:8.5pt;color:${c.text};font-weight:700">${m}</span>`).join('')}
           </div>
+          ${monthGoalRows ? `
+          <table style="width:100%;border-collapse:collapse;margin-top:12px">
+            ${monthGoalRows}
+          </table>` : ''}
         </div>`
     } else {
       // fallback: blank monthly pages
