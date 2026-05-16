@@ -609,6 +609,25 @@ CREATE TABLE admin_users (
 
 ---
 
+## Session 83 Changes (2026-05-16) — Pipeline Planner Drag-to-Reorder Stage 3-5
+
+| # | Change | Status |
+|---|---|---|
+| 1 | **`DynList` อัพเกรด** — เพิ่ม `useRef dragIdx` + `useState dragOver` + `draggable` + 5 drag events + handle icon `⠿` · `accentColor` prop ให้แต่ละ stage ใช้สีต่างกัน (sky/amber/violet) | ✅ Live |
+| 2 | **`DailyRoutineList` component ใหม่** — 2-col draggable rows (time + activity) · same drag pattern · amber highlight | ✅ Live |
+| 3 | **Stage 3 yearly — `mainTasks`** — refactor จาก inline rows (disabled-delete min=3) → `DynList` (add/remove/drag ไม่จำกัด) | ✅ Live |
+| 4 | **Stage 3 monthly — `secondary` + `small`** — `secondary` เปลี่ยนจาก fixed inputs (ไม่มีปุ่มเลย) → `DynList` (add/remove/drag) · `small` refactor เช่นกัน | ✅ Live |
+| 5 | **Stage 4 yearly — `secondary` + `small`** ใน weeklyTasks — เปลี่ยนจาก fixed inputs → `DynList` | ✅ Live |
+| 6 | **Stage 4 monthly/project — `dailyRoutines`** — เปลี่ยนจาก inline rows → `DailyRoutineList` | ✅ Live |
+| 7 | **Stage 3 project + Stage 5** — `flexItems.tasks` + `reviewQs` ใช้ `DynList` อยู่แล้ว → ได้ drag อัตโนมัติ | ✅ Live |
+
+### Files Changed
+| File | Change |
+|---|---|
+| `app/admin/templates/new/PipelinePlannerForm.tsx` | `useRef` import · `DynList` upgrade · `DailyRoutineList` NEW · refactor 6 field groups |
+
+---
+
 ## Session 82 Changes (2026-05-16) — Engine Preset System v2.0 + Log Dashboard
 
 | # | Change | Status |

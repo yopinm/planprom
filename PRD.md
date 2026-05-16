@@ -33,7 +33,7 @@
 | **Pending (code)** | E9/E10 · UI-G(defer) |
 | **Pending (UAT)** | **Engine Preset UAT** ⏳ (Guided Wizard/Skip/Smart Suggestion · PDF round-trip) · **Engine UAT** 🟡 (Planner/Form/Report — Checklist ✅ · Upload PDF ✅) · **INTEL-SMART** 🟡 (trend arrows) · INTEL-BLOG-SCORE 🔲 · INTEL-C/D · DC-1 · DC-2 · DC-8 · DC-16 · E9/E10 · J9(รอ live keys) |
 | **Pending (decision)** | Homepage UX: D (social proof bar) + B (featured badge pulse) — mock ready รอ confirm |
-| **Last session** | **Session 82 (2026-05-16)** — Engine Preset System v2.0 + Log Dashboard (Health Score · decision cards · Clear PM2) |
+| **Last session** | **Session 83 (2026-05-16)** — Pipeline Planner drag-to-reorder stage 3-5 (DynList + DailyRoutineList) |
 | **ห้าม** | ไม่แตะ Later task ขณะที่ Now ยังค้างอยู่ · ไม่แตะ secrets โดยตรง · ไม่ทำให้ revenue channel หายไประหว่าง pivot |
 | **Security rule** | ทุก admin feature ต้องตรวจ: role check · PII mask · no path disclosure · spawnSync array args (ดู §23 Manual) |
 
@@ -205,6 +205,7 @@
 
 | Session | สถานะ |
 |---|---|
+| **Session 83 (2026-05-16) — Pipeline Planner Drag-to-Reorder Stage 3-5** | ✅ Live — `DynList` อัพเกรด drag-and-drop (handle ⠿ + HTML5 drag events) · `DailyRoutineList` component ใหม่สำหรับ 2-col rows · Stage 3 yearly: mainTasks · Stage 3 monthly: secondary+small → add/remove+drag · Stage 4 yearly: secondary+small · Stage 4 monthly/project: dailyRoutines · Stage 5: reviewQs (ได้ drag อัตโนมัติ) |
 | **Session 82 (2026-05-16) — Engine Preset System v2.0 + Log Dashboard** | ✅ Live — mode `engine-preset` · Stage 0 preset selector · 6 archetypes · 9 presets · Guided Wizard · Smart Suggestion A+B+C · Health Score banner · decision cards · top-4xx paths inline · Clear PM2 button |
 | **Session 81 (2026-05-16) — PDF Footer Thai Font + Checklist Drag** | ✅ Live — Noto Sans Thai font ใน footerTemplate · drag-and-drop reorder checklist items (create + revise mode) |
 | **Session 80 (2026-05-16) — Planner Pipeline mainTasks UX** | ✅ Live — ลบตัวเลขนำหน้า (1/2/3) ออกจาก PDF · dynamic +/− fields min=3 · label "งานหลักอย่างน้อย 3 อย่าง" ทั้ง form + PDF |
