@@ -288,9 +288,6 @@ export function generatePlannerPipelineHtmlV4(data: PlannerPipelineDataV4, water
           <div class="sec-hdr">ภาพรวมรายปี${yearLabel ? ` ${yearLabel}` : ''}</div>
           ${s2.summary?.trim() ? `<div style="font-size:10pt;color:#374151;line-height:1.6;margin-bottom:8px;word-break:break-word">${esc(s2.summary)}</div>` : ''}
           <div style="font-size:9pt;color:#6b7280;margin-bottom:4px">ช่วงเวลา: ${THAI_MONTHS[fromM]} – ${THAI_MONTHS[toM]}${yearLabel ? ` ${yearLabel}` : ''}</div>
-          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">
-            ${monthSlice.map(m => `<span style="border:1px solid ${c.accent};border-radius:4px;padding:2px 8px;font-size:8.5pt;color:${c.text};font-weight:700">${m}</span>`).join('')}
-          </div>
           ${monthGoalRows ? `
           <table style="width:100%;border-collapse:collapse;margin-top:12px">
             ${monthGoalRows}
