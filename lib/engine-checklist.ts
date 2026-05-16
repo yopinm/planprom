@@ -13,9 +13,9 @@ export function generateChecklistHtml(data: ChecklistEngineData, watermarkText?:
     <tr>
       <td class="num">${i + 1}</td>
       <td class="item">${esc(item)}</td>
-      <td class="sc"><span class="cb">☐</span><br><span class="cl">ผ่าน</span></td>
-      <td class="sc"><span class="cb">☐</span><br><span class="cl">ไม่ผ่าน</span></td>
-      <td class="sc"><span class="cb">☐</span><br><span class="cl">N/A</span></td>
+      <td class="sc"><span class="cb">☐</span></td>
+      <td class="sc"><span class="cb">☐</span></td>
+      <td class="sc"><span class="cb">☐</span></td>
     </tr>`).join('')
 
   return `<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8">
@@ -28,7 +28,6 @@ ${wm ? `body::before{content:"${wm}";position:fixed;top:50%;left:50%;transform:t
 .hdr-title{font-size:15pt;font-weight:700;color:#065f46}
 .hdr-meta{display:flex;gap:20px;margin-top:5px;font-size:9pt;color:#6b7280;flex-wrap:wrap}
 .hdr-meta strong{color:#374151}
-.footer{position:fixed;bottom:0;left:0;right:0;z-index:10;background:#fff;display:flex;justify-content:space-between;font-size:8pt;color:#9ca3af;padding:3px 0;border-top:1px solid #f3f4f6}
 .sec{margin-bottom:14px;page-break-inside:avoid}
 .sec-hdr{background:#f0fdf4;border-left:4px solid #059669;padding:5px 10px;font-weight:700;font-size:10pt;color:#065f46;margin-bottom:8px}
 .mg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -123,9 +122,5 @@ tr:nth-child(even) td{background:#f9fafb}
   </div>
 </div>
 
-<div class="footer">
-  <span>แพลนพร้อม · www.planprom.com</span>
-  <span>${esc(s1.title)}${categoryName ? ` · ${esc(categoryName)}` : ''}</span>
-</div>
 </body></html>`
 }
