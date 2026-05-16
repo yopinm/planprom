@@ -47,13 +47,19 @@ function parseAccessSummary(lines: string[]) {
   const status4xx = lines.filter(l => / 4\d\d /.test(l)).length
   const status5xx = lines.filter(l => / 5\d\d /.test(l)).length
   const paths: Record<string, number> = {}
+  const paths4xx: Record<string, number> = {}
   for (const line of lines) {
     const m = line.match(/"(?:GET|POST|PUT|DELETE|PATCH) ([^\s"]+)/)
-    if (m) paths[m[1]] = (paths[m[1]] ?? 0) + 1
+    if (m) {
+      paths[m[1]] = (paths[m[1]] ?? 0) + 1
+      if (/ 4\d\d /.test(line)) paths4xx[m[1]] = (paths4xx[m[1]] ?? 0) + 1
+    }
   }
   const top_paths = Object.entries(paths).sort((a, b) => b[1] - a[1]).slice(0, 10)
     .map(([path, count]) => ({ path, count }))
-  return { total_lines: lines.length, status_4xx: status4xx, status_5xx: status5xx, top_paths }
+  const top_4xx_paths = Object.entries(paths4xx).sort((a, b) => b[1] - a[1]).slice(0, 5)
+    .map(([path, count]) => ({ path, count }))
+  return { total_lines: lines.length, status_4xx: status4xx, status_5xx: status5xx, top_paths, top_4xx_paths }
 }
 
 export default async function SystemLogPage({

@@ -1,7 +1,9 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { flushPm2Logs } from './actions'
 
 type Tab = 'pm2' | 'nginx-access' | 'nginx-error' | 'error-digest'
 
@@ -10,6 +12,7 @@ interface AccessSummary {
   status_4xx: number
   status_5xx: number
   top_paths: { path: string; count: number }[]
+  top_4xx_paths: { path: string; count: number }[]
 }
 
 export interface SystemLogData {
@@ -91,6 +94,9 @@ export function SystemLogClient({ data }: { data: SystemLogData }) {
   const [tab, setTab]         = useState<Tab>('pm2')
   const [pm2Type, setPm2Type] = useState<'stdout' | 'stderr'>('stdout')
   const [jsonCopied, setJsonCopied] = useState(false)
+  const [flushing, setFlushing] = useState(false)
+  const [flushMsg, setFlushMsg] = useState<{ ok: boolean; text: string } | null>(null)
+  const router = useRouter()
 
   const sizeKb = Math.round(data.json.length / 1024 * 10) / 10
 
@@ -107,6 +113,16 @@ export function SystemLogClient({ data }: { data: SystemLogData }) {
     a.download = `planprom-log-${data.exportedAt.slice(0, 10)}.json`
     a.click()
     URL.revokeObjectURL(url)
+  }
+
+  async function handleFlush() {
+    setFlushing(true)
+    setFlushMsg(null)
+    const result = await flushPm2Logs()
+    setFlushMsg({ ok: result.ok, text: result.ok ? '✅ PM2 logs cleared' : `❌ ${result.message}` })
+    setFlushing(false)
+    if (result.ok) router.refresh()
+    setTimeout(() => setFlushMsg(null), 4000)
   }
 
   const errorDigest = [
@@ -132,6 +148,7 @@ export function SystemLogClient({ data }: { data: SystemLogData }) {
     title: string
     desc: string
     detail?: { trigger: string; meaning: string; fix: string }
+    paths?: { path: string; count: number }[]
     action?: { label: string; onClick?: () => void; href?: string }
   }
   const alerts: Alert[] = []
@@ -170,6 +187,7 @@ export function SystemLogClient({ data }: { data: SystemLogData }) {
       icon: '🟠',
       title: '4xx สูงผิดปกติ',
       desc: `Nginx มี ${data.ngxAccSummary.status_4xx} รายการ — มี broken link หรือ path ผิด`,
+      paths: data.ngxAccSummary.top_4xx_paths.slice(0, 3),
       detail: {
         trigger: `Nginx Access log มี HTTP 4xx > 10 รายการ (ตอนนี้: ${data.ngxAccSummary.status_4xx})`,
         meaning: 'มี path ที่ถูกเรียกแต่ไม่มีอยู่ — อาจเป็น broken link, bot scan, หรือ path เปลี่ยนหลัง deploy',
@@ -205,6 +223,38 @@ export function SystemLogClient({ data }: { data: SystemLogData }) {
       },
     })
   }
+  const coveragePct = data.summary.categories > 0
+    ? Math.round((data.summary.published / data.summary.categories) * 100)
+    : 100
+  if (data.summary.categories > 0 && data.summary.published < data.summary.categories) {
+    alerts.push({
+      level: coveragePct < 20 ? 'warning' : 'info',
+      icon: '📊',
+      title: 'Template Coverage ต่ำ',
+      desc: `${data.summary.published}/${data.summary.categories} หมวด — cover ${coveragePct}%`,
+      detail: {
+        trigger: `มี ${data.summary.total_templates} template (${data.summary.published} published) ใน ${data.summary.categories} หมวดหมู่`,
+        meaning: 'หมวดหมู่ที่ไม่มี published template จะว่างเปล่าในหน้า catalog — ลูกค้าอาจออกจากหน้า',
+        fix: 'สร้าง template ใหม่ หรือ publish draft ที่มีอยู่ → เพิ่ม catalog coverage',
+      },
+      action: { label: '+ สร้าง Template', href: '/admin/templates/new' },
+    })
+  }
+  if (data.orders30d.pending_orders > 0) {
+    alerts.push({
+      level: 'info',
+      icon: '💳',
+      title: 'รอยืนยันชำระ',
+      desc: `${data.orders30d.pending_orders} ออเดอร์รอตรวจสอบ — ลูกค้ารอการยืนยัน`,
+      detail: {
+        trigger: `orders.status = 'pending' ใน 30 วันที่ผ่านมา (ตอนนี้: ${data.orders30d.pending_orders})`,
+        meaning: 'ลูกค้าได้แจ้งชำระแล้วแต่ยังไม่ได้รับการยืนยัน — อาจกระทบ conversion และความพึงพอใจ',
+        fix: 'ไปที่ Admin → Orders → กรอง pending → ยืนยันหรือปฏิเสธแต่ละออเดอร์',
+      },
+      action: { label: 'ดู Orders', href: '/admin/orders' },
+    })
+  }
+
   if (alerts.length === 0) {
     alerts.push({
       level: 'ok',
@@ -245,7 +295,7 @@ export function SystemLogClient({ data }: { data: SystemLogData }) {
               {data.exportedAt.replace('T', ' ').slice(0, 19)} UTC · {sizeKb} KB
             </p>
           </div>
-          <div className="flex gap-2 items-center">
+          <div className="flex flex-wrap gap-2 items-center justify-end">
             <button onClick={handleJsonCopy}
               className={`rounded-2xl px-4 py-2 text-xs font-black transition ${jsonCopied ? 'bg-emerald-600 text-white' : 'bg-black text-white hover:bg-neutral-800'}`}>
               {jsonCopied ? '✅ Copied!' : '📋 Export JSON'}
@@ -254,12 +304,57 @@ export function SystemLogClient({ data }: { data: SystemLogData }) {
               className="rounded-2xl border border-neutral-200 bg-white px-4 py-2 text-xs font-black text-neutral-600 shadow-sm hover:border-black transition">
               ⬇ Download
             </button>
+            <button
+              onClick={handleFlush}
+              disabled={flushing}
+              className="rounded-2xl border border-red-200 bg-red-50 px-4 py-2 text-xs font-black text-red-700 hover:bg-red-100 disabled:opacity-50 transition"
+            >
+              {flushing ? '⏳ กำลัง clear...' : '🗑 Clear PM2'}
+            </button>
             <Link href="/admin"
               className="rounded-2xl border border-neutral-200 bg-white px-4 py-2 text-xs font-black text-neutral-600 shadow-sm hover:border-black">
               ← Admin
             </Link>
           </div>
+          {flushMsg && (
+            <div className={`mt-2 text-right text-xs font-bold ${flushMsg.ok ? 'text-emerald-700' : 'text-red-700'}`}>
+              {flushMsg.text}
+            </div>
+          )}
         </div>
+
+        {/* Health Score banner */}
+        {(() => {
+          const hasError   = alerts.some(a => a.level === 'error')
+          const hasWarning = alerts.some(a => a.level === 'warning')
+          const allOk      = alerts.every(a => a.level === 'ok' || a.level === 'info')
+          const errorCount   = alerts.filter(a => a.level === 'error').length
+          const warningCount = alerts.filter(a => a.level === 'warning').length
+          const { icon, label, bg, text } = hasError
+            ? { icon: '🔴', label: 'ต้องแก้ด่วน', bg: 'bg-red-50 border-red-200', text: 'text-red-800' }
+            : hasWarning
+            ? { icon: '🟡', label: 'มีจุดที่ควรดู', bg: 'bg-amber-50 border-amber-200', text: 'text-amber-800' }
+            : allOk
+            ? { icon: '🟢', label: 'ระบบปกติ', bg: 'bg-emerald-50 border-emerald-200', text: 'text-emerald-800' }
+            : { icon: '🔵', label: 'ปกติดี', bg: 'bg-blue-50 border-blue-200', text: 'text-blue-800' }
+          const detail = hasError
+            ? `${errorCount} error · ${warningCount} warning — ตรวจสอบการ์ดด้านล่าง`
+            : hasWarning
+            ? `${warningCount} warning — ควรดูแล`
+            : 'ไม่มี error หรือ warning'
+          return (
+            <div className={`mb-4 flex items-center gap-3 rounded-2xl border px-5 py-3 ${bg}`}>
+              <span className="text-xl">{icon}</span>
+              <div className="flex-1">
+                <p className={`text-sm font-black ${text}`}>{label}</p>
+                <p className={`text-[11px] ${text} opacity-80`}>{detail}</p>
+              </div>
+              <span className={`text-[10px] font-black uppercase tracking-wider ${text} opacity-60`}>
+                Health Score
+              </span>
+            </div>
+          )
+        })()}
 
         {/* Alert cards */}
         <div className="mb-5">
@@ -285,6 +380,18 @@ export function SystemLogClient({ data }: { data: SystemLogData }) {
                     </div>
                     <p className="text-xs text-neutral-600 leading-relaxed">{a.desc}</p>
                   </button>
+
+                  {/* Top 4xx paths inline */}
+                  {a.paths && a.paths.length > 0 && (
+                    <div className="mx-4 mb-2 space-y-1">
+                      {a.paths.map(({ path, count }) => (
+                        <div key={path} className="flex items-center justify-between rounded-lg bg-white/60 border border-amber-100 px-2 py-1">
+                          <span className="font-mono text-[10px] text-neutral-600 truncate max-w-[80%]">{path}</span>
+                          <span className="text-[10px] font-black text-amber-700 ml-2 shrink-0">{count}x</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
                   {/* Expandable detail */}
                   {a.detail && isExpanded && (
