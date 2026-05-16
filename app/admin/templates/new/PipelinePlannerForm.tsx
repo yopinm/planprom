@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { PlannerPipelineDataV4, PipelineHorizon, PipelinePhase, PipelineBigRock, MonthlyPlanItem, WeeklyTaskItem, DailyRoutineItem } from '@/lib/engine-types'
 import type { PipelinePreset } from '@/lib/pipeline-presets'
 import type { SmartSuggestionResult } from './actions-preset'
@@ -9,16 +9,44 @@ import { PresetSelector } from './PresetSelector'
 const INPUT = 'w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none focus:border-violet-400 focus:bg-white transition'
 const LABEL = 'block text-[11px] font-black uppercase tracking-widest text-neutral-600 mb-1.5'
 
-function DynList({ items, onChange, placeholder, addLabel }: {
+function DynList({ items, onChange, placeholder, addLabel, accentColor = 'violet' }: {
   items: string[]; onChange: (v: string[]) => void
-  placeholder?: string; addLabel?: string
+  placeholder?: string; addLabel?: string; accentColor?: string
 }) {
+  const dragIdx = useRef<number | null>(null)
+  const [dragOver, setDragOver] = useState<number | null>(null)
+
+  function move(from: number, to: number) {
+    const n = [...items]
+    const [moved] = n.splice(from, 1)
+    n.splice(to, 0, moved)
+    onChange(n)
+  }
+
   return (
     <div className="space-y-2">
       {items.map((item, i) => (
-        <div key={i} className="flex gap-2">
-          <input value={item} onChange={e => { const n = [...items]; n[i] = e.target.value; onChange(n) }}
-            placeholder={placeholder ?? 'กรอก...'} className={INPUT} />
+        <div
+          key={i}
+          draggable
+          onDragStart={() => { dragIdx.current = i }}
+          onDragOver={e => { e.preventDefault(); setDragOver(i) }}
+          onDragLeave={() => setDragOver(null)}
+          onDrop={() => {
+            setDragOver(null)
+            if (dragIdx.current !== null && dragIdx.current !== i) move(dragIdx.current, i)
+            dragIdx.current = null
+          }}
+          onDragEnd={() => { dragIdx.current = null; setDragOver(null) }}
+          className={`flex gap-2 items-center rounded-lg transition-colors ${dragOver === i ? `bg-${accentColor}-50 ring-1 ring-${accentColor}-300` : ''}`}
+        >
+          <span className="cursor-grab active:cursor-grabbing text-neutral-300 hover:text-neutral-500 select-none px-1 text-base" title="ลากเพื่อเรียงลำดับ">⠿</span>
+          <input
+            value={item}
+            onChange={e => { const n = [...items]; n[i] = e.target.value; onChange(n) }}
+            placeholder={placeholder ?? 'กรอก...'}
+            className={INPUT}
+          />
           {items.length > 1 && (
             <button type="button" onClick={() => onChange(items.filter((_, j) => j !== i))}
               className="px-2 text-red-400 hover:text-red-600 text-sm">✕</button>
@@ -26,9 +54,58 @@ function DynList({ items, onChange, placeholder, addLabel }: {
         </div>
       ))}
       <button type="button" onClick={() => onChange([...items, ''])}
-        className="text-xs font-black text-violet-600 hover:text-violet-700">
+        className={`text-xs font-black text-${accentColor}-600 hover:text-${accentColor}-700 pl-6`}>
         + {addLabel ?? 'เพิ่มรายการ'}
       </button>
+    </div>
+  )
+}
+
+function DailyRoutineList({ items, onChange }: {
+  items: DailyRoutineItem[]; onChange: (v: DailyRoutineItem[]) => void
+}) {
+  const dragIdx = useRef<number | null>(null)
+  const [dragOver, setDragOver] = useState<number | null>(null)
+
+  function move(from: number, to: number) {
+    const n = [...items]
+    const [moved] = n.splice(from, 1)
+    n.splice(to, 0, moved)
+    onChange(n)
+  }
+
+  return (
+    <div className="space-y-2">
+      {items.map((dr, i) => (
+        <div
+          key={i}
+          draggable
+          onDragStart={() => { dragIdx.current = i }}
+          onDragOver={e => { e.preventDefault(); setDragOver(i) }}
+          onDragLeave={() => setDragOver(null)}
+          onDrop={() => {
+            setDragOver(null)
+            if (dragIdx.current !== null && dragIdx.current !== i) move(dragIdx.current, i)
+            dragIdx.current = null
+          }}
+          onDragEnd={() => { dragIdx.current = null; setDragOver(null) }}
+          className={`flex gap-2 items-center rounded-lg transition-colors ${dragOver === i ? 'bg-amber-50 ring-1 ring-amber-300' : ''}`}
+        >
+          <span className="cursor-grab active:cursor-grabbing text-neutral-300 hover:text-neutral-500 select-none px-1 text-base" title="ลากเพื่อเรียงลำดับ">⠿</span>
+          <input value={dr.time}
+            onChange={e => onChange(items.map((x, j) => j === i ? { ...x, time: e.target.value } : x))}
+            placeholder="06:00" className={`${INPUT} w-24`} />
+          <input value={dr.activity}
+            onChange={e => onChange(items.map((x, j) => j === i ? { ...x, activity: e.target.value } : x))}
+            placeholder="กิจกรรม" className={INPUT} />
+          {items.length > 1 && (
+            <button type="button" onClick={() => onChange(items.filter((_, j) => j !== i))}
+              className="text-red-400 text-sm px-1">✕</button>
+          )}
+        </div>
+      ))}
+      <button type="button" onClick={() => onChange([...items, { time: '', activity: '' }])}
+        className="text-xs font-black text-amber-600 hover:text-amber-700 pl-6">+ เพิ่ม routine</button>
     </div>
   )
 }
@@ -533,23 +610,13 @@ export function PipelinePlannerForm({ onChange, initialCatSlug }: Props) {
                   </div>
                   <div>
                     <label className={LABEL}>งานหลักอย่างน้อย 3 อย่าง</label>
-                    {mp.mainTasks.map((t, ti) => (
-                      <div key={ti} className="flex gap-1 mt-1">
-                        <input value={t}
-                          onChange={e => setMonthlyPlans(prev => prev.map((x, j) => j === i
-                            ? { ...x, mainTasks: x.mainTasks.map((m, k) => k === ti ? e.target.value : m) } : x))}
-                          placeholder={`งานที่ ${ti + 1}`} className={`${INPUT} flex-1`} />
-                        <button type="button"
-                          disabled={mp.mainTasks.length <= 3}
-                          onClick={() => setMonthlyPlans(prev => prev.map((x, j) => j === i
-                            ? { ...x, mainTasks: x.mainTasks.filter((_, k) => k !== ti) } : x))}
-                          className="px-2 rounded border border-red-200 text-red-400 hover:bg-red-50 disabled:opacity-30 disabled:cursor-not-allowed text-lg leading-none">−</button>
-                      </div>
-                    ))}
-                    <button type="button"
-                      onClick={() => setMonthlyPlans(prev => prev.map((x, j) => j === i
-                        ? { ...x, mainTasks: [...x.mainTasks, ''] } : x))}
-                      className="mt-2 text-xs text-emerald-600 hover:text-emerald-800 border border-emerald-200 rounded px-2 py-1 hover:bg-emerald-50">+ เพิ่มงาน</button>
+                    <DynList
+                      items={mp.mainTasks}
+                      onChange={tasks => setMonthlyPlans(prev => prev.map((x, j) => j === i ? { ...x, mainTasks: tasks } : x))}
+                      placeholder={`งานที่ 1`}
+                      addLabel="เพิ่มงาน"
+                      accentColor="sky"
+                    />
                   </div>
                 </div>
               ))}
@@ -581,34 +648,24 @@ export function PipelinePlannerForm({ onChange, initialCatSlug }: Props) {
                       placeholder="งานที่สำคัญที่สุด ถ้าทำได้แค่อย่างเดียวในสัปดาห์นี้" className={`${INPUT} font-bold`} />
                   </div>
                   <div>
-                    <label className={LABEL}>งานรอง 3 อย่าง (พยายามทำ)</label>
-                    {wp.secondary.map((s, si) => (
-                      <input key={si} value={s}
-                        onChange={e => setWeeklyPlans(prev => prev.map((x, j) => j === i
-                          ? { ...x, secondary: x.secondary.map((v, k) => k === si ? e.target.value : v) } : x))}
-                        placeholder={`งานรอง ${si + 1}`} className={`${INPUT} mt-1`} />
-                    ))}
+                    <label className={LABEL}>งานรอง (พยายามทำ)</label>
+                    <DynList
+                      items={wp.secondary}
+                      onChange={secondary => setWeeklyPlans(prev => prev.map((x, j) => j === i ? { ...x, secondary } : x))}
+                      placeholder="งานรอง"
+                      addLabel="เพิ่มงานรอง"
+                      accentColor="sky"
+                    />
                   </div>
                   <div>
-                    <label className={LABEL}>งานเล็ก 5 อย่าง (อย่างน้อยถ้ามีเวลา)</label>
-                    <div className="space-y-1.5 mt-1">
-                      {wp.small.map((s, si) => (
-                        <div key={si} className="flex gap-2">
-                          <input value={s}
-                            onChange={e => setWeeklyPlans(prev => prev.map((x, j) => j === i
-                              ? { ...x, small: x.small.map((v, k) => k === si ? e.target.value : v) } : x))}
-                            placeholder={`งานเล็ก ${si + 1}`} className={INPUT} />
-                          {wp.small.length > 1 && (
-                            <button type="button" onClick={() => setWeeklyPlans(prev => prev.map((x, j) => j === i
-                              ? { ...x, small: x.small.filter((_, k) => k !== si) } : x))}
-                              className="px-2 text-red-400 hover:text-red-600 text-sm">✕</button>
-                          )}
-                        </div>
-                      ))}
-                      <button type="button" onClick={() => setWeeklyPlans(prev => prev.map((x, j) => j === i
-                        ? { ...x, small: [...x.small, ''] } : x))}
-                        className="text-xs font-black text-sky-600 hover:text-sky-700">+ เพิ่มงานเล็ก</button>
-                    </div>
+                    <label className={LABEL}>งานเล็ก (อย่างน้อยถ้ามีเวลา)</label>
+                    <DynList
+                      items={wp.small}
+                      onChange={small => setWeeklyPlans(prev => prev.map((x, j) => j === i ? { ...x, small } : x))}
+                      placeholder="งานเล็ก"
+                      addLabel="เพิ่มงานเล็ก"
+                      accentColor="sky"
+                    />
                   </div>
                 </div>
               ))}
@@ -702,34 +759,24 @@ export function PipelinePlannerForm({ onChange, initialCatSlug }: Props) {
                                 placeholder="งานที่สำคัญที่สุดสัปดาห์นี้" className={INPUT} />
                             </div>
                             <div>
-                              <label className={LABEL}>งานรอง 3 อย่าง (พยายามทำ)</label>
-                              {wt.secondary.map((s, si) => (
-                                <input key={si} value={s}
-                                  onChange={e => setWeeklyTasks(prev => prev.map((x, j) => j === gi
-                                    ? { ...x, secondary: x.secondary.map((v, k) => k === si ? e.target.value : v) } : x))}
-                                  placeholder={`งานรอง ${si + 1}`} className={`${INPUT} mt-1`} />
-                              ))}
+                              <label className={LABEL}>งานรอง (พยายามทำ)</label>
+                              <DynList
+                                items={wt.secondary}
+                                onChange={secondary => setWeeklyTasks(prev => prev.map((x, j) => j === gi ? { ...x, secondary } : x))}
+                                placeholder="งานรอง"
+                                addLabel="เพิ่มงานรอง"
+                                accentColor="amber"
+                              />
                             </div>
                             <div>
-                              <label className={LABEL}>งานเล็ก 5 อย่าง (อย่างน้อยถ้ามีเวลา)</label>
-                              <div className="space-y-1.5 mt-1">
-                                {wt.small.map((s, si) => (
-                                  <div key={si} className="flex gap-2">
-                                    <input value={s}
-                                      onChange={e => setWeeklyTasks(prev => prev.map((x, j) => j === gi
-                                        ? { ...x, small: x.small.map((v, k) => k === si ? e.target.value : v) } : x))}
-                                      placeholder={`งานเล็ก ${si + 1}`} className={INPUT} />
-                                    {wt.small.length > 1 && (
-                                      <button type="button" onClick={() => setWeeklyTasks(prev => prev.map((x, j) => j === gi
-                                        ? { ...x, small: x.small.filter((_, k) => k !== si) } : x))}
-                                        className="px-2 text-red-400 hover:text-red-600 text-sm">✕</button>
-                                    )}
-                                  </div>
-                                ))}
-                                <button type="button" onClick={() => setWeeklyTasks(prev => prev.map((x, j) => j === gi
-                                  ? { ...x, small: [...x.small, ''] } : x))}
-                                  className="text-xs font-black text-amber-600 hover:text-amber-700">+ เพิ่มงานเล็ก</button>
-                              </div>
+                              <label className={LABEL}>งานเล็ก (อย่างน้อยถ้ามีเวลา)</label>
+                              <DynList
+                                items={wt.small}
+                                onChange={small => setWeeklyTasks(prev => prev.map((x, j) => j === gi ? { ...x, small } : x))}
+                                placeholder="งานเล็ก"
+                                addLabel="เพิ่มงานเล็ก"
+                                accentColor="amber"
+                              />
                             </div>
                           </div>
                         )
@@ -745,22 +792,7 @@ export function PipelinePlannerForm({ onChange, initialCatSlug }: Props) {
           {(horizon === 'monthly' || horizon === 'project') && (
             <div className="px-4 py-4 space-y-3">
               <p className="text-xs text-neutral-500">กรอกตารางประจำวันที่แนะนำ — เพิ่มช่วงเวลาได้ไม่จำกัด</p>
-              {dailyRoutines.map((dr, i) => (
-                <div key={i} className="flex gap-2">
-                  <input value={dr.time}
-                    onChange={e => setDailyRoutines(prev => prev.map((x, j) => j === i ? { ...x, time: e.target.value } : x))}
-                    placeholder="06:00" className={`${INPUT} w-24`} />
-                  <input value={dr.activity}
-                    onChange={e => setDailyRoutines(prev => prev.map((x, j) => j === i ? { ...x, activity: e.target.value } : x))}
-                    placeholder="กิจกรรม" className={INPUT} />
-                  {dailyRoutines.length > 1 && (
-                    <button type="button" onClick={() => setDailyRoutines(prev => prev.filter((_, j) => j !== i))}
-                      className="text-red-400 text-sm px-1">✕</button>
-                  )}
-                </div>
-              ))}
-              <button type="button" onClick={() => setDailyRoutines(prev => [...prev, { time: '', activity: '' }])}
-                className="text-xs font-black text-amber-600 hover:text-amber-700">+ เพิ่ม routine</button>
+              <DailyRoutineList items={dailyRoutines} onChange={setDailyRoutines} />
             </div>
           )}
         </div>
