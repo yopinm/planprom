@@ -609,6 +609,37 @@ CREATE TABLE admin_users (
 
 ---
 
+## Session 82 Changes (2026-05-16) — Engine Preset System v2.0 + Log Dashboard
+
+| # | Change | Status |
+|---|---|---|
+| 1 | **Engine Preset System v2.0** — mode `engine-preset` ใน Admin Wizard · Stage 0 preset selector ก่อน Stage 1-5 · 6 Archetypes (ONE-SHOT/ACCUMULATE/HABIT/PROJECT/GROWTH/LIFE-OPS) · 9 presets พร้อม defaults (goal/why/deadline/horizon/colorTheme/reviewQuestions) | ✅ Live |
+| 2 | **Guided Wizard (ArchetypeDecisionTree)** — 5 question nodes → 8 result nodes · history stack ย้อนกลับ/เริ่มใหม่ได้ | ✅ Live |
+| 3 | **Smart Suggestion A+B+C** — server action `getSmartPresetSuggestions`: A=horizon clustering · B=sales amplification · C=gap detection · fallback → static mapping | ✅ Live |
+| 4 | **Preset UX** — number badge 1-9 บนทุก preset card · sticky CTA bar "ถัดไป →" หลังเลือก · SmartSourceBadge แสดง source (📊/⚡) | ✅ Live |
+| 5 | **Log Dashboard — Health Score banner** — 🟢/🟡/🔴 banner สรุป alert signals ทั้งหมดด้านบน cards | ✅ Live |
+| 6 | **Log Dashboard — Template Coverage card** — published/categories ratio + CTA → /admin/templates/new | ✅ Live |
+| 7 | **Log Dashboard — Pending Orders card** — ปรากฏเมื่อ pending_orders > 0 + CTA → /admin/orders | ✅ Live |
+| 8 | **Log Dashboard — top-4xx paths inline** — 4xx card แสดง top-3 paths โดยตรง ไม่ต้องไปเปิด tab | ✅ Live |
+| 9 | **Log Dashboard — Clear PM2 button** — 🗑 ในแถว header → `pm2 flush planprom` server action → router.refresh() | ✅ Live |
+
+### Files Changed
+| File | Change |
+|---|---|
+| `lib/pipeline-presets.ts` | NEW — ARCHETYPES · PRESETS (9) · DECISION_TREE · CAT_SLUG_TO_PRESETS · helper functions |
+| `app/admin/templates/new/actions-preset.ts` | NEW — `getSmartPresetSuggestions` server action (A+B+C scoring) |
+| `app/admin/templates/new/ArchetypeDecisionTree.tsx` | NEW — Guided Wizard component (history stack navigation) |
+| `app/admin/templates/new/PresetSelector.tsx` | NEW — Stage 0 preset selector (smart suggestions + all presets + sticky CTA) |
+| `app/admin/templates/new/PipelinePlannerForm.tsx` | Stage 0 integration · `applyPreset` · `initialCatSlug` prop · stage labels 0-5 |
+| `app/admin/templates/new/WizardClient.tsx` | mode `engine-preset` · mode card "Engine: Planner Preset (แนะนำ)" |
+| `app/admin/report/log/actions.ts` | NEW — `flushPm2Logs` server action |
+| `app/admin/report/log/page.tsx` | `parseAccessSummary` + `top_4xx_paths` |
+| `app/admin/report/log/SystemLogClient.tsx` | Health Score banner · Template Coverage/Pending Orders cards · paths inline · Clear PM2 button |
+
+⏳ **UAT Pending:** Engine Preset — Guided Wizard end-to-end · Skip preset · Smart Suggestion badge · PDF round-trip
+
+---
+
 ## Session 81 Changes (2026-05-16) — PDF Footer Thai Font + Checklist Drag Reorder
 
 | # | Change | Status |

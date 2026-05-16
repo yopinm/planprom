@@ -29,11 +29,11 @@
 | **Doc Sync** | task เสร็จ → อัพเดต PRD.md + `core/planprom.md` เสมอ |
 | **Scope Gate** | ก่อนเริ่ม implement ทุก task → ต้องมี scope + flow ใน `core/planprom.md` ก่อน → commit docs → รอ owner confirm → ค่อย implement |
 | **Blockers** | Lazada pool=49 fixed · Affiliate tasks ❌ CLOSED 2026-05-13 (owner decision) |
-| **Next task** | **Planner/Form/Report engine UAT** ⏳ → INTEL-SMART UAT 🟡 |
+| **Next task** | **Engine Preset UAT** ⏳ (Guided Wizard · Smart Suggestion · PDF round-trip) |
 | **Pending (code)** | E9/E10 · UI-G(defer) |
-| **Pending (UAT)** | **Engine UAT** 🟡 (Planner/Form/Report — Checklist ✅ · Upload PDF ✅) · **INTEL-SMART** 🟡 (trend arrows) · INTEL-BLOG-SCORE 🔲 · INTEL-C/D · DC-1 · DC-2 · DC-8 · DC-16 · E9/E10 · J9(รอ live keys) |
+| **Pending (UAT)** | **Engine Preset UAT** ⏳ (Guided Wizard/Skip/Smart Suggestion · PDF round-trip) · **Engine UAT** 🟡 (Planner/Form/Report — Checklist ✅ · Upload PDF ✅) · **INTEL-SMART** 🟡 (trend arrows) · INTEL-BLOG-SCORE 🔲 · INTEL-C/D · DC-1 · DC-2 · DC-8 · DC-16 · E9/E10 · J9(รอ live keys) |
 | **Pending (decision)** | Homepage UX: D (social proof bar) + B (featured badge pulse) — mock ready รอ confirm |
-| **Last session** | **Session 80 (2026-05-16)** — Planner Pipeline mainTasks: ลบตัวเลขใน PDF · dynamic +/− fields (min=3) · label → "อย่างน้อย 3 อย่าง" |
+| **Last session** | **Session 82 (2026-05-16)** — Engine Preset System v2.0 + Log Dashboard (Health Score · decision cards · Clear PM2) |
 | **ห้าม** | ไม่แตะ Later task ขณะที่ Now ยังค้างอยู่ · ไม่แตะ secrets โดยตรง · ไม่ทำให้ revenue channel หายไประหว่าง pivot |
 | **Security rule** | ทุก admin feature ต้องตรวจ: role check · PII mask · no path disclosure · spawnSync array args (ดู §23 Manual) |
 
@@ -196,6 +196,7 @@
 | **DC-1** | Standard PDF Generator (.docx → A4) — checklist/planner UAT | 🟡 **Code Done · UAT Pending** |
 | **DC-2** | TOC Preview สารบัญ — toggle /templates · always-expanded /templates/[slug] | 🟡 **Code Done · UAT Pending** |
 | **DC-16** | Planner Pipeline v4 — 5-section time-cascade | 🟡 **UAT Pending** |
+| **Engine Preset (S82)** | Engine Preset System v2.0 — 6 archetypes · 9 presets · Guided Wizard · Smart Suggestion A+B+C | ⏳ **UAT Pending (Session 82)** |
 | **PDF-FOOTER** | Footer position fix — margin.bottom 28mm→8mm ทุก engine (checklist/planner/form/report/pipeline) + Noto Sans Thai font fix | ✅ **Done · UAT ผ่าน (Session 81 · 2026-05-16)** |
 | **E9/E10** | Engine preview card บน /templates/[slug] (checklist/planner green/violet) | 🟡 **UAT Pending** |
 | **J9** | Live Omise keys → real QR scan test (G4 pending) | 🟡 **รอ owner ตั้ง live keys** |
@@ -204,6 +205,8 @@
 
 | Session | สถานะ |
 |---|---|
+| **Session 82 (2026-05-16) — Engine Preset System v2.0 + Log Dashboard** | ✅ Live — mode `engine-preset` · Stage 0 preset selector · 6 archetypes · 9 presets · Guided Wizard · Smart Suggestion A+B+C · Health Score banner · decision cards · top-4xx paths inline · Clear PM2 button |
+| **Session 81 (2026-05-16) — PDF Footer Thai Font + Checklist Drag** | ✅ Live — Noto Sans Thai font ใน footerTemplate · drag-and-drop reorder checklist items (create + revise mode) |
 | **Session 80 (2026-05-16) — Planner Pipeline mainTasks UX** | ✅ Live — ลบตัวเลขนำหน้า (1/2/3) ออกจาก PDF · dynamic +/− fields min=3 · label "งานหลักอย่างน้อย 3 อย่าง" ทั้ง form + PDF |
 | **Session 79 (2026-05-15) — LINE Floating Button UX fix** | ✅ Live — ย้าย `FloatingLineButton` จาก `bottom-right` → `bottom-left` · speech bubble arrow ย้ายตาม · แก้ปัญหาทับ add-to-cart modal บน mobile |
 | **Session 78 (2026-05-15) — Planner Pipeline UX + 1-3-5** | ✅ Live — Yearly: weekly task form grouped by month (header มกราคม/กุมภาพันธ์…) + weeksPerMonth selector (3/4/5) + auto-sync slots · 1-3-6 → 1-3-5 ทุกจุด (engine PDF label + slice(0,5) · form default small 6→5 · ReviseClient card titles) |
