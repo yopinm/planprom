@@ -1,7 +1,8 @@
 'use client'
 import { useState } from 'react'
-import { PRESETS, ARCHETYPES, getPresetsForCatSlug, getArchetypeById } from '@/lib/pipeline-presets'
+import { PRESETS, ARCHETYPES, getPresetsForCatSlug, getArchetypeById, getPresetById } from '@/lib/pipeline-presets'
 import type { PipelinePreset } from '@/lib/pipeline-presets'
+import type { SmartSuggestionResult } from './actions-preset'
 import { ArchetypeDecisionTree } from './ArchetypeDecisionTree'
 
 interface Props {
@@ -9,6 +10,8 @@ interface Props {
   selectedPresetId: string | null
   onSelect: (preset: PipelinePreset) => void
   onNext?: () => void
+  smartSuggestions?: SmartSuggestionResult | null
+  smartLoading?: boolean
 }
 
 const ARCHETYPE_COLORS: Record<string, { bg: string; text: string; border: string; activeBorder: string; badge: string }> = {
@@ -23,10 +26,35 @@ const ARCHETYPE_COLORS: Record<string, { bg: string; text: string; border: strin
 // global sequential number per preset id
 const PRESET_NUMBER: Record<string, number> = Object.fromEntries(PRESETS.map((p, i) => [p.id, i + 1]))
 
-export function PresetSelector({ catSlug, selectedPresetId, onSelect, onNext }: Props) {
+// Source label for smart suggestions
+function SmartSourceBadge({ result }: { result: SmartSuggestionResult }) {
+  const { source, signals } = result
+  if (source === 'static') {
+    return (
+      <span className="text-[10px] font-bold text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">
+        ⚡ default mapping
+      </span>
+    )
+  }
+  const parts: string[] = []
+  if (signals.templateCount > 0) parts.push(`${signals.templateCount} templates`)
+  if (signals.hasSalesData)      parts.push('มียอดขาย')
+  if (signals.gapHorizons.length > 0) parts.push(`gap ${signals.gapHorizons.join('/')}`)
+  return (
+    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+      📊 {source} — {parts.join(' · ')}
+    </span>
+  )
+}
+
+export function PresetSelector({ catSlug, selectedPresetId, onSelect, onNext, smartSuggestions, smartLoading }: Props) {
   const [showWizard, setShowWizard] = useState(false)
 
-  const suggested = catSlug ? getPresetsForCatSlug(catSlug) : []
+  // suggestion: smart result takes priority over static mapping
+  const staticSuggested = catSlug ? getPresetsForCatSlug(catSlug) : []
+  const suggestedIds = smartSuggestions?.presetIds ?? staticSuggested.map(p => p.id)
+  const suggested = suggestedIds.map(id => getPresetById(id)).filter((p): p is PipelinePreset => !!p)
+
   const selectedPreset = PRESETS.find(p => p.id === selectedPresetId) ?? null
 
   return (
@@ -35,48 +63,64 @@ export function PresetSelector({ catSlug, selectedPresetId, onSelect, onNext }: 
         เลือก preset → ระบบ pre-fill ค่าเริ่มต้น — แก้ไขได้ทุก stage ภายหลัง
       </p>
 
-      {/* Smart suggestion from catalog */}
-      {suggested.length > 0 && (
+      {/* Smart suggestion */}
+      {(suggested.length > 0 || smartLoading) && (
         <div className="rounded-xl border border-amber-300 bg-amber-50 p-4">
-          <p className="text-[11px] font-black uppercase tracking-widest text-amber-700 mb-3">
-            ⚡ แนะนำจาก catalog &quot;{catSlug}&quot;
-          </p>
-          <div className="space-y-2">
-            {suggested.map(preset => {
-              const colors = ARCHETYPE_COLORS[preset.archetypeId] ?? ARCHETYPE_COLORS['project']
-              const archetype = getArchetypeById(preset.archetypeId)
-              const num = PRESET_NUMBER[preset.id]
-              const isSelected = selectedPresetId === preset.id
-              return (
-                <button
-                  key={preset.id}
-                  type="button"
-                  onClick={() => onSelect(preset)}
-                  className={`w-full flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-left transition
-                    ${isSelected ? `${colors.activeBorder} ${colors.bg} shadow-sm` : 'border-amber-200 bg-white hover:border-amber-400'}`}
-                >
-                  {/* number badge */}
-                  <span className={`shrink-0 w-6 h-6 flex items-center justify-center rounded-full text-[11px] font-black
-                    ${isSelected ? 'bg-amber-600 text-white' : 'bg-amber-200 text-amber-700'}`}>
-                    {num}
-                  </span>
-                  <span className="text-xl shrink-0">{preset.emoji}</span>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-black text-sm text-neutral-900">{preset.name}</p>
-                      {archetype && (
-                        <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded ${colors.badge}`}>
-                          {archetype.emoji} {archetype.name}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-neutral-500 truncate mt-0.5">{preset.description}</p>
-                  </div>
-                  {isSelected && <span className="text-amber-600 font-black shrink-0 text-lg">✓</span>}
-                </button>
-              )
-            })}
+          <div className="flex items-center gap-2 mb-3 flex-wrap">
+            <p className="text-[11px] font-black uppercase tracking-widest text-amber-700">
+              แนะนำสำหรับ &quot;{catSlug}&quot;
+            </p>
+            {smartLoading && (
+              <span className="text-[10px] font-bold text-neutral-400 animate-pulse">⏳ วิเคราะห์...</span>
+            )}
+            {!smartLoading && smartSuggestions && <SmartSourceBadge result={smartSuggestions} />}
+            {!smartLoading && !smartSuggestions && (
+              <span className="text-[10px] font-bold text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">⚡ default</span>
+            )}
           </div>
+          {smartLoading ? (
+            <div className="space-y-2">
+              {[1, 2].map(i => (
+                <div key={i} className="h-14 rounded-xl bg-amber-100 animate-pulse" />
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {suggested.map(preset => {
+                const colors = ARCHETYPE_COLORS[preset.archetypeId] ?? ARCHETYPE_COLORS['project']
+                const archetype = getArchetypeById(preset.archetypeId)
+                const num = PRESET_NUMBER[preset.id]
+                const isSelected = selectedPresetId === preset.id
+                return (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    onClick={() => onSelect(preset)}
+                    className={`w-full flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-left transition
+                      ${isSelected ? `${colors.activeBorder} ${colors.bg} shadow-sm` : 'border-amber-200 bg-white hover:border-amber-400'}`}
+                  >
+                    <span className={`shrink-0 w-6 h-6 flex items-center justify-center rounded-full text-[11px] font-black
+                      ${isSelected ? 'bg-amber-600 text-white' : 'bg-amber-200 text-amber-700'}`}>
+                      {num}
+                    </span>
+                    <span className="text-xl shrink-0">{preset.emoji}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-black text-sm text-neutral-900">{preset.name}</p>
+                        {archetype && (
+                          <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded ${colors.badge}`}>
+                            {archetype.emoji} {archetype.name}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-neutral-500 truncate mt-0.5">{preset.description}</p>
+                    </div>
+                    {isSelected && <span className="text-amber-600 font-black shrink-0 text-lg">✓</span>}
+                  </button>
+                )
+              })}
+            </div>
+          )}
         </div>
       )}
 

@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react'
 import type { PlannerPipelineDataV4, PipelineHorizon, PipelinePhase, PipelineBigRock, MonthlyPlanItem, WeeklyTaskItem, DailyRoutineItem } from '@/lib/engine-types'
 import type { PipelinePreset } from '@/lib/pipeline-presets'
+import type { SmartSuggestionResult } from './actions-preset'
+import { getSmartPresetSuggestions } from './actions-preset'
 import { PresetSelector } from './PresetSelector'
 
 const INPUT = 'w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none focus:border-violet-400 focus:bg-white transition'
@@ -49,6 +51,8 @@ const STAGE_COLORS = [
 export function PipelinePlannerForm({ onChange, initialCatSlug }: Props) {
   const [stage, setStage] = useState(0)
   const [stage0Preset, setStage0Preset] = useState<PipelinePreset | null>(null)
+  const [smartSuggestions, setSmartSuggestions] = useState<SmartSuggestionResult | null>(null)
+  const [smartLoading, setSmartLoading] = useState(false)
 
   // META
   const [displayTitle, setDisplayTitle] = useState('')
@@ -90,6 +94,16 @@ export function PipelinePlannerForm({ onChange, initialCatSlug }: Props) {
   const [reviewQs,    setReviewQs]    = useState(['ทำสำเร็จอะไรบ้างในรอบนี้?', 'สิ่งที่ยังติดขัดคืออะไร?', 'จะปรับแผนอย่างไรในรอบหน้า?'])
 
   const MONTH_ABBR = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.']
+
+  // Load smart suggestions when catalog slug is known (A→B→C engine)
+  useEffect(() => {
+    if (!initialCatSlug) return
+    setSmartLoading(true)
+    getSmartPresetSuggestions(initialCatSlug)
+      .then(result => setSmartSuggestions(result))
+      .catch(() => setSmartSuggestions(null))
+      .finally(() => setSmartLoading(false))
+  }, [initialCatSlug])
 
   // Sync monthlyPlans to month range (yearly) — keyed by label to preserve typed content
   useEffect(() => {
@@ -259,6 +273,8 @@ export function PipelinePlannerForm({ onChange, initialCatSlug }: Props) {
               selectedPresetId={stage0Preset?.id ?? null}
               onSelect={applyPreset}
               onNext={() => setStage(1)}
+              smartSuggestions={smartSuggestions}
+              smartLoading={smartLoading}
             />
           </div>
         </div>
