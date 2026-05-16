@@ -106,7 +106,7 @@ export async function POST(req: NextRequest) {
       pdfOpts.margin = { top: '20mm', right: '20mm', bottom: '18mm', left: '20mm' }
       pdfOpts.displayHeaderFooter = true
       pdfOpts.headerTemplate = '<span></span>'
-      pdfOpts.footerTemplate = `<div style="width:100%;font-size:8pt;color:#9ca3af;display:flex;justify-content:space-between;padding:0 20mm;box-sizing:border-box;font-family:sans-serif"><span>แพลนพร้อม · www.planprom.com</span><span>${ftEsc(ftRight)}</span></div>`
+      pdfOpts.footerTemplate = `<div style="width:100%;font-size:8pt;color:#9ca3af;display:flex;justify-content:space-between;padding:0 20mm;box-sizing:border-box;font-family:'Noto Sans Thai',sans-serif"><span>แพลนพร้อม · www.planprom.com</span><span>${ftEsc(ftRight)}</span></div>`
     }
     const pdf = await page.pdf(pdfOpts)
     await writeFile(path.join(uploadBase, pdfFilename), pdf)
