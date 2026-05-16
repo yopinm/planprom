@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { ChecklistEngineData } from '@/lib/engine-types'
 
 const INPUT = 'w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none focus:border-emerald-400 focus:bg-white transition'
@@ -9,10 +9,37 @@ function DynList({ items, onChange, placeholder, addLabel }: {
   items: string[]; onChange: (v: string[]) => void
   placeholder?: string; addLabel?: string
 }) {
+  const dragIdx = useRef<number | null>(null)
+  const [dragOver, setDragOver] = useState<number | null>(null)
+
+  function move(from: number, to: number) {
+    const n = [...items]
+    const [moved] = n.splice(from, 1)
+    n.splice(to, 0, moved)
+    onChange(n)
+  }
+
   return (
     <div className="space-y-2">
       {items.map((item, i) => (
-        <div key={i} className="flex gap-2">
+        <div
+          key={i}
+          draggable
+          onDragStart={() => { dragIdx.current = i }}
+          onDragOver={e => { e.preventDefault(); setDragOver(i) }}
+          onDragLeave={() => setDragOver(null)}
+          onDrop={() => {
+            setDragOver(null)
+            if (dragIdx.current !== null && dragIdx.current !== i) move(dragIdx.current, i)
+            dragIdx.current = null
+          }}
+          onDragEnd={() => { dragIdx.current = null; setDragOver(null) }}
+          className={`flex gap-2 items-center rounded-lg transition-colors ${dragOver === i ? 'bg-emerald-50 ring-1 ring-emerald-300' : ''}`}
+        >
+          <span
+            className="cursor-grab active:cursor-grabbing text-neutral-300 hover:text-neutral-500 select-none px-1 text-base"
+            title="ลากเพื่อเรียงลำดับ"
+          >⠿</span>
           <input
             value={item}
             onChange={e => { const n=[...items]; n[i]=e.target.value; onChange(n) }}
@@ -26,7 +53,7 @@ function DynList({ items, onChange, placeholder, addLabel }: {
         </div>
       ))}
       <button type="button" onClick={() => onChange([...items,''])}
-        className="text-xs font-black text-emerald-600 hover:text-emerald-700">
+        className="text-xs font-black text-emerald-600 hover:text-emerald-700 pl-6">
         + {addLabel ?? 'เพิ่มรายการ'}
       </button>
     </div>
