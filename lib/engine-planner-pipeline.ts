@@ -178,9 +178,13 @@ ${wm ? `body::before{content:"${wm}";position:fixed;top:50%;left:50%;transform:t
 </style></head><body>
 
 <div class="hdr">
-  <div class="hdr-title">${esc(meta.title)}</div>
-  ${meta.description.trim() ? `<div class="hdr-sub">${esc(meta.description)}</div>` : ''}
-  <div class="hdr-sub" style="text-align:right">www.planprom.com</div>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start">
+    <div>
+      <div class="hdr-title">${esc(meta.title)}</div>
+      ${meta.description.trim() ? `<div class="hdr-sub">${esc(meta.description)}</div>` : ''}
+    </div>
+    <div class="hdr-sub" style="margin-top:2px;white-space:nowrap">www.planprom.com</div>
+  </div>
 </div>
 
 <div class="sec">
@@ -638,9 +642,13 @@ ${wm ? `body::before{content:"${wm}";position:fixed;top:50%;left:50%;transform:t
 </style></head><body>
 
 <div class="hdr">
-  <div class="hdr-title">${esc(meta.title)}</div>
-  ${meta.description.trim() ? `<div class="hdr-sub">${esc(meta.description)}</div>` : ''}
-  <div class="hdr-sub" style="text-align:right">www.planprom.com</div>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start">
+    <div>
+      <div class="hdr-title">${esc(meta.title)}</div>
+      ${meta.description.trim() ? `<div class="hdr-sub">${esc(meta.description)}</div>` : ''}
+    </div>
+    <div class="hdr-sub" style="margin-top:2px;white-space:nowrap">www.planprom.com</div>
+  </div>
 </div>
 
 ${s1Html}
