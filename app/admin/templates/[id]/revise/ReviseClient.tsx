@@ -24,10 +24,34 @@ function DynList({ items, onChange, placeholder, addLabel, color = 'emerald' }: 
   const btnCls = color === 'violet'
     ? 'text-xs font-black text-violet-600 hover:text-violet-700'
     : 'text-xs font-black text-emerald-600 hover:text-emerald-700'
+  const dragIdx = useRef<number | null>(null)
+  const [dragOver, setDragOver] = useState<number | null>(null)
+
+  function move(from: number, to: number) {
+    const n = [...items]
+    const [moved] = n.splice(from, 1)
+    n.splice(to, 0, moved)
+    onChange(n)
+  }
+
   return (
     <div className="space-y-2">
       {items.map((item, i) => (
-        <div key={i} className="flex gap-2">
+        <div
+          key={i}
+          draggable
+          onDragStart={() => { dragIdx.current = i }}
+          onDragOver={e => { e.preventDefault(); setDragOver(i) }}
+          onDragLeave={() => setDragOver(null)}
+          onDrop={() => {
+            setDragOver(null)
+            if (dragIdx.current !== null && dragIdx.current !== i) move(dragIdx.current, i)
+            dragIdx.current = null
+          }}
+          onDragEnd={() => { dragIdx.current = null; setDragOver(null) }}
+          className={`flex gap-2 items-center rounded-lg transition-colors ${dragOver === i ? 'bg-amber-50 ring-1 ring-amber-300' : ''}`}
+        >
+          <span className="cursor-grab active:cursor-grabbing text-neutral-300 hover:text-neutral-500 select-none px-1 text-base" title="ลากเพื่อเรียงลำดับ">⠿</span>
           <input value={item} onChange={e => { const n = [...items]; n[i] = e.target.value; onChange(n) }}
             placeholder={placeholder ?? 'กรอก...'} className={INPUT} />
           {items.length > 1 && (
@@ -36,7 +60,7 @@ function DynList({ items, onChange, placeholder, addLabel, color = 'emerald' }: 
           )}
         </div>
       ))}
-      <button type="button" onClick={() => onChange([...items, ''])} className={btnCls}>
+      <button type="button" onClick={() => onChange([...items, ''])} className={`${btnCls} pl-6`}>
         + {addLabel ?? 'เพิ่มรายการ'}
       </button>
     </div>
