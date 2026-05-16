@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
     const pdf = await page.pdf({
       format: 'A4',
       printBackground: true,
-      margin: { top: '20mm', right: '20mm', bottom: '28mm', left: '20mm' },
+      margin: { top: '20mm', right: '20mm', bottom: '14mm', left: '20mm' },
     })
     await writeFile(path.join(uploadBase, pdfFilename), pdf)
   } catch (err) {

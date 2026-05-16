@@ -168,7 +168,7 @@ export function generatePlannerPipelineHtml(data: PlannerPipelineData, watermark
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Sarabun',Arial,sans-serif;font-size:11pt;line-height:1.6;color:#1a1a1a}
 ${wm ? `body::before{content:"${wm}";position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-45deg);font-size:70pt;font-weight:900;color:rgba(0,0,0,0.04);white-space:nowrap;z-index:0;pointer-events:none}` : ''}
-.hdr{border-bottom:3px solid ${c.accent};padding-bottom:10px;margin-bottom:14px}
+.hdr{border-bottom:3px solid ${c.accent};padding-bottom:4px;margin-bottom:14px}
 .hdr-title{font-size:15pt;font-weight:700;color:${c.text}}
 .hdr-sub{font-size:9pt;color:#6b7280;margin-top:3px}
 .footer{position:fixed;bottom:0;left:0;right:0;z-index:10;background:#fff;display:flex;justify-content:space-between;font-size:8pt;color:#9ca3af;padding:3px 0;border-top:1px solid #f3f4f6}
@@ -628,7 +628,7 @@ export function generatePlannerPipelineHtmlV4(data: PlannerPipelineDataV4, water
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Sarabun',Arial,sans-serif;font-size:11pt;line-height:1.6;color:#1a1a1a}
 ${wm ? `body::before{content:"${wm}";position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-45deg);font-size:70pt;font-weight:900;color:rgba(0,0,0,0.04);white-space:nowrap;z-index:0;pointer-events:none}` : ''}
-.hdr{border-bottom:3px solid ${c.accent};padding-bottom:10px;margin-bottom:14px}
+.hdr{border-bottom:3px solid ${c.accent};padding-bottom:4px;margin-bottom:14px}
 .hdr-title{font-size:15pt;font-weight:700;color:${c.text}}
 .hdr-sub{font-size:9pt;color:#6b7280;margin-top:3px}
 .footer{position:fixed;bottom:0;left:0;right:0;z-index:10;background:#fff;display:flex;justify-content:space-between;font-size:8pt;color:#9ca3af;padding:3px 0;border-top:1px solid #f3f4f6}
