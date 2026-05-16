@@ -609,6 +609,22 @@ CREATE TABLE admin_users (
 
 ---
 
+## Session 80 Changes (2026-05-16) — Planner Pipeline mainTasks UX Fix
+
+| # | Change | Status |
+|---|---|---|
+| 1 | **ลบตัวเลขนำหน้าออกจาก PDF** — "งานหลัก 3 อย่าง" ใน PDF เคยแสดง "1 —", "2 —", "3 —" (ตัวเลขขนาดใหญ่สีเน้น) · แก้ให้แสดงแค่เนื้อหา ไม่มีตัวเลขนำหน้า | ✅ Live |
+| 2 | **Dynamic add/remove fields** — ช่อง "งานหลัก" ใน Admin Wizard เพิ่มปุ่ม `+ เพิ่มงาน` และ `−` ลบ · min=3 (ปุ่ม − disable อัตโนมัติเมื่อเหลือ 3 ช่อง) | ✅ Live |
+| 3 | **เปลี่ยน label** — "งานหลัก 3 อย่าง" → "งานหลักอย่างน้อย 3 อย่าง" ทั้งใน form (Wizard + tooltip) และใน PDF (2 จุด) | ✅ Live |
+
+### Files Changed
+| File | Change |
+|---|---|
+| `app/admin/templates/new/PipelinePlannerForm.tsx` | label + dynamic add/remove mainTasks (min=3) + tooltip text |
+| `lib/engine-planner-pipeline.ts` | ลบ `<span>${n+1}</span>` ออกจาก mainTasks render + label ทั้ง 2 จุด |
+
+---
+
 ## Session 79 Changes (2026-05-15) — LINE Floating Button Position Fix
 
 | # | Change | Status |
