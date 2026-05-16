@@ -98,15 +98,7 @@ export async function POST(req: NextRequest) {
       margin: { top: '20mm', right: '20mm', bottom: '8mm', left: '20mm' },
     }
     if (engine_type === 'checklist') {
-      const d = engine_data as ChecklistEngineData
-      const ftTitle = d.s1?.title ?? ''
-      const ftCat = category_name ?? ''
-      const ftRight = [ftTitle, ftCat].filter(Boolean).join(' · ')
-      const ftEsc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      pdfOpts.margin = { top: '20mm', right: '20mm', bottom: '18mm', left: '20mm' }
-      pdfOpts.displayHeaderFooter = true
-      pdfOpts.headerTemplate = '<span></span>'
-      pdfOpts.footerTemplate = `<div style="width:100%;font-size:8pt;color:#9ca3af;display:flex;justify-content:space-between;padding:0 20mm;box-sizing:border-box;font-family:sans-serif"><span>แพลนพร้อม · www.planprom.com</span><span>${ftEsc(ftRight)}</span></div>`
+      pdfOpts.margin = { top: '20mm', right: '20mm', bottom: '14mm', left: '20mm' }
     }
     const pdf = await page.pdf(pdfOpts)
     await writeFile(path.join(uploadBase, pdfFilename), pdf)
