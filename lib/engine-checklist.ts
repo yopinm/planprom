@@ -8,7 +8,6 @@ export function generateChecklistHtml(data: ChecklistEngineData, watermarkText?:
   const { s1, s2, s3, s4, s5 } = data
   const wm = (watermarkText ?? '').replace(/\\/g, '\\\\').replace(/"/g, '\\"')
   const validItems = s3.items.filter(i => i.trim())
-  const ftRight = [esc(s1.title), categoryName ? esc(categoryName) : ''].filter(Boolean).join(' · ')
 
   const itemRows = validItems.map((item, i) => `
     <tr>
@@ -56,7 +55,6 @@ tr:nth-child(even) td{background:#f9fafb}
 .rb{margin-top:10px;border:2px solid #d1d5db;border-radius:6px;padding:10px;display:flex;gap:20px;align-items:center;flex-wrap:wrap}
 .rl2{font-weight:700;font-size:10pt;color:#374151}
 .ro{display:flex;align-items:center;gap:6px;font-size:10pt}
-.ftr{position:fixed;bottom:0;left:0;right:0;font-size:8pt;color:#9ca3af;display:flex;justify-content:space-between;padding:4px 20mm;box-sizing:border-box;background:white;font-family:'Sarabun',Arial,sans-serif}
 </style></head><body>
 
 <div class="hdr">
@@ -96,7 +94,8 @@ tr:nth-child(even) td{background:#f9fafb}
   </table>
 </div>
 
-<div class="sec" style="page-break-before:always">
+<div style="page-break-after:always;height:0;margin:0;padding:0"></div>
+<div class="sec">
   <div class="sec-hdr">ส่วนที่ 4 — หมายเหตุและข้อสังเกต</div>
   ${s4?.remarks?.trim() ? `<div class="pf" style="margin-bottom:10px"><div class="pl">หมายเหตุทั่วไป</div><div class="pv">${esc(s4.remarks)}</div></div>` : ''}
   ${Array.from({length:8}).map(()=>'<div class="rl"></div>').join('')}
@@ -124,6 +123,5 @@ tr:nth-child(even) td{background:#f9fafb}
   </div>
 </div>
 
-<div class="ftr"><span>แพลนพร้อม · www.planprom.com</span><span>${ftRight}</span></div>
 </body></html>`
 }
