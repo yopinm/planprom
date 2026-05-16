@@ -94,7 +94,7 @@ tr:nth-child(even) td{background:#f9fafb}
   </table>
 </div>
 
-<div class="sec">
+<div class="sec" style="page-break-before:always">
   <div class="sec-hdr">ส่วนที่ 4 — หมายเหตุและข้อสังเกต</div>
   ${s4?.remarks?.trim() ? `<div class="pf" style="margin-bottom:10px"><div class="pl">หมายเหตุทั่วไป</div><div class="pv">${esc(s4.remarks)}</div></div>` : ''}
   ${Array.from({length:8}).map(()=>'<div class="rl"></div>').join('')}
