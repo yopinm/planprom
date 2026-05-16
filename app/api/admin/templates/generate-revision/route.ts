@@ -119,19 +119,28 @@ export async function POST(req: NextRequest) {
     browser1 = await puppeteer.launch({ executablePath, args, headless: true })
     const page = await browser1.newPage()
     await page.setContent(html, { waitUntil: 'networkidle0' })
-    const isReport = engine_type === 'report'
-    const pdf = await page.pdf({
+    const revPdfOpts: Parameters<typeof page.pdf>[0] = {
       format: 'A4',
       printBackground: true,
-      ...(isReport ? {
-        displayHeaderFooter: true,
-        headerTemplate: `<div></div>`,
-        footerTemplate: `<div style="font-family:Arial,sans-serif;font-size:8px;padding:0 20mm;width:100%;display:flex;justify-content:flex-end;color:#94a3b8"><span>Page <span class="pageNumber"></span>/<span class="totalPages"></span></span></div>`,
-        margin: { top: '16mm', right: '20mm', bottom: '14mm', left: '20mm' },
-      } : {
-        margin: { top: '20mm', right: '20mm', bottom: '28mm', left: '20mm' },
-      }),
-    })
+      margin: { top: '20mm', right: '20mm', bottom: '8mm', left: '20mm' },
+    }
+    if (engine_type === 'report') {
+      revPdfOpts.displayHeaderFooter = true
+      revPdfOpts.headerTemplate = `<div></div>`
+      revPdfOpts.footerTemplate = `<div style="font-family:Arial,sans-serif;font-size:8px;padding:0 20mm;width:100%;display:flex;justify-content:flex-end;color:#94a3b8"><span>Page <span class="pageNumber"></span>/<span class="totalPages"></span></span></div>`
+      revPdfOpts.margin = { top: '16mm', right: '20mm', bottom: '14mm', left: '20mm' }
+    } else if (engine_type === 'checklist') {
+      const d = engine_data as ChecklistEngineData
+      const ftTitle = d.s1?.title ?? ''
+      const ftCat = category_name ?? ''
+      const ftRight = [ftTitle, ftCat].filter(Boolean).join(' · ')
+      const ftEsc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      revPdfOpts.margin = { top: '20mm', right: '20mm', bottom: '18mm', left: '20mm' }
+      revPdfOpts.displayHeaderFooter = true
+      revPdfOpts.headerTemplate = '<span></span>'
+      revPdfOpts.footerTemplate = `<div style="width:100%;font-size:8pt;color:#9ca3af;display:flex;justify-content:space-between;padding:0 20mm;box-sizing:border-box;font-family:sans-serif"><span>แพลนพร้อม · www.planprom.com</span><span>${ftEsc(ftRight)}</span></div>`
+    }
+    const pdf = await page.pdf(revPdfOpts)
     await writeFile(path.join(uploadBase, pdfFilename), pdf)
   } catch (err) {
     return NextResponse.json({ error: `PDF generate failed: ${String(err)}` }, { status: 500 })
