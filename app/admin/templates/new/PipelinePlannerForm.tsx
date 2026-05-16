@@ -258,6 +258,7 @@ export function PipelinePlannerForm({ onChange, initialCatSlug }: Props) {
               catSlug={initialCatSlug}
               selectedPresetId={stage0Preset?.id ?? null}
               onSelect={applyPreset}
+              onNext={() => setStage(1)}
             />
           </div>
         </div>
