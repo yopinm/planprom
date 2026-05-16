@@ -196,7 +196,7 @@
 | **DC-1** | Standard PDF Generator (.docx → A4) — checklist/planner UAT | 🟡 **Code Done · UAT Pending** |
 | **DC-2** | TOC Preview สารบัญ — toggle /templates · always-expanded /templates/[slug] | 🟡 **Code Done · UAT Pending** |
 | **DC-16** | Planner Pipeline v4 — 5-section time-cascade | 🟡 **UAT Pending** |
-| **PDF-FOOTER** | Footer position fix — margin.bottom 28mm→8mm ทุก engine (checklist/planner/form/report/pipeline) | 🟡 **UAT Pending** |
+| **PDF-FOOTER** | Footer position fix — margin.bottom 28mm→8mm ทุก engine (checklist/planner/form/report/pipeline) + Noto Sans Thai font fix | ✅ **Done · UAT ผ่าน (Session 81 · 2026-05-16)** |
 | **E9/E10** | Engine preview card บน /templates/[slug] (checklist/planner green/violet) | 🟡 **UAT Pending** |
 | **J9** | Live Omise keys → real QR scan test (G4 pending) | 🟡 **รอ owner ตั้ง live keys** |
 

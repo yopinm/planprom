@@ -609,6 +609,24 @@ CREATE TABLE admin_users (
 
 ---
 
+## Session 81 Changes (2026-05-16) — PDF Footer Thai Font + Checklist Drag Reorder
+
+| # | Change | Status |
+|---|---|---|
+| 1 | **PDF-FOOTER — Noto Sans Thai font** — footer ภาษาไทยด้านขวา (title · category) แสดงเป็น box เพราะ `displayHeaderFooter` ไม่โหลด Google Fonts · ติดตั้ง `google-noto-sans-thai-fonts` บน VPS + อัพเดต `font-family:'Noto Sans Thai',sans-serif` ใน footerTemplate ทั้ง `generate-engine` และ `generate-revision` route | ✅ Live |
+| 2 | **CK-DRAG — Checklist item drag-and-drop (create mode)** — เพิ่ม drag handle `⠿` + HTML5 drag-and-drop reorder ใน `DynList` component ของ `ChecklistEngineForm.tsx` · highlight สีเขียวขณะลาก | ✅ Live |
+| 3 | **CK-DRAG — Checklist item drag-and-drop (revise mode)** — เพิ่ม drag-and-drop เดียวกันใน `DynList` ของ `ReviseClient.tsx` · ครอบคลุมทุก engine type ที่ใช้ DynList (checklist/planner/pipeline/report) | ✅ Live |
+
+### Files Changed
+| File | Change |
+|---|---|
+| `app/api/admin/templates/generate-engine/route.ts` | footerTemplate font-family: sans-serif → 'Noto Sans Thai',sans-serif |
+| `app/api/admin/templates/generate-revision/route.ts` | footerTemplate font-family: sans-serif → 'Noto Sans Thai',sans-serif |
+| `app/admin/templates/new/ChecklistEngineForm.tsx` | DynList: useRef dragIdx + useState dragOver + draggable + onDrag* handlers + handle icon |
+| `app/admin/templates/[id]/revise/ReviseClient.tsx` | DynList: เดียวกัน + highlight สีอำพัน (amber) |
+
+---
+
 ## Session 80 Changes (2026-05-16) — Planner Pipeline mainTasks UX Fix
 
 | # | Change | Status |
