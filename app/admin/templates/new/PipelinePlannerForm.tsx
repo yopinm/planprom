@@ -1,6 +1,8 @@
 'use client'
 import { useState, useEffect } from 'react'
 import type { PlannerPipelineDataV4, PipelineHorizon, PipelinePhase, PipelineBigRock, MonthlyPlanItem, WeeklyTaskItem, DailyRoutineItem } from '@/lib/engine-types'
+import type { PipelinePreset } from '@/lib/pipeline-presets'
+import { PresetSelector } from './PresetSelector'
 
 const INPUT = 'w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none focus:border-violet-400 focus:bg-white transition'
 const LABEL = 'block text-[11px] font-black uppercase tracking-widest text-neutral-600 mb-1.5'
@@ -29,10 +31,14 @@ function DynList({ items, onChange, placeholder, addLabel }: {
   )
 }
 
-interface Props { onChange: (data: PlannerPipelineDataV4) => void }
+interface Props {
+  onChange: (data: PlannerPipelineDataV4) => void
+  initialCatSlug?: string
+}
 
-const STAGE_LABELS = ['เป้าหมาย', 'ภาพรวม', 'รายสัปดาห์', 'รายวัน', 'รีวิว']
+const STAGE_LABELS = ['Preset', 'เป้าหมาย', 'ภาพรวม', 'รายสัปดาห์', 'รายวัน', 'รีวิว']
 const STAGE_COLORS = [
+  { active: 'bg-neutral-800 text-white', can: 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200', off: 'bg-neutral-100 text-neutral-400' },
   { active: 'bg-violet-600 text-white', can: 'bg-violet-100 text-violet-700 hover:bg-violet-200', off: 'bg-neutral-100 text-neutral-400' },
   { active: 'bg-emerald-600 text-white', can: 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200', off: 'bg-neutral-100 text-neutral-400' },
   { active: 'bg-sky-600 text-white', can: 'bg-sky-100 text-sky-700 hover:bg-sky-200', off: 'bg-neutral-100 text-neutral-400' },
@@ -40,8 +46,9 @@ const STAGE_COLORS = [
   { active: 'bg-rose-600 text-white', can: 'bg-rose-100 text-rose-700 hover:bg-rose-200', off: 'bg-neutral-100 text-neutral-400' },
 ]
 
-export function PipelinePlannerForm({ onChange }: Props) {
-  const [stage, setStage] = useState(1)
+export function PipelinePlannerForm({ onChange, initialCatSlug }: Props) {
+  const [stage, setStage] = useState(0)
+  const [stage0Preset, setStage0Preset] = useState<PipelinePreset | null>(null)
 
   // META
   const [displayTitle, setDisplayTitle] = useState('')
@@ -167,8 +174,22 @@ export function PipelinePlannerForm({ onChange }: Props) {
     ? phases.some(p => p.name.trim())
     : true
 
+  function applyPreset(preset: PipelinePreset) {
+    setStage0Preset(preset)
+    const d = preset.defaults
+    setHorizon(d.horizon)
+    setGoal(d.goal)
+    setWhy(d.why)
+    setDeadline(d.deadline)
+    setDisplayTitle(d.displayTitle)
+    setDescription(d.description)
+    setColorTheme(d.colorTheme)
+    setReviewQs(d.reviewQuestions)
+  }
+
   function canGoTo(n: number) {
     if (n <= stage) return true
+    if (n === 1) return true   // preset is optional — always allow proceeding
     if (n === 2) return stage1Valid
     if (n === 3) return stage1Valid && stage2Valid
     if (n === 4) return stage1Valid && stage2Valid
@@ -191,7 +212,7 @@ export function PipelinePlannerForm({ onChange }: Props) {
       {/* Stage indicator */}
       <div className="flex gap-1">
         {STAGE_LABELS.map((label, idx) => {
-          const n = idx + 1
+          const n = idx        // stage 0 = Preset, 1 = เป้าหมาย, …
           const ok = canGoTo(n)
           const col = STAGE_COLORS[idx]
           return (
@@ -200,17 +221,45 @@ export function PipelinePlannerForm({ onChange }: Props) {
               className={`flex-1 rounded-lg py-2 text-[11px] font-black transition ${
                 stage === n ? col.active : ok ? col.can : col.off
               } ${!ok ? 'cursor-not-allowed' : ''}`}>
-              {n}. {label}
+              {n === 0 ? '●' : n}. {label}
             </button>
           )
         })}
       </div>
 
       {/* Summary bars */}
+      {stage0Preset && stage > 0 && (
+        <div className="rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-2 text-xs flex items-center gap-2">
+          <span className="text-base shrink-0">{stage0Preset.emoji}</span>
+          <div>
+            <span className="font-black text-neutral-700">Preset: {stage0Preset.name}</span>
+            <span className="ml-2 text-neutral-400">— แก้ไขได้ทุกอย่างด้านล่าง</span>
+          </div>
+          <button type="button" onClick={() => { setStage0Preset(null); setStage(0) }}
+            className="ml-auto text-neutral-400 hover:text-red-500 text-xs">เปลี่ยน</button>
+        </div>
+      )}
       {stage > 1 && stage1Valid && (
         <div className="rounded-lg border border-violet-200 bg-violet-50 px-3 py-2 text-xs">
           <p className="font-black text-violet-800 truncate">{goal}</p>
           <p className="text-violet-600">ถึง: {deadline}{horizon !== 'project' && horizonValue ? ` · ${horizonValue}` : ''}</p>
+        </div>
+      )}
+
+      {/* ── STAGE 0: Preset ── */}
+      {stage === 0 && (
+        <div className="rounded-xl border-2 border-neutral-300 overflow-hidden">
+          <div className="px-4 py-3 bg-neutral-800 text-white flex items-center gap-2">
+            <span className="text-xs font-black bg-neutral-600 rounded-full px-2 py-0.5">●</span>
+            <span className="font-black text-sm">เลือก Preset</span>
+          </div>
+          <div className="px-4 py-4">
+            <PresetSelector
+              catSlug={initialCatSlug}
+              selectedPresetId={stage0Preset?.id ?? null}
+              onSelect={applyPreset}
+            />
+          </div>
         </div>
       )}
 
@@ -736,7 +785,7 @@ export function PipelinePlannerForm({ onChange }: Props) {
 
       {/* Navigation */}
       <div className="flex gap-2">
-        {stage > 1 && (
+        {stage > 0 && (
           <button type="button" onClick={() => setStage(s => s - 1)}
             className="flex-1 rounded-lg border border-neutral-200 py-2.5 text-sm font-black text-neutral-600 hover:border-neutral-400">
             ← ย้อนกลับ
@@ -747,7 +796,7 @@ export function PipelinePlannerForm({ onChange }: Props) {
             disabled={stage === 1 ? !stage1Valid : stage === 2 ? !stage2Valid : false}
             onClick={() => setStage(s => s + 1)}
             className="flex-1 rounded-lg bg-violet-600 py-2.5 text-sm font-black text-white transition hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed">
-            ถัดไป →
+            {stage === 0 ? (stage0Preset ? `ใช้ Preset: ${stage0Preset.name} →` : 'ข้าม (กรอกเอง) →') : 'ถัดไป →'}
           </button>
         )}
       </div>

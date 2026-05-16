@@ -9,7 +9,7 @@ import { ChecklistEngineForm } from './ChecklistEngineForm'
 import { PipelinePlannerForm } from './PipelinePlannerForm'
 import { ReportEngineForm } from './ReportEngineForm'
 
-type Mode = 'upload' | 'docx' | 'clone' | 'engine-checklist' | 'engine-planner' | 'engine-pipeline' | 'engine-report'
+type Mode = 'upload' | 'docx' | 'clone' | 'engine-checklist' | 'engine-planner' | 'engine-pipeline' | 'engine-preset' | 'engine-report'
 type ValidTag = 'bestseller' | 'trending' | 'staple' | 'new' | 'premium' | 'free'
 
 export type Category = { slug: string; name: string; emoji: string }
@@ -128,8 +128,8 @@ export function WizardClient({ categories, cloneSources, initialTitle, initialCa
 
   const handleEngineDataChange = useCallback((data: Record<string, unknown>) => {
     setEngineData(data)
-    // pipeline: auto-fill title/slug from meta.title so "ถัดไป" isn't blocked
-    if (modeRef.current === 'engine-pipeline') {
+    // pipeline/preset: auto-fill title/slug from meta.title so "ถัดไป" isn't blocked
+    if (modeRef.current === 'engine-pipeline' || modeRef.current === 'engine-preset') {
       const pipelineTitle = (data as { meta?: { title?: string } })?.meta?.title ?? ''
       if (pipelineTitle) {
         setTitle(prev => prev.trim() ? prev : pipelineTitle)
@@ -143,7 +143,7 @@ export function WizardClient({ categories, cloneSources, initialTitle, initialCa
     }
   }, [])
 
-  const isEngine  = mode === 'engine-checklist' || mode === 'engine-planner' || mode === 'engine-pipeline' || mode === 'engine-report'
+  const isEngine  = mode === 'engine-checklist' || mode === 'engine-planner' || mode === 'engine-pipeline' || mode === 'engine-preset' || mode === 'engine-report'
   const priceBaht = TIER_PRICE[tier] ?? 30
   const catName   = categories.find(c => c.slug === catSlug)?.name ?? ''
 
@@ -251,10 +251,11 @@ export function WizardClient({ categories, cloneSources, initialTitle, initialCa
       const apiUrl =
         mode === 'engine-planner'  ? '/api/admin/templates/generate-planner' :
         mode === 'engine-pipeline' ? '/api/admin/templates/generate-planner-pipeline' :
+        mode === 'engine-preset'   ? '/api/admin/templates/generate-planner-pipeline' :
         mode === 'engine-report'   ? '/api/admin/templates/generate-report' :
         '/api/admin/templates/generate-engine'
       const bodyPayload =
-        mode === 'engine-planner' || mode === 'engine-pipeline' || mode === 'engine-report'
+        mode === 'engine-planner' || mode === 'engine-pipeline' || mode === 'engine-preset' || mode === 'engine-report'
           ? { engine_data: engineData, slug: slug.trim(), watermark_text: watermarkOn ? watermarkText : undefined }
           : { engine_type: 'checklist', engine_data: engineData, slug: slug.trim(), watermark_text: watermarkOn ? watermarkText : undefined, category_name: catName || undefined }
       const res = await fetch(apiUrl, {
@@ -302,7 +303,7 @@ export function WizardClient({ categories, cloneSources, initialTitle, initialCa
       // DEPRECATED 2026-05-12 — clone hidden แล้ว ลบได้หลัง 2026-05-19
       // if (mode === 'clone' && !cloneId) { setError('เลือก template ที่จะ clone ก่อน'); return }
       if (mode === 'docx' && docxState !== 'done') { setError('อัพโหลด .docx ก่อน'); return }
-      if ((mode === 'engine-checklist' || mode === 'engine-planner' || mode === 'engine-pipeline' || mode === 'engine-report') && engineState !== 'done') {
+      if ((mode === 'engine-checklist' || mode === 'engine-planner' || mode === 'engine-pipeline' || mode === 'engine-preset' || mode === 'engine-report') && engineState !== 'done') {
         setError('กด "Generate PDF Preview" ก่อนดำเนินการต่อ'); return
       }
       setTags(suggestTags(tier))
@@ -333,6 +334,7 @@ export function WizardClient({ categories, cloneSources, initialTitle, initialCa
     const finalEngineType = isEngine
       ? mode === 'engine-checklist' ? 'checklist'
         : mode === 'engine-pipeline' ? 'pipeline'
+        : mode === 'engine-preset' ? 'pipeline'
         : mode === 'engine-report' ? 'report'
         : 'planner'
       : undefined
@@ -426,6 +428,7 @@ export function WizardClient({ categories, cloneSources, initialTitle, initialCa
               { m: 'engine-checklist' as Mode, icon: '✅', title: 'Engine: Checklist', desc: 'กรอกข้อมูล 5 Section → ระบบสร้าง PDF เช็คลิสต์มาตรฐานอัตโนมัติ' },
               // DEPRECATED 2026-05-12 — ลบได้หลัง 2026-05-19
               // { m: 'engine-planner' as Mode, icon: '📅', title: 'Engine: Planner', desc: 'กรอกข้อมูล 4 Pillar → ระบบสร้าง PDF Planner ครบถ้วนอัตโนมัติ' },
+              { m: 'engine-preset'    as Mode, icon: '✨', title: 'Engine: Planner Preset (แนะนำ)', desc: 'เลือก Preset (9 แบบ) → pre-fill ค่าเริ่มต้น → กรอก 5 แกน → PDF Planner อัตโนมัติ' },
               { m: 'engine-pipeline'  as Mode, icon: '🔄', title: 'Engine: Planner Pipeline',  desc: 'กรอก 5 แกน (เป้า → ภาพรวม → สัปดาห์ → วัน → รีวิว) → ระบบสร้าง PDF Planner อัตโนมัติ' },
               { m: 'engine-report'   as Mode, icon: '📊', title: 'Engine: Report',             desc: 'กรอก 8 Section (Cover → TOC → Summary → Content → Conclusion) → ระบบสร้าง PDF รายงานมืออาชีพ' },
               { m: 'docx'             as Mode, icon: '📝', title: 'สร้างจาก .docx',    desc: 'อัพโหลด .docx → ระบบ generate PDF มาตรฐาน A4 อัตโนมัติ' },
@@ -574,7 +577,7 @@ export function WizardClient({ categories, cloneSources, initialTitle, initialCa
             </div>
           )}
 
-          {(mode === 'engine-checklist' || mode === 'engine-planner' || mode === 'engine-pipeline' || mode === 'engine-report') && (
+          {(mode === 'engine-checklist' || mode === 'engine-planner' || mode === 'engine-pipeline' || mode === 'engine-preset' || mode === 'engine-report') && (
             <div className="space-y-4">
               {/* Watermark */}
               <div>
@@ -602,18 +605,22 @@ export function WizardClient({ categories, cloneSources, initialTitle, initialCa
                     ? '✅ Checklist Engine — กรอก 5 Section'
                     : mode === 'engine-pipeline'
                       ? '🔄 Pipeline Engine — กรอก 5 แกน'
-                      : mode === 'engine-report'
-                        ? '📊 Report Engine — กรอก 8 Section'
-                        : '📅 Planner Engine — กรอก 4 Pillar'}
+                      : mode === 'engine-preset'
+                        ? '✨ Preset Engine — เลือก Preset แล้วกรอก 5 แกน'
+                        : mode === 'engine-report'
+                          ? '📊 Report Engine — กรอก 8 Section'
+                          : '📅 Planner Engine — กรอก 4 Pillar'}
                 </p>
                 {mode === 'engine-checklist'
                   ? <ChecklistEngineForm onChange={handleEngineDataChange as Parameters<typeof ChecklistEngineForm>[0]['onChange']} />
                   : mode === 'engine-pipeline'
                     ? <PipelinePlannerForm onChange={handleEngineDataChange as Parameters<typeof PipelinePlannerForm>[0]['onChange']} />
-                    : mode === 'engine-report'
-                      ? <ReportEngineForm onChange={handleEngineDataChange as Parameters<typeof ReportEngineForm>[0]['onChange']} />
-                      // DEPRECATED 2026-05-12 — engine-planner hidden แล้ว ลบได้หลัง 2026-05-19
-                      : null
+                    : mode === 'engine-preset'
+                      ? <PipelinePlannerForm onChange={handleEngineDataChange as Parameters<typeof PipelinePlannerForm>[0]['onChange']} initialCatSlug={catSlug} />
+                      : mode === 'engine-report'
+                        ? <ReportEngineForm onChange={handleEngineDataChange as Parameters<typeof ReportEngineForm>[0]['onChange']} />
+                        // DEPRECATED 2026-05-12 — engine-planner hidden แล้ว ลบได้หลัง 2026-05-19
+                        : null
                 }
               </div>
 
@@ -877,10 +884,10 @@ export function WizardClient({ categories, cloneSources, initialTitle, initialCa
       {step === 6 && (
         <div>
           <h2 className="mb-2 text-xl font-black text-black">
-            {(mode === 'docx' || mode === 'engine-checklist' || mode === 'engine-planner' || mode === 'engine-pipeline') ? 'บันทึกเป็น Draft Preview' : 'พร้อม Publish!'}
+            {(mode === 'docx' || mode === 'engine-checklist' || mode === 'engine-planner' || mode === 'engine-pipeline' || mode === 'engine-preset') ? 'บันทึกเป็น Draft Preview' : 'พร้อม Publish!'}
           </h2>
           <p className="mb-6 text-sm text-neutral-500">
-            {(mode === 'docx' || mode === 'engine-checklist' || mode === 'engine-planner' || mode === 'engine-pipeline')
+            {(mode === 'docx' || mode === 'engine-checklist' || mode === 'engine-planner' || mode === 'engine-pipeline' || mode === 'engine-preset')
               ? 'PDF ถูก generate แล้ว — บันทึกเป็น Draft Preview แล้วไปที่หน้า Edit เพื่อ Approve และ publish'
               : 'เลือกว่าจะเผยแพร่เลย หรือบันทึกเป็น draft ก่อน'}
           </p>
@@ -896,7 +903,7 @@ export function WizardClient({ categories, cloneSources, initialTitle, initialCa
             </div>
           </div>
 
-          {(mode === 'docx' || mode === 'engine-checklist' || mode === 'engine-planner' || mode === 'engine-pipeline') ? (
+          {(mode === 'docx' || mode === 'engine-checklist' || mode === 'engine-planner' || mode === 'engine-pipeline' || mode === 'engine-preset') ? (
             <button
               onClick={() => handlePublish('draft_preview')}
               disabled={pending}
