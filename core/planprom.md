@@ -210,7 +210,7 @@
 | J6 | ~~Bundle/Credits system ยังไม่มี~~ | ✅ **RESOLVED (Session 22)** — pack_credits table · FIFO · 90 วัน expire · ฿20=2, ฿50=10, ฿100=25 credits | ✅ Done |
 | J7 | /templates/[slug] breadcrumb category → 404 | ขึ้นกับ J4 | 🟡 Low |
 | J8 | Owner สร้าง templates 2-10 | owner task — /templates UAT pending จนกว่าจะมี template ครบ | 🔴 Blocker UAT |
-| J9 | **Omise Go-Live** — สลับ test → live keys + PDPA compliance | **Sub-tasks:** · **J9-CODE-1** ✅ Cookie Consent Banner (PDPA) · **J9-CODE-2** ✅ Privacy Policy เพิ่ม Omise processor disclosure · **J9-CODE-3** ✅ Refund Policy เพิ่ม exception "ยกเว้นไฟล์เสียหาย" · **J9-ADMIN-1** ⏳ สมัคร Live Mode + เตรียมเอกสาร KYC (บัตรประชาชน+selfie+สมุดบัญชี+ใบเสร็จโดเมน) · **J9-ADMIN-2** ⏳ รับ Live API Keys → อัพ VPS `.env.local` → `pm2 restart` · **J9-ADMIN-3** ✅ **Test webhook active** — planprom.com/api/webhooks/omise · 200 OK (Session 75) · ต้อง re-set live webhook URL เมื่อสลับ live mode · **J9-ADMIN-4** ⏳ Live test ซื้อ template ตัวเอง ฿30 → ตรวจ QR + webhook + download | 🟡 Code ✅ · Admin ⏳ |
+| J9 | **Omise Go-Live** — สลับ test → live keys + PDPA compliance | **Sub-tasks:** · **J9-CODE-1** ✅ Cookie Consent Banner (PDPA) · **J9-CODE-2** ✅ Privacy Policy เพิ่ม Omise processor disclosure · **J9-CODE-3** ✅ Refund Policy เพิ่ม exception "ยกเว้นไฟล์เสียหาย" · **J9-ADMIN-1** ⏳ สมัคร Live Mode + เตรียมเอกสาร KYC (บัตรประชาชน+selfie+สมุดบัญชี+ใบเสร็จโดเมน) · **J9-ADMIN-2** ⏳ รับ Live API Keys → อัพ VPS `.env.local` → `pm2 restart` + re-set webhook URL ใน Omise dashboard → live mode · **J9-ADMIN-3** ✅ Webhook active · planprom.com/api/webhooks/omise · 200 OK (Session 75) · **J9-ADMIN-4** ⏳ Live UAT: Case 1=฿30 (1 ชิ้น) · Case 2=฿50 (2 ชิ้น tier1+2) · Case 3=฿50 Request Only · ตรวจ QR+webhook+download+LINE notify+admin report ครบ · ดู UAT script Session 85 | 🟡 Code ✅ · Admin ⏳ |
 | J10 | Wallet แสดง login prompt หลัง download ใน tab เดิม | ~~ระบบ Wallet ถูกตัดออกแล้ว — task นี้ไม่มีผล~~ | ✅ **Closed (N/A — wallet removed)** |
 | J11 | Free tier ยังไม่โหลดได้เลย | `POST /api/free-download` → INSERT template_orders (amount=0, status='paid', payment_method='free') → return token · `FreeDownloadButton` client component → router.push('/d/[token]') · แทน href="#line-cta" ทั้ง 3 จุด (CatalogTemplateList modal+row, TemplateListWithPreview modal+row, /templates/[slug]) · ลบปุ่ม "แชร์ให้เพื่อนทาง LINE" จาก DownloadClient | ✅ **Done · Live (Session 46)** |
 | J12 | LINE OAuth ล้มเหลว — "Error getting user profile from external provider" | ~~ตัดระบบ LINE Login ออกแล้ว — ใช้ Cart flow แทน (ไม่ต้อง LINE)~~ | ✅ **Closed (N/A — LINE login removed)** |
@@ -609,14 +609,16 @@ CREATE TABLE admin_users (
 
 ---
 
-## Session 85 Changes (2026-05-17) — Request Only / Unlock Code Fix + Wizard Cleanup
+## Session 85 Changes (2026-05-17) — Request Only / Unlock Code Fix + Wizard Cleanup + Checkout Race Fix
 
 | # | Change | Status |
 |---|---|---|
 | 1 | **Budget+Risks visibility fix** — ย้าย budget inline กับชื่อ Phase + risks ขึ้นด้านบน card (เดิมซ่อนใต้ Big Rocks → ต้อง scroll) ทั้ง `PipelinePlannerForm.tsx` และ `ReviseClient.tsx` | ✅ Live |
-| 2 | **Request Only + Unlock Code UAT** — ยืนยัน flow ทำงาน: Approve → published → is_request_only → UnlockCode section โผล่ · Checklist ✅ · Pipeline/Preset ✅ · Report ✅ · Form ⏳ pending UAT | ✅ Confirmed |
-| 3 | **engine-report → draft_preview flow** — เพิ่ม `mode === 'engine-report'` เข้า condition ใน WizardClient Step 6 (title/description/button) ให้ consistent กับ engine อื่น — ก่อนหน้านี้ Report ได้ปุ่ม "draft/published" แทน draft_preview | ✅ Live |
+| 2 | **Request Only + Unlock Code UAT** — ยืนยัน flow: Approve → published → is_request_only → UnlockCode section โผล่ · Checklist ✅ · Pipeline/Preset ✅ · Report ✅ · Form ⏳ pending UAT | ✅ Confirmed |
+| 3 | **engine-report → draft_preview flow** — เพิ่ม `mode === 'engine-report'` เข้า 3 จุดใน WizardClient Step 6 (title/description/button) · ก่อนหน้านี้ Report ไม่ผ่าน draft_preview flow | ✅ Live |
 | 4 | **ซ่อน Engine: Planner Pipeline** — comment out mode card `engine-pipeline` ออกจาก wizard mode list ให้ใช้ Preset แทน (internal code ยังอยู่ครบ) | ✅ Live |
+| 5 | **PP-20260517-1074 investigation** — root cause: race condition ใน test mode (Omise instant payment → webhook มาก่อน INSERT orders เสร็จ) · order ไม่อยู่ใน DB · เป็น test transaction ไม่มี real customer impact | ✅ Investigated |
+| 6 | **fix(checkout) webhook race condition** — ย้าย `INSERT INTO orders` + `INSERT INTO order_items` ไปก่อน `createPromptPayCharge()` · webhook เจอ order เสมอไม่ว่า Omise จะส่งเร็วแค่ไหน · ถ้า Omise fail → UPDATE status='cancelled' แทน orphaned record | ✅ Live |
 
 ### Files Changed
 | File | Change |
@@ -624,6 +626,7 @@ CREATE TABLE admin_users (
 | `app/admin/templates/new/PipelinePlannerForm.tsx` | budget input inline กับ name · risks section ด้านบน card · ลบ budget+risks section เก่าด้านล่าง |
 | `app/admin/templates/[id]/revise/ReviseClient.tsx` | budget inline · risks ด้านบน · ลบ section เก่า |
 | `app/admin/templates/new/WizardClient.tsx` | เพิ่ม engine-report เข้า draft_preview list · ซ่อน engine-pipeline card |
+| `app/api/checkout/route.ts` | INSERT order ก่อน createPromptPayCharge · omise_charge_id=NULL ตอน insert → UPDATE หลังได้ charge · Omise fail → status='cancelled' |
 
 ---
 
@@ -2376,5 +2379,5 @@ Next priorities:
 
 ---
 
-_Last updated: 2026-05-15 (Session 75) · Domain: planprom.com live · SSL Full Strict + Cloudflare 8 settings ✅ · Security score ~80/100 · JWT 2h · PDPA ✅ · Deploy ✅ Smoke test ✅ · Next: J9-ADMIN-1 (KYC) → J8 (templates 2-10) → Soft Launch_
+_Last updated: 2026-05-17 (Session 85) · Domain: planprom.com live · SSL Full Strict + Cloudflare 8 settings ✅ · Security score ~80/100 · JWT 2h · PDPA ✅ · Deploy ✅ Smoke test ✅ · Checkout race condition fixed ✅ · Next: J9-ADMIN-1 (KYC) → J9-ADMIN-2 (live keys) → J9-ADMIN-4 (live UAT) → J8 (templates 2-10) → Soft Launch_
 _Owner: yopinm@gmail.com · LINE: yopinm · PromptPay: 0948859962_

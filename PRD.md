@@ -29,11 +29,11 @@
 | **Doc Sync** | task เสร็จ → อัพเดต PRD.md + `core/planprom.md` เสมอ |
 | **Scope Gate** | ก่อนเริ่ม implement ทุก task → ต้องมี scope + flow ใน `core/planprom.md` ก่อน → commit docs → รอ owner confirm → ค่อย implement |
 | **Blockers** | Lazada pool=49 fixed · Affiliate tasks ❌ CLOSED 2026-05-13 (owner decision) |
-| **Next task** | **Engine Preset UAT** ⏳ (Guided Wizard · Smart Suggestion · PDF round-trip) |
+| **Next task** | **J9-ADMIN-1** (KYC → live keys) → **J9-ADMIN-4** (live UAT ฿30/฿20/฿50 request) |
 | **Pending (code)** | E9/E10 · UI-G(defer) |
-| **Pending (UAT)** | **Engine Preset UAT** ⏳ (Guided Wizard/Skip/Smart Suggestion · PDF round-trip) · **Engine UAT** 🟡 (Form — Checklist/Pipeline/Report ✅) · **Request Only+UnlockCode** Form ⏳ · **INTEL-SMART** 🟡 (trend arrows) · INTEL-BLOG-SCORE 🔲 · INTEL-C/D · DC-1 · DC-2 · DC-8 · DC-16 · E9/E10 · J9(รอ live keys) |
+| **Pending (UAT)** | **Engine UAT** 🟡 Form end-to-end · **Request Only+UnlockCode** Form ⏳ · **Engine Preset UAT** ⏳ (Guided Wizard/Skip/Smart Suggestion · PDF round-trip) · **INTEL-SMART** 🟡 (trend arrows) · INTEL-BLOG-SCORE 🔲 · INTEL-C/D · DC-1 · DC-2 · DC-8 · DC-16 · E9/E10 · **J9-ADMIN-4** (live payment UAT) |
 | **Pending (decision)** | Homepage UX: D (social proof bar) + B (featured badge pulse) — mock ready รอ confirm |
-| **Last session** | **Session 85 (2026-05-17)** — Budget+Risks fix (phase card top) · engine-report→draft_preview · ซ่อน engine-pipeline wizard · Request+UnlockCode ✅ 3 engines |
+| **Last session** | **Session 85 (2026-05-17)** — Budget+Risks fix · engine-report→draft_preview · ซ่อน engine-pipeline · Request+UnlockCode ✅ 3 engines · fix(checkout) webhook race condition (INSERT before Omise charge) |
 | **ห้าม** | ไม่แตะ Later task ขณะที่ Now ยังค้างอยู่ · ไม่แตะ secrets โดยตรง · ไม่ทำให้ revenue channel หายไประหว่าง pivot |
 | **Security rule** | ทุก admin feature ต้องตรวจ: role check · PII mask · no path disclosure · spawnSync array args (ดู §23 Manual) |
 
