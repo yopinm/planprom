@@ -4,7 +4,6 @@ import type { Metadata } from 'next'
 import { requireAdminSession } from '@/lib/admin-auth'
 import { db } from '@/lib/db'
 import { recordFulfilledAction, rejectIdeaAction, revertRejectedAction, permanentRejectAction, bulkPermanentRejectAction, restoreStaleAction, deleteExcelIdeaAction } from './actions'
-import { CopyButton } from './CopyButton'
 import { SubmitButton } from './SubmitButton'
 import { ExcelUploader } from './ExcelUploader'
 import { ExcelS0Panel } from './ExcelS0Panel'
@@ -1280,7 +1279,11 @@ export default async function AdminMarketIntelPage() {
                           <p className="text-[10px] font-black uppercase tracking-wider text-neutral-400 mb-0.5">Target Keyword</p>
                           <p className="text-sm font-black text-neutral-900">{item.targetKeyword}</p>
                         </div>
-                        <CopyButton text={item.copyText} />
+                        <Link
+                          href={`/admin/seo/new?title=${encodeURIComponent(item.blogTitle)}&kw=${encodeURIComponent(item.targetKeyword)}&desc=${encodeURIComponent(item.metaDesc)}`}
+                          className="shrink-0 rounded-full bg-violet-600 px-3 py-1.5 text-[11px] font-black text-white hover:bg-violet-700 transition-colors">
+                          + สร้าง
+                        </Link>
                       </div>
                       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                         <div>

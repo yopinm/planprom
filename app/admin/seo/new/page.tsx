@@ -59,12 +59,54 @@ async function getTemplates(): Promise<DbTpl[]> {
 export default async function NewPostPage({
   searchParams,
 }: {
-  searchParams: Promise<{ t?: string; manage?: string; id?: string }>
+  searchParams: Promise<{ t?: string; manage?: string; id?: string; title?: string; kw?: string; desc?: string }>
 }) {
   await requireAdminSession('/admin/seo')
-  const { t, manage, id } = await searchParams
+  const { t, manage, id, title: qTitle, kw, desc: qDesc } = await searchParams
 
   const templates = await getTemplates()
+
+  // State: pre-fill from SEO Keyword Panel (analytics → seo/new shortcut)
+  if (qTitle && kw) {
+    const autoOutline = `## ${kw}: คู่มือฉบับสมบูรณ์สำหรับคนไทย\n\n[บทนำ 2-3 ประโยค — keyword: ${kw}]\n\n## ${kw} คืออะไร\n\n[อธิบายความหมายและประโยชน์]\n\n## วิธีใช้ ${kw} ให้ได้ผล\n\n[ขั้นตอนหลัก 5-7 ข้อ]\n\n## ตัวอย่างจริง\n\n[case study หรือสถานการณ์จริง]\n\n## เคล็ดลับและข้อควรระวัง\n\n[tips + common mistakes]\n\n## สรุป\n\n[สรุป + CTA ดาวน์โหลด template ที่ planprom.com/templates]`
+    return (
+      <main className="min-h-screen bg-neutral-50 pb-20">
+        <div className="mx-auto max-w-3xl px-4 py-8">
+          <div className="mb-6 flex items-center gap-3">
+            <Link href="/admin/template-analytics#s5" className="rounded-xl border border-neutral-200 bg-white px-4 py-2 text-xs font-black text-neutral-600 shadow-sm hover:border-black transition">
+              ← กลับ Analytics
+            </Link>
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-violet-600 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white">
+              🔍 จาก SEO Panel
+            </div>
+          </div>
+          <form action={createPostAction} className="space-y-5 rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
+            <div>
+              <label className={LABEL}>Title *</label>
+              <input name="title" required maxLength={100} defaultValue={qTitle} placeholder="ชื่อบทความ — แนะนำ 45–60 ตัวอักษร" className={INPUT} />
+            </div>
+            <div>
+              <label className={LABEL}>Target Keyword</label>
+              <input name="target_keyword" defaultValue={kw} placeholder="keyword หลัก — ใส่ลงในเนื้อหาอย่างเป็นธรรมชาติ" className={INPUT} />
+              <p className="mt-1 text-[11px] text-neutral-400">ไม่ถูกบันทึกแยก</p>
+            </div>
+            <div>
+              <label className={LABEL}>Meta Description (SEO) *</label>
+              <textarea name="description" required maxLength={200} rows={2} defaultValue={qDesc ?? ''} placeholder="120–160 ตัวอักษร สำหรับแสดงใน Google" className={`${INPUT} resize-none`} />
+            </div>
+            <div>
+              <label className={LABEL}>Content (Markdown) *</label>
+              <textarea name="content" required rows={22} defaultValue={autoOutline} className={`${INPUT} font-mono text-xs leading-relaxed`} />
+            </div>
+            <div className="flex gap-3 pt-1">
+              <button type="submit" name="submit_type" value="draft" className="rounded-xl bg-neutral-200 px-5 py-2.5 text-xs font-black text-neutral-700 hover:bg-neutral-300 transition">บันทึก Draft</button>
+              <button type="submit" name="submit_type" value="publish" className="rounded-xl bg-black px-5 py-2.5 text-xs font-black text-white hover:bg-neutral-800 transition">Publish ทันที</button>
+            </div>
+          </form>
+        </div>
+      </main>
+    )
+  }
 
   // State: write blog post
   const writeTpl = t ? templates.find(x => x.id === t) ?? (t === 'blank' ? null : undefined) : undefined
