@@ -425,7 +425,11 @@ ALTER TABLE orders ADD COLUMN discount_baht NUMERIC(10,2) NOT NULL DEFAULT 0;
 
 | **INTEL-EXCEL** | **Excel Market Research Upload — Admin-Driven Priority** | **Scope confirmed (Session 86 · 2026-05-17 · owner approved):** Admin อัพโหลด .xlsx 4 คอลัมน์ (ชื่อไทย, ชื่ออังกฤษ, ranking_need "10/10", ประเภท) → ระบบใช้ข้อมูลนี้เป็น Priority Layer สูงกว่า Google Suggest · **DB:** `intel_excel_ideas` (idea_text, title_en, ranking_need INT, engine_type, uploaded_at) · **Merge mode** upsert (ไม่ truncate) · **Section S0:** collapsible · Stats panel (engine overview + rank dist) · **Tier Filter:** 🔥Confirmed (Excel≥9+Suggest) / 🤔AI Only / 🔵Market / ⚡Quick Win / ทั้งหมด · Next Build card · Delete per row · **Files:** `migrations/20260517_intel_excel_ideas.sql` · `app/api/admin/intel/upload-excel/route.ts` · `app/admin/template-analytics/ExcelUploader.tsx` · `app/admin/template-analytics/ExcelS0Panel.tsx` · `app/admin/template-analytics/page.tsx` | ✅ **Done · UAT ผ่าน (Session 86 · 2026-05-17)** |
 
-**ลำดับ:** INTEL-A ✅ → INTEL-B ✅ → INTEL-C ✅ → INTEL-D ✅ → INTEL-E ✅ → INTEL-SMART ✅ → **INTEL-SCORE ✅ → INTEL-SEO-PANEL ✅ → INTEL-BLOG-SCORE 🔲 → INTEL-EXCEL ✅**
+| **INTEL-GSC** | **Google Search Console Integration — S7 Panel** | OAuth 2.0 refresh token · lib/gsc.ts · S7 section ใน analytics (4 summary cards + Top Keywords + Top Pages) · hints ต่อการ์ด · GSC_CLIENT_ID/SECRET/REFRESH_TOKEN/SITE_URL ใน .env.local · Manual §15.5 | ✅ **Done · Session 87 · 2026-05-17** |
+
+| **INTEL-SEO-CREATE** | **SEO Panel [+สร้าง] Button** | เปลี่ยน [Copy] → [+สร้าง] ใน S5.5 · วิ่งไป /admin/seo/new?title=&kw=&desc= · pre-fill form + auto-generate outline | ✅ **Done · Session 87 · 2026-05-17** |
+
+**ลำดับ:** INTEL-A ✅ → INTEL-B ✅ → INTEL-C ✅ → INTEL-D ✅ → INTEL-E ✅ → INTEL-SMART ✅ → **INTEL-SCORE ✅ → INTEL-SEO-PANEL ✅ → INTEL-BLOG-SCORE ✅ → INTEL-EXCEL ✅ → INTEL-SEO-CREATE ✅ → INTEL-GSC ✅**
 
 ---
 
@@ -2397,5 +2401,5 @@ Next.js standalone อ่าน env จากโฟลเดอร์ `server.js
 
 ---
 
-_Last updated: 2026-05-17 (Session 86) · Domain: planprom.com live · SSL Full Strict + Cloudflare 8 settings ✅ · Security score ~80/100 · JWT 2h · PDPA ✅ · Deploy ✅ Smoke test ✅ · Checkout race condition fixed ✅ · Next: J9-ADMIN-1 (KYC) → J9-ADMIN-2 (live keys) → J9-ADMIN-4 (live UAT) → J8 (templates 2-10) → Soft Launch_
+_Last updated: 2026-05-17 (Session 87) · Domain: planprom.com live · SSL Full Strict + Cloudflare 8 settings ✅ · Security score ~80/100 · JWT 2h · PDPA ✅ · Deploy ✅ Smoke test ✅ · Checkout race condition fixed ✅ · GSC integrated ✅ · Next: J9-ADMIN-1 (KYC) → J9-ADMIN-2 (live keys) → J9-ADMIN-4 (live UAT) → J8 (templates 2-10) → Soft Launch_
 _Owner: yopinm@gmail.com · LINE: yopinm · PromptPay: 0948859962_

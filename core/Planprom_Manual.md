@@ -1,6 +1,6 @@
 # Planprom_Manual.md — คู่มือการใช้งาน แพลนพร้อม (planprom.com)
 
-> อัพเดตล่าสุด: 2026-05-15 · Session 75 · ครอบคลุมทุกฟีเจอร์ที่ Live + Technical Reference (DB, API, Engine, Infra) จาก Blueprint · Security Score ~80/100 · Deploy ✅ Smoke test ✅
+> อัพเดตล่าสุด: 2026-05-17 · Session 87 · ครอบคลุมทุกฟีเจอร์ที่ Live + Technical Reference (DB, API, Engine, Infra) จาก Blueprint · Security Score ~80/100 · Deploy ✅ Smoke test ✅
 > ภาษา: ไทย · เขียนสำหรับ admin และ owner ของระบบ
 
 ---
@@ -22,6 +22,11 @@
 13. [Admin — Promo Codes](#13-admin--promo-codes)
 14. [Admin — Orders](#14-admin--orders)
 15. [Admin — Reports & Analytics](#15-admin--reports--analytics)
+    - [15.1 Market Intelligence](#151-market-intelligence-admintemplate-analytics)
+    - [15.2 Blog SEO](#152-blog-seo-adminseo)
+    - [15.3 System Log](#153-system-log-unified)
+    - [15.4 Data Reports](#154-data-reports)
+    - [15.5 GSC Setup Guide](#155-gsc-setup-guide-ครั้งเดียว)
 16. [Admin — Catalog Manager](#16-admin--catalog-manager)
 17. [ราคาและการคิดเงิน](#17-ราคาและการคิดเงิน)
 18. [ระบบโค้ดส่วนลด (Promo Code)](#18-ระบบโค้ดส่วนลด-promo-code)
@@ -549,13 +554,28 @@ Today / 7d / 30d / Custom — query ข้อมูลจริงทุก filt
 - ideas match catalog ใหม่ได้ถ้า catPattern ตรงกับชื่อ/slug หรือ idea text มีชื่อ category ตรงๆ
 
 **Sections ในหน้า:**
+- **S0 — Excel Ideas (INTEL-EXCEL):** admin research ideas จาก Claude Chat · upload .xlsx → merge/replace · แสดง Tier Classification + filter buttons
+  - **Tier System:** Excel AI score × Google Suggest = ตัดสินใจสร้าง
+    - 🔥 **Confirmed** — score ≥9 + อยู่ใน Google Suggest → สร้างได้เลย
+    - 🤔 **AI Only** — score ≥9 ยังไม่มี Google proof
+    - 🔵 **Market** — คนค้นหาจริงแต่ AI rank ต่ำกว่า 9
+    - ⏳ **Defer** — signal ต่ำทั้งสองทาง
+  - **Filter buttons:** Confirmed · AI Only · Market · Quick Win (checklist ≥9) · ทั้งหมด
+  - **Next Build card:** แสดง idea แนะนำ 1 รายการที่ควรสร้างก่อน
+  - **Stats panel:** engine breakdown + rank distribution
 - **S1 — KPI:** revenue · orders · avg · downloads · unique buyers
 - **S2 — Revenue by Engine:** ยอดขายแต่ละประเภท (Checklist/Planner/Form/Report)
 - **S2a — Catalog Action Cards:** top 3 ideas ต่อ catalog + ปุ่ม "+ สร้าง" (pre-fill wizard) · buffer 6 ideas/catalog (แสดง 3) เพื่อรองรับ idea ถูก reject ระหว่างวัน
 - **S3 — Priority List (Card 05):** top 20 uncovered ideas เรียงตาม score · แต่ละ row มี catalog badge + engine badge + ปุ่ม ✕ reject
 - **S4 — Coverage:** ครอบคลุมแค่ไหน (%) ต่อ engine type · gap heatmap
 - **S5 — Market Demand (Card 06):** 4 กลุ่ม demand รวม (Checklist / Planner / Form / Report) — merge ideas จากหลาย keyword ในกลุ่มเดียว ไม่ duplicate · แต่ละ idea มีปุ่ม ✕ reject
+- **S5.5 — SEO Keyword Panel:** keyword idea + blog title + meta description ต่อ engine type
+  - ปุ่ม **[+ สร้าง]** (สีม่วง) → วิ่งไป `/admin/seo/new?title=...&kw=...&desc=...` — pre-fill ทุก field ทันที ไม่ต้องกรอกใหม่
 - **S6 — Bestseller / Zero-sale:** template ขายดีสุด vs ขายไม่ออก · 14-day daily chart
+- **S7 — Google Search Console:** ข้อมูลจริงจาก Google (28 วันล่าสุด) — ดูวิธีอ่านได้ที่ §15.5
+  - **4 summary cards:** Clicks · Impressions · Avg CTR · Avg Position
+  - **Top Keywords:** keyword ที่คนค้นหาแล้วเจอเว็บเรา → position color-coded (🟢 #1-10 · 🟡 #11-20 · 🔴 #21+)
+  - **Top Pages:** หน้าที่ Google index แล้ว → เห็น impression กี่ครั้ง · ได้ click กี่ครั้ง
 
 **Badge "N KEYWORDS · N ALPHA · CACHE 1H":** hover เพื่อดูรายละเอียด — บอกจำนวน queries และอายุ cache ปัจจุบัน
 
@@ -601,7 +621,53 @@ idea ที่ปรากฏใน Google Suggest มา ≥ 30 วันแต
 
 ทุก action ใช้ `revalidatePath('/admin/template-analytics')` เพื่อ refresh หน้าโดยไม่ต้อง reload
 
-### 15.2 System Log (Unified)
+### 15.2 Blog SEO (/admin/seo)
+
+URL: `/admin/seo` · ลิงก์: **BLOG SEO** ใน admin nav
+
+#### Blog SEO Health Check
+
+- แสดง published blog posts เรียงจาก score ต่ำ → สูง (ต้องแก้ก่อน)
+- **Score 5 มิติ / 100 คะแนน:**
+  - Title (≥45 chars = 20pt)
+  - Description/Meta (≥120 chars = 20pt)
+  - Content length (≥500 chars = 20pt)
+  - Internal links (มี link = 20pt)
+  - Tags (มี tags = 20pt)
+- **Grade:** 🟢 ≥80 · 🟡 50-79 · 🔴 <50
+- กด row → expand ดู breakdown ต่อ dimension + คำแนะนำว่าแก้อะไรก่อน
+- ปุ่ม **"แก้ไข →"** → ไปหน้า edit blog post
+
+#### เขียนบทความใหม่ (/admin/seo/new)
+
+มี 3 ทางเข้า:
+
+| ทางเข้า | URL | ผล |
+|---|---|---|
+| เลือก Topic จาก picker | `/admin/seo/new?t={id}` | pre-fill จาก template ใน DB |
+| จาก SEO Keyword Panel (S5.5) | `/admin/seo/new?title=...&kw=...&desc=...` | pre-fill + auto-generate outline จาก keyword |
+| เขียนเอง (blank) | `/admin/seo/new?t=blank` | form เปล่า |
+
+**Auto-generate outline (เมื่อมาจาก S5.5):**
+```
+## {kw}: คู่มือฉบับสมบูรณ์สำหรับคนไทย
+## {kw} คืออะไร
+## วิธีใช้ {kw} ให้ได้ผล
+## ตัวอย่างจริง
+## เคล็ดลับและข้อควรระวัง
+## สรุป (+ CTA ดาวน์โหลดที่ planprom.com/templates)
+```
+
+#### Topic Templates
+
+Admin สามารถจัดการ topic templates ได้ใน picker grid:
+- **แก้** → แก้ไข keyword/title/description/outline
+- **ลบ** → ลบ topic ออกจาก picker
+- **+ เพิ่ม Topic** → เพิ่ม topic ใหม่
+
+---
+
+### 15.3 System Log (Unified)
 
 URL: `/admin/report/log`
 
@@ -648,7 +714,7 @@ URL: `/admin/report/log`
 
 **คลิกที่การ์ด** → เปิด/ปิด detail box แสดง 3 แถว: **เงื่อนไข** (ค่าที่ trigger) · **ความหมาย** (ผลต่อระบบ) · **วิธีแก้** (step แก้ปัญหา)
 
-### 15.3 Data Reports
+### 15.4 Data Reports
 
 | Route | เนื้อหา |
 |---|---|
@@ -656,6 +722,92 @@ URL: `/admin/report/log`
 | `/admin/report/downloads` | download events ต่อ template |
 | `/admin/report/export` | Export orders CSV |
 | `/admin/report/pageviews` | Page analytics · top pages |
+
+### 15.5 GSC Setup Guide (ครั้งเดียว)
+
+#### วัตถุประสงค์
+
+Google Search Console (GSC) integration แสดงข้อมูลจริงว่า Google ส่ง traffic มาให้เว็บเราจาก keyword อะไร หน้าไหน อยู่ตำแหน่งไหน — ใช้ปรับทิศทาง SEO ให้สอดคล้องกับ Google Search จริงๆ ไม่ใช่แค่คาดเดา
+
+**ต่างจาก S0 Excel + Suggest ตรงที่:**
+- S0 บอกว่า "น่าจะมีคนต้องการ" (คาดเดา)
+- S7 GSC บอกว่า "มีคนเจอเราจริงแล้ว" (ข้อเท็จจริง)
+
+**วิธีใช้ข้อมูลจาก S7:**
+- **Clicks สูงขึ้นทุกเดือน** = traffic กำลังโต ✅
+- **Impressions สูง แต่ Clicks ต่ำ** = แก้ title/meta ให้น่าคลิกขึ้น
+- **Avg CTR < 3%** = ปรับ title/meta description
+- **Position #1-3** = ดีมาก ไม่ต้องทำอะไร
+- **Position #4-10** = ปรับ on-page SEO (title, H1, content density)
+- **Position #11-20** = เพิ่ม content หรือ internal links
+- **Position #21+** = สร้าง content ใหม่หรือปรับ keyword strategy
+
+#### ขั้นตอนการตั้งค่า (ทำครั้งเดียว)
+
+**Prerequisites:** GSC verified สำหรับ `planprom.com` แล้ว (verify ผ่าน sitemap หรือ DNS)
+
+**ขั้น 1 — Enable Search Console API**
+```
+console.cloud.google.com/apis/library/searchconsole.googleapis.com
+```
+→ กด **Enable**
+
+**ขั้น 2 — สร้าง OAuth 2.0 Client**
+```
+console.cloud.google.com/apis/credentials → Create credentials → OAuth client ID
+```
+- Application type: **Web application**
+- Name: `planprom-gsc`
+- Authorized redirect URIs: `http://localhost:3000/oauth/callback`
+- กด **Create** → Download JSON key → เก็บไว้ใน `core/Capture UI/`
+
+**ขั้น 3 — Get Refresh Token (script รันครั้งเดียว)**
+```bash
+# หยุด dev server ก่อน (port 3000)
+node scripts/get-gsc-token.mjs
+# → browser เปิด → login yopinm@gmail.com → Allow
+# → terminal แสดง GSC_CLIENT_ID / GSC_CLIENT_SECRET / GSC_REFRESH_TOKEN
+```
+
+**ขั้น 4 — เพิ่มใน .env.local (local + VPS)**
+```env
+GSC_CLIENT_ID=838406311959-....apps.googleusercontent.com
+GSC_CLIENT_SECRET=GOCSPX-...
+GSC_REFRESH_TOKEN=1//0g...
+GSC_SITE_URL=sc-domain:planprom.com
+```
+
+VPS:
+```bash
+# เพิ่ม 4 บรรทัดใน /var/www/planprom/.env.local
+# แล้ว copy ไป standalone
+cp /var/www/planprom/.env.local /var/www/planprom/.next/standalone/.env.local
+pm2 restart planprom
+```
+
+**ขั้น 5 — ตรวจสอบ**
+- เปิด `/admin/template-analytics` → scroll ไป S7
+- ถ้าแสดง 4 summary cards = สำเร็จ ✅
+- ถ้าแสดง "ไม่สามารถดึงข้อมูล GSC ได้" = ดู Troubleshooting ด้านล่าง
+
+#### Credentials ที่เก็บไว้
+
+| ไฟล์ | สิ่งที่เก็บ |
+|---|---|
+| `.env.local` | GSC_CLIENT_ID · GSC_CLIENT_SECRET · GSC_REFRESH_TOKEN · GSC_SITE_URL |
+| `core/Capture UI/client_secret_*.json` | OAuth client JSON (backup) |
+
+> **หมายเหตุ:** `scripts/get-gsc-token.mjs` ถูกลบหลังใช้งาน — ถ้าต้อง regenerate token ให้สร้างไฟล์ใหม่จาก template เดิม
+
+#### Troubleshooting
+
+| อาการ | สาเหตุ | วิธีแก้ |
+|---|---|---|
+| "ไม่สามารถดึงข้อมูล GSC ได้" | GSC env vars หายหลัง deploy | `cp .env.local .next/standalone/.env.local && pm2 restart planprom` |
+| Token error / invalid_grant | Refresh token หมดอายุ (ถ้าไม่ได้ใช้นาน) | รัน `get-gsc-token.mjs` ใหม่ → update GSC_REFRESH_TOKEN ใน .env.local ทั้ง local และ VPS |
+| "Access blocked: couponkum" | OAuth consent screen ชื่อเก่า + Testing mode | ไป `console.cloud.google.com/auth/audience` → เพิ่ม test user หรือ เปลี่ยนชื่อ app ที่ `console.cloud.google.com/auth/branding` |
+| Top Keywords ว่าง | Traffic น้อยเกินไป → GSC ซ่อน (privacy threshold) | รอ 2-4 สัปดาห์ · ข้อมูลจะขึ้นเมื่อมี traffic มากพอ |
+| Data ล่าช้า 2-3 วัน | GSC delay ปกติ | ปกติ ไม่ใช่ bug |
 
 ---
 
@@ -812,7 +964,9 @@ URL: `/admin/catalogs`
 | `/admin/templates/[id]/revise` | แก้ engine content + re-generate PDF (DC-8) |
 | `/admin/catalogs` | จัดการหมวดหมู่ |
 | `/admin/orders` | รายการ order + verify + revoke + LINE notify |
-| `/admin/template-analytics` | KPI + Revenue by Engine + Catalog Action Cards + Priority List (Feedback Loop) + Market Demand (4 groups) + Stale/Rejected recovery sections + Bestseller/Zero-sale |
+| `/admin/template-analytics` | S0 Excel Ideas+Tier · S1 KPI · S2 Revenue by Engine · S2a Catalog Action Cards · S3 Priority List · S4 Coverage · S5 Market Demand · S5.5 SEO Keyword Panel · S6 Bestseller/Zero-sale · S7 Google Search Console |
+| `/admin/seo` | Blog SEO Health Check — score 5 มิติ/100 · leaderboard · expandable breakdown |
+| `/admin/seo/new` | เขียนบทความใหม่ — picker / pre-fill from template / pre-fill from SEO Panel (?title=&kw=&desc=) |
 | `/admin/form-builder` | Form Builder สร้าง interactive form |
 
 ### API Endpoints

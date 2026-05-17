@@ -31,9 +31,9 @@
 | **Blockers** | Lazada pool=49 fixed · Affiliate tasks ❌ CLOSED 2026-05-13 (owner decision) |
 | **Next task** | **J9-ADMIN-1** (KYC → live keys) → **J9-ADMIN-4** (live UAT ฿30/฿20/฿50 request) |
 | **Pending (code)** | E9/E10 · UI-G(defer) |
-| **Pending (UAT)** | **Engine UAT** 🟡 Form end-to-end · **Request Only+UnlockCode** Form ⏳ · **Engine Preset UAT** ⏳ (Guided Wizard/Skip/Smart Suggestion · PDF round-trip) · INTEL-BLOG-SCORE 🔲 · DC-1 · DC-2 · DC-8 · DC-16 · E9/E10 · **J9-ADMIN-4** (live payment UAT) |
+| **Pending (UAT)** | **Engine UAT** 🟡 Form end-to-end · **Request Only+UnlockCode** Form ⏳ · **Engine Preset UAT** ⏳ (Guided Wizard/Skip/Smart Suggestion · PDF round-trip) · INTEL-BLOG-SCORE ✅ (live at /admin/seo) · DC-1 · DC-2 · DC-8 · DC-16 · E9/E10 · **J9-ADMIN-4** (live payment UAT) |
 | **Pending (decision)** | Homepage UX: D (social proof bar) + B (featured badge pulse) — mock ready รอ confirm |
-| **Last session** | **Session 86 (2026-05-17)** — INTEL-EXCEL ✅ (Excel upload + merge mode + tier filter + Next Build card + stats panel) · deploy .env.local incident fix + doc update ทุกไฟล์ |
+| **Last session** | **Session 87 (2026-05-17)** — GSC integration ✅ (OAuth setup + lib/gsc.ts + S7 panel + hints) · SEO Panel [+สร้าง] button ✅ · /admin/seo/new pre-fill shortcut ✅ · Manual §15.2+§15.5 เพิ่มใหม่ |
 | **ห้าม** | ไม่แตะ Later task ขณะที่ Now ยังค้างอยู่ · ไม่แตะ secrets โดยตรง · ไม่ทำให้ revenue channel หายไประหว่าง pivot |
 | **Security rule** | ทุก admin feature ต้องตรวจ: role check · PII mask · no path disclosure · spawnSync array args (ดู §23 Manual) |
 | **⛔ Deploy rule** | หลัง `npm run build` ต้อง `cp .env.local .next/standalone/.env.local` ก่อน restart เสมอ — ขาดแล้ว admin login 500 (incident 2026-05-17) |
