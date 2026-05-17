@@ -725,35 +725,44 @@ export default async function AdminMarketIntelPage() {
       <div className="mx-auto max-w-5xl px-4 py-8 space-y-10">
 
         {/* Header */}
-        <div className="flex items-start justify-between">
+        <div className="flex items-start justify-between gap-4">
           <div>
             <Link href="/admin" className="text-xs font-bold text-neutral-400 hover:text-black">← Admin</Link>
             <h1 className="mt-1 text-2xl font-black text-black">Market Intelligence</h1>
             <p className="mt-0.5 text-sm text-neutral-500">ตลาดต้องการอะไร + เราครอบแค่ไหน → สร้าง template ที่ถูกจุด</p>
           </div>
-          <span
-            title={`ระบบดึงข้อมูลจาก Google Suggest ด้วย ${SEED_KEYWORDS.length} seed keywords (checklist/planner/form/report ฯลฯ) × ${ALPHA_CHARS.length} ตัวอักษร = ${SEED_KEYWORDS.length * ALPHA_CHARS.length} queries · ผลลัพธ์ cache ไว้ 1 ชั่วโมง`}
-            className="mt-6 cursor-help rounded-full bg-indigo-100 px-3 py-1 text-[10px] font-black text-indigo-700 uppercase"
-          >
-            {SEED_KEYWORDS.length} keywords · {ALPHA_CHARS.length} alpha · cache 1h
-          </span>
+          <div className="flex flex-col items-end gap-2 shrink-0 mt-1">
+            <span
+              title={`ระบบดึงข้อมูลจาก Google Suggest ด้วย ${SEED_KEYWORDS.length} seed keywords (checklist/planner/form/report ฯลฯ) × ${ALPHA_CHARS.length} ตัวอักษร = ${SEED_KEYWORDS.length * ALPHA_CHARS.length} queries · ผลลัพธ์ cache ไว้ 1 ชั่วโมง`}
+              className="cursor-help rounded-full bg-indigo-100 px-3 py-1 text-[10px] font-black text-indigo-700 uppercase"
+            >
+              {SEED_KEYWORDS.length} keywords · {ALPHA_CHARS.length} alpha · cache 1h
+            </span>
+            <div className="flex flex-col items-end gap-1">
+              <ExcelUploader existingCount={excelIdeas.length} />
+              {excelIdeas.length > 0 && (
+                <span className="text-[10px] text-neutral-400">
+                  Research DB: {excelIdeas.length} ideas · {excelDisplayItems.filter(e => e.match !== null).length} covered · {excelDisplayItems.filter(e => e.match === null).length} gap
+                </span>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* ── S0: Excel Research Database ──────────────────────────────────── */}
+        {excelIdeas.length > 0 && (
         <section>
           <div className="flex items-center gap-3 pb-3 mb-6 border-b border-emerald-200">
             <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-700 text-[11px] font-black text-white">📊</span>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-bold text-neutral-800">Research Database — อัพโหลดเอง</p>
-              <p className="text-[10px] text-neutral-400">Admin market research · 4 คอลัมน์: ชื่อไทย · ชื่ออังกฤษ · ranking (10/10) · ประเภท</p>
+              <p className="text-[10px] text-neutral-400">{excelIdeas.length} รายการ · {excelDisplayItems.filter(e => e.match !== null).length} covered · {excelDisplayItems.filter(e => e.match === null).length} gap · priority boost สูงกว่า Google Suggest</p>
             </div>
-            <ExcelUploader existingCount={excelIdeas.length} />
           </div>
 
           {excelIdeas.length === 0 ? (
             <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-8 text-center">
-              <p className="text-sm text-neutral-400">ยังไม่มีข้อมูล — กดอัพโหลด .xlsx ด้านบน</p>
-              <p className="mt-1 text-xs text-neutral-400">คอลัมน์: ชื่อไทย · ชื่ออังกฤษ · อันดับคะแนน · ประเภท</p>
+              <p className="text-sm text-neutral-400">ยังไม่มีข้อมูล</p>
             </div>
           ) : (
             <>
@@ -820,6 +829,7 @@ export default async function AdminMarketIntelPage() {
             </>
           )}
         </section>
+        )}
 
         {/* ── S1: KPI ─────────────────────────────────────────────────────── */}
         <section>
