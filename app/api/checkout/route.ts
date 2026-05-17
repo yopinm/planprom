@@ -79,26 +79,14 @@ export async function POST(req: NextRequest) {
 
   const uid = await newOrderUid()
 
-  let qrImageUrl   = ''
-  let omiseChargeId: string | null = null
-
-  if (chargeTotal > 0) {
-    let charge
-    try {
-      charge = await createPromptPayCharge(chargeTotal, { type: 'cart', order_uid: uid })
-    } catch (err) {
-      return NextResponse.json({ error: `Omise error: ${(err as Error).message}` }, { status: 502 })
-    }
-    qrImageUrl    = charge.source?.scannable_code?.image?.download_uri ?? ''
-    omiseChargeId = charge.id
-  }
-
+  // Insert order into DB FIRST so the webhook handler can always find it by order_uid,
+  // even if Omise fires charge.complete before this route finishes executing (test-mode race)
   const [order] = await db<{ id: string }[]>`
     INSERT INTO orders (order_uid, total_baht, omise_charge_id, status, order_type, customer_line_id, promo_code_id, discount_baht)
     VALUES (
       ${uid},
       ${chargeTotal},
-      ${omiseChargeId},
+      ${null},
       ${chargeTotal === 0 ? 'paid' : 'pending_payment'},
       'cart',
       ${customerLineId},
@@ -130,6 +118,16 @@ export async function POST(req: NextRequest) {
     await issueTokens(order.id)
     await db`DELETE FROM carts WHERE session_id = ${sessionId}`
     return NextResponse.json({ orderUid: uid, qrImageUrl: '', total: 0, paid: true })
+  }
+
+  let qrImageUrl = ''
+  try {
+    const charge = await createPromptPayCharge(chargeTotal, { type: 'cart', order_uid: uid })
+    qrImageUrl = charge.source?.scannable_code?.image?.download_uri ?? ''
+    await db`UPDATE orders SET omise_charge_id = ${charge.id} WHERE id = ${order.id}`
+  } catch (err) {
+    await db`UPDATE orders SET status = 'cancelled' WHERE id = ${order.id}`
+    return NextResponse.json({ error: `Omise error: ${(err as Error).message}` }, { status: 502 })
   }
 
   return NextResponse.json({ orderUid: uid, qrImageUrl, total: chargeTotal, paid: false })
