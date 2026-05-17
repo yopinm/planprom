@@ -1,0 +1,9 @@
+- [x] Define the audit scope.
+- [x] SAST Recon on `app/admin/report/log/SystemLogClient.tsx`
+  - [ ] Investigate PII leakage in raw logs and 3rd party sharing recommendation on line 115, 120, and 200.
+  - [ ] Investigate internal path exposure on line 151.
+- [x] SAST Recon on `app/admin/report/log/page.tsx`
+  - [ ] Investigate potential Command Injection in `tailLines` via malicious file names on line 31.
+  - [ ] Investigate PII leakage to client in `data` object on line 133.
+- [ ] SAST Recon on `components/admin/AdminNav.tsx`
+- [ ] Conduct the final review of all findings as per your **Minimizing False Positives** operating principle and generate the final report.

@@ -1,4 +1,4 @@
-// /admin/template-analytics — INTEL-A+B+C+D: Market Intelligence Dashboard v2
+// /admin/template-analytics — INTEL-A+B+C+D+EXCEL: Market Intelligence Dashboard v2
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { requireAdminSession } from '@/lib/admin-auth'
@@ -6,6 +6,7 @@ import { db } from '@/lib/db'
 import { recordFulfilledAction, rejectIdeaAction, revertRejectedAction, permanentRejectAction, bulkPermanentRejectAction, restoreStaleAction } from './actions'
 import { CopyButton } from './CopyButton'
 import { SubmitButton } from './SubmitButton'
+import { ExcelUploader } from './ExcelUploader'
 
 export const metadata: Metadata = {
   title: 'Market Intelligence — Admin',
@@ -83,6 +84,7 @@ type FulfilledRow   = { idea_text: string; fulfilled_at: string }
 type SnapshotRow    = { idea_text: string; engine_type: string; score: number }
 type RejectedRow    = { idea_text: string; rejected_at: string }
 type StaleIdeaRow   = { idea_text: string; engine_type: string; oldest_date: string }
+type ExcelIdea      = { id: number; idea_text: string; title_en: string | null; ranking_need: number; engine_type: string }
 type ScoreRow = {
   id: string; title: string; slug: string
   engine_type: string | null; tier: string; price_baht: number
@@ -276,7 +278,7 @@ export default async function AdminMarketIntelPage() {
   await requireAdminSession('/admin/login')
 
   // ── Phase 1 (parallel) ───────────────────────────────────────────────────
-  const [baseSuggestRaw, allTemplates, kpiRow, byType, daily, ranking, gapData, alphaRaw, catalogPerf, allCategories, fulfilledRaw, yesterdaySnaps, healthRows, rejectedRaw, staleRaw, recoverableRaw] =
+  const [baseSuggestRaw, allTemplates, kpiRow, byType, daily, ranking, gapData, alphaRaw, catalogPerf, allCategories, fulfilledRaw, yesterdaySnaps, healthRows, rejectedRaw, staleRaw, recoverableRaw, excelIdeas] =
     await Promise.all([
       Promise.all(SEED_KEYWORDS.map(async kw => ({ kw, suggestions: await fetchSuggestions(kw.key) }))),
 
@@ -419,6 +421,13 @@ export default async function AdminMarketIntelPage() {
         SELECT idea_text, rejected_at::text FROM intel_rejected
         WHERE is_permanent = false ORDER BY rejected_at DESC
       `.catch(() => [] as RejectedRow[]),
+
+      // INTEL-EXCEL: admin-uploaded market research ideas
+      db<ExcelIdea[]>`
+        SELECT id, idea_text, title_en, ranking_need, engine_type
+        FROM intel_excel_ideas
+        ORDER BY ranking_need DESC, id
+      `.catch(() => [] as ExcelIdea[]),
     ])
 
   const kpi = kpiRow[0] ?? { total_revenue: '0', paid_orders: '0', pending_orders: '0', total_downloads: '0', unique_buyers: '0' }
@@ -513,6 +522,22 @@ export default async function AdminMarketIntelPage() {
       priorityList.push({ idea: row.idea, level: row.level, engineType, score: priorityScore(row.level, pct) })
     }
   }
+  // ── INTEL-EXCEL: inject admin research ideas into priority (above Google Suggest) ──
+  function excelWeight(r: number): number { return r >= 9 ? 5 : r >= 7 ? 4 : r >= 5 ? 3 : 2 }
+  type ExcelDisplayItem = ExcelIdea & { match: TemplateRef | null }
+  const excelDisplayItems: ExcelDisplayItem[] = excelIdeas.map(ex => ({
+    ...ex,
+    match: findMatch(ex.idea_text, allTemplates),
+  }))
+  for (const ex of excelIdeas) {
+    if (seenPrio.has(ex.idea_text)) continue
+    const match = findMatch(ex.idea_text, allTemplates)
+    if (match !== null) continue // already covered — skip priority boost
+    seenPrio.add(ex.idea_text)
+    const et = ex.engine_type === 'planner' ? 'pipeline' : ex.engine_type
+    priorityList.push({ idea: ex.idea_text, level: 1, engineType: et, score: excelWeight(ex.ranking_need) * 100 })
+  }
+
   // ── Feature 1: Cluster · Feature 2: Fulfilled filter · Feature 3: Trend ────
   const fulfilledSet = new Set(fulfilledRaw.map(f => f.idea_text.toLowerCase()))
   const snapMap      = new Map(yesterdaySnaps.map(s => [`${s.idea_text}::${s.engine_type}`, s.score]))
@@ -713,6 +738,88 @@ export default async function AdminMarketIntelPage() {
             {SEED_KEYWORDS.length} keywords · {ALPHA_CHARS.length} alpha · cache 1h
           </span>
         </div>
+
+        {/* ── S0: Excel Research Database ──────────────────────────────────── */}
+        <section>
+          <div className="flex items-center gap-3 pb-3 mb-6 border-b border-emerald-200">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-700 text-[11px] font-black text-white">📊</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-neutral-800">Research Database — อัพโหลดเอง</p>
+              <p className="text-[10px] text-neutral-400">Admin market research · 4 คอลัมน์: ชื่อไทย · ชื่ออังกฤษ · ranking (10/10) · ประเภท</p>
+            </div>
+            <ExcelUploader existingCount={excelIdeas.length} />
+          </div>
+
+          {excelIdeas.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-8 text-center">
+              <p className="text-sm text-neutral-400">ยังไม่มีข้อมูล — กดอัพโหลด .xlsx ด้านบน</p>
+              <p className="mt-1 text-xs text-neutral-400">คอลัมน์: ชื่อไทย · ชื่ออังกฤษ · อันดับคะแนน · ประเภท</p>
+            </div>
+          ) : (
+            <>
+              {/* Summary chips */}
+              <div className="flex flex-wrap gap-2 mb-4">
+                <span className="rounded-full bg-emerald-100 px-3 py-0.5 text-xs font-bold text-emerald-700">
+                  {excelIdeas.length} รายการทั้งหมด
+                </span>
+                <span className="rounded-full bg-green-100 px-3 py-0.5 text-xs font-bold text-green-700">
+                  ✅ มี template แล้ว {excelDisplayItems.filter(e => e.match !== null).length}
+                </span>
+                <span className="rounded-full bg-orange-100 px-3 py-0.5 text-xs font-bold text-orange-700">
+                  🟠 ยังไม่มี {excelDisplayItems.filter(e => e.match === null).length}
+                </span>
+              </div>
+
+              {/* Group by ranking_need DESC */}
+              {[10, 9, 8, 7, 6, 5, 4, 3, 2, 1].map(rank => {
+                const group = excelDisplayItems.filter(e => e.ranking_need === rank)
+                if (!group.length) return null
+                const rankLabel = `${rank}/10`
+                const rankColor = rank >= 9 ? 'bg-red-100 text-red-700' : rank >= 7 ? 'bg-orange-100 text-orange-700' : rank >= 5 ? 'bg-amber-100 text-amber-700' : 'bg-neutral-100 text-neutral-500'
+                return (
+                  <div key={rank} className="mb-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-black ${rankColor}`}>
+                        ★ {rankLabel}
+                      </span>
+                      <span className="text-xs text-neutral-400">{group.length} รายการ</span>
+                    </div>
+                    <div className="space-y-1.5">
+                      {group.map(item => {
+                        const engColor = ENGINE_COLOR[item.engine_type] ?? 'border-neutral-200 bg-neutral-50 text-neutral-700'
+                        const encTitle = encodeURIComponent(item.idea_text)
+                        const encEng   = item.engine_type === 'pipeline' ? 'planner-pipeline' : item.engine_type
+                        const createUrl = `/admin/templates/new?title=${encTitle}&engine=${encEng}`
+                        return (
+                          <div key={item.id} className="flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2">
+                            <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold border ${engColor}`}>
+                              {ENGINE_LABEL[item.engine_type] ?? item.engine_type}
+                            </span>
+                            <span className="flex-1 min-w-0 text-sm font-medium text-neutral-800 truncate">{item.idea_text}</span>
+                            {item.title_en && (
+                              <span className="hidden sm:block shrink-0 text-xs text-neutral-400 truncate max-w-[200px]">{item.title_en}</span>
+                            )}
+                            {item.match ? (
+                              <Link href={`/admin/templates/${item.match.id}/edit`}
+                                className="shrink-0 rounded-full bg-green-100 px-2.5 py-0.5 text-[11px] font-bold text-green-700 hover:bg-green-200">
+                                ✅ มีแล้ว
+                              </Link>
+                            ) : (
+                              <Link href={createUrl}
+                                className="shrink-0 rounded-full bg-orange-100 px-2.5 py-0.5 text-[11px] font-bold text-orange-700 hover:bg-orange-200">
+                                + สร้าง
+                              </Link>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )
+              })}
+            </>
+          )}
+        </section>
 
         {/* ── S1: KPI ─────────────────────────────────────────────────────── */}
         <section>
