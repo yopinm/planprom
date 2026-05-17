@@ -773,6 +773,29 @@ export default async function AdminMarketIntelPage() {
           const coveredItems = excelDisplayItems.filter(e => e.match !== null)
           const suggestCount = excelDisplayItems.filter(e => e.inSuggest).length
 
+          // Stats for mini-report panel
+          const ENGINE_ORDER = ['checklist', 'planner', 'report', 'form', 'pipeline'] as const
+          const engineStats = ENGINE_ORDER.map(et => {
+            const items = excelDisplayItems.filter(e => e.engine_type === et)
+            if (!items.length) return null
+            return {
+              engine: et,
+              total:    items.length,
+              avgRank:  (items.reduce((s, e) => s + e.ranking_need, 0) / items.length).toFixed(1),
+              rank9:    items.filter(e => e.ranking_need >= 9).length,
+              covered:  items.filter(e => e.match !== null).length,
+              gap:      items.filter(e => e.match === null).length,
+            }
+          }).filter(Boolean)
+
+          const rankDist = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1].map(r => ({
+            rank: r, count: excelDisplayItems.filter(e => e.ranking_need === r).length,
+          })).filter(e => e.count > 0)
+
+          function RankLabel(r: number) {
+            return r >= 9 ? 'Priority สูงสุด' : r >= 7 ? 'High priority' : r >= 5 ? 'ควรทำแต่ไม่เร่ง' : 'Low priority'
+          }
+
           function ExcelIdeaRow({ item }: { item: ExcelDisplayItem }) {
             const engColor  = ENGINE_COLOR[item.engine_type] ?? 'border-neutral-200 bg-neutral-50 text-neutral-700'
             const encTitle  = encodeURIComponent(item.idea_text)
@@ -852,6 +875,71 @@ export default async function AdminMarketIntelPage() {
                 <span className="text-xs text-neutral-400 group-open:hidden">▼ ขยาย</span>
                 <span className="text-xs text-neutral-400 hidden group-open:inline">▲ ยุบ</span>
               </summary>
+
+              {/* ── Mini Stats Report ─────────────────────────────────────── */}
+              <div className="mt-4 mb-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Engine overview */}
+                <div className="overflow-x-auto rounded-xl border border-neutral-200 bg-neutral-50">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="border-b border-neutral-200 text-neutral-500 text-[10px] uppercase tracking-wide bg-neutral-100">
+                        <th className="px-3 py-2 text-left font-semibold">Engine</th>
+                        <th className="px-2 py-2 text-right font-semibold">รวม</th>
+                        <th className="px-2 py-2 text-right font-semibold">avg</th>
+                        <th className="px-2 py-2 text-right font-semibold text-red-600">9-10</th>
+                        <th className="px-2 py-2 text-right font-semibold text-orange-600">gap</th>
+                        <th className="px-2 py-2 text-right font-semibold text-green-600">✅</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {engineStats.map(e => e && (
+                        <tr key={e.engine} className="border-b border-neutral-100 last:border-0 hover:bg-white transition-colors">
+                          <td className="px-3 py-1.5 font-semibold text-neutral-700">{ENGINE_LABEL[e.engine] ?? e.engine}</td>
+                          <td className="px-2 py-1.5 text-right text-neutral-600">{e.total}</td>
+                          <td className="px-2 py-1.5 text-right text-neutral-400">{e.avgRank}</td>
+                          <td className="px-2 py-1.5 text-right font-black text-red-600">{e.rank9}</td>
+                          <td className="px-2 py-1.5 text-right font-black text-orange-600">{e.gap}</td>
+                          <td className="px-2 py-1.5 text-right text-green-600">{e.covered}</td>
+                        </tr>
+                      ))}
+                      <tr className="bg-neutral-100 font-black text-[10px]">
+                        <td className="px-3 py-1.5 text-neutral-600">รวม</td>
+                        <td className="px-2 py-1.5 text-right text-neutral-700">{excelIdeas.length}</td>
+                        <td className="px-2 py-1.5 text-right text-neutral-400">—</td>
+                        <td className="px-2 py-1.5 text-right text-red-600">{excelDisplayItems.filter(e => e.ranking_need >= 9).length}</td>
+                        <td className="px-2 py-1.5 text-right text-orange-600">{gapItems.length}</td>
+                        <td className="px-2 py-1.5 text-right text-green-600">{coveredItems.length}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Ranking distribution */}
+                <div className="overflow-x-auto rounded-xl border border-neutral-200 bg-neutral-50">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="border-b border-neutral-200 text-neutral-500 text-[10px] uppercase tracking-wide bg-neutral-100">
+                        <th className="px-3 py-2 text-left font-semibold">Rank</th>
+                        <th className="px-2 py-2 text-right font-semibold">จำนวน</th>
+                        <th className="px-3 py-2 text-left font-semibold">ความหมาย</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rankDist.map(r => (
+                        <tr key={r.rank} className="border-b border-neutral-100 last:border-0 hover:bg-white transition-colors">
+                          <td className="px-3 py-1.5">
+                            <span className={`rounded-full px-2 py-0.5 text-[10px] font-black ${r.rank >= 9 ? 'bg-red-100 text-red-700' : r.rank >= 7 ? 'bg-orange-100 text-orange-700' : 'bg-amber-100 text-amber-700'}`}>
+                              ★ {r.rank}
+                            </span>
+                          </td>
+                          <td className="px-2 py-1.5 text-right font-black text-neutral-700">{r.count}</td>
+                          <td className="px-3 py-1.5 text-[10px] text-neutral-500">{RankLabel(r.rank)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
 
               <div className="mt-5 space-y-6">
                 {/* Sub-section: Gap — ยังไม่มี template */}
