@@ -1642,15 +1642,16 @@ export default async function AdminMarketIntelPage() {
                 {/* Summary cards */}
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                   {[
-                    { label: 'Clicks',       value: gscData.clicks.toLocaleString(),                           sub: 'คลิกจาก Google',        color: 'text-emerald-700' },
-                    { label: 'Impressions',  value: gscData.impressions.toLocaleString(),                       sub: 'ครั้งที่เห็นใน SERP',   color: 'text-blue-700' },
-                    { label: 'Avg CTR',      value: `${(gscData.ctr * 100).toFixed(1)}%`,                       sub: 'อัตราคลิก',             color: 'text-violet-700' },
-                    { label: 'Avg Position', value: gscData.position > 0 ? gscData.position.toFixed(1) : '—',   sub: 'ตำแหน่งเฉลี่ย',        color: 'text-amber-700' },
+                    { label: 'Clicks',       value: gscData.clicks.toLocaleString(),                           sub: 'คลิกจาก Google',      hint: 'จำนวนคนที่คลิกเข้าเว็บจาก search — ตัวเลขนี้ต้องโตขึ้นทุกเดือน',                        color: 'text-emerald-700' },
+                    { label: 'Impressions',  value: gscData.impressions.toLocaleString(),                       sub: 'ครั้งที่เห็นใน SERP', hint: 'Google แสดงหน้าเราในผลค้นหากี่ครั้ง — สูง แต่ clicks ต่ำ = title/meta ต้องปรับ',          color: 'text-blue-700' },
+                    { label: 'Avg CTR',      value: `${(gscData.ctr * 100).toFixed(1)}%`,                       sub: 'อัตราคลิก',           hint: 'ดีถ้า >3% · ต่ำกว่านี้ = ปรับ title ให้น่าคลิกขึ้น หรือ meta description ให้ชัดขึ้น',   color: 'text-violet-700' },
+                    { label: 'Avg Position', value: gscData.position > 0 ? gscData.position.toFixed(1) : '—',   sub: 'ตำแหน่งเฉลี่ย',      hint: '#1-3 = ดีมาก · #4-10 = ปรับ on-page SEO · #11+ = เพิ่ม content หรือ internal links',    color: 'text-amber-700' },
                   ].map(c => (
-                    <div key={c.label} className="rounded-2xl border border-neutral-200 bg-white px-4 py-3">
+                    <div key={c.label} className="rounded-2xl border border-neutral-200 bg-white px-4 py-3" title={c.hint}>
                       <p className="text-[10px] font-black uppercase tracking-wider text-neutral-400">{c.label}</p>
                       <p className={`text-2xl font-black ${c.color}`}>{c.value}</p>
                       <p className="text-[10px] text-neutral-400">{c.sub}</p>
+                      <p className="mt-1 text-[9px] text-neutral-300 leading-snug">{c.hint}</p>
                     </div>
                   ))}
                 </div>
@@ -1658,21 +1659,27 @@ export default async function AdminMarketIntelPage() {
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   {/* Top Keywords */}
                   <div className="rounded-2xl border border-neutral-200 bg-white overflow-hidden">
-                    <div className="px-4 py-3 border-b border-neutral-100 flex items-center justify-between">
-                      <p className="text-xs font-black text-neutral-700">🔍 Top Keywords</p>
-                      <p className="text-[10px] text-neutral-400">{gscData.topQueries.length} keywords</p>
+                    <div className="px-4 py-3 border-b border-neutral-100">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-black text-neutral-700">🔍 Top Keywords</p>
+                        <p className="text-[10px] text-neutral-400">{gscData.topQueries.length} keywords</p>
+                      </div>
+                      <p className="mt-0.5 text-[9px] text-neutral-400">
+                        🟢 #1-10 ดีแล้ว · 🟡 #11-20 ปรับ SEO · 🔴 #21+ เพิ่ม content · impressions สูงแต่ clicks ต่ำ = แก้ title
+                      </p>
                     </div>
                     {gscData.topQueries.length === 0 ? (
-                      <p className="px-4 py-6 text-center text-xs text-neutral-400">ยังไม่มีข้อมูล — รอ Google index ก่อน</p>
+                      <p className="px-4 py-6 text-center text-xs text-neutral-400">ยังไม่มีข้อมูล — รอ Google index ก่อน (ปกติใช้เวลา 2-4 สัปดาห์)</p>
                     ) : (
                       <div className="divide-y divide-neutral-50">
                         {gscData.topQueries.map((q, i) => (
                           <div key={i} className="flex items-center gap-3 px-4 py-2.5">
                             <span className="text-[10px] text-neutral-400 w-4 shrink-0">{i + 1}</span>
                             <span className="flex-1 min-w-0 text-xs font-medium text-neutral-800 truncate">{q.query}</span>
-                            <span className="shrink-0 text-[10px] font-black text-emerald-600 w-8 text-right">{q.clicks}</span>
-                            <span className="shrink-0 text-[10px] text-neutral-400 w-10 text-right">{q.impressions.toLocaleString()}</span>
-                            <span className={`shrink-0 text-[10px] font-bold w-10 text-right ${q.position <= 10 ? 'text-emerald-600' : q.position <= 20 ? 'text-amber-600' : 'text-red-500'}`}>
+                            <span className="shrink-0 text-[10px] font-black text-emerald-600 w-8 text-right" title="clicks">{q.clicks}</span>
+                            <span className="shrink-0 text-[10px] text-neutral-400 w-10 text-right" title="impressions">{q.impressions.toLocaleString()}</span>
+                            <span className={`shrink-0 text-[10px] font-bold w-10 text-right ${q.position <= 10 ? 'text-emerald-600' : q.position <= 20 ? 'text-amber-600' : 'text-red-500'}`}
+                              title="position">
                               #{q.position.toFixed(0)}
                             </span>
                           </div>
@@ -1686,12 +1693,17 @@ export default async function AdminMarketIntelPage() {
 
                   {/* Top Pages */}
                   <div className="rounded-2xl border border-neutral-200 bg-white overflow-hidden">
-                    <div className="px-4 py-3 border-b border-neutral-100 flex items-center justify-between">
-                      <p className="text-xs font-black text-neutral-700">📄 Top Pages</p>
-                      <p className="text-[10px] text-neutral-400">{gscData.topPages.length} pages</p>
+                    <div className="px-4 py-3 border-b border-neutral-100">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-black text-neutral-700">📄 Top Pages</p>
+                        <p className="text-[10px] text-neutral-400">{gscData.topPages.length} pages</p>
+                      </div>
+                      <p className="mt-0.5 text-[9px] text-neutral-400">
+                        หน้าที่ Google index แล้ว · position สูง = ยังไม่ติด · impressions = Google เห็นแล้วแต่คนยังไม่คลิก
+                      </p>
                     </div>
                     {gscData.topPages.length === 0 ? (
-                      <p className="px-4 py-6 text-center text-xs text-neutral-400">ยังไม่มีข้อมูล — รอ Google index ก่อน</p>
+                      <p className="px-4 py-6 text-center text-xs text-neutral-400">ยังไม่มีข้อมูล — รอ Google index ก่อน (ปกติใช้เวลา 2-4 สัปดาห์)</p>
                     ) : (
                       <div className="divide-y divide-neutral-50">
                         {gscData.topPages.map((p, i) => {
@@ -1700,9 +1712,10 @@ export default async function AdminMarketIntelPage() {
                             <div key={i} className="flex items-center gap-3 px-4 py-2.5">
                               <span className="text-[10px] text-neutral-400 w-4 shrink-0">{i + 1}</span>
                               <span className="flex-1 min-w-0 text-[11px] font-medium text-neutral-700 truncate" title={p.page}>{path || '/'}</span>
-                              <span className="shrink-0 text-[10px] font-black text-emerald-600 w-8 text-right">{p.clicks}</span>
-                              <span className="shrink-0 text-[10px] text-neutral-400 w-10 text-right">{p.impressions.toLocaleString()}</span>
-                              <span className={`shrink-0 text-[10px] font-bold w-10 text-right ${p.position <= 10 ? 'text-emerald-600' : p.position <= 20 ? 'text-amber-600' : 'text-red-500'}`}>
+                              <span className="shrink-0 text-[10px] font-black text-emerald-600 w-8 text-right" title="clicks">{p.clicks}</span>
+                              <span className="shrink-0 text-[10px] text-neutral-400 w-10 text-right" title="impressions">{p.impressions.toLocaleString()}</span>
+                              <span className={`shrink-0 text-[10px] font-bold w-10 text-right ${p.position <= 10 ? 'text-emerald-600' : p.position <= 20 ? 'text-amber-600' : 'text-red-500'}`}
+                                title="position">
                                 #{p.position.toFixed(0)}
                               </span>
                             </div>
