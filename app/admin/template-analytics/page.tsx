@@ -524,10 +524,28 @@ export default async function AdminMarketIntelPage() {
   }
   // ── INTEL-EXCEL: inject admin research ideas into priority (above Google Suggest) ──
   function excelWeight(r: number): number { return r >= 9 ? 5 : r >= 7 ? 4 : r >= 5 ? 3 : 2 }
-  type ExcelDisplayItem = ExcelIdea & { match: TemplateRef | null }
+
+  // Build word sets from Google Suggest per engineType — used for overlap detection
+  const suggestWordSets = new Map<string, Set<string>>()
+  for (const [et, rows] of coverageMap) {
+    const words = new Set<string>()
+    for (const r of rows) {
+      const text = r.stripped || r.idea
+      text.toLowerCase().split(/[\s/()]+/).filter(w => w.length > 3).forEach(w => words.add(w))
+    }
+    suggestWordSets.set(et, words)
+  }
+  function isInSuggest(ideaText: string, engineType: string): boolean {
+    const et    = engineType === 'planner' ? 'pipeline' : engineType
+    const words = suggestWordSets.get(et) ?? new Set()
+    return ideaText.toLowerCase().split(/[\s/()]+/).filter(w => w.length > 3).some(w => words.has(w))
+  }
+
+  type ExcelDisplayItem = ExcelIdea & { match: TemplateRef | null; inSuggest: boolean }
   const excelDisplayItems: ExcelDisplayItem[] = excelIdeas.map(ex => ({
     ...ex,
-    match: findMatch(ex.idea_text, allTemplates),
+    match:     findMatch(ex.idea_text, allTemplates),
+    inSuggest: isInSuggest(ex.idea_text, ex.engine_type),
   }))
   for (const ex of excelIdeas) {
     if (seenPrio.has(ex.idea_text)) continue
@@ -777,6 +795,10 @@ export default async function AdminMarketIntelPage() {
                 <span className="rounded-full bg-orange-100 px-3 py-0.5 text-xs font-bold text-orange-700">
                   🟠 ยังไม่มี {excelDisplayItems.filter(e => e.match === null).length}
                 </span>
+                <span title="Excel ideas ที่คนค้นหาใน Google จริง — ยืนยันว่าตลาดต้องการ"
+                  className="rounded-full bg-indigo-100 px-3 py-0.5 text-xs font-bold text-indigo-600 cursor-help">
+                  🔍 ตรง Suggest {excelDisplayItems.filter(e => e.inSuggest).length}
+                </span>
               </div>
 
               {/* Group by ranking_need DESC */}
@@ -805,8 +827,14 @@ export default async function AdminMarketIntelPage() {
                               {ENGINE_LABEL[item.engine_type] ?? item.engine_type}
                             </span>
                             <span className="flex-1 min-w-0 text-sm font-medium text-neutral-800 truncate">{item.idea_text}</span>
+                            {item.inSuggest && (
+                              <span title="คนค้นหาใน Google จริง — ยืนยันความต้องการตลาด"
+                                className="shrink-0 rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-bold text-indigo-600 cursor-help">
+                                🔍 Suggest
+                              </span>
+                            )}
                             {item.title_en && (
-                              <span className="hidden sm:block shrink-0 text-xs text-neutral-400 truncate max-w-[200px]">{item.title_en}</span>
+                              <span className="hidden sm:block shrink-0 text-xs text-neutral-400 truncate max-w-[180px]">{item.title_en}</span>
                             )}
                             {item.match ? (
                               <Link href={`/admin/templates/${item.match.id}/edit`}
