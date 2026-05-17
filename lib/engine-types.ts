@@ -108,10 +108,15 @@ export type PlannerEngineDataV2 = {
 
 // ── Planner Pipeline v3 ──────────────────────────────────────────────────────
 
+export type PhaseWeekTaskItem = {
+  task: string
+  dailyItems?: { time: string; activity: string }[]
+}
+
 export type PhaseWeek = {
   label: string
-  tasks: string[]
-  dailyItems?: { time: string; activity: string }[]
+  tasks: string[]                  // backward compat for old flat data
+  taskItems?: PhaseWeekTaskItem[]  // new: per-task daily routine
 }
 
 export type PipelinePhase = {

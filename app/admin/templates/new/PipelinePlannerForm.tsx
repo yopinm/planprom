@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
-import type { PlannerPipelineDataV4, PipelineHorizon, PipelinePhase, PhaseWeek, PipelineBigRock, MonthlyPlanItem, WeeklyTaskItem, DailyRoutineItem } from '@/lib/engine-types'
+import type { PlannerPipelineDataV4, PipelineHorizon, PipelinePhase, PhaseWeek, PhaseWeekTaskItem, PipelineBigRock, MonthlyPlanItem, WeeklyTaskItem, DailyRoutineItem } from '@/lib/engine-types'
 import type { PipelinePreset } from '@/lib/pipeline-presets'
 import type { SmartSuggestionResult } from './actions-preset'
 import { getSmartPresetSuggestions } from './actions-preset'
@@ -154,7 +154,7 @@ export function PipelinePlannerForm({ onChange, initialCatSlug }: Props) {
   // Stage 2 — summary (แสดงใน modal preview ลูกค้า)
   const [s2Summary, setS2Summary] = useState('')
   // Stage 2 — project mode only
-  const [phases,   setPhases]   = useState<PipelinePhase[]>([{ name: 'Phase 1', timeRange: '', tasks: [''], weeks: [{ label: 'week1', tasks: [''], dailyItems: [{ time: '', activity: '' }] }], bigRocks: [{ task: '', deadline: '' }], budget: '' }])
+  const [phases,   setPhases]   = useState<PipelinePhase[]>([{ name: 'Phase 1', timeRange: '', tasks: [''], weeks: [{ label: 'week1', tasks: [], taskItems: [{ task: '', dailyItems: [{ time: '', activity: '' }] }] }], bigRocks: [{ task: '', deadline: '' }], budget: '' }])
 
   // Stage 3 — content-first (auto-synced from stage 2)
   const [monthlyPlans, setMonthlyPlans] = useState<MonthlyPlanItem[]>([])
@@ -226,8 +226,11 @@ export function PipelinePlannerForm({ onChange, initialCatSlug }: Props) {
         ? { month: horizonValue, monthlyWeekCount, summary: s2Summary || undefined }
         : {
             phases: phases.filter(p => p.name.trim()).map(p => {
-              const weeks = p.weeks ?? [{ label: p.timeRange, tasks: p.tasks }]
-              const allTasks = weeks.flatMap(w => w.tasks).filter(t => t.trim())
+              const weeks = (p.weeks ?? [{ label: p.timeRange, tasks: p.tasks }]).map(w => {
+                const taskItems = w.taskItems ?? w.tasks.map(t => ({ task: t, dailyItems: [] }))
+                return { ...w, tasks: taskItems.map(ti => ti.task).filter(t => t.trim()), taskItems }
+              })
+              const allTasks = weeks.flatMap(w => w.tasks)
               const timeRange = weeks.map(w => w.label).filter(Boolean).join(' / ')
               const bigRocks = (p.bigRocks ?? []).filter(r => r.task.trim())
               return { ...p, timeRange, tasks: allTasks, weeks, bigRocks }
@@ -563,33 +566,66 @@ export function PipelinePlannerForm({ onChange, initialCatSlug }: Props) {
                                     className="shrink-0 text-red-400 hover:text-red-600 text-sm px-1">✕</button>
                                 )}
                               </div>
-                              <DynList
-                                items={wk.tasks}
-                                onChange={tasks => {
-                                  const nw = weeks.map((w, j) => j === wi ? { ...w, tasks } : w)
+                              {/* Per-task items with own daily routine */}
+                              {(() => {
+                                const taskItems: PhaseWeekTaskItem[] = wk.taskItems ?? wk.tasks.map(t => ({ task: t, dailyItems: [] }))
+                                function setTaskItems(nti: PhaseWeekTaskItem[]) {
+                                  const nw = weeks.map((w, j) => j === wi ? { ...w, taskItems: nti } : w)
                                   setPhases(prev => prev.map((x, j) => j === pi ? { ...x, weeks: nw } : x))
-                                }}
-                                placeholder="งานที่ต้องทำ"
-                                addLabel="เพิ่มงาน"
-                              />
-                              {/* Daily items */}
-                              <div className="mt-2 pt-2 border-t border-emerald-100">
-                                <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600 mb-1.5">งานละเอียดรายวัน</p>
-                                <DailyRoutineList
-                                  items={wk.dailyItems ?? [{ time: '', activity: '' }]}
-                                  onChange={dailyItems => {
-                                    const nw = weeks.map((w, j) => j === wi ? { ...w, dailyItems } : w)
-                                    setPhases(prev => prev.map((x, j) => j === pi ? { ...x, weeks: nw } : x))
-                                  }}
-                                />
-                              </div>
+                                }
+                                return (
+                                  <div className="space-y-2">
+                                    {taskItems.map((ti, tii) => (
+                                      <div key={tii} className="rounded-md border border-emerald-100 bg-white p-2 space-y-1.5">
+                                        <div className="flex gap-2 items-center">
+                                          <input
+                                            value={ti.task}
+                                            onChange={e => setTaskItems(taskItems.map((x, j) => j === tii ? { ...x, task: e.target.value } : x))}
+                                            placeholder="ชื่องาน เช่น วันจันทร์"
+                                            className={INPUT}
+                                          />
+                                          {taskItems.length > 1 && (
+                                            <button type="button"
+                                              onClick={() => setTaskItems(taskItems.filter((_, j) => j !== tii))}
+                                              className="shrink-0 text-red-400 hover:text-red-600 text-sm px-1">✕</button>
+                                          )}
+                                        </div>
+                                        {/* Per-task daily items */}
+                                        <div className="pl-2 space-y-1">
+                                          {(ti.dailyItems ?? []).map((dr, dri) => (
+                                            <div key={dri} className="flex gap-2 items-center">
+                                              <input value={dr.time}
+                                                onChange={e => setTaskItems(taskItems.map((x, j) => j === tii ? { ...x, dailyItems: (x.dailyItems ?? []).map((d, k) => k === dri ? { ...d, time: e.target.value } : d) } : x))}
+                                                placeholder="06:00" className={`${INPUT} w-24 text-xs`} />
+                                              <input value={dr.activity}
+                                                onChange={e => setTaskItems(taskItems.map((x, j) => j === tii ? { ...x, dailyItems: (x.dailyItems ?? []).map((d, k) => k === dri ? { ...d, activity: e.target.value } : d) } : x))}
+                                                placeholder="กิจกรรม" className={`${INPUT} text-xs`} />
+                                              {(ti.dailyItems ?? []).length > 1 && (
+                                                <button type="button"
+                                                  onClick={() => setTaskItems(taskItems.map((x, j) => j === tii ? { ...x, dailyItems: (x.dailyItems ?? []).filter((_, k) => k !== dri) } : x))}
+                                                  className="text-red-400 text-sm px-1">✕</button>
+                                              )}
+                                            </div>
+                                          ))}
+                                          <button type="button"
+                                            onClick={() => setTaskItems(taskItems.map((x, j) => j === tii ? { ...x, dailyItems: [...(x.dailyItems ?? []), { time: '', activity: '' }] } : x))}
+                                            className="text-xs font-black text-amber-600 hover:text-amber-700 pl-1">+ เพิ่ม routine</button>
+                                        </div>
+                                      </div>
+                                    ))}
+                                    <button type="button"
+                                      onClick={() => setTaskItems([...taskItems, { task: '', dailyItems: [{ time: '', activity: '' }] }])}
+                                      className="text-xs font-black text-emerald-700 hover:text-emerald-800 pl-1">+ เพิ่มงาน</button>
+                                  </div>
+                                )
+                              })()}
                             </div>
                           )
                         })}
                         <button type="button"
                           onClick={() => {
                             const weeks = p.weeks ?? [{ label: p.timeRange, tasks: p.tasks }]
-                            const nw: PhaseWeek[] = [...weeks, { label: `week${weeks.length + 1}`, tasks: [''], dailyItems: [{ time: '', activity: '' }] }]
+                            const nw: PhaseWeek[] = [...weeks, { label: `week${weeks.length + 1}`, tasks: [], taskItems: [{ task: '', dailyItems: [{ time: '', activity: '' }] }] }]
                             setPhases(prev => prev.map((x, j) => j === pi ? { ...x, weeks: nw } : x))
                           }}
                           className="text-xs font-black text-emerald-700 hover:text-emerald-800 pl-2">
@@ -640,7 +676,7 @@ export function PipelinePlannerForm({ onChange, initialCatSlug }: Props) {
                     </div>
                   ))}
                   <button type="button"
-                    onClick={() => setPhases(prev => [...prev, { name: `Phase ${prev.length + 1}`, timeRange: '', tasks: [''], weeks: [{ label: 'week1', tasks: [''], dailyItems: [{ time: '', activity: '' }] }], bigRocks: [{ task: '', deadline: '' }], budget: '' }])}
+                    onClick={() => setPhases(prev => [...prev, { name: `Phase ${prev.length + 1}`, timeRange: '', tasks: [], weeks: [{ label: 'week1', tasks: [], taskItems: [{ task: '', dailyItems: [{ time: '', activity: '' }] }] }], bigRocks: [{ task: '', deadline: '' }], budget: '' }])}
                     className="text-xs font-black text-emerald-600 hover:text-emerald-700">
                     + เพิ่ม Phase
                   </button>

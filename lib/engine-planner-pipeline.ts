@@ -12,27 +12,34 @@ const lines = (n: number, h = '24px') =>
 const FREQ: Record<string, string> = { daily: 'ทุกวัน', weekly: 'ทุกสัปดาห์', monthly: 'ทุกเดือน' }
 
 function renderPhaseBody(p: PipelinePhase, c: { accent: string }): string {
-  const weeks = p.weeks?.filter(w => w.label.trim() || w.tasks.some(t => t.trim()) || w.dailyItems?.some(d => d.time.trim() || d.activity.trim()))
+  const weeks = p.weeks?.filter(w =>
+    w.label.trim() ||
+    (w.taskItems ?? []).some(ti => ti.task.trim()) ||
+    w.tasks.some(t => t.trim())
+  )
   const hasWeeks = weeks && weeks.length > 0
   const tasksHtml = hasWeeks
     ? weeks.map(w => {
-        const wTasks = w.tasks.filter(t => t.trim())
-        const wDaily = (w.dailyItems ?? []).filter(d => d.time.trim() || d.activity.trim())
-        if (!w.label.trim() && wTasks.length === 0 && wDaily.length === 0) return ''
-        const dailyHtml = wDaily.length > 0
-          ? `<div style="margin-top:4px;padding:4px 6px;background:#f9fafb;border-radius:4px;border:1px solid #f3f4f6">
-              <div style="font-size:7.5pt;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px">ตารางรายวัน</div>
-              ${wDaily.map(d =>
-                `<div style="display:flex;gap:8px;padding:1.5px 0;border-bottom:1px dotted #f3f4f6;font-size:9pt;color:#374151">
-                  <span style="color:${c.accent};font-weight:700;white-space:nowrap;min-width:36px">${esc(d.time)}</span>
-                  <span style="flex:1">${esc(d.activity)}</span>
-                </div>`
-              ).join('')}
-            </div>` : ''
+        const taskItems = w.taskItems?.length
+          ? w.taskItems.filter(ti => ti.task.trim() || (ti.dailyItems ?? []).some(d => d.time.trim() || d.activity.trim()))
+          : w.tasks.filter(t => t.trim()).map(t => ({ task: t, dailyItems: [] as { time: string; activity: string }[] }))
+        if (!w.label.trim() && taskItems.length === 0) return ''
+        const taskRowsHtml = taskItems.map(ti => {
+          const dailyItems = (ti.dailyItems ?? []).filter(d => d.time.trim() || d.activity.trim())
+          const dailyHtml = dailyItems.length > 0
+            ? `<div style="margin:2px 0 4px 16px;padding:3px 6px;background:#f9fafb;border-radius:4px;border:1px solid #f3f4f6">
+                ${dailyItems.map(d =>
+                  `<div style="display:flex;gap:8px;padding:1.5px 0;border-bottom:1px dotted #f3f4f6;font-size:8.5pt;color:#374151">
+                    <span style="color:${c.accent};font-weight:700;white-space:nowrap;min-width:36px">${esc(d.time)}</span>
+                    <span style="flex:1">${esc(d.activity)}</span>
+                  </div>`
+                ).join('')}
+              </div>` : ''
+          return `<div style="font-size:9.5pt;color:#374151;padding:2px 0 1px 12px;border-bottom:1px dotted #f3f4f6">→ ${esc(ti.task)}</div>${dailyHtml}`
+        }).join('')
         return `<div style="margin-bottom:6px">
           ${w.label.trim() ? `<div style="font-size:8pt;font-weight:700;color:#6b7280;padding:2px 0 3px;border-bottom:1px solid #f3f4f6;margin-bottom:2px;text-transform:uppercase;letter-spacing:0.03em">${esc(w.label)}</div>` : ''}
-          ${wTasks.map(t => `<div style="font-size:9.5pt;color:#374151;padding:2px 0 2px 12px;border-bottom:1px dotted #f3f4f6">→ ${esc(t)}</div>`).join('')}
-          ${dailyHtml}
+          ${taskRowsHtml}
         </div>`
       }).join('')
     : p.tasks.filter(t => t.trim()).map(t =>

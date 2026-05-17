@@ -9,7 +9,7 @@ import type {
   PlannerDecisionMatrix, PlannerAxis3,
   PlannerPipelineData, PipelinePhase, PipelineBigRock, PipelineMetric,
   PlannerPipelineDataV4, PipelineHorizon, PipelineWeeklyLayout, PipelineDailyLayout,
-  MonthlyPlanItem, WeeklyTaskItem, DailyRoutineItem, PhaseWeek,
+  MonthlyPlanItem, WeeklyTaskItem, DailyRoutineItem, PhaseWeek, PhaseWeekTaskItem,
 } from '@/lib/engine-types'
 import type { ReportEngineData, ReportTableData, ReportTextBlock } from '@/lib/engine-report-types'
 
@@ -1010,11 +1010,18 @@ function PipelineReviseFormV4({ initial, onChange }: {
       ? initial.s2_timeplan.phases.map(p => ({
           ...p,
           weeks: p.weeks?.length
-            ? p.weeks.map(w => ({ ...w, dailyItems: w.dailyItems?.length ? w.dailyItems : [{ time: '', activity: '' }] }))
-            : [{ label: p.timeRange || 'week1', tasks: p.tasks.length ? p.tasks : [''], dailyItems: [{ time: '', activity: '' }] }],
+            ? p.weeks.map(w => ({
+                ...w,
+                taskItems: w.taskItems?.length
+                  ? w.taskItems
+                  : w.tasks.length
+                    ? w.tasks.map(t => ({ task: t, dailyItems: [{ time: '', activity: '' }] }))
+                    : [{ task: '', dailyItems: [{ time: '', activity: '' }] }],
+              }))
+            : [{ label: p.timeRange || 'week1', tasks: [], taskItems: p.tasks.length ? p.tasks.map(t => ({ task: t, dailyItems: [{ time: '', activity: '' }] })) : [{ task: '', dailyItems: [{ time: '', activity: '' }] }] }],
           bigRocks: p.bigRocks?.length ? p.bigRocks : [{ task: '', deadline: '' }],
         }))
-      : [{ name: 'Phase 1', timeRange: '', tasks: [''], weeks: [{ label: 'week1', tasks: [''], dailyItems: [{ time: '', activity: '' }] }], bigRocks: [{ task: '', deadline: '' }], budget: '' }]
+      : [{ name: 'Phase 1', timeRange: '', tasks: [], weeks: [{ label: 'week1', tasks: [], taskItems: [{ task: '', dailyItems: [{ time: '', activity: '' }] }] }], bigRocks: [{ task: '', deadline: '' }], budget: '' }]
   )
 
   const [weekCount,   setWeekCount]   = useState(initial.s3_weekly?.weekCount ?? 0)
@@ -1041,8 +1048,11 @@ function PipelineReviseFormV4({ initial, onChange }: {
         ? { month: horizonValue, monthlyWeekCount, summary: s2Summary || undefined }
         : {
             phases: phases.filter(p => p.name.trim()).map(p => {
-              const weeks = p.weeks ?? [{ label: p.timeRange, tasks: p.tasks }]
-              const allTasks = weeks.flatMap(w => w.tasks).filter(t => t.trim())
+              const weeks = (p.weeks ?? [{ label: p.timeRange, tasks: p.tasks }]).map(w => {
+                const taskItems = w.taskItems ?? w.tasks.map(t => ({ task: t, dailyItems: [] }))
+                return { ...w, tasks: taskItems.map(ti => ti.task).filter(t => t.trim()), taskItems }
+              })
+              const allTasks = weeks.flatMap(w => w.tasks)
               const timeRange = weeks.map(w => w.label).filter(Boolean).join(' / ')
               const bigRocks = (p.bigRocks ?? []).filter(r => r.task.trim())
               return { ...p, timeRange, tasks: allTasks, weeks, bigRocks }
@@ -1218,29 +1228,63 @@ function PipelineReviseFormV4({ initial, onChange }: {
                                 className="shrink-0 text-red-400 hover:text-red-600 text-sm px-1">✕</button>
                             )}
                           </div>
-                          <DynList
-                            items={wk.tasks}
-                            onChange={tasks => {
-                              const nw = weeks.map((w, j) => j === wi ? { ...w, tasks } : w)
+                          {/* Per-task items with own daily routine */}
+                          {(() => {
+                            const taskItems: PhaseWeekTaskItem[] = wk.taskItems ?? wk.tasks.map(t => ({ task: t, dailyItems: [] }))
+                            function setTaskItems(nti: PhaseWeekTaskItem[]) {
+                              const nw = weeks.map((w, j) => j === wi ? { ...w, taskItems: nti } : w)
                               setPhases(prev => prev.map((x, j) => j === pi ? { ...x, weeks: nw } : x))
-                            }}
-                            placeholder="งานที่ต้องทำ" addLabel="เพิ่มงาน" />
-                          {/* Daily items */}
-                          <div className="mt-2 pt-2 border-t border-emerald-100">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600 mb-1.5">งานละเอียดรายวัน</p>
-                            <DailyRoutineList
-                              items={wk.dailyItems ?? [{ time: '', activity: '' }]}
-                              onChange={dailyItems => {
-                                const nw = weeks.map((w, j) => j === wi ? { ...w, dailyItems } : w)
-                                setPhases(prev => prev.map((x, j) => j === pi ? { ...x, weeks: nw } : x))
-                              }}
-                            />
-                          </div>
+                            }
+                            return (
+                              <div className="space-y-2">
+                                {taskItems.map((ti, tii) => (
+                                  <div key={tii} className="rounded-md border border-emerald-100 bg-white p-2 space-y-1.5">
+                                    <div className="flex gap-2 items-center">
+                                      <input
+                                        value={ti.task}
+                                        onChange={e => setTaskItems(taskItems.map((x, j) => j === tii ? { ...x, task: e.target.value } : x))}
+                                        placeholder="ชื่องาน เช่น วันจันทร์"
+                                        className={INPUT}
+                                      />
+                                      {taskItems.length > 1 && (
+                                        <button type="button"
+                                          onClick={() => setTaskItems(taskItems.filter((_, j) => j !== tii))}
+                                          className="shrink-0 text-red-400 hover:text-red-600 text-sm px-1">✕</button>
+                                      )}
+                                    </div>
+                                    <div className="pl-2 space-y-1">
+                                      {(ti.dailyItems ?? []).map((dr, dri) => (
+                                        <div key={dri} className="flex gap-2 items-center">
+                                          <input value={dr.time}
+                                            onChange={e => setTaskItems(taskItems.map((x, j) => j === tii ? { ...x, dailyItems: (x.dailyItems ?? []).map((d, k) => k === dri ? { ...d, time: e.target.value } : d) } : x))}
+                                            placeholder="06:00" className={`${INPUT} w-24 text-xs`} />
+                                          <input value={dr.activity}
+                                            onChange={e => setTaskItems(taskItems.map((x, j) => j === tii ? { ...x, dailyItems: (x.dailyItems ?? []).map((d, k) => k === dri ? { ...d, activity: e.target.value } : d) } : x))}
+                                            placeholder="กิจกรรม" className={`${INPUT} text-xs`} />
+                                          {(ti.dailyItems ?? []).length > 1 && (
+                                            <button type="button"
+                                              onClick={() => setTaskItems(taskItems.map((x, j) => j === tii ? { ...x, dailyItems: (x.dailyItems ?? []).filter((_, k) => k !== dri) } : x))}
+                                              className="text-red-400 text-sm px-1">✕</button>
+                                          )}
+                                        </div>
+                                      ))}
+                                      <button type="button"
+                                        onClick={() => setTaskItems(taskItems.map((x, j) => j === tii ? { ...x, dailyItems: [...(x.dailyItems ?? []), { time: '', activity: '' }] } : x))}
+                                        className="text-xs font-black text-amber-600 hover:text-amber-700 pl-1">+ เพิ่ม routine</button>
+                                    </div>
+                                  </div>
+                                ))}
+                                <button type="button"
+                                  onClick={() => setTaskItems([...taskItems, { task: '', dailyItems: [{ time: '', activity: '' }] }])}
+                                  className="text-xs font-black text-emerald-700 hover:text-emerald-800 pl-1">+ เพิ่มงาน</button>
+                              </div>
+                            )
+                          })()}
                         </div>
                       ))}
                       <button type="button"
                         onClick={() => {
-                          const nw: PhaseWeek[] = [...weeks, { label: `week${weeks.length + 1}`, tasks: [''], dailyItems: [{ time: '', activity: '' }] }]
+                          const nw: PhaseWeek[] = [...weeks, { label: `week${weeks.length + 1}`, tasks: [], taskItems: [{ task: '', dailyItems: [{ time: '', activity: '' }] }] }]
                           setPhases(prev => prev.map((x, j) => j === pi ? { ...x, weeks: nw } : x))
                         }}
                         className="text-xs font-black text-emerald-700 hover:text-emerald-800 pl-2">
