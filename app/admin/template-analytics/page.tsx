@@ -7,6 +7,7 @@ import { recordFulfilledAction, rejectIdeaAction, revertRejectedAction, permanen
 import { CopyButton } from './CopyButton'
 import { SubmitButton } from './SubmitButton'
 import { ExcelUploader } from './ExcelUploader'
+import { ExcelS0Panel } from './ExcelS0Panel'
 
 export const metadata: Metadata = {
   title: 'Market Intelligence — Admin',
@@ -796,72 +797,6 @@ export default async function AdminMarketIntelPage() {
             return r >= 9 ? 'Priority สูงสุด' : r >= 7 ? 'High priority' : r >= 5 ? 'ควรทำแต่ไม่เร่ง' : 'Low priority'
           }
 
-          function ExcelIdeaRow({ item }: { item: ExcelDisplayItem }) {
-            const engColor  = ENGINE_COLOR[item.engine_type] ?? 'border-neutral-200 bg-neutral-50 text-neutral-700'
-            const encTitle  = encodeURIComponent(item.idea_text)
-            const encEng    = item.engine_type === 'pipeline' ? 'planner-pipeline' : item.engine_type
-            const createUrl = `/admin/templates/new?title=${encTitle}&engine=${encEng}`
-            return (
-              <div className="flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2">
-                <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold border ${engColor}`}>
-                  {ENGINE_LABEL[item.engine_type] ?? item.engine_type}
-                </span>
-                <span className="flex-1 min-w-0 text-sm font-medium text-neutral-800 truncate">{item.idea_text}</span>
-                {item.inSuggest && (
-                  <span title="คนค้นหาใน Google จริง — ยืนยันความต้องการตลาด"
-                    className="shrink-0 rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-bold text-indigo-600 cursor-help">
-                    🔍 Suggest
-                  </span>
-                )}
-                {item.title_en && (
-                  <span className="hidden sm:block shrink-0 text-xs text-neutral-400 truncate max-w-[160px]">{item.title_en}</span>
-                )}
-                {item.match ? (
-                  <Link href={`/admin/templates/${item.match.id}/edit`}
-                    className="shrink-0 rounded-full bg-green-100 px-2.5 py-0.5 text-[11px] font-bold text-green-700 hover:bg-green-200">
-                    ✅ มีแล้ว
-                  </Link>
-                ) : (
-                  <Link href={createUrl}
-                    className="shrink-0 rounded-full bg-orange-100 px-2.5 py-0.5 text-[11px] font-bold text-orange-700 hover:bg-orange-200">
-                    + สร้าง
-                  </Link>
-                )}
-                {/* Delete button */}
-                <form action={deleteExcelIdeaAction}>
-                  <input type="hidden" name="id" value={item.id} />
-                  <button type="submit" title="ลบออกจาก Research DB"
-                    className="shrink-0 rounded px-1.5 py-0.5 text-[11px] text-neutral-400 hover:bg-red-50 hover:text-red-500 transition">
-                    ✕
-                  </button>
-                </form>
-              </div>
-            )
-          }
-
-          function RankGroup({ items, label }: { items: ExcelDisplayItem[]; label: string }) {
-            return (
-              <>
-                {[10, 9, 8, 7, 6, 5, 4, 3, 2, 1].map(rank => {
-                  const group = items.filter(e => e.ranking_need === rank)
-                  if (!group.length) return null
-                  const rankColor = rank >= 9 ? 'bg-red-100 text-red-700' : rank >= 7 ? 'bg-orange-100 text-orange-700' : rank >= 5 ? 'bg-amber-100 text-amber-700' : 'bg-neutral-100 text-neutral-500'
-                  return (
-                    <div key={`${label}-${rank}`} className="mb-3">
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-black ${rankColor}`}>★ {rank}/10</span>
-                        <span className="text-xs text-neutral-400">{group.length} รายการ</span>
-                      </div>
-                      <div className="space-y-1.5">
-                        {group.map(item => <ExcelIdeaRow key={item.id} item={item} />)}
-                      </div>
-                    </div>
-                  )
-                })}
-              </>
-            )
-          }
-
           return (
             <details className="group" open>
               <summary className="flex cursor-pointer list-none items-center gap-3 pb-3 mb-0 border-b border-emerald-200 select-none">
@@ -941,29 +876,39 @@ export default async function AdminMarketIntelPage() {
                 </div>
               </div>
 
-              <div className="mt-5 space-y-6">
-                {/* Sub-section: Gap — ยังไม่มี template */}
-                {gapItems.length > 0 && (
-                  <div>
-                    <p className="text-xs font-black text-orange-600 uppercase tracking-wider mb-3">
-                      🟠 ยังไม่มี template — {gapItems.length} รายการ
-                    </p>
-                    <RankGroup items={gapItems} label="gap" />
-                  </div>
-                )}
+              {/* Gap — client component with tier + filter */}
+              {gapItems.length > 0 && (
+                <ExcelS0Panel gapItems={gapItems} deleteAction={deleteExcelIdeaAction} />
+              )}
 
-                {/* Sub-section: Covered — ทำแล้ว (collapsible, collapsed by default) */}
-                {coveredItems.length > 0 && (
-                  <details>
-                    <summary className="cursor-pointer list-none text-xs font-black text-green-700 uppercase tracking-wider mb-3 select-none hover:text-green-900">
-                      ✅ ทำแล้ว — {coveredItems.length} รายการ ▼
-                    </summary>
-                    <div className="mt-3">
-                      <RankGroup items={coveredItems} label="covered" />
-                    </div>
-                  </details>
-                )}
-              </div>
+              {/* Covered — server-rendered, collapsed */}
+              {coveredItems.length > 0 && (
+                <details className="mt-5">
+                  <summary className="cursor-pointer list-none text-xs font-black text-green-700 uppercase tracking-wider mb-3 select-none hover:text-green-900">
+                    ✅ ทำแล้ว — {coveredItems.length} รายการ ▼
+                  </summary>
+                  <div className="mt-3 space-y-1.5">
+                    {coveredItems.map(item => (
+                      <div key={item.id} className="flex items-center gap-2 rounded-lg border border-green-100 bg-green-50 px-3 py-2">
+                        <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold border ${ENGINE_COLOR[item.engine_type] ?? 'border-neutral-200 bg-neutral-50 text-neutral-700'}`}>
+                          {ENGINE_LABEL[item.engine_type] ?? item.engine_type}
+                        </span>
+                        <span className="flex-1 min-w-0 text-sm text-neutral-700 truncate">{item.idea_text}</span>
+                        {item.match && (
+                          <Link href={`/admin/templates/${item.match.id}/edit`}
+                            className="shrink-0 rounded-full bg-green-200 px-2.5 py-0.5 text-[11px] font-bold text-green-800 hover:bg-green-300">
+                            ✅ ดู template
+                          </Link>
+                        )}
+                        <form action={deleteExcelIdeaAction}>
+                          <input type="hidden" name="id" value={item.id} />
+                          <button type="submit" title="ลบ" className="shrink-0 rounded px-1.5 py-0.5 text-[11px] text-neutral-400 hover:bg-red-50 hover:text-red-500 transition">✕</button>
+                        </form>
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              )}
             </details>
           )
         })()}
