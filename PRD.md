@@ -36,6 +36,7 @@
 | **Last session** | **Session 85 (2026-05-17)** — Budget+Risks fix · engine-report→draft_preview · ซ่อน engine-pipeline · Request+UnlockCode ✅ 3 engines · fix(checkout) webhook race condition (INSERT before Omise charge) |
 | **ห้าม** | ไม่แตะ Later task ขณะที่ Now ยังค้างอยู่ · ไม่แตะ secrets โดยตรง · ไม่ทำให้ revenue channel หายไประหว่าง pivot |
 | **Security rule** | ทุก admin feature ต้องตรวจ: role check · PII mask · no path disclosure · spawnSync array args (ดู §23 Manual) |
+| **⛔ Deploy rule** | หลัง `npm run build` ต้อง `cp .env.local .next/standalone/.env.local` ก่อน restart เสมอ — ขาดแล้ว admin login 500 (incident 2026-05-17) |
 
 ---
 
@@ -530,6 +531,13 @@ ssh root@103.52.109.85 "pm2 reload ecosystem.config.js --update-env"
 curl -s -o /dev/null -w '%{http_code}' https://planprom.com/
 # ต้องได้ 200
 ```
+
+> **⛔ CRITICAL — ห้ามข้าม `cp .env.local .next/standalone/.env.local`**
+>
+> `npm run build` สร้าง `.next/standalone/` ใหม่ทุกครั้ง — ลบ `.env.local` ที่ copy ไว้ก่อนหน้าทิ้ง
+> Next.js standalone อ่าน env vars จากโฟลเดอร์ `server.js` อยู่ (`.next/standalone/`) ไม่ใช่จาก project root
+> ถ้าลืม → `DATABASE_URL` หาย → postgres fallback เป็น OS user `root` → `password authentication failed` → **admin login 500 ทันที**
+> ผลที่เกิดขึ้นจริง (2026-05-17): admin เข้าระบบไม่ได้จนกว่าจะ copy ไฟล์ซ้ำและ restart PM2
 
 ---
 
