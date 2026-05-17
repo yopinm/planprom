@@ -884,10 +884,10 @@ export function WizardClient({ categories, cloneSources, initialTitle, initialCa
       {step === 6 && (
         <div>
           <h2 className="mb-2 text-xl font-black text-black">
-            {(mode === 'docx' || mode === 'engine-checklist' || mode === 'engine-planner' || mode === 'engine-pipeline' || mode === 'engine-preset') ? 'บันทึกเป็น Draft Preview' : 'พร้อม Publish!'}
+            {(mode === 'docx' || mode === 'engine-checklist' || mode === 'engine-planner' || mode === 'engine-pipeline' || mode === 'engine-preset' || mode === 'engine-report') ? 'บันทึกเป็น Draft Preview' : 'พร้อม Publish!'}
           </h2>
           <p className="mb-6 text-sm text-neutral-500">
-            {(mode === 'docx' || mode === 'engine-checklist' || mode === 'engine-planner' || mode === 'engine-pipeline' || mode === 'engine-preset')
+            {(mode === 'docx' || mode === 'engine-checklist' || mode === 'engine-planner' || mode === 'engine-pipeline' || mode === 'engine-preset' || mode === 'engine-report')
               ? 'PDF ถูก generate แล้ว — บันทึกเป็น Draft Preview แล้วไปที่หน้า Edit เพื่อ Approve และ publish'
               : 'เลือกว่าจะเผยแพร่เลย หรือบันทึกเป็น draft ก่อน'}
           </p>
@@ -903,7 +903,7 @@ export function WizardClient({ categories, cloneSources, initialTitle, initialCa
             </div>
           </div>
 
-          {(mode === 'docx' || mode === 'engine-checklist' || mode === 'engine-planner' || mode === 'engine-pipeline' || mode === 'engine-preset') ? (
+          {(mode === 'docx' || mode === 'engine-checklist' || mode === 'engine-planner' || mode === 'engine-pipeline' || mode === 'engine-preset' || mode === 'engine-report') ? (
             <button
               onClick={() => handlePublish('draft_preview')}
               disabled={pending}
