@@ -1202,10 +1202,23 @@ function PipelineReviseFormV4({ initial, onChange }: {
                       <input value={p.name}
                         onChange={e => setPhases(prev => prev.map((x, j) => j === pi ? { ...x, name: e.target.value } : x))}
                         placeholder={`Phase ${pi + 1}`} className={`${INPUT} font-bold`} />
+                      <input value={p.budget ?? ''}
+                        onChange={e => setPhases(prev => prev.map((x, j) => j === pi ? { ...x, budget: e.target.value } : x))}
+                        placeholder="งบ เช่น ฿5,000" className={`${INPUT} w-32 text-sm`} />
                       {phases.length > 1 && (
                         <button type="button" onClick={() => setPhases(prev => prev.filter((_, j) => j !== pi))}
                           className="text-red-400 text-sm px-1">✕</button>
                       )}
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-rose-500 mb-1">ความเสี่ยง / Blocker</p>
+                      <DynList
+                        items={p.risks ?? ['']}
+                        onChange={risks => setPhases(prev => prev.map((x, j) => j === pi ? { ...x, risks } : x))}
+                        placeholder="เช่น ต้องรอ vendor ตอบ"
+                        addLabel="เพิ่ม Blocker"
+                        color="emerald"
+                      />
                     </div>
                     {/* Weeks */}
                     <div className="space-y-2 pl-1">
@@ -1324,25 +1337,6 @@ function PipelineReviseFormV4({ initial, onChange }: {
                           className="text-xs font-black text-emerald-700 hover:text-emerald-800 pl-2">
                           + เพิ่ม Big Rock
                         </button>
-                      </div>
-                      {/* Budget + Risks */}
-                      <div className="mt-1 pt-2 border-t border-emerald-100 space-y-2">
-                        <div>
-                          <p className="text-[10px] font-black uppercase tracking-widest text-emerald-700 mb-1.5">งบประมาณ</p>
-                          <input value={p.budget ?? ''}
-                            onChange={e => setPhases(prev => prev.map((x, j) => j === pi ? { ...x, budget: e.target.value } : x))}
-                            placeholder="เช่น ฿5,000 / ไม่มีงบ" className={INPUT} />
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-black uppercase tracking-widest text-rose-600 mb-1.5">ความเสี่ยง / Blocker</p>
-                          <DynList
-                            items={p.risks ?? ['']}
-                            onChange={risks => setPhases(prev => prev.map((x, j) => j === pi ? { ...x, risks } : x))}
-                            placeholder="เช่น ต้องรอ vendor ตอบ"
-                            addLabel="เพิ่ม Blocker"
-                            color="emerald"
-                          />
-                        </div>
                       </div>
                     </div>
                   </div>
