@@ -31,7 +31,7 @@
 | **Blockers** | Lazada pool=49 fixed · Affiliate tasks ❌ CLOSED 2026-05-13 (owner decision) |
 | **Next task** | **J9-ADMIN-1** (KYC → live keys) → **J9-ADMIN-4** (live UAT ฿30/฿20/฿50 request) |
 | **Pending (code)** | E9/E10 · UI-G(defer) |
-| **Pending (UAT)** | **Engine UAT** 🟡 Form end-to-end · **Request Only+UnlockCode** Form ⏳ · **Engine Preset UAT** ⏳ (Guided Wizard/Skip/Smart Suggestion · PDF round-trip) · **INTEL-SMART** 🟡 (trend arrows) · INTEL-BLOG-SCORE 🔲 · INTEL-C/D · DC-1 · DC-2 · DC-8 · DC-16 · E9/E10 · **J9-ADMIN-4** (live payment UAT) |
+| **Pending (UAT)** | **Engine UAT** 🟡 Form end-to-end · **Request Only+UnlockCode** Form ⏳ · **Engine Preset UAT** ⏳ (Guided Wizard/Skip/Smart Suggestion · PDF round-trip) · INTEL-BLOG-SCORE 🔲 · DC-1 · DC-2 · DC-8 · DC-16 · E9/E10 · **J9-ADMIN-4** (live payment UAT) |
 | **Pending (decision)** | Homepage UX: D (social proof bar) + B (featured badge pulse) — mock ready รอ confirm |
 | **Last session** | **Session 85 (2026-05-17)** — Budget+Risks fix · engine-report→draft_preview · ซ่อน engine-pipeline · Request+UnlockCode ✅ 3 engines · fix(checkout) webhook race condition (INSERT before Omise charge) |
 | **ห้าม** | ไม่แตะ Later task ขณะที่ Now ยังค้างอยู่ · ไม่แตะ secrets โดยตรง · ไม่ทำให้ revenue channel หายไประหว่าง pivot |
@@ -192,7 +192,7 @@
 | **UI-H** | Analytics Page — Match Catalog Design (`/admin/template-analytics`) | ✅ **Done (INTEL-E/SMART · Session 61-62)** |
 | **UI-I** | Pricing ฿30/฿20/฿10 ทั้ง 10 ไฟล์ — fix 2 bugs (stale TIER_2 ฿8, request-only unit_price) | ✅ **UAT ผ่าน (Session 62)** |
 | **INTEL-E** | Catalog intelligence — S2a perf cards · S2b heatmap · S3 badge+pre-fill · S4 gap chips | ✅ **UAT ผ่าน (Session 62)** |
-| **INTEL-C/D** | 3-Level Coverage Card + Smart Engine Expansion | 🟡 **UAT Pending (Session 53)** |
+| **INTEL-C/D** | 3-Level Coverage Card + Smart Engine Expansion | ✅ **UAT ผ่าน (Session 86 · 2026-05-17)** |
 | **DC-1** | Standard PDF Generator (.docx → A4) — checklist/planner UAT | 🟡 **Code Done · UAT Pending** |
 | **DC-2** | TOC Preview สารบัญ — toggle /templates · always-expanded /templates/[slug] | 🟡 **Code Done · UAT Pending** |
 | **DC-16** | Planner Pipeline v4 — 5-section time-cascade | 🟡 **UAT Pending** |
@@ -221,7 +221,7 @@
 | **Session 65 (2026-05-14) — PROMO-5** | ✅ UAT ผ่าน — PromoCodeBanner: progress bar + savings hint + slots · Checkout badge -฿XX pulse · Admin 💡 pricing hint |
 | **Session 64 (2026-05-13) — RE-1 Report Engine** | ✅ Live — Report Engine ครบ 4 engine loop · 8-section PDF · ReportEngineForm · generate-report route · preview card sky · Revise support |
 | **Session 63 (2026-05-14) — Fee Fix + Banner + Featured + Blog Pinned** | ✅ Live — Fix ค่าธรรมเนียม 1.7655% Omise-only · Tooltip ⓘ · DAY1-UAT task · PromoCodeBanner redesign · FeaturedTemplateCard 3-template · บทความแนะนำ (pinned posts) บน homepage |
-| **Session 62 (2026-05-14) — INTEL-SMART** | 🟡 Pending UAT พรุ่งนี้ — Dedup+Cluster (×N score×count) · Fulfilled Tracking (intel_fulfilled table + recordFulfilledAction) · Trend Score (intel_snapshots daily · 📈/📉 โชว์วันที่ 2+) · INTEL-E ✅ UAT ผ่าน |
+| **Session 62 (2026-05-14) — INTEL-SMART** | ✅ UAT ผ่าน (Session 86 · 2026-05-17) — Dedup+Cluster (×N score×count) · Fulfilled Tracking (intel_fulfilled table + recordFulfilledAction) · Trend Score (intel_snapshots daily · 📈/📉 โชว์วันที่ 2+) · INTEL-E ✅ UAT ผ่าน |
 | **Session 61 (2026-05-14) — UI-I + INTEL-E** | ✅ Live — UI-I: ฿20→฿30 / ฿10→฿20 / ฿7→฿10 ครบ 10 ไฟล์ + fix stale TIER_2 bug + fix request-only unit_price bug · INTEL-E: 5 features catalog analytics + WizardClient pre-fill |
 | **J18. Cart + Volume Pricing** | ✅ UAT ผ่าน 2026-05-08 (Session 28) |
 | **DC-3. DB Sequence Order ID** | ✅ Done · Live (Session 29) |
