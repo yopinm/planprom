@@ -7,6 +7,7 @@ import { recordFulfilledAction, rejectIdeaAction, revertRejectedAction, permanen
 import { SubmitButton } from './SubmitButton'
 import { ExcelUploader } from './ExcelUploader'
 import { ExcelS0Panel } from './ExcelS0Panel'
+import { fetchGscData } from '@/lib/gsc'
 
 export const metadata: Metadata = {
   title: 'Market Intelligence — Admin',
@@ -737,6 +738,8 @@ export default async function AdminMarketIntelPage() {
       demand: topDemand, demandColor: topDemandColor, ideas, audiences,
     }
   })
+
+  const gscData = await fetchGscData()
 
   return (
     <main className="min-h-screen bg-neutral-50 pb-20">
@@ -1619,6 +1622,103 @@ export default async function AdminMarketIntelPage() {
             {scoredTemplates.length === 0 && (
               <div className="rounded-2xl border border-neutral-200 bg-white px-5 py-8 text-center text-sm text-neutral-400">
                 — ยังไม่มี published template · เพิ่ม template แล้ว publish ก่อน
+              </div>
+            )}
+          </section>
+
+          {/* ── S7: Google Search Console ───────────────────────────────────── */}
+          <section id="s7">
+            <h2 className="text-base font-black text-neutral-800 mb-4">
+              07 · Google Search Console
+              <span className="ml-2 text-[10px] font-normal text-neutral-400">28 วันล่าสุด</span>
+            </h2>
+
+            {!gscData ? (
+              <div className="rounded-2xl border border-dashed border-neutral-200 bg-white px-5 py-8 text-center text-sm text-neutral-400">
+                ไม่สามารถดึงข้อมูล GSC ได้ · ตรวจสอบ GSC_CLIENT_ID / GSC_REFRESH_TOKEN ใน .env.local
+              </div>
+            ) : (
+              <div className="space-y-5">
+                {/* Summary cards */}
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  {[
+                    { label: 'Clicks',       value: gscData.clicks.toLocaleString(),                           sub: 'คลิกจาก Google',        color: 'text-emerald-700' },
+                    { label: 'Impressions',  value: gscData.impressions.toLocaleString(),                       sub: 'ครั้งที่เห็นใน SERP',   color: 'text-blue-700' },
+                    { label: 'Avg CTR',      value: `${(gscData.ctr * 100).toFixed(1)}%`,                       sub: 'อัตราคลิก',             color: 'text-violet-700' },
+                    { label: 'Avg Position', value: gscData.position > 0 ? gscData.position.toFixed(1) : '—',   sub: 'ตำแหน่งเฉลี่ย',        color: 'text-amber-700' },
+                  ].map(c => (
+                    <div key={c.label} className="rounded-2xl border border-neutral-200 bg-white px-4 py-3">
+                      <p className="text-[10px] font-black uppercase tracking-wider text-neutral-400">{c.label}</p>
+                      <p className={`text-2xl font-black ${c.color}`}>{c.value}</p>
+                      <p className="text-[10px] text-neutral-400">{c.sub}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  {/* Top Keywords */}
+                  <div className="rounded-2xl border border-neutral-200 bg-white overflow-hidden">
+                    <div className="px-4 py-3 border-b border-neutral-100 flex items-center justify-between">
+                      <p className="text-xs font-black text-neutral-700">🔍 Top Keywords</p>
+                      <p className="text-[10px] text-neutral-400">{gscData.topQueries.length} keywords</p>
+                    </div>
+                    {gscData.topQueries.length === 0 ? (
+                      <p className="px-4 py-6 text-center text-xs text-neutral-400">ยังไม่มีข้อมูล — รอ Google index ก่อน</p>
+                    ) : (
+                      <div className="divide-y divide-neutral-50">
+                        {gscData.topQueries.map((q, i) => (
+                          <div key={i} className="flex items-center gap-3 px-4 py-2.5">
+                            <span className="text-[10px] text-neutral-400 w-4 shrink-0">{i + 1}</span>
+                            <span className="flex-1 min-w-0 text-xs font-medium text-neutral-800 truncate">{q.query}</span>
+                            <span className="shrink-0 text-[10px] font-black text-emerald-600 w-8 text-right">{q.clicks}</span>
+                            <span className="shrink-0 text-[10px] text-neutral-400 w-10 text-right">{q.impressions.toLocaleString()}</span>
+                            <span className={`shrink-0 text-[10px] font-bold w-10 text-right ${q.position <= 10 ? 'text-emerald-600' : q.position <= 20 ? 'text-amber-600' : 'text-red-500'}`}>
+                              #{q.position.toFixed(0)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <div className="px-4 py-2 border-t border-neutral-50">
+                      <p className="text-[9px] text-neutral-300">Clicks · Impressions · Position</p>
+                    </div>
+                  </div>
+
+                  {/* Top Pages */}
+                  <div className="rounded-2xl border border-neutral-200 bg-white overflow-hidden">
+                    <div className="px-4 py-3 border-b border-neutral-100 flex items-center justify-between">
+                      <p className="text-xs font-black text-neutral-700">📄 Top Pages</p>
+                      <p className="text-[10px] text-neutral-400">{gscData.topPages.length} pages</p>
+                    </div>
+                    {gscData.topPages.length === 0 ? (
+                      <p className="px-4 py-6 text-center text-xs text-neutral-400">ยังไม่มีข้อมูล — รอ Google index ก่อน</p>
+                    ) : (
+                      <div className="divide-y divide-neutral-50">
+                        {gscData.topPages.map((p, i) => {
+                          const path = p.page.replace('https://planprom.com', '')
+                          return (
+                            <div key={i} className="flex items-center gap-3 px-4 py-2.5">
+                              <span className="text-[10px] text-neutral-400 w-4 shrink-0">{i + 1}</span>
+                              <span className="flex-1 min-w-0 text-[11px] font-medium text-neutral-700 truncate" title={p.page}>{path || '/'}</span>
+                              <span className="shrink-0 text-[10px] font-black text-emerald-600 w-8 text-right">{p.clicks}</span>
+                              <span className="shrink-0 text-[10px] text-neutral-400 w-10 text-right">{p.impressions.toLocaleString()}</span>
+                              <span className={`shrink-0 text-[10px] font-bold w-10 text-right ${p.position <= 10 ? 'text-emerald-600' : p.position <= 20 ? 'text-amber-600' : 'text-red-500'}`}>
+                                #{p.position.toFixed(0)}
+                              </span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                    <div className="px-4 py-2 border-t border-neutral-50">
+                      <p className="text-[9px] text-neutral-300">Clicks · Impressions · Position</p>
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-[10px] text-neutral-400 text-right">
+                  ข้อมูล: {gscData.startDate} → {gscData.endDate} · sc-domain:planprom.com
+                </p>
               </div>
             )}
           </section>
