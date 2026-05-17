@@ -2187,7 +2187,7 @@ CREATE TABLE template_searches (
 | **V15-PAY-5** | **Omise payment gateway** — Omise PromptPay QR + webhook (HMAC) · client polling · VPS env fix (server-with-env.js) · Cloudflare WAF bypass · J2 fraud gap resolved | ✅ done · ⏳ UAT (J9 live keys) |
 | **V15-UAT-1** | **Full UAT loop** — prerequisite: J1 OWNER_LINE_USER_ID · J9 live Omise keys · J8 template 2-10 | 🔲 pending prerequisites |
 | — | Owner สร้าง template ที่ 2-6 | 🔲 owner task |
-| — | LINE add friend → free template grant flow | 🔲 |
+| — | LINE add friend → free template grant flow | ❌ CANCELLED (2026-05-17 owner decision) |
 | — | Auto-tag cron (bestseller/trending) | 🔲 |
 
 ### Week 3 (21-27 พ.ค.) — Polish + Integration
@@ -2290,7 +2290,7 @@ Next priorities:
 [ ] Owner: set OWNER_LINE_USER_ID บน VPS (ดู memory project_pending_fraud_fix.md)
 [ ] Owner: สร้าง template ที่ 2-6 (Budget Planner, Habit Tracker, Resume, Wedding Planner, Reading Log)
 [ ] /templates catalog page (filter chips + search)
-[ ] LINE add friend → free template flow
+[x] LINE add friend → free template flow ❌ CANCELLED 2026-05-17
 [ ] Auto-tag cron
 ```
 
