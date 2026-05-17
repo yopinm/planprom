@@ -108,10 +108,16 @@ export type PlannerEngineDataV2 = {
 
 // ── Planner Pipeline v3 ──────────────────────────────────────────────────────
 
+export type PhaseWeek = {
+  label: string
+  tasks: string[]
+}
+
 export type PipelinePhase = {
   name: string
   timeRange: string
   tasks: string[]
+  weeks?: PhaseWeek[]
   budget?: string
 }
 

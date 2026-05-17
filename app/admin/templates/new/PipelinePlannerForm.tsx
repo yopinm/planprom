@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
-import type { PlannerPipelineDataV4, PipelineHorizon, PipelinePhase, PipelineBigRock, MonthlyPlanItem, WeeklyTaskItem, DailyRoutineItem } from '@/lib/engine-types'
+import type { PlannerPipelineDataV4, PipelineHorizon, PipelinePhase, PhaseWeek, PipelineBigRock, MonthlyPlanItem, WeeklyTaskItem, DailyRoutineItem } from '@/lib/engine-types'
 import type { PipelinePreset } from '@/lib/pipeline-presets'
 import type { SmartSuggestionResult } from './actions-preset'
 import { getSmartPresetSuggestions } from './actions-preset'
@@ -154,7 +154,7 @@ export function PipelinePlannerForm({ onChange, initialCatSlug }: Props) {
   // Stage 2 — summary (แสดงใน modal preview ลูกค้า)
   const [s2Summary, setS2Summary] = useState('')
   // Stage 2 — project mode only
-  const [phases,   setPhases]   = useState<PipelinePhase[]>([{ name: 'Phase 1', timeRange: '', tasks: [''], budget: '' }])
+  const [phases,   setPhases]   = useState<PipelinePhase[]>([{ name: 'Phase 1', timeRange: '', tasks: [''], weeks: [{ label: 'week1', tasks: [''] }], budget: '' }])
   const [bigRocks, setBigRocks] = useState<PipelineBigRock[]>([{ task: '', deadline: '' }])
 
   // Stage 3 — content-first (auto-synced from stage 2)
@@ -226,7 +226,12 @@ export function PipelinePlannerForm({ onChange, initialCatSlug }: Props) {
       : horizon === 'monthly'
         ? { month: horizonValue, monthlyWeekCount, summary: s2Summary || undefined }
         : {
-            phases: phases.filter(p => p.name.trim()).map(p => ({ ...p, tasks: p.tasks.filter(t => t.trim()) })),
+            phases: phases.filter(p => p.name.trim()).map(p => {
+              const weeks = p.weeks ?? [{ label: p.timeRange, tasks: p.tasks }]
+              const allTasks = weeks.flatMap(w => w.tasks).filter(t => t.trim())
+              const timeRange = weeks.map(w => w.label).filter(Boolean).join(' / ')
+              return { ...p, timeRange, tasks: allTasks, weeks }
+            }),
             bigRocks: bigRocks.filter(r => r.task.trim()),
             summary: s2Summary || undefined,
           }
@@ -533,16 +538,57 @@ export function PipelinePlannerForm({ onChange, initialCatSlug }: Props) {
                             className="text-red-400 text-sm px-1">✕</button>
                         )}
                       </div>
-                      <input value={p.timeRange}
-                        onChange={e => setPhases(prev => prev.map((x, j) => j === pi ? { ...x, timeRange: e.target.value } : x))}
-                        placeholder="ช่วงเวลา เช่น ม.ค. – ก.พ. 2026" className={INPUT} />
-                      <DynList items={p.tasks}
-                        onChange={tasks => setPhases(prev => prev.map((x, j) => j === pi ? { ...x, tasks } : x))}
-                        placeholder="งานที่ต้องทำใน Phase นี้" addLabel="เพิ่มงาน" />
+                      {/* Weeks */}
+                      <div className="space-y-2 pl-1">
+                        {(p.weeks ?? [{ label: p.timeRange, tasks: p.tasks }]).map((wk, wi) => {
+                          const weeks = p.weeks ?? [{ label: p.timeRange, tasks: p.tasks }]
+                          return (
+                            <div key={wi} className="rounded-lg border border-emerald-100 bg-emerald-50/50 p-2.5 space-y-2">
+                              <div className="flex gap-2 items-center">
+                                <input
+                                  value={wk.label}
+                                  onChange={e => {
+                                    const nw = weeks.map((w, j) => j === wi ? { ...w, label: e.target.value } : w)
+                                    setPhases(prev => prev.map((x, j) => j === pi ? { ...x, weeks: nw } : x))
+                                  }}
+                                  placeholder="ชื่อสัปดาห์ เช่น week1, Sprint 1"
+                                  className={`${INPUT} text-xs font-bold`}
+                                />
+                                {weeks.length > 1 && (
+                                  <button type="button"
+                                    onClick={() => {
+                                      const nw = weeks.filter((_, j) => j !== wi)
+                                      setPhases(prev => prev.map((x, j) => j === pi ? { ...x, weeks: nw } : x))
+                                    }}
+                                    className="shrink-0 text-red-400 hover:text-red-600 text-sm px-1">✕</button>
+                                )}
+                              </div>
+                              <DynList
+                                items={wk.tasks}
+                                onChange={tasks => {
+                                  const nw = weeks.map((w, j) => j === wi ? { ...w, tasks } : w)
+                                  setPhases(prev => prev.map((x, j) => j === pi ? { ...x, weeks: nw } : x))
+                                }}
+                                placeholder="งานที่ต้องทำ"
+                                addLabel="เพิ่มงาน"
+                              />
+                            </div>
+                          )
+                        })}
+                        <button type="button"
+                          onClick={() => {
+                            const weeks = p.weeks ?? [{ label: p.timeRange, tasks: p.tasks }]
+                            const nw: PhaseWeek[] = [...weeks, { label: `week${weeks.length + 1}`, tasks: [''] }]
+                            setPhases(prev => prev.map((x, j) => j === pi ? { ...x, weeks: nw } : x))
+                          }}
+                          className="text-xs font-black text-emerald-700 hover:text-emerald-800 pl-2">
+                          + เพิ่ม Week
+                        </button>
+                      </div>
                     </div>
                   ))}
                   <button type="button"
-                    onClick={() => setPhases(prev => [...prev, { name: `Phase ${prev.length + 1}`, timeRange: '', tasks: [''], budget: '' }])}
+                    onClick={() => setPhases(prev => [...prev, { name: `Phase ${prev.length + 1}`, timeRange: '', tasks: [''], weeks: [{ label: 'week1', tasks: [''] }], budget: '' }])}
                     className="text-xs font-black text-emerald-600 hover:text-emerald-700">
                     + เพิ่ม Phase
                   </button>
