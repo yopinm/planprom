@@ -609,6 +609,24 @@ CREATE TABLE admin_users (
 
 ---
 
+## Session 85 Changes (2026-05-17) — Request Only / Unlock Code Fix + Wizard Cleanup
+
+| # | Change | Status |
+|---|---|---|
+| 1 | **Budget+Risks visibility fix** — ย้าย budget inline กับชื่อ Phase + risks ขึ้นด้านบน card (เดิมซ่อนใต้ Big Rocks → ต้อง scroll) ทั้ง `PipelinePlannerForm.tsx` และ `ReviseClient.tsx` | ✅ Live |
+| 2 | **Request Only + Unlock Code UAT** — ยืนยัน flow ทำงาน: Approve → published → is_request_only → UnlockCode section โผล่ · Checklist ✅ · Pipeline/Preset ✅ · Report ✅ · Form ⏳ pending UAT | ✅ Confirmed |
+| 3 | **engine-report → draft_preview flow** — เพิ่ม `mode === 'engine-report'` เข้า condition ใน WizardClient Step 6 (title/description/button) ให้ consistent กับ engine อื่น — ก่อนหน้านี้ Report ได้ปุ่ม "draft/published" แทน draft_preview | ✅ Live |
+| 4 | **ซ่อน Engine: Planner Pipeline** — comment out mode card `engine-pipeline` ออกจาก wizard mode list ให้ใช้ Preset แทน (internal code ยังอยู่ครบ) | ✅ Live |
+
+### Files Changed
+| File | Change |
+|---|---|
+| `app/admin/templates/new/PipelinePlannerForm.tsx` | budget input inline กับ name · risks section ด้านบน card · ลบ budget+risks section เก่าด้านล่าง |
+| `app/admin/templates/[id]/revise/ReviseClient.tsx` | budget inline · risks ด้านบน · ลบ section เก่า |
+| `app/admin/templates/new/WizardClient.tsx` | เพิ่ม engine-report เข้า draft_preview list · ซ่อน engine-pipeline card |
+
+---
+
 ## Session 83 Changes (2026-05-16) — Pipeline Planner Drag-to-Reorder Stage 3-5
 
 | # | Change | Status |

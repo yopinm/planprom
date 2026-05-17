@@ -31,9 +31,9 @@
 | **Blockers** | Lazada pool=49 fixed · Affiliate tasks ❌ CLOSED 2026-05-13 (owner decision) |
 | **Next task** | **Engine Preset UAT** ⏳ (Guided Wizard · Smart Suggestion · PDF round-trip) |
 | **Pending (code)** | E9/E10 · UI-G(defer) |
-| **Pending (UAT)** | **Engine Preset UAT** ⏳ (Guided Wizard/Skip/Smart Suggestion · PDF round-trip) · **Engine UAT** 🟡 (Planner/Form/Report — Checklist ✅ · Upload PDF ✅) · **INTEL-SMART** 🟡 (trend arrows) · INTEL-BLOG-SCORE 🔲 · INTEL-C/D · DC-1 · DC-2 · DC-8 · DC-16 · E9/E10 · J9(รอ live keys) |
+| **Pending (UAT)** | **Engine Preset UAT** ⏳ (Guided Wizard/Skip/Smart Suggestion · PDF round-trip) · **Engine UAT** 🟡 (Form — Checklist/Pipeline/Report ✅) · **Request Only+UnlockCode** Form ⏳ · **INTEL-SMART** 🟡 (trend arrows) · INTEL-BLOG-SCORE 🔲 · INTEL-C/D · DC-1 · DC-2 · DC-8 · DC-16 · E9/E10 · J9(รอ live keys) |
 | **Pending (decision)** | Homepage UX: D (social proof bar) + B (featured badge pulse) — mock ready รอ confirm |
-| **Last session** | **Session 83 (2026-05-16)** — Pipeline Planner drag-to-reorder stage 3-5 (DynList + DailyRoutineList) |
+| **Last session** | **Session 85 (2026-05-17)** — Budget+Risks fix (phase card top) · engine-report→draft_preview · ซ่อน engine-pipeline wizard · Request+UnlockCode ✅ 3 engines |
 | **ห้าม** | ไม่แตะ Later task ขณะที่ Now ยังค้างอยู่ · ไม่แตะ secrets โดยตรง · ไม่ทำให้ revenue channel หายไประหว่าง pivot |
 | **Security rule** | ทุก admin feature ต้องตรวจ: role check · PII mask · no path disclosure · spawnSync array args (ดู §23 Manual) |
 
