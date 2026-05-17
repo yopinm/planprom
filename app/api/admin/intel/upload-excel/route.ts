@@ -80,20 +80,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'ไม่มีแถวที่ valid', details: errors }, { status: 400 })
   }
 
-  // Replace all — truncate then insert in a transaction-like sequence
-  await db`TRUNCATE intel_excel_ideas RESTART IDENTITY`
+  // Merge mode — upsert only, never truncate
+  // New ideas → INSERT · Existing (idea_text+engine_type) → UPDATE ranking+title_en
+  // Ideas not in this file → remain untouched in DB
   let inserted = 0
+  let updated  = 0
   for (const row of valid) {
-    await db`
+    const result = await db`
       INSERT INTO intel_excel_ideas (idea_text, title_en, ranking_need, engine_type)
       VALUES (${row.idea_text}, ${row.title_en}, ${row.ranking_need}, ${row.engine_type})
       ON CONFLICT (idea_text, engine_type) DO UPDATE
-        SET title_en = EXCLUDED.title_en,
+        SET title_en     = EXCLUDED.title_en,
             ranking_need = EXCLUDED.ranking_need,
-            uploaded_at = NOW()
+            uploaded_at  = NOW()
+      RETURNING (xmax = 0) AS is_insert
     `
-    inserted++
+    if (result[0]?.is_insert) inserted++; else updated++
   }
 
-  return NextResponse.json({ inserted, errors, total: rows.length })
+  return NextResponse.json({ inserted, updated, errors, total: rows.length })
 }

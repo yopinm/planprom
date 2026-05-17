@@ -1,7 +1,7 @@
 'use client'
 import { useRef, useState } from 'react'
 
-type UploadResult = { inserted: number; errors: string[]; total: number }
+type UploadResult = { inserted: number; updated: number; errors: string[]; total: number }
 
 export function ExcelUploader({ existingCount }: { existingCount: number }) {
   const inputRef   = useRef<HTMLInputElement>(null)
@@ -39,8 +39,8 @@ export function ExcelUploader({ existingCount }: { existingCount: number }) {
 
       {result && (
         <span className="text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
-          ✅ อัพโหลดสำเร็จ {result.inserted}/{result.total} รายการ
-          {result.errors.length > 0 && ` · ⚠ ข้าม ${result.errors.length} แถว`}
+          ✅ ใหม่ {result.inserted} · อัพเดต {result.updated} · รวม {result.total}
+          {result.errors.length > 0 && ` · ⚠ ข้าม ${result.errors.length}`}
         </span>
       )}
 
