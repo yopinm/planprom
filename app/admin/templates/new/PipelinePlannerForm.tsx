@@ -286,9 +286,13 @@ export function PipelinePlannerForm({ onChange, initialCatSlug }: Props) {
     setReviewQs(d.reviewQuestions)
   }
 
+  // Stage 4 hidden in project mode (daily items live inside taskItems in Stage 2)
+  const stage4Hidden = horizon === 'project'
+
   function canGoTo(n: number) {
+    if (stage4Hidden && n === 4) return false
     if (n <= stage) return true
-    if (n === 1) return true   // preset is optional — always allow proceeding
+    if (n === 1) return true
     if (n === 2) return stage1Valid
     if (n === 3) return stage1Valid && stage2Valid
     if (n === 4) return stage1Valid && stage2Valid
@@ -673,6 +677,25 @@ export function PipelinePlannerForm({ onChange, initialCatSlug }: Props) {
                           </button>
                         </div>
                       </div>
+                      {/* Budget + Risks */}
+                      <div className="mt-1 pt-2 border-t border-emerald-100 space-y-2">
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-emerald-700 mb-1.5">งบประมาณ</p>
+                          <input value={p.budget ?? ''}
+                            onChange={e => setPhases(prev => prev.map((x, j) => j === pi ? { ...x, budget: e.target.value } : x))}
+                            placeholder="เช่น ฿5,000 / ไม่มีงบ" className={INPUT} />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-rose-600 mb-1.5">ความเสี่ยง / Blocker</p>
+                          <DynList
+                            items={p.risks ?? ['']}
+                            onChange={risks => setPhases(prev => prev.map((x, j) => j === pi ? { ...x, risks } : x))}
+                            placeholder="เช่น ต้องรอ vendor ตอบ"
+                            addLabel="เพิ่ม Blocker"
+                            accentColor="rose"
+                          />
+                        </div>
+                      </div>
                     </div>
                   ))}
                   <button type="button"
@@ -945,7 +968,11 @@ export function PipelinePlannerForm({ onChange, initialCatSlug }: Props) {
       {/* Navigation */}
       <div className="flex gap-2">
         {stage > 0 && (
-          <button type="button" onClick={() => setStage(s => s - 1)}
+          <button type="button"
+            onClick={() => setStage(s => {
+              const prev = s - 1
+              return stage4Hidden && prev === 4 ? 3 : prev
+            })}
             className="flex-1 rounded-lg border border-neutral-200 py-2.5 text-sm font-black text-neutral-600 hover:border-neutral-400">
             ← ย้อนกลับ
           </button>
@@ -953,7 +980,10 @@ export function PipelinePlannerForm({ onChange, initialCatSlug }: Props) {
         {stage < 5 && (
           <button type="button"
             disabled={stage === 1 ? !stage1Valid : stage === 2 ? !stage2Valid : false}
-            onClick={() => setStage(s => s + 1)}
+            onClick={() => setStage(s => {
+              const next = s + 1
+              return stage4Hidden && next === 4 ? 5 : next
+            })}
             className="flex-1 rounded-lg bg-violet-600 py-2.5 text-sm font-black text-white transition hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed">
             {stage === 0 ? (stage0Preset ? `ใช้ Preset: ${stage0Preset.name} →` : 'ข้าม (กรอกเอง) →') : 'ถัดไป →'}
           </button>

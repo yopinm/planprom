@@ -57,9 +57,15 @@ function renderPhaseBody(p: PipelinePhase, c: { accent: string }): string {
           </div>`
         ).join('')}
       </div>` : ''
+  const phaseRisks = (p.risks ?? []).filter(r => r.trim())
+  const risksHtml = phaseRisks.length > 0
+    ? `<div style="margin-top:5px;padding:5px 8px;background:#fff1f2;border-radius:4px;border:1px solid #fecdd3">
+        <div style="font-size:7.5pt;font-weight:700;color:#be123c;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px">⚠ ความเสี่ยง / Blocker</div>
+        ${phaseRisks.map(r => `<div style="font-size:8.5pt;color:#9f1239;padding:1.5px 0">• ${esc(r)}</div>`).join('')}
+      </div>` : ''
   const budgetHtml = p.budget?.trim()
-    ? `<div style="font-size:8.5pt;color:#be123c;font-weight:700;margin-top:6px;padding-top:4px;border-top:1px dashed #e5e7eb">งบ: ${esc(p.budget)}</div>` : ''
-  return bigRocksHtml + tasksHtml + budgetHtml
+    ? `<div style="font-size:8.5pt;color:#be123c;font-weight:700;margin-top:5px;padding-top:4px;border-top:1px dashed #e5e7eb">งบ: ${esc(p.budget)}</div>` : ''
+  return bigRocksHtml + tasksHtml + budgetHtml + risksHtml
 }
 
 export function validatePlannerPipeline(data: PlannerPipelineData): void {
@@ -390,7 +396,9 @@ export function generatePlannerPipelineHtmlV4(data: PlannerPipelineDataV4, water
     // project — phases (each with per-phase bigRocks) + global bigRocks (backward compat)
     const phases = (s2.phases ?? []) as PipelinePhase[]
     const globalBigRocks = (s2.bigRocks ?? []) as PipelineBigRock[]
-    const v4PhasesHtml = phases.filter(p => p.name.trim()).map((p, i) =>
+    const activePhasess = phases.filter(p => p.name.trim())
+
+    const v4PhasesHtml = activePhasess.map((p, i) =>
       `<div style="border:1px solid #e5e7eb;border-radius:6px;padding:10px 12px;margin-bottom:8px;page-break-inside:avoid">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
           <div style="font-size:10pt;font-weight:700;color:${c.text}">ช่วงที่ ${i+1}: ${esc(p.name)}</div>
@@ -405,13 +413,68 @@ export function generatePlannerPipelineHtmlV4(data: PlannerPipelineDataV4, water
         ${r.deadline.trim() ? `<span style="font-size:8.5pt;color:#be123c;font-weight:700;white-space:nowrap;margin-left:6px">${esc(r.deadline)}</span>` : ''}
       </div>`
     ).join('')
+
+    // ── Kanban page (phases as columns, Big Rocks as cards) ──────────────────
+    const kanbanCols = activePhasess.map(p => {
+      const rocks = (p.bigRocks ?? []).filter(r => r.task.trim())
+      return `
+        <div style="flex:1;min-width:0;border:1px solid #e5e7eb;border-radius:6px;overflow:hidden">
+          <div style="background:${c.accent};color:#fff;font-size:8.5pt;font-weight:700;padding:5px 8px;text-align:center;word-break:break-word">${esc(p.name)}</div>
+          <div style="padding:6px;space-y:4px;min-height:80px">
+            ${rocks.length > 0
+              ? rocks.map(r => `
+                <div style="border:1px solid #e5e7eb;border-radius:4px;padding:5px 8px;margin-bottom:4px;background:#fff;page-break-inside:avoid">
+                  <div style="font-size:8.5pt;color:#374151;font-weight:600;word-break:break-word">${esc(r.task)}</div>
+                  ${r.deadline.trim() ? `<div style="font-size:7.5pt;color:#be123c;margin-top:2px">${esc(r.deadline)}</div>` : ''}
+                </div>`).join('')
+              : `<div style="font-size:8pt;color:#d1d5db;padding:8px 4px;text-align:center">—</div>`}
+          </div>
+        </div>`
+    }).join('')
+    const kanbanHtml = activePhasess.length > 0 ? `
+      <div class="sec" style="page-break-before:always">
+        <div class="sec-hdr">Kanban — งานสำคัญแต่ละช่วง</div>
+        <div style="display:flex;gap:8px;align-items:flex-start">
+          ${kanbanCols}
+        </div>
+      </div>` : ''
+
+    // ── Timeline page (Gantt-style: phases as horizontal bars) ────────────────
+    const timelineRows = activePhasess.map((p, i) => {
+      const totalPhases = activePhasess.length
+      const barW = Math.round(100 / totalPhases)
+      const barOffset = Math.round((i / totalPhases) * 100)
+      return `
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <div style="width:90px;font-size:8.5pt;font-weight:700;color:#374151;flex-shrink:0;word-break:break-word">${esc(p.name)}</div>
+          <div style="flex:1;position:relative;height:22px;background:#f3f4f6;border-radius:4px;overflow:hidden">
+            <div style="position:absolute;left:${barOffset}%;width:${barW}%;height:100%;background:${c.accent};border-radius:4px;opacity:0.85"></div>
+          </div>
+          ${p.timeRange?.trim()
+            ? `<div style="width:80px;font-size:7.5pt;color:#6b7280;flex-shrink:0;text-align:right">${esc(p.timeRange)}</div>`
+            : '<div style="width:80px"></div>'}
+        </div>`
+    }).join('')
+    const timelineHtml = activePhasess.length > 0 ? `
+      <div class="sec" style="page-break-before:always">
+        <div class="sec-hdr">Timeline — ลำดับช่วงเวลา</div>
+        ${s1.deadline.trim() ? `<div style="font-size:8.5pt;color:#6b7280;margin-bottom:12px">Deadline รวม: <strong style="color:#be123c">${esc(s1.deadline)}</strong></div>` : ''}
+        ${timelineRows}
+        <div style="margin-top:10px;display:flex;gap:4px;align-items:center">
+          <div style="width:20px;height:12px;background:${c.accent};border-radius:2px;opacity:0.85"></div>
+          <span style="font-size:8pt;color:#6b7280">= ช่วงเวลาของ phase (สัดส่วนเท่ากัน)</span>
+        </div>
+      </div>` : ''
+
     s2Html = `
       <div class="sec">
         <div class="sec-hdr">แผนดำเนินการ</div>
         ${s2.summary?.trim() ? `<div style="font-size:10pt;color:#374151;line-height:1.6;margin-bottom:8px;word-break:break-word">${esc(s2.summary)}</div>` : ''}
         ${v4PhasesHtml || '<p style="color:#9ca3af;font-size:9pt">ยังไม่มีช่วงดำเนินการ</p>'}
         ${globalBigRocksHtml2 ? `<div class="sub" style="margin-top:10px">งานสำคัญที่ต้องทำให้ได้</div>${globalBigRocksHtml2}` : ''}
-      </div>`
+      </div>
+      ${kanbanHtml}
+      ${timelineHtml}`
   }
 
   // helper: render a 1-3-5 weekly task block from WeeklyTaskItem

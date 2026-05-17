@@ -126,6 +126,7 @@ export type PipelinePhase = {
   weeks?: PhaseWeek[]
   bigRocks?: PipelineBigRock[]
   budget?: string
+  risks?: string[]
 }
 
 export type PipelineBigRock = {

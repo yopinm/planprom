@@ -1325,12 +1325,31 @@ function PipelineReviseFormV4({ initial, onChange }: {
                           + เพิ่ม Big Rock
                         </button>
                       </div>
+                      {/* Budget + Risks */}
+                      <div className="mt-1 pt-2 border-t border-emerald-100 space-y-2">
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-emerald-700 mb-1.5">งบประมาณ</p>
+                          <input value={p.budget ?? ''}
+                            onChange={e => setPhases(prev => prev.map((x, j) => j === pi ? { ...x, budget: e.target.value } : x))}
+                            placeholder="เช่น ฿5,000 / ไม่มีงบ" className={INPUT} />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-rose-600 mb-1.5">ความเสี่ยง / Blocker</p>
+                          <DynList
+                            items={p.risks ?? ['']}
+                            onChange={risks => setPhases(prev => prev.map((x, j) => j === pi ? { ...x, risks } : x))}
+                            placeholder="เช่น ต้องรอ vendor ตอบ"
+                            addLabel="เพิ่ม Blocker"
+                            color="emerald"
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )
               })}
               <button type="button"
-                onClick={() => setPhases(prev => [...prev, { name: `Phase ${prev.length + 1}`, timeRange: '', tasks: [''], weeks: [{ label: 'week1', tasks: [''] }], bigRocks: [{ task: '', deadline: '' }], budget: '' }])}
+                onClick={() => setPhases(prev => [...prev, { name: `Phase ${prev.length + 1}`, timeRange: '', tasks: [], weeks: [{ label: 'week1', tasks: [], taskItems: [{ task: '', dailyItems: [{ time: '', activity: '' }] }] }], bigRocks: [{ task: '', deadline: '' }], budget: '' }])}
                 className="text-xs font-black text-emerald-600">+ เพิ่ม Phase</button>
             </div>
           </div>
