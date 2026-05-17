@@ -81,3 +81,10 @@ export async function restoreStaleAction(formData: FormData) {
   }
   revalidatePath('/admin/template-analytics')
 }
+
+export async function deleteExcelIdeaAction(formData: FormData) {
+  await requireAdminSession('/admin/login')
+  const id = Number(formData.get('id'))
+  if (id > 0) await db`DELETE FROM intel_excel_ideas WHERE id = ${id}`.catch(() => null)
+  revalidatePath('/admin/template-analytics')
+}

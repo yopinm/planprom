@@ -3,7 +3,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { requireAdminSession } from '@/lib/admin-auth'
 import { db } from '@/lib/db'
-import { recordFulfilledAction, rejectIdeaAction, revertRejectedAction, permanentRejectAction, bulkPermanentRejectAction, restoreStaleAction } from './actions'
+import { recordFulfilledAction, rejectIdeaAction, revertRejectedAction, permanentRejectAction, bulkPermanentRejectAction, restoreStaleAction, deleteExcelIdeaAction } from './actions'
 import { CopyButton } from './CopyButton'
 import { SubmitButton } from './SubmitButton'
 import { ExcelUploader } from './ExcelUploader'
@@ -767,97 +767,118 @@ export default async function AdminMarketIntelPage() {
           </div>
         </div>
 
-        {/* ── S0: Excel Research Database ──────────────────────────────────── */}
-        {excelIdeas.length > 0 && (
-        <section>
-          <div className="flex items-center gap-3 pb-3 mb-6 border-b border-emerald-200">
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-700 text-[11px] font-black text-white">📊</span>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-neutral-800">Research Database — อัพโหลดเอง</p>
-              <p className="text-[10px] text-neutral-400">{excelIdeas.length} รายการ · {excelDisplayItems.filter(e => e.match !== null).length} covered · {excelDisplayItems.filter(e => e.match === null).length} gap · priority boost สูงกว่า Google Suggest</p>
-            </div>
-          </div>
+        {/* ── S0: Excel Research Database (collapsible) ───────────────────── */}
+        {excelIdeas.length > 0 && (() => {
+          const gapItems     = excelDisplayItems.filter(e => e.match === null)
+          const coveredItems = excelDisplayItems.filter(e => e.match !== null)
+          const suggestCount = excelDisplayItems.filter(e => e.inSuggest).length
 
-          {excelIdeas.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-8 text-center">
-              <p className="text-sm text-neutral-400">ยังไม่มีข้อมูล</p>
-            </div>
-          ) : (
-            <>
-              {/* Summary chips */}
-              <div className="flex flex-wrap gap-2 mb-4">
-                <span className="rounded-full bg-emerald-100 px-3 py-0.5 text-xs font-bold text-emerald-700">
-                  {excelIdeas.length} รายการทั้งหมด
+          function ExcelIdeaRow({ item }: { item: ExcelDisplayItem }) {
+            const engColor  = ENGINE_COLOR[item.engine_type] ?? 'border-neutral-200 bg-neutral-50 text-neutral-700'
+            const encTitle  = encodeURIComponent(item.idea_text)
+            const encEng    = item.engine_type === 'pipeline' ? 'planner-pipeline' : item.engine_type
+            const createUrl = `/admin/templates/new?title=${encTitle}&engine=${encEng}`
+            return (
+              <div className="flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2">
+                <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold border ${engColor}`}>
+                  {ENGINE_LABEL[item.engine_type] ?? item.engine_type}
                 </span>
-                <span className="rounded-full bg-green-100 px-3 py-0.5 text-xs font-bold text-green-700">
-                  ✅ มี template แล้ว {excelDisplayItems.filter(e => e.match !== null).length}
-                </span>
-                <span className="rounded-full bg-orange-100 px-3 py-0.5 text-xs font-bold text-orange-700">
-                  🟠 ยังไม่มี {excelDisplayItems.filter(e => e.match === null).length}
-                </span>
-                <span title="Excel ideas ที่คนค้นหาใน Google จริง — ยืนยันว่าตลาดต้องการ"
-                  className="rounded-full bg-indigo-100 px-3 py-0.5 text-xs font-bold text-indigo-600 cursor-help">
-                  🔍 ตรง Suggest {excelDisplayItems.filter(e => e.inSuggest).length}
-                </span>
+                <span className="flex-1 min-w-0 text-sm font-medium text-neutral-800 truncate">{item.idea_text}</span>
+                {item.inSuggest && (
+                  <span title="คนค้นหาใน Google จริง — ยืนยันความต้องการตลาด"
+                    className="shrink-0 rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-bold text-indigo-600 cursor-help">
+                    🔍 Suggest
+                  </span>
+                )}
+                {item.title_en && (
+                  <span className="hidden sm:block shrink-0 text-xs text-neutral-400 truncate max-w-[160px]">{item.title_en}</span>
+                )}
+                {item.match ? (
+                  <Link href={`/admin/templates/${item.match.id}/edit`}
+                    className="shrink-0 rounded-full bg-green-100 px-2.5 py-0.5 text-[11px] font-bold text-green-700 hover:bg-green-200">
+                    ✅ มีแล้ว
+                  </Link>
+                ) : (
+                  <Link href={createUrl}
+                    className="shrink-0 rounded-full bg-orange-100 px-2.5 py-0.5 text-[11px] font-bold text-orange-700 hover:bg-orange-200">
+                    + สร้าง
+                  </Link>
+                )}
+                {/* Delete button */}
+                <form action={deleteExcelIdeaAction}>
+                  <input type="hidden" name="id" value={item.id} />
+                  <button type="submit" title="ลบออกจาก Research DB"
+                    className="shrink-0 rounded px-1.5 py-0.5 text-[11px] text-neutral-400 hover:bg-red-50 hover:text-red-500 transition">
+                    ✕
+                  </button>
+                </form>
               </div>
+            )
+          }
 
-              {/* Group by ranking_need DESC */}
-              {[10, 9, 8, 7, 6, 5, 4, 3, 2, 1].map(rank => {
-                const group = excelDisplayItems.filter(e => e.ranking_need === rank)
-                if (!group.length) return null
-                const rankLabel = `${rank}/10`
-                const rankColor = rank >= 9 ? 'bg-red-100 text-red-700' : rank >= 7 ? 'bg-orange-100 text-orange-700' : rank >= 5 ? 'bg-amber-100 text-amber-700' : 'bg-neutral-100 text-neutral-500'
-                return (
-                  <div key={rank} className="mb-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-black ${rankColor}`}>
-                        ★ {rankLabel}
-                      </span>
-                      <span className="text-xs text-neutral-400">{group.length} รายการ</span>
+          function RankGroup({ items, label }: { items: ExcelDisplayItem[]; label: string }) {
+            return (
+              <>
+                {[10, 9, 8, 7, 6, 5, 4, 3, 2, 1].map(rank => {
+                  const group = items.filter(e => e.ranking_need === rank)
+                  if (!group.length) return null
+                  const rankColor = rank >= 9 ? 'bg-red-100 text-red-700' : rank >= 7 ? 'bg-orange-100 text-orange-700' : rank >= 5 ? 'bg-amber-100 text-amber-700' : 'bg-neutral-100 text-neutral-500'
+                  return (
+                    <div key={`${label}-${rank}`} className="mb-3">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-black ${rankColor}`}>★ {rank}/10</span>
+                        <span className="text-xs text-neutral-400">{group.length} รายการ</span>
+                      </div>
+                      <div className="space-y-1.5">
+                        {group.map(item => <ExcelIdeaRow key={item.id} item={item} />)}
+                      </div>
                     </div>
-                    <div className="space-y-1.5">
-                      {group.map(item => {
-                        const engColor = ENGINE_COLOR[item.engine_type] ?? 'border-neutral-200 bg-neutral-50 text-neutral-700'
-                        const encTitle = encodeURIComponent(item.idea_text)
-                        const encEng   = item.engine_type === 'pipeline' ? 'planner-pipeline' : item.engine_type
-                        const createUrl = `/admin/templates/new?title=${encTitle}&engine=${encEng}`
-                        return (
-                          <div key={item.id} className="flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2">
-                            <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold border ${engColor}`}>
-                              {ENGINE_LABEL[item.engine_type] ?? item.engine_type}
-                            </span>
-                            <span className="flex-1 min-w-0 text-sm font-medium text-neutral-800 truncate">{item.idea_text}</span>
-                            {item.inSuggest && (
-                              <span title="คนค้นหาใน Google จริง — ยืนยันความต้องการตลาด"
-                                className="shrink-0 rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-bold text-indigo-600 cursor-help">
-                                🔍 Suggest
-                              </span>
-                            )}
-                            {item.title_en && (
-                              <span className="hidden sm:block shrink-0 text-xs text-neutral-400 truncate max-w-[180px]">{item.title_en}</span>
-                            )}
-                            {item.match ? (
-                              <Link href={`/admin/templates/${item.match.id}/edit`}
-                                className="shrink-0 rounded-full bg-green-100 px-2.5 py-0.5 text-[11px] font-bold text-green-700 hover:bg-green-200">
-                                ✅ มีแล้ว
-                              </Link>
-                            ) : (
-                              <Link href={createUrl}
-                                className="shrink-0 rounded-full bg-orange-100 px-2.5 py-0.5 text-[11px] font-bold text-orange-700 hover:bg-orange-200">
-                                + สร้าง
-                              </Link>
-                            )}
-                          </div>
-                        )
-                      })}
-                    </div>
+                  )
+                })}
+              </>
+            )
+          }
+
+          return (
+            <details className="group" open>
+              <summary className="flex cursor-pointer list-none items-center gap-3 pb-3 mb-0 border-b border-emerald-200 select-none">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-700 text-[11px] font-black text-white">📊</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-neutral-800">Research Database — อัพโหลดเอง</p>
+                  <p className="text-[10px] text-neutral-400">
+                    {excelIdeas.length} รายการ · 🟠 gap {gapItems.length} · ✅ ทำแล้ว {coveredItems.length} · 🔍 ตรง Suggest {suggestCount}
+                  </p>
+                </div>
+                <span className="text-xs text-neutral-400 group-open:hidden">▼ ขยาย</span>
+                <span className="text-xs text-neutral-400 hidden group-open:inline">▲ ยุบ</span>
+              </summary>
+
+              <div className="mt-5 space-y-6">
+                {/* Sub-section: Gap — ยังไม่มี template */}
+                {gapItems.length > 0 && (
+                  <div>
+                    <p className="text-xs font-black text-orange-600 uppercase tracking-wider mb-3">
+                      🟠 ยังไม่มี template — {gapItems.length} รายการ
+                    </p>
+                    <RankGroup items={gapItems} label="gap" />
                   </div>
-                )
-              })}
-            </>
-          )}
-        </section>
-        )}
+                )}
+
+                {/* Sub-section: Covered — ทำแล้ว (collapsible, collapsed by default) */}
+                {coveredItems.length > 0 && (
+                  <details>
+                    <summary className="cursor-pointer list-none text-xs font-black text-green-700 uppercase tracking-wider mb-3 select-none hover:text-green-900">
+                      ✅ ทำแล้ว — {coveredItems.length} รายการ ▼
+                    </summary>
+                    <div className="mt-3">
+                      <RankGroup items={coveredItems} label="covered" />
+                    </div>
+                  </details>
+                )}
+              </div>
+            </details>
+          )
+        })()}
 
         {/* ── S1: KPI ─────────────────────────────────────────────────────── */}
         <section>
