@@ -103,6 +103,8 @@ curl -s -o /dev/null -w '%{http_code}' https://planprom.com/
 # ต้องได้ 200
 ```
 
+> **⛔ ห้ามข้าม `cp .env.local .next/standalone/.env.local`** — `npm run build` สร้าง `.next/standalone/` ใหม่ทุกครั้ง ลบ env เดิมทิ้ง · Next.js standalone อ่าน env จากโฟลเดอร์ `server.js` ไม่ใช่ project root · ถ้าลืม → `DATABASE_URL` หาย → postgres fallback เป็น OS user `root` → **admin login 500** (incident 2026-05-17)
+
 ## Session Output
 
 ```text

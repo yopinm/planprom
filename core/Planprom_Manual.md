@@ -925,6 +925,12 @@ ssh root@103.52.109.85 "pm2 restart planprom"
 curl -s -o /dev/null -w '%{http_code}' https://planprom.com/  # ต้องได้ 200
 ```
 
+> **⛔ ห้ามข้าม `cp .env.local .next/standalone/.env.local`**
+> `npm run build` สร้าง `.next/standalone/` ใหม่ทุกครั้ง — ไฟล์ `.env.local` ที่ copy ไว้ก่อนหน้าจะหายไป
+> Next.js standalone อ่าน env vars จากโฟลเดอร์เดียวกับ `server.js` (`.next/standalone/`) ไม่ใช่จาก project root
+> ถ้าลืม step นี้ → `DATABASE_URL` หาย → postgres fallback เชื่อมด้วย OS user `root` → `password authentication failed` → **admin login 500 ทันที**
+> *(incident 2026-05-17: admin เข้าระบบไม่ได้หลัง deploy stats panel เพราะลืม step นี้)*
+
 > ถ้ามี static manifest mismatch: ใช้ `rm -rf .next && npm run build` (clean rebuild)
 
 ### Nginx (planprom.com)
@@ -1316,3 +1322,4 @@ execSync(`tail -n ${n} "${path}"`)
 - [ ] มี absolute path หรือ secret ใน UI ไหม → ใช้ basename
 - [ ] มี `execSync` พร้อม string interpolation ไหม → เปลี่ยนเป็น `spawnSync` array
 - [ ] Export/Copy feature ส่งข้อมูลอะไรออกไปบ้าง → document ใน UI
+- [ ] **⛔ หลัง build: `cp .env.local .next/standalone/.env.local`** — ต้องทำทุกครั้ง ไม่มีข้อยกเว้น (ดู §22 Deploy Sequence)

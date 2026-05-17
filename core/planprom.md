@@ -2381,5 +2381,21 @@ Next priorities:
 
 ---
 
-_Last updated: 2026-05-17 (Session 85) · Domain: planprom.com live · SSL Full Strict + Cloudflare 8 settings ✅ · Security score ~80/100 · JWT 2h · PDPA ✅ · Deploy ✅ Smoke test ✅ · Checkout race condition fixed ✅ · Next: J9-ADMIN-1 (KYC) → J9-ADMIN-2 (live keys) → J9-ADMIN-4 (live UAT) → J8 (templates 2-10) → Soft Launch_
+---
+
+## ⛔ Deploy Rule — ห้ามลืม (Incident 2026-05-17)
+
+หลัง `npm run build` ต้อง copy `.env.local` ไปยัง standalone **ทุกครั้ง**:
+
+```bash
+cp .env.local .next/standalone/.env.local
+```
+
+**เหตุผล:** `npm run build` สร้าง `.next/standalone/` ใหม่ทุกครั้ง → ลบ `.env.local` เดิมทิ้ง
+Next.js standalone อ่าน env จากโฟลเดอร์ `server.js` อยู่ ไม่ใช่ project root
+ถ้าลืม → `DATABASE_URL` หาย → postgres fallback เป็น OS user `root` → **admin login 500**
+
+---
+
+_Last updated: 2026-05-17 (Session 86) · Domain: planprom.com live · SSL Full Strict + Cloudflare 8 settings ✅ · Security score ~80/100 · JWT 2h · PDPA ✅ · Deploy ✅ Smoke test ✅ · Checkout race condition fixed ✅ · Next: J9-ADMIN-1 (KYC) → J9-ADMIN-2 (live keys) → J9-ADMIN-4 (live UAT) → J8 (templates 2-10) → Soft Launch_
 _Owner: yopinm@gmail.com · LINE: yopinm · PromptPay: 0948859962_
