@@ -33,7 +33,7 @@
 | **Pending (code)** | E9/E10 · UI-G(defer) |
 | **Pending (UAT)** | **Engine UAT** 🟡 Form end-to-end · **Request Only+UnlockCode** Form ⏳ · **Engine Preset UAT** ⏳ (Guided Wizard/Skip/Smart Suggestion · PDF round-trip) · INTEL-BLOG-SCORE 🔲 · DC-1 · DC-2 · DC-8 · DC-16 · E9/E10 · **J9-ADMIN-4** (live payment UAT) |
 | **Pending (decision)** | Homepage UX: D (social proof bar) + B (featured badge pulse) — mock ready รอ confirm |
-| **Last session** | **Session 85 (2026-05-17)** — Budget+Risks fix · engine-report→draft_preview · ซ่อน engine-pipeline · Request+UnlockCode ✅ 3 engines · fix(checkout) webhook race condition (INSERT before Omise charge) |
+| **Last session** | **Session 86 (2026-05-17)** — INTEL-EXCEL ✅ (Excel upload + merge mode + tier filter + Next Build card + stats panel) · deploy .env.local incident fix + doc update ทุกไฟล์ |
 | **ห้าม** | ไม่แตะ Later task ขณะที่ Now ยังค้างอยู่ · ไม่แตะ secrets โดยตรง · ไม่ทำให้ revenue channel หายไประหว่าง pivot |
 | **Security rule** | ทุก admin feature ต้องตรวจ: role check · PII mask · no path disclosure · spawnSync array args (ดู §23 Manual) |
 | **⛔ Deploy rule** | หลัง `npm run build` ต้อง `cp .env.local .next/standalone/.env.local` ก่อน restart เสมอ — ขาดแล้ว admin login 500 (incident 2026-05-17) |
@@ -194,6 +194,7 @@
 | **UI-I** | Pricing ฿30/฿20/฿10 ทั้ง 10 ไฟล์ — fix 2 bugs (stale TIER_2 ฿8, request-only unit_price) | ✅ **UAT ผ่าน (Session 62)** |
 | **INTEL-E** | Catalog intelligence — S2a perf cards · S2b heatmap · S3 badge+pre-fill · S4 gap chips | ✅ **UAT ผ่าน (Session 62)** |
 | **INTEL-C/D** | 3-Level Coverage Card + Smart Engine Expansion | ✅ **UAT ผ่าน (Session 86 · 2026-05-17)** |
+| **INTEL-EXCEL** | Excel Upload + Merge Mode + Tier Filter (Confirmed/AI Only/Market/Quick Win) + Next Build Card + Stats Panel | ✅ **Done · UAT ผ่าน (Session 86 · 2026-05-17)** |
 | **DC-1** | Standard PDF Generator (.docx → A4) — checklist/planner UAT | 🟡 **Code Done · UAT Pending** |
 | **DC-2** | TOC Preview สารบัญ — toggle /templates · always-expanded /templates/[slug] | 🟡 **Code Done · UAT Pending** |
 | **DC-16** | Planner Pipeline v4 — 5-section time-cascade | 🟡 **UAT Pending** |
