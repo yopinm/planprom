@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
   const headers   = Object.keys(firstRow)
   const colThai   = headers.find(h => /ไทย|idea_text|ชื่อ/i.test(h))
   const colEn     = headers.find(h => /อังกฤษ|title_en|english/i.test(h))
-  const colRank   = headers.find(h => /อันดับ|ranking|rank|คะแนน/i.test(h))
+  const colRank   = headers.find(h => /อันดับ|ranking|rank|คะแนน|need/i.test(h))
   const colEngine = headers.find(h => /ประเภท|engine|type/i.test(h))
 
   if (!colThai || !colRank || !colEngine) {
