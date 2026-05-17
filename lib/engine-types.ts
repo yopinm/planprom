@@ -111,6 +111,7 @@ export type PlannerEngineDataV2 = {
 export type PhaseWeek = {
   label: string
   tasks: string[]
+  dailyItems?: { time: string; activity: string }[]
 }
 
 export type PipelinePhase = {

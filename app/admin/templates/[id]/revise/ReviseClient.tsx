@@ -67,6 +67,50 @@ function DynList({ items, onChange, placeholder, addLabel, color = 'emerald' }: 
   )
 }
 
+function DailyRoutineList({ items, onChange }: {
+  items: DailyRoutineItem[]; onChange: (v: DailyRoutineItem[]) => void
+}) {
+  const dragIdx = useRef<number | null>(null)
+  const [dragOver, setDragOver] = useState<number | null>(null)
+
+  function move(from: number, to: number) {
+    const n = [...items]
+    const [moved] = n.splice(from, 1)
+    n.splice(to, 0, moved)
+    onChange(n)
+  }
+
+  return (
+    <div className="space-y-2">
+      {items.map((dr, i) => (
+        <div key={i}
+          draggable
+          onDragStart={() => { dragIdx.current = i }}
+          onDragOver={e => { e.preventDefault(); setDragOver(i) }}
+          onDragLeave={() => setDragOver(null)}
+          onDrop={() => { setDragOver(null); if (dragIdx.current !== null && dragIdx.current !== i) move(dragIdx.current, i); dragIdx.current = null }}
+          onDragEnd={() => { dragIdx.current = null; setDragOver(null) }}
+          className={`flex gap-2 items-center rounded-lg transition-colors ${dragOver === i ? 'bg-amber-50 ring-1 ring-amber-300' : ''}`}
+        >
+          <span className="cursor-grab active:cursor-grabbing text-neutral-300 hover:text-neutral-500 select-none px-1 text-base">⠿</span>
+          <input value={dr.time}
+            onChange={e => onChange(items.map((x, j) => j === i ? { ...x, time: e.target.value } : x))}
+            placeholder="06:00" className={`${INPUT} w-24`} />
+          <input value={dr.activity}
+            onChange={e => onChange(items.map((x, j) => j === i ? { ...x, activity: e.target.value } : x))}
+            placeholder="กิจกรรม" className={INPUT} />
+          {items.length > 1 && (
+            <button type="button" onClick={() => onChange(items.filter((_, j) => j !== i))}
+              className="text-red-400 text-sm px-1">✕</button>
+          )}
+        </div>
+      ))}
+      <button type="button" onClick={() => onChange([...items, { time: '', activity: '' }])}
+        className="text-xs font-black text-amber-600 hover:text-amber-700 pl-6">+ เพิ่ม routine</button>
+    </div>
+  )
+}
+
 function Card({ title, color, children }: { title: string; color: string; children: React.ReactNode }) {
   const [open, setOpen] = useState(true)
   return (
@@ -965,10 +1009,12 @@ function PipelineReviseFormV4({ initial, onChange }: {
     initial.s2_timeplan.phases?.length
       ? initial.s2_timeplan.phases.map(p => ({
           ...p,
-          weeks: p.weeks?.length ? p.weeks : [{ label: p.timeRange || 'week1', tasks: p.tasks.length ? p.tasks : [''] }],
+          weeks: p.weeks?.length
+            ? p.weeks.map(w => ({ ...w, dailyItems: w.dailyItems?.length ? w.dailyItems : [{ time: '', activity: '' }] }))
+            : [{ label: p.timeRange || 'week1', tasks: p.tasks.length ? p.tasks : [''], dailyItems: [{ time: '', activity: '' }] }],
           bigRocks: p.bigRocks?.length ? p.bigRocks : [{ task: '', deadline: '' }],
         }))
-      : [{ name: 'Phase 1', timeRange: '', tasks: [''], weeks: [{ label: 'week1', tasks: [''] }], bigRocks: [{ task: '', deadline: '' }], budget: '' }]
+      : [{ name: 'Phase 1', timeRange: '', tasks: [''], weeks: [{ label: 'week1', tasks: [''], dailyItems: [{ time: '', activity: '' }] }], bigRocks: [{ task: '', deadline: '' }], budget: '' }]
   )
 
   const [weekCount,   setWeekCount]   = useState(initial.s3_weekly?.weekCount ?? 0)
@@ -1179,11 +1225,22 @@ function PipelineReviseFormV4({ initial, onChange }: {
                               setPhases(prev => prev.map((x, j) => j === pi ? { ...x, weeks: nw } : x))
                             }}
                             placeholder="งานที่ต้องทำ" addLabel="เพิ่มงาน" />
+                          {/* Daily items */}
+                          <div className="mt-2 pt-2 border-t border-emerald-100">
+                            <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600 mb-1.5">งานละเอียดรายวัน</p>
+                            <DailyRoutineList
+                              items={wk.dailyItems ?? [{ time: '', activity: '' }]}
+                              onChange={dailyItems => {
+                                const nw = weeks.map((w, j) => j === wi ? { ...w, dailyItems } : w)
+                                setPhases(prev => prev.map((x, j) => j === pi ? { ...x, weeks: nw } : x))
+                              }}
+                            />
+                          </div>
                         </div>
                       ))}
                       <button type="button"
                         onClick={() => {
-                          const nw: PhaseWeek[] = [...weeks, { label: `week${weeks.length + 1}`, tasks: [''] }]
+                          const nw: PhaseWeek[] = [...weeks, { label: `week${weeks.length + 1}`, tasks: [''], dailyItems: [{ time: '', activity: '' }] }]
                           setPhases(prev => prev.map((x, j) => j === pi ? { ...x, weeks: nw } : x))
                         }}
                         className="text-xs font-black text-emerald-700 hover:text-emerald-800 pl-2">

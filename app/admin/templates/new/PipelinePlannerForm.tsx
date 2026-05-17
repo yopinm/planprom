@@ -154,7 +154,7 @@ export function PipelinePlannerForm({ onChange, initialCatSlug }: Props) {
   // Stage 2 — summary (แสดงใน modal preview ลูกค้า)
   const [s2Summary, setS2Summary] = useState('')
   // Stage 2 — project mode only
-  const [phases,   setPhases]   = useState<PipelinePhase[]>([{ name: 'Phase 1', timeRange: '', tasks: [''], weeks: [{ label: 'week1', tasks: [''] }], bigRocks: [{ task: '', deadline: '' }], budget: '' }])
+  const [phases,   setPhases]   = useState<PipelinePhase[]>([{ name: 'Phase 1', timeRange: '', tasks: [''], weeks: [{ label: 'week1', tasks: [''], dailyItems: [{ time: '', activity: '' }] }], bigRocks: [{ task: '', deadline: '' }], budget: '' }])
 
   // Stage 3 — content-first (auto-synced from stage 2)
   const [monthlyPlans, setMonthlyPlans] = useState<MonthlyPlanItem[]>([])
@@ -572,13 +572,24 @@ export function PipelinePlannerForm({ onChange, initialCatSlug }: Props) {
                                 placeholder="งานที่ต้องทำ"
                                 addLabel="เพิ่มงาน"
                               />
+                              {/* Daily items */}
+                              <div className="mt-2 pt-2 border-t border-emerald-100">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600 mb-1.5">งานละเอียดรายวัน</p>
+                                <DailyRoutineList
+                                  items={wk.dailyItems ?? [{ time: '', activity: '' }]}
+                                  onChange={dailyItems => {
+                                    const nw = weeks.map((w, j) => j === wi ? { ...w, dailyItems } : w)
+                                    setPhases(prev => prev.map((x, j) => j === pi ? { ...x, weeks: nw } : x))
+                                  }}
+                                />
+                              </div>
                             </div>
                           )
                         })}
                         <button type="button"
                           onClick={() => {
                             const weeks = p.weeks ?? [{ label: p.timeRange, tasks: p.tasks }]
-                            const nw: PhaseWeek[] = [...weeks, { label: `week${weeks.length + 1}`, tasks: [''] }]
+                            const nw: PhaseWeek[] = [...weeks, { label: `week${weeks.length + 1}`, tasks: [''], dailyItems: [{ time: '', activity: '' }] }]
                             setPhases(prev => prev.map((x, j) => j === pi ? { ...x, weeks: nw } : x))
                           }}
                           className="text-xs font-black text-emerald-700 hover:text-emerald-800 pl-2">
@@ -629,7 +640,7 @@ export function PipelinePlannerForm({ onChange, initialCatSlug }: Props) {
                     </div>
                   ))}
                   <button type="button"
-                    onClick={() => setPhases(prev => [...prev, { name: `Phase ${prev.length + 1}`, timeRange: '', tasks: [''], weeks: [{ label: 'week1', tasks: [''] }], budget: '' }])}
+                    onClick={() => setPhases(prev => [...prev, { name: `Phase ${prev.length + 1}`, timeRange: '', tasks: [''], weeks: [{ label: 'week1', tasks: [''], dailyItems: [{ time: '', activity: '' }] }], bigRocks: [{ task: '', deadline: '' }], budget: '' }])}
                     className="text-xs font-black text-emerald-600 hover:text-emerald-700">
                     + เพิ่ม Phase
                   </button>
