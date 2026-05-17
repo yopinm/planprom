@@ -9,7 +9,7 @@ import type {
   PlannerDecisionMatrix, PlannerAxis3,
   PlannerPipelineData, PipelinePhase, PipelineBigRock, PipelineMetric,
   PlannerPipelineDataV4, PipelineHorizon, PipelineWeeklyLayout, PipelineDailyLayout,
-  MonthlyPlanItem, WeeklyTaskItem, DailyRoutineItem,
+  MonthlyPlanItem, WeeklyTaskItem, DailyRoutineItem, PhaseWeek,
 } from '@/lib/engine-types'
 import type { ReportEngineData, ReportTableData, ReportTextBlock } from '@/lib/engine-report-types'
 
@@ -961,8 +961,15 @@ function PipelineReviseFormV4({ initial, onChange }: {
   const [toMonth,          setToMonth]          = useState(initial.s2_timeplan.toMonth ?? 12)
   const [monthlyWeekCount, setMonthlyWeekCount] = useState(initial.s2_timeplan.monthlyWeekCount ?? 4)
   const [s2Summary,        setS2Summary]        = useState(initial.s2_timeplan.summary ?? '')
-  const [phases,   setPhases]   = useState<PipelinePhase[]>(initial.s2_timeplan.phases?.length ? initial.s2_timeplan.phases : [{ name: 'Phase 1', timeRange: '', tasks: [''], budget: '' }])
-  const [bigRocks, setBigRocks] = useState<PipelineBigRock[]>(initial.s2_timeplan.bigRocks?.length ? initial.s2_timeplan.bigRocks : [{ task: '', deadline: '' }])
+  const [phases,   setPhases]   = useState<PipelinePhase[]>(
+    initial.s2_timeplan.phases?.length
+      ? initial.s2_timeplan.phases.map(p => ({
+          ...p,
+          weeks: p.weeks?.length ? p.weeks : [{ label: p.timeRange || 'week1', tasks: p.tasks.length ? p.tasks : [''] }],
+          bigRocks: p.bigRocks?.length ? p.bigRocks : [{ task: '', deadline: '' }],
+        }))
+      : [{ name: 'Phase 1', timeRange: '', tasks: [''], weeks: [{ label: 'week1', tasks: [''] }], bigRocks: [{ task: '', deadline: '' }], budget: '' }]
+  )
 
   const [weekCount,   setWeekCount]   = useState(initial.s3_weekly?.weekCount ?? 0)
   const [weekLayout,  setWeekLayout]  = useState<PipelineWeeklyLayout>(initial.s3_weekly?.layout ?? '135rule')
@@ -987,8 +994,14 @@ function PipelineReviseFormV4({ initial, onChange }: {
       : horizon === 'monthly'
         ? { month: horizonValue, monthlyWeekCount, summary: s2Summary || undefined }
         : {
-            phases: phases.filter(p => p.name.trim()).map(p => ({ ...p, tasks: p.tasks.filter(t => t.trim()) })),
-            bigRocks: bigRocks.filter(r => r.task.trim()),
+            phases: phases.filter(p => p.name.trim()).map(p => {
+              const weeks = p.weeks ?? [{ label: p.timeRange, tasks: p.tasks }]
+              const allTasks = weeks.flatMap(w => w.tasks).filter(t => t.trim())
+              const timeRange = weeks.map(w => w.label).filter(Boolean).join(' / ')
+              const bigRocks = (p.bigRocks ?? []).filter(r => r.task.trim())
+              return { ...p, timeRange, tasks: allTasks, weeks, bigRocks }
+            }),
+            bigRocks: [],
             summary: s2Summary || undefined,
           }
 
@@ -1017,7 +1030,7 @@ function PipelineReviseFormV4({ initial, onChange }: {
     displayTitle, description, colorTheme, coverPage,
     goal, why, deadline, horizon, horizonValue,
     fromMonth, toMonth, monthlyWeekCount, s2Summary,
-    phases, bigRocks,
+    phases,
     weekCount, weekLayout, startDay, dayCount, dayLayout,
     monthlyPlans, weeklyPlans, flexItems,
     weeklyTasks, dailyRoutines,
@@ -1124,49 +1137,100 @@ function PipelineReviseFormV4({ initial, onChange }: {
           <div>
             <label className={LABEL}>Phase / ขั้นตอน</label>
             <div className="space-y-3">
-              {phases.map((p, pi) => (
-                <div key={pi} className="rounded-lg border border-emerald-100 p-3 space-y-2">
-                  <div className="flex gap-2">
-                    <input value={p.name}
-                      onChange={e => setPhases(prev => prev.map((x, j) => j === pi ? { ...x, name: e.target.value } : x))}
-                      placeholder={`Phase ${pi + 1}`} className={`${INPUT} font-bold`} />
-                    {phases.length > 1 && (
-                      <button type="button" onClick={() => setPhases(prev => prev.filter((_, j) => j !== pi))}
-                        className="text-red-400 text-sm px-1">✕</button>
-                    )}
+              {phases.map((p, pi) => {
+                const weeks = p.weeks ?? [{ label: p.timeRange || 'week1', tasks: p.tasks.length ? p.tasks : [''] }]
+                const brs = p.bigRocks ?? [{ task: '', deadline: '' }]
+                return (
+                  <div key={pi} className="rounded-lg border border-emerald-100 p-3 space-y-2">
+                    <div className="flex gap-2">
+                      <input value={p.name}
+                        onChange={e => setPhases(prev => prev.map((x, j) => j === pi ? { ...x, name: e.target.value } : x))}
+                        placeholder={`Phase ${pi + 1}`} className={`${INPUT} font-bold`} />
+                      {phases.length > 1 && (
+                        <button type="button" onClick={() => setPhases(prev => prev.filter((_, j) => j !== pi))}
+                          className="text-red-400 text-sm px-1">✕</button>
+                      )}
+                    </div>
+                    {/* Weeks */}
+                    <div className="space-y-2 pl-1">
+                      {weeks.map((wk, wi) => (
+                        <div key={wi} className="rounded-lg border border-emerald-50 bg-emerald-50/40 p-2.5 space-y-2">
+                          <div className="flex gap-2 items-center">
+                            <input value={wk.label}
+                              onChange={e => {
+                                const nw = weeks.map((w, j) => j === wi ? { ...w, label: e.target.value } : w)
+                                setPhases(prev => prev.map((x, j) => j === pi ? { ...x, weeks: nw } : x))
+                              }}
+                              placeholder="ชื่อสัปดาห์ เช่น week1"
+                              className={`${INPUT} text-xs font-bold`} />
+                            {weeks.length > 1 && (
+                              <button type="button"
+                                onClick={() => {
+                                  const nw = weeks.filter((_, j) => j !== wi)
+                                  setPhases(prev => prev.map((x, j) => j === pi ? { ...x, weeks: nw } : x))
+                                }}
+                                className="shrink-0 text-red-400 hover:text-red-600 text-sm px-1">✕</button>
+                            )}
+                          </div>
+                          <DynList
+                            items={wk.tasks}
+                            onChange={tasks => {
+                              const nw = weeks.map((w, j) => j === wi ? { ...w, tasks } : w)
+                              setPhases(prev => prev.map((x, j) => j === pi ? { ...x, weeks: nw } : x))
+                            }}
+                            placeholder="งานที่ต้องทำ" addLabel="เพิ่มงาน" />
+                        </div>
+                      ))}
+                      <button type="button"
+                        onClick={() => {
+                          const nw: PhaseWeek[] = [...weeks, { label: `week${weeks.length + 1}`, tasks: [''] }]
+                          setPhases(prev => prev.map((x, j) => j === pi ? { ...x, weeks: nw } : x))
+                        }}
+                        className="text-xs font-black text-emerald-700 hover:text-emerald-800 pl-2">
+                        + เพิ่ม Week
+                      </button>
+                    </div>
+                    {/* Big Rocks per phase */}
+                    <div className="mt-1 pt-2 border-t border-emerald-100">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-emerald-700 mb-2">งานสำคัญ (Big Rocks)</p>
+                      <div className="space-y-2">
+                        {brs.map((r, ri) => (
+                          <div key={ri} className="flex gap-2">
+                            <input value={r.task}
+                              onChange={e => {
+                                const nbr = brs.map((x, j) => j === ri ? { ...x, task: e.target.value } : x)
+                                setPhases(prev => prev.map((x, j) => j === pi ? { ...x, bigRocks: nbr } : x))
+                              }}
+                              placeholder="งานสำคัญ" className={INPUT} />
+                            <input value={r.deadline}
+                              onChange={e => {
+                                const nbr = brs.map((x, j) => j === ri ? { ...x, deadline: e.target.value } : x)
+                                setPhases(prev => prev.map((x, j) => j === pi ? { ...x, bigRocks: nbr } : x))
+                              }}
+                              placeholder="Deadline" className={`${INPUT} w-28`} />
+                            {brs.length > 1 && (
+                              <button type="button"
+                                onClick={() => {
+                                  const nbr = brs.filter((_, j) => j !== ri)
+                                  setPhases(prev => prev.map((x, j) => j === pi ? { ...x, bigRocks: nbr } : x))
+                                }}
+                                className="shrink-0 text-red-400 hover:text-red-600 text-sm px-1">✕</button>
+                            )}
+                          </div>
+                        ))}
+                        <button type="button"
+                          onClick={() => setPhases(prev => prev.map((x, j) => j === pi ? { ...x, bigRocks: [...(x.bigRocks ?? []), { task: '', deadline: '' }] } : x))}
+                          className="text-xs font-black text-emerald-700 hover:text-emerald-800 pl-2">
+                          + เพิ่ม Big Rock
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  <input value={p.timeRange}
-                    onChange={e => setPhases(prev => prev.map((x, j) => j === pi ? { ...x, timeRange: e.target.value } : x))}
-                    placeholder="ช่วงเวลา" className={INPUT} />
-                  <DynList items={p.tasks}
-                    onChange={tasks => setPhases(prev => prev.map((x, j) => j === pi ? { ...x, tasks } : x))}
-                    placeholder="งาน" addLabel="เพิ่มงาน" />
-                </div>
-              ))}
+                )
+              })}
               <button type="button"
-                onClick={() => setPhases(prev => [...prev, { name: `Phase ${prev.length + 1}`, timeRange: '', tasks: [''], budget: '' }])}
+                onClick={() => setPhases(prev => [...prev, { name: `Phase ${prev.length + 1}`, timeRange: '', tasks: [''], weeks: [{ label: 'week1', tasks: [''] }], bigRocks: [{ task: '', deadline: '' }], budget: '' }])}
                 className="text-xs font-black text-emerald-600">+ เพิ่ม Phase</button>
-            </div>
-          </div>
-          <div>
-            <label className={LABEL}>งานสำคัญ (Big Rocks)</label>
-            <div className="space-y-2">
-              {bigRocks.map((r, i) => (
-                <div key={i} className="flex gap-2">
-                  <input value={r.task}
-                    onChange={e => setBigRocks(prev => prev.map((x, j) => j === i ? { ...x, task: e.target.value } : x))}
-                    placeholder="งานสำคัญ" className={INPUT} />
-                  <input value={r.deadline}
-                    onChange={e => setBigRocks(prev => prev.map((x, j) => j === i ? { ...x, deadline: e.target.value } : x))}
-                    placeholder="Deadline" className={`${INPUT} w-32`} />
-                  {bigRocks.length > 1 && (
-                    <button type="button" onClick={() => setBigRocks(prev => prev.filter((_, j) => j !== i))}
-                      className="text-red-400 text-sm px-1">✕</button>
-                  )}
-                </div>
-              ))}
-              <button type="button" onClick={() => setBigRocks(prev => [...prev, { task: '', deadline: '' }])}
-                className="text-xs font-black text-emerald-600">+ เพิ่ม Big Rock</button>
             </div>
           </div>
         </Card>

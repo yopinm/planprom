@@ -118,6 +118,7 @@ export type PipelinePhase = {
   timeRange: string
   tasks: string[]
   weeks?: PhaseWeek[]
+  bigRocks?: PipelineBigRock[]
   budget?: string
 }
 

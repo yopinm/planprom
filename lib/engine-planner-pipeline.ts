@@ -63,8 +63,20 @@ export function generatePlannerPipelineHtml(data: PlannerPipelineData, watermark
     ${criteriaHtml ? `<div class="sub">รู้ว่าสำเร็จเมื่อ</div>${criteriaHtml}` : ''}`
 
   // ── Stage 2 ──────────────────────────────────────────────────────────────
-  const phasesHtml = s2.phases.filter(p => p.name.trim()).map((p, i) =>
-    `<div style="border:1px solid #e5e7eb;border-radius:6px;padding:10px 12px;margin-bottom:8px;page-break-inside:avoid">
+  const phasesHtml = s2.phases.filter(p => p.name.trim()).map((p, i) => {
+    const phaseBigRocks = (p.bigRocks ?? []).filter(r => r.task.trim())
+    const phaseBigRocksHtml = phaseBigRocks.length > 0
+      ? `<div style="margin-top:6px;padding-top:5px;border-top:1px dashed #e5e7eb">
+          <div style="font-size:8pt;font-weight:700;color:#6b7280;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.04em">งานสำคัญ</div>
+          ${phaseBigRocks.map(r =>
+            `<div style="display:flex;align-items:flex-start;gap:6px;padding:3px 0">
+              <span style="display:inline-block;width:7px;height:7px;background:${c.accent};border-radius:2px;flex-shrink:0;margin-top:3px"></span>
+              <span style="font-size:9pt;color:#374151;font-weight:600;flex:1;word-break:break-word;overflow-wrap:anywhere">${esc(r.task)}</span>
+              ${r.deadline.trim() ? `<span style="font-size:8pt;color:#be123c;font-weight:700;white-space:nowrap;margin-left:6px">${esc(r.deadline)}</span>` : ''}
+            </div>`
+          ).join('')}
+        </div>` : ''
+    return `<div style="border:1px solid #e5e7eb;border-radius:6px;padding:10px 12px;margin-bottom:8px;page-break-inside:avoid">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
         <div style="font-size:10pt;font-weight:700;color:${c.text}">ช่วงที่ ${i+1}: ${esc(p.name)}</div>
         ${p.timeRange.trim() ? `<div style="font-size:8.5pt;color:#6b7280">${esc(p.timeRange)}</div>` : ''}
@@ -72,11 +84,12 @@ export function generatePlannerPipelineHtml(data: PlannerPipelineData, watermark
       ${p.tasks.filter(t => t.trim()).map(t =>
         `<div style="font-size:9.5pt;color:#374151;padding:2px 0 2px 12px;border-bottom:1px dotted #f3f4f6">→ ${esc(t)}</div>`
       ).join('')}
+      ${phaseBigRocksHtml}
       ${p.budget?.trim() ? `<div style="font-size:8.5pt;color:#be123c;font-weight:700;margin-top:6px;padding-top:4px;border-top:1px dashed #e5e7eb">งบ: ${esc(p.budget)}</div>` : ''}
     </div>`
-  ).join('')
+  }).join('')
 
-  const bigRocksHtml = s2.bigRocks.filter(r => r.task.trim()).map(r =>
+  const globalBigRocksHtml = s2.bigRocks.filter(r => r.task.trim()).map(r =>
     `<div style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid #f3f4f6">
       <span style="display:inline-block;width:8px;height:8px;background:${c.accent};border-radius:2px;flex-shrink:0;margin-top:4px"></span>
       <span style="font-size:9.5pt;color:#374151;font-weight:600;flex:1;word-break:break-word;overflow-wrap:anywhere">${esc(r.task)}</span>
@@ -195,7 +208,7 @@ ${wm ? `body::before{content:"${wm}";position:fixed;top:50%;left:50%;transform:t
 <div class="sec" style="page-break-before:auto">
   <div class="sec-hdr">ขั้นที่ 2 — ลงมือทำ</div>
   ${phasesHtml}
-  ${bigRocksHtml ? `<div class="sub" style="margin-top:10px">งานสำคัญที่ต้องทำให้ได้</div>${bigRocksHtml}` : ''}
+  ${globalBigRocksHtml ? `<div class="sub" style="margin-top:10px">งานสำคัญที่ต้องทำให้ได้</div>${globalBigRocksHtml}` : ''}
 </div>
 
 <div class="sec" style="page-break-before:auto">
@@ -340,11 +353,23 @@ export function generatePlannerPipelineHtmlV4(data: PlannerPipelineDataV4, water
     }
 
   } else {
-    // project — phases + bigRocks
+    // project — phases (each with per-phase bigRocks) + global bigRocks (backward compat)
     const phases = (s2.phases ?? []) as PipelinePhase[]
-    const bigRocks = (s2.bigRocks ?? []) as PipelineBigRock[]
-    const phasesHtml = phases.filter(p => p.name.trim()).map((p, i) =>
-      `<div style="border:1px solid #e5e7eb;border-radius:6px;padding:10px 12px;margin-bottom:8px;page-break-inside:avoid">
+    const globalBigRocks = (s2.bigRocks ?? []) as PipelineBigRock[]
+    const v4PhasesHtml = phases.filter(p => p.name.trim()).map((p, i) => {
+      const phaseBigRocks = (p.bigRocks ?? []).filter(r => r.task.trim())
+      const phaseBigRocksHtml = phaseBigRocks.length > 0
+        ? `<div style="margin-top:6px;padding-top:5px;border-top:1px dashed #e5e7eb">
+            <div style="font-size:8pt;font-weight:700;color:#6b7280;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.04em">งานสำคัญ</div>
+            ${phaseBigRocks.map(r =>
+              `<div style="display:flex;align-items:flex-start;gap:6px;padding:3px 0">
+                <span style="display:inline-block;width:7px;height:7px;background:${c.accent};border-radius:2px;flex-shrink:0;margin-top:3px"></span>
+                <span style="font-size:9pt;color:#374151;font-weight:600;flex:1;word-break:break-word;overflow-wrap:anywhere">${esc(r.task)}</span>
+                ${r.deadline.trim() ? `<span style="font-size:8pt;color:#be123c;font-weight:700;white-space:nowrap;margin-left:6px">${esc(r.deadline)}</span>` : ''}
+              </div>`
+            ).join('')}
+          </div>` : ''
+      return `<div style="border:1px solid #e5e7eb;border-radius:6px;padding:10px 12px;margin-bottom:8px;page-break-inside:avoid">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
           <div style="font-size:10pt;font-weight:700;color:${c.text}">ช่วงที่ ${i+1}: ${esc(p.name)}</div>
           ${p.timeRange.trim() ? `<div style="font-size:8.5pt;color:#6b7280">${esc(p.timeRange)}</div>` : ''}
@@ -352,9 +377,10 @@ export function generatePlannerPipelineHtmlV4(data: PlannerPipelineDataV4, water
         ${p.tasks.filter(t => t.trim()).map(t =>
           `<div style="font-size:9.5pt;color:#374151;padding:2px 0 2px 12px;border-bottom:1px dotted #f3f4f6">→ ${esc(t)}</div>`
         ).join('')}
+        ${phaseBigRocksHtml}
       </div>`
-    ).join('')
-    const bigRocksHtml = bigRocks.filter(r => r.task.trim()).map(r =>
+    }).join('')
+    const globalBigRocksHtml2 = globalBigRocks.filter(r => r.task.trim()).map(r =>
       `<div style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid #f3f4f6">
         <span style="display:inline-block;width:8px;height:8px;background:${c.accent};border-radius:2px;flex-shrink:0;margin-top:4px"></span>
         <span style="font-size:9.5pt;color:#374151;font-weight:600;flex:1;word-break:break-word">${esc(r.task)}</span>
@@ -365,8 +391,8 @@ export function generatePlannerPipelineHtmlV4(data: PlannerPipelineDataV4, water
       <div class="sec">
         <div class="sec-hdr">แผนดำเนินการ</div>
         ${s2.summary?.trim() ? `<div style="font-size:10pt;color:#374151;line-height:1.6;margin-bottom:8px;word-break:break-word">${esc(s2.summary)}</div>` : ''}
-        ${phasesHtml || '<p style="color:#9ca3af;font-size:9pt">ยังไม่มีช่วงดำเนินการ</p>'}
-        ${bigRocksHtml ? `<div class="sub" style="margin-top:10px">งานสำคัญที่ต้องทำให้ได้</div>${bigRocksHtml}` : ''}
+        ${v4PhasesHtml || '<p style="color:#9ca3af;font-size:9pt">ยังไม่มีช่วงดำเนินการ</p>'}
+        ${globalBigRocksHtml2 ? `<div class="sub" style="margin-top:10px">งานสำคัญที่ต้องทำให้ได้</div>${globalBigRocksHtml2}` : ''}
       </div>`
   }
 
