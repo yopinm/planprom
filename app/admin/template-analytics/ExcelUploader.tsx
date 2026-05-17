@@ -20,6 +20,7 @@ export function ExcelUploader({ existingCount }: { existingCount: number }) {
       const json = await res.json()
       if (!res.ok) { setErrMsg(json.error ?? 'เกิดข้อผิดพลาด'); return }
       setResult(json)
+      setTimeout(() => window.location.reload(), 1200)
     } catch { setErrMsg('อัพโหลดไม่สำเร็จ') }
     finally   { setLoading(false); if (inputRef.current) inputRef.current.value = '' }
   }
