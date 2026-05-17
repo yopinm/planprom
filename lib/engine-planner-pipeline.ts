@@ -40,7 +40,7 @@ function renderPhaseBody(p: PipelinePhase, c: { accent: string }): string {
       </div>` : ''
   const budgetHtml = p.budget?.trim()
     ? `<div style="font-size:8.5pt;color:#be123c;font-weight:700;margin-top:6px;padding-top:4px;border-top:1px dashed #e5e7eb">งบ: ${esc(p.budget)}</div>` : ''
-  return tasksHtml + bigRocksHtml + budgetHtml
+  return bigRocksHtml + tasksHtml + budgetHtml
 }
 
 export function validatePlannerPipeline(data: PlannerPipelineData): void {
